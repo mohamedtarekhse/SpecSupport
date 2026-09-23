@@ -131,7 +131,7 @@ app.post('/api/earn/submit', async (c) => {
 
 app.post('/api/admin/ingest', async (c) => {
   const token = c.req.header('Authorization')
-  if (!token || token !== `Bearer ${c.env.ADMIN_TOKEN}`) {
+  if (!token || token !== `Bearer ${c.env.ADMIN_SECRET}`) {
     return c.json({ error: 'Unauthorized' }, 401)
   }
 
@@ -156,7 +156,7 @@ app.post('/api/admin/ingest', async (c) => {
 
 app.post('/api/admin/rules', async (c) => {
   const token = c.req.header('Authorization')
-  if (!token || token !== `Bearer ${c.env.ADMIN_TOKEN}`) {
+  if (!token || token !== `Bearer ${c.env.ADMIN_SECRET}`) {
     return c.json({ error: 'Unauthorized' }, 401)
   }
 
@@ -176,7 +176,7 @@ app.post('/api/admin/rules', async (c) => {
 
 app.get('/api/admin/config', async (c) => {
   const token = c.req.header('Authorization')
-  if (!token || token !== `Bearer ${c.env.ADMIN_TOKEN}`) return c.json({ error: 'Unauthorized' }, 401)
+  if (!token || token !== `Bearer ${c.env.ADMIN_SECRET}`) return c.json({ error: 'Unauthorized' }, 401)
   try {
     const res = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
     let config = {}
@@ -189,7 +189,7 @@ app.get('/api/admin/config', async (c) => {
 
 app.post('/api/admin/config', async (c) => {
   const token = c.req.header('Authorization')
-  if (!token || token !== `Bearer ${c.env.ADMIN_TOKEN}`) return c.json({ error: 'Unauthorized' }, 401)
+  if (!token || token !== `Bearer ${c.env.ADMIN_SECRET}`) return c.json({ error: 'Unauthorized' }, 401)
   try {
     const { openrouter_api_key, openrouter_model } = await c.req.json()
     
@@ -205,7 +205,7 @@ app.post('/api/admin/config', async (c) => {
 
 app.post('/api/admin/compare', async (c) => {
   const token = c.req.header('Authorization')
-  if (!token || token !== `Bearer ${c.env.ADMIN_TOKEN}`) return c.json({ error: 'Unauthorized' }, 401)
+  if (!token || token !== `Bearer ${c.env.ADMIN_SECRET}`) return c.json({ error: 'Unauthorized' }, 401)
   
   try {
     const { question, standard_filter } = await c.req.json()
