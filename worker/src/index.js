@@ -267,11 +267,11 @@ function cosineSimilarity(vecA, vecB) {
 }
 
 const fallbackModels = [
-  'qwen/qwen-2.5-72b-instruct:free',
-  'meta-llama/llama-3.1-70b-instruct:free',
-  'nvidia/llama-3.1-nemotron-70b-instruct:free',
-  'google/gemini-2.0-flash-lite-preview-02-05:free',
-  'deepseek/deepseek-r1-distill-llama-70b:free'
+  'nvidia/nemotron-3-super-120b-a12b:free',   // 120B — NVIDIA flagship
+  'nvidia/nemotron-3-ultra-550b-a55b:free',   // 550B — largest free model on OpenRouter
+  'google/gemma-4-31b-it:free',               // 31B instruction-tuned
+  'nex-agi/nex-n2.5-pro:free',                // reasoning specialist
+  'thinkingmachines/inkling:free'             // large context reasoning
 ]
 
 async function askOpenRouter(c, messages, stream) {
