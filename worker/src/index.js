@@ -140,8 +140,8 @@ app.post('/api/admin/ingest', async (c) => {
     const { standard_code, standard_name, section, clause, content } = chunk
     
     // Create embedding
-    const aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: content })
-    const embedding = JSON.stringify(aiResp.data[0])
+    const aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [content] })
+    const embedding = JSON.stringify(aiResp.data?.[0] ?? aiResp?.[0] ?? [])
     
     await c.env.DB.prepare(
       `INSERT INTO standards_chunks (standard_code, standard_name, section, clause, content, embedding)
@@ -285,9 +285,16 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
     }
   }
 
-  // Embed question
-  const aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: question })
-  const questionEmbedding = aiResp.data[0]
+  // Embed question using Workers AI
+  let questionEmbedding = []
+  try {
+    const aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [question] })
+    // Workers AI returns { data: [ [floats] ] } for batch or { data: [[floats]] }
+    questionEmbedding = aiResp.data?.[0] ?? aiResp?.[0] ?? []
+  } catch(embErr) {
+    // If embedding fails, fall back to keyword search (no vector scoring)
+    console.error('Embedding failed:', embErr.message)
+  }
   
   // Load chunks
   let query = `SELECT standard_code, standard_name, clause, content, embedding FROM standards_chunks`
