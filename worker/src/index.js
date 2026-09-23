@@ -214,9 +214,9 @@ function cosineSimilarity(vecA, vecB) {
 
 const fallbackModels = [
   'qwen/qwen-2.5-72b-instruct:free',
-  'qwen/qwen3-8b:free',
-  'nvidia/nemotron-3-ultra:free',
-  'google/gemini-2.5-pro:free'
+  'meta-llama/llama-3.1-8b-instruct:free',
+  'google/gemma-2-9b-it:free',
+  'google/gemini-2.0-flash-lite-preview-02-05:free'
 ]
 
 async function askOpenRouter(c, messages, stream) {
