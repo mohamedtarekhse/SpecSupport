@@ -1,0 +1,1016 @@
+[STANDARD: ASME V]
+[TITLE: ASME Boiler and Pressure Vessel Code Section V — Nondestructive Examination]
+[EDITION: 2023]
+[ARTICLE: 4 — Ultrasonic Examination]
+
+================================================================================
+GENERATED: 2026-09-23
+PURPOSE: AI-Powered Inspection Assistant — Field Reference Knowledge Base
+SCOPE: Ultrasonic Examination of Welds, Pressure Vessels, Piping, and Forgings
+REGION: Egypt / MENA Oilfield Operations
+LANGUAGE: English with Arabic field terms in parentheses
+================================================================================
+
+IMPORTANT DISCLAIMER:
+This knowledge file is generated for AI-assisted inspection support. All
+acceptance/rejection decisions must be confirmed against the current approved
+procedure, applicable code edition, and the responsible Level III or Engineer
+of Record. This document does not replace a qualified written procedure per
+T-420 or a certified UT technician's (فني الفحص بالموجات فوق الصوتية) judgment.
+
+================================================================================
+
+---
+
+CLAUSE: T-410
+TOPIC: Scope — Contact and Immersion Ultrasonic Examination Methods
+REFERENCE: ASME BPVC Section V, Article 4, T-410
+
+FIELD EXPLANATION:
+Article 4 covers ultrasonic examination (الفحص بالموجات فوق الصوتية) of welds,
+base materials, forgings, and castings used in pressure-retaining components.
+Two primary coupling methods are recognized: contact testing (الفحص بالتلامس
+المباشر) where the transducer touches the part surface directly through a
+thin couplant film, and immersion testing (الفحص بالغمر) where both the
+transducer and the part are submerged in a liquid column or a focused water
+jet column. Contact testing is the dominant method used in field and fabrication
+shop environments across oilfield operations in Egypt and the MENA region.
+Immersion testing is primarily used in automated shop scanning of plates,
+nozzles, and complex geometries. Article 4 applies when referenced by the
+Construction Code (e.g., ASME VIII Div. 1, B31.3) or the Owner's specification;
+it does not stand alone as an acceptance standard. The written procedure
+(الإجراء الكتابي المعتمد) must reference the applicable Construction Code
+for acceptance criteria. All examinations must be performed by personnel
+certified to at least UT Level II (المستوى الثاني) in accordance with
+ASNT SNT-TC-1A or ASME CP-189 as specified by the employer.
+
+ACCEPTANCE:
+- Examination method (contact or immersion) must be specified in the approved
+  written procedure before examination begins.
+- Personnel qualification: minimum UT Level II (المستوى الثاني للفحص).
+- Written procedure must be demonstrated and qualified per T-420.
+
+REJECTION:
+- Examination performed without an approved written procedure: REJECT the
+  entire examination — results are not valid and must be repeated.
+- UT Level I performing final evaluation without Level II supervision: REJECT
+  evaluation — re-evaluate under qualified Level II or Level III oversight.
+- Contact method used on geometries requiring immersion (e.g., curved OD < 4 in.
+  [100 mm] without contouring): REJECT scan coverage — procedure non-conformance.
+
+---
+
+CLAUSE: T-421
+TOPIC: Equipment — Pulse-Echo Instrumentation and Transducer Frequency Range
+REFERENCE: ASME BPVC Section V, Article 4, T-421
+
+FIELD EXPLANATION:
+The ultrasonic instrument (جهاز الموجات فوق الصوتية) shall be a pulse-echo
+type capable of generating and receiving frequencies in the range typically
+used for pressure equipment examination. The instrument must have a calibrated
+gain (amplifier) control readable in 2 dB increments or less, allowing precise
+sensitivity adjustment during calibration and scanning. The display (شاشة
+العرض) must have a linear horizontal sweep (A-scan presentation) and an
+amplitude response within ±5% linearity for screen height from 20% to 80% FSH
+(Full Screen Height — الارتفاع الكامل للشاشة). Transducer frequencies for
+weld and pressure-vessel examination typically fall in the 1 MHz to 6 MHz
+range; 2 MHz and 2.25 MHz are common for thick welds and heavy forgings
+(> 50 mm), while 4 MHz and 5 MHz are used for thinner materials and higher
+resolution needs. The instrument and transducer combination must be verified
+for linearity (خطية الجهاز) at the beginning of each examination shift. Screen
+height linearity and amplitude control linearity checks must be documented.
+Equipment used outdoors in desert environments (as common in Egyptian oilfields)
+must be verified to operate within the manufacturer's stated temperature range;
+typical instruments operate from -10°C to +55°C ambient.
+
+ACCEPTANCE:
+- Instrument frequency range: 1 MHz to 6 MHz (per T-421.1).
+- Amplitude control linearity: within ±20% of the nominal dB value throughout
+  the 20% to 80% FSH range (T-421.2).
+- Screen height linearity: within ±5% of FSH when checked per Mandatory
+  Appendix I of Article 4.
+- Gain control: readable in steps of 2 dB or less.
+- Operating temperature: within manufacturer's specified range, documented.
+
+REJECTION:
+- Instrument fails screen height linearity check (deviation > ±5% FSH): REJECT
+  instrument — remove from service, repair or replace, re-calibrate before use.
+- Amplitude control linearity outside ±20%: REJECT instrument — do not use for
+  examination until repaired and verified.
+- Gain control readable in steps > 2 dB: REJECT instrument — cannot ensure
+  calibration accuracy; replace unit.
+- No documentation of pre-shift linearity checks: REJECT all examination data
+  from that shift — re-examine with verified equipment.
+
+---
+
+CLAUSE: T-422
+TOPIC: Couplant (مادة الاقتران) — Requirements and Temperature Limits
+REFERENCE: ASME BPVC Section V, Article 4, T-422
+
+FIELD EXPLANATION:
+Couplant (مادة الاقتران أو مادة الربط) is the medium placed between the
+transducer face and the examination surface to eliminate air gaps and enable
+efficient ultrasonic energy transfer. ASME V T-422 requires that the couplant
+used during calibration be the same type (or demonstrated equivalent) as that
+used during the actual examination; switching couplant types between calibration
+and examination is not permitted without re-calibration. Common couplants used
+in MENA oilfield operations include glycerin (جليسرين), water-based gels, and
+light machine oil; for elevated-temperature surfaces, high-viscosity glycerin or
+purpose-made high-temperature pastes are used. For austenitic stainless steel
+and nickel alloy components, the couplant must be certified low-halide content
+(chloride content ≤ 200 ppm) to prevent stress corrosion cracking; this
+requirement applies universally in Egyptian petrochemical plants. On vertical or
+overhead surfaces, gel-type couplant must be used to prevent running and
+inconsistent coupling. The surface temperature at the point of examination must
+be within the couplant manufacturer's rated range; for standard glycerin, this
+is typically -20°C to +52°C (−4°F to +125°F). Above this range, a
+high-temperature couplant rated for the actual surface temperature must be used.
+After examination is complete, couplant must be removed from pressure boundary
+surfaces to prevent corrosion or coating adhesion problems.
+
+ACCEPTANCE:
+- Couplant type used during examination matches type used during calibration,
+  or acoustic equivalency is demonstrated and documented.
+- For austenitic SS and nickel alloys: couplant chloride content ≤ 200 ppm,
+  certified by supplier's SDS or lab test.
+- Surface temperature within couplant manufacturer's stated range.
+- Couplant removed from all examination surfaces after completion.
+
+REJECTION:
+- Couplant changed between calibration and examination without re-calibration:
+  REJECT all examination data — re-calibrate with correct couplant and
+  re-examine.
+- Chloride content > 200 ppm on austenitic SS or nickel alloy components:
+  REJECT couplant immediately — clean surface, replace with certified
+  low-halide couplant, re-examine.
+- Surface temperature exceeds standard couplant rating without using
+  high-temperature couplant: REJECT examination — couplant coupling is
+  unreliable; switch to approved HT couplant and re-examine.
+- Couplant not removed from ferritic carbon steel surfaces within 24 hours of
+  examination: FLAG for corrosion monitoring; clean immediately.
+
+---
+
+CLAUSE: T-423
+TOPIC: Calibration Blocks — IIW Block and Distance/Amplitude Curves (DAC)
+REFERENCE: ASME BPVC Section V, Article 4, T-423; Mandatory Appendix E
+
+FIELD EXPLANATION:
+Calibration blocks (كتل المعايرة) must be fabricated from material whose
+acoustic velocity and attenuation are representative of the examination
+material — same product form, material specification, and heat treatment
+condition, or demonstrated acoustic equivalency. The IIW (International
+Institute of Welding) Type 1 block (V1 block) or Type 2 (V2 block) is
+the standard reference block used for angle-beam calibration: it provides
+a 100 mm radius curved surface for distance calibration, a 1.5 mm diameter
+side-drilled hole for DAC reference, and a Perspex insert for checking
+the refracted beam angle (T-423.2). For straight-beam calibration, a
+step wedge calibration block or a basic calibration block with flat-bottom
+holes (FBHs) at specified depths is used to establish the Distance-Amplitude
+Correction (DAC) curve. DAC calibration requires establishing amplitude
+responses from reference reflectors (side-drilled holes — SDH, or
+flat-bottom holes — FBH) at a minimum of 3 points spanning the examination
+range (near field, mid-range, and far field). The calibration block thickness
+must encompass the thickness range being examined; a calibration block of
+thickness T can qualify examination of material from T/2 to 2T (per T-434.1).
+Calibration block surface finish must be representative of the examination
+surface condition. In field operations in Egypt, IIW V1 blocks are the most
+common; they must be accompanied by a calibration certificate and dimensional
+verification report traceable to national standards (EOS or equivalent).
+
+ACCEPTANCE:
+- Calibration block material: same P-Number and Group Number as examination
+  material, or acoustic velocity within ±5% of examination material velocity
+  (demonstrated by measurement).
+- IIW block dimensional tolerance: per AWS/IIW dimensional standard
+  (radius 100 ±0.5 mm; SDH 1.5 mm ±0.05 mm).
+- DAC curve established from minimum 3 reference reflector responses at
+  ≥ 3 depth positions spanning the full examination range (T-461.1).
+- Block thickness: calibrates thickness range of T/2 to 2T.
+- Calibration block surface finish: Ra ≤ 6.3 µm (250 µin) on scanning surface.
+
+REJECTION:
+- Calibration block material P-Number/Group does not match and acoustic
+  equivalency not demonstrated: REJECT block — fabricate or obtain correct
+  calibration block before examination.
+- Fewer than 3 DAC reference points established: REJECT DAC curve — rebuild
+  with minimum 3 data points.
+- IIW block dimensions outside tolerance (e.g., radius deviation > 0.5 mm):
+  REJECT block — recertify or replace.
+- Calibration block used for examination beyond its qualified thickness range
+  (outside T/2 to 2T): REJECT examination data — use correct thickness block
+  and re-examine.
+
+---
+
+CLAUSE: T-431
+TOPIC: Surface Preparation (تجهيز السطح) Requirements
+REFERENCE: ASME BPVC Section V, Article 4, T-431
+
+FIELD EXPLANATION:
+The examination surface (سطح الفحص) and adjacent areas within the scan zone
+must be free of weld spatter, scale, loose scale, paint of excessive
+thickness, and surface irregularities that would interfere with free movement
+of the search unit or impair the acoustic coupling. For weld examination,
+the weld crown (وجه اللحام) must be ground flush or dressed to allow the
+angle-beam transducer (البروب الزاوي) access to scan within 1/2 in. (13 mm)
+of the weld centerline where the geometry requires it. In practice, in
+Egyptian refinery and pressure vessel fabrication shops, the weld crown is
+typically allowed to remain un-dressed provided the transducer can achieve
+full code-required scan coverage from the adjacent base metal; if weld
+geometry blocks required scan paths, grinding flush is mandatory.
+Surface temperature at examination must be within the equipment's stated
+operational range as noted in T-421. Coated surfaces may be examined through
+coating provided the coating thickness is uniform and representative of the
+calibration surface condition used during calibration; otherwise, the coating
+must be removed in the scan zone before examination. Painted or coated welds
+in offshore or coastal Egyptian facilities require coating removal in the scan
+band (typically 50–75 mm either side of weld centerline) before UT scanning.
+
+ACCEPTANCE:
+- Surface cleanliness: free of weld spatter, loose mill scale, and paint
+  exceeding 1 mm (40 mils) unless examined through identical coating
+  thickness during calibration.
+- Surface roughness (خشونة السطح): Ra ≤ 6.3 µm (250 µin) on the scanning
+  surface contact zone.
+- Weld crown: ground flush or within profile that allows transducer to scan
+  within 13 mm of weld centerline as required by scan plan.
+- Coated surface examination: coating thickness uniform within ±10% of
+  calibration surface coating thickness.
+
+REJECTION:
+- Surface roughness Ra > 6.3 µm causing unreliable coupling: REJECT — dress
+  surface to meet requirement and re-examine.
+- Weld spatter in scan path preventing complete transducer contact: REJECT
+  partial scan — remove spatter, clean surface, re-examine affected scan area.
+- Coating thickness non-uniform (deviation > ±10% from calibration coating
+  thickness): REJECT examination through coating — remove coating, re-calibrate
+  on bare surface, re-examine.
+- Surface temperature outside equipment operating range at time of examination:
+  REJECT — adjust conditions, wait for cooling or heating as applicable.
+
+---
+
+CLAUSE: T-432
+TOPIC: Contact Scan — Straight Beam (Compression Wave / الموجة الضاغطة) Technique
+REFERENCE: ASME BPVC Section V, Article 4, T-432
+
+FIELD EXPLANATION:
+The straight-beam (compression wave — الموجة الضاغطة أو الموجة المحورية)
+contact technique uses a 0° transducer generating longitudinal waves
+perpendicular to the examination surface. This technique is the primary method
+for detecting laminations (طبقات أو انفصالات) in base material, for
+evaluating material thickness, and for verifying the acoustic path before
+angle-beam scanning. In weld examination per ASME V Article 4, straight-beam
+scanning of the base metal adjacent to the weld is performed prior to
+angle-beam examination to detect laminations that would interfere with the
+shear-wave beam path or produce false indications. The transducer is moved
+systematically over the base metal on both sides of the weld at a minimum scan
+width equal to 1.5× the maximum refracted beam path in the examination volume.
+The instrument gain is set so the back-wall reflection (صدى الجدار الخلفي)
+from the base metal reaches 75–80% FSH during calibration. Any area where the
+back-wall echo drops below 50% FSH (without a corresponding surface echo
+increase indicating thickness change) is flagged as a potential lamination and
+must be mapped and reported. Frequency selection: 4 MHz to 5 MHz for wall
+thicknesses up to 50 mm; 2 MHz to 2.25 MHz for thicknesses above 50 mm.
+
+ACCEPTANCE:
+- Back-wall echo (صدى الجدار الخلفي) during scanning: ≥ 75% FSH on sound
+  base metal areas, confirming adequate coupling and calibration.
+- Scan coverage of base metal adjacent to weld: 100% within the defined
+  scan band (minimum 1.5× maximum refracted beam path width on each side).
+- Frequency: 2 MHz to 5 MHz as specified in written procedure, appropriate
+  to material thickness.
+
+REJECTION:
+- Back-wall echo drops below 50% FSH in base metal without geometric
+  explanation: FLAG and MAP as suspected lamination — report, evaluate per
+  construction code lamination acceptance criteria.
+- Back-wall echo loss > 6 dB sustained over an area > 6.5 cm² (1 in.²)
+  without geometry change: REJECT base metal area as potentially laminated —
+  further evaluate before angle-beam examination.
+- Scan coverage < 100% of required base metal scan band: REJECT — complete
+  scanning before releasing weld for angle-beam UT.
+
+---
+
+CLAUSE: T-433
+TOPIC: Angle-Beam (Shear Wave — الموجة المستعرضة) Technique — Index Point
+         and Refracted Angle Verification
+REFERENCE: ASME BPVC Section V, Article 4, T-433
+
+FIELD EXPLANATION:
+The angle-beam shear-wave technique (تقنية الحزمة الزاوية — الموجة المستعرضة)
+is the primary method for detecting planar flaws (عيوب مستوية) such as cracks,
+lack of fusion (عدم الاندماج), and incomplete penetration in fusion welds.
+The transducer uses a plastic wedge to introduce the ultrasonic beam at a
+refracted angle — typically 45°, 60°, or 70° — into the examination material.
+Before each examination session and after any transducer change, the technician
+(الفني) must verify: (1) the exit point / index point (نقطة الخروج أو نقطة
+الصفر) of the beam using the IIW block radius, confirming it is within ±1 mm
+of the marked index point on the wedge; and (2) the actual refracted angle
+using the angle verification holes on the IIW block or V2 block, confirming
+the angle is within ±2° of the nominal angle. Beam spread and near-field
+calculations must be documented in the written procedure. Scanning is performed
+by moving the transducer parallel to the weld (longitudinal scan — المسح
+الطولي) and perpendicular to the weld (transverse scan — المسح العرضي) with
+the beam directed both toward and away from the weld, to achieve full volumetric
+coverage. The scan pattern must cover the entire weld cross-section including
+root (جذر اللحام), fusion zone (منطقة الاندماج), and heat-affected zone (HAZ
+— المنطقة المتأثرة بالحرارة).
+
+ACCEPTANCE:
+- Index point deviation: ≤ ±1 mm from marked reference on wedge (check on
+  IIW block 100 mm radius).
+- Refracted beam angle: within ±2° of nominal (45°, 60°, or 70°) — verified
+  on IIW or V2 block before each examination shift and after transducer change.
+- Full volumetric scan coverage of weld cross-section: 100% coverage including
+  root, body, and cap pass.
+- Scan performed in both transducer orientations (toward weld and away from
+  weld) for each required scan angle.
+
+REJECTION:
+- Index point deviation > ±1 mm: REJECT transducer/wedge — recondition wedge
+  face, re-verify before use. All data collected with out-of-tolerance wedge
+  must be re-examined.
+- Refracted angle deviation > ±2° from nominal: REJECT transducer setup —
+  replace wedge or transducer, re-calibrate, and re-examine entire weld.
+- Scan coverage < 100% of required weld volume: REJECT UT report — identify
+  uncovered zones, re-examine with supplemental angles or transducer positions.
+
+---
+
+CLAUSE: T-434
+TOPIC: Calibration Frequency — Recalibration Triggers (إعادة المعايرة)
+REFERENCE: ASME BPVC Section V, Article 4, T-434
+
+FIELD EXPLANATION:
+Calibration (المعايرة) is the process of adjusting the instrument's sweep
+range and gain settings using reference reflectors in the calibration block
+to establish a known sensitivity baseline before examination commences.
+ASME V T-434 defines the mandatory frequencies at which calibration must be
+verified and repeated. At a minimum, calibration must be performed: at the
+start of each examination, after any interruption of 30 minutes or more, after
+equipment change (instrument, transducer, cable, couplant, or battery),
+and at the end of each examination period to verify calibration has been
+maintained. If the equipment is found to have drifted at any verification
+check, all examination performed since the last valid calibration check must
+be considered suspect and re-examined. A calibration verification check
+(التحقق من المعايرة) consists of scanning the reference reflectors on the
+calibration block and confirming amplitude responses are within ±2 dB and
+distance positions are within ±1 mm or ±2% of sweep range (whichever is
+greater) of the original calibration values. In field operations in Egyptian
+desert conditions (high temperature variation between morning and afternoon),
+calibration drift due to temperature change in cables and transducers is common
+and must be checked after significant ambient temperature shifts (> 14°C /
+25°F change).
+
+ACCEPTANCE:
+- Calibration performed at start of every examination.
+- Calibration verification performed after any break ≥ 30 minutes, equipment
+  change, or shift end.
+- Calibration verification check amplitude: reference reflector response
+  within ±2 dB of original calibration amplitude.
+- Distance calibration verification: screen position within ±1 mm or ±2% of
+  sweep range (whichever is greater).
+
+REJECTION:
+- Calibration drift found: amplitude deviation > 2 dB from original
+  calibration: REJECT — determine last valid calibration time; all examination
+  performed since last valid calibration must be re-examined.
+- Distance drift > ±1 mm or ±2% of sweep at verification check: REJECT — same
+  consequence; re-examine all data since last valid check.
+- Calibration not performed at start of examination session: REJECT entire
+  examination session — no valid data accepted; re-examine from beginning
+  with verified calibration.
+- End-of-shift calibration verification not documented: FLAG as procedure
+  non-conformance — supervisor review required.
+
+---
+
+CLAUSE: T-441
+TOPIC: Distance-Amplitude Correction (DAC) Curve Construction
+         (منحنى تصحيح المسافة والسعة)
+REFERENCE: ASME BPVC Section V, Article 4, T-441; Mandatory Appendix C
+
+FIELD EXPLANATION:
+The Distance-Amplitude Correction (DAC) curve (منحنى DAC) compensates for the
+natural decay of ultrasonic beam amplitude with increasing sound path distance
+through the material. As the beam travels further, beam spread and material
+attenuation reduce the echo amplitude from identical reflectors at greater
+depths — the DAC curve corrects for this so that all reflectors of equivalent
+size produce equal amplitude readings regardless of depth. To construct the DAC
+curve, the technician scans the calibration block reference reflectors
+(side-drilled holes or flat-bottom holes) at a minimum of 3 separate depths
+covering the full examination thickness range. The peak echo amplitude from
+each reference hole is marked on the A-scan screen, and the resulting points
+are connected to form the DAC curve. The primary DAC line is drawn through
+these points and represents 100% DAC (reference level). Two additional curves
+are then established: the 50% DAC line (−6 dB below primary DAC) and the 20%
+DAC line (−14 dB below primary DAC). All indications during scanning are
+evaluated relative to these DAC lines. On modern digital UT instruments, the
+DAC curve is stored electronically and displayed dynamically as the sound path
+changes. For PAUT instruments, the TCG (Time-Corrected Gain) function
+automatically compensates amplitude — PAUT DAC/TCG setup is addressed
+separately in T-470 supplementary guidance. Re-draw the DAC whenever the
+transducer, couplant, instrument, or material changes.
+
+ACCEPTANCE:
+- Minimum 3 reference reflector data points required to construct the DAC
+  curve, spanning the full examination depth/distance range.
+- Each reference point amplitude recorded at peak response (maximize echo by
+  rocking and rotating transducer).
+- Primary DAC line plotted through all 3+ peak amplitude points.
+- 50% DAC (−6 dB) and 20% DAC (−14 dB) lines established from primary DAC.
+- DAC curves established with same transducer, wedge, instrument, cables, and
+  couplant as used in examination.
+
+REJECTION:
+- Fewer than 3 reference points used to establish DAC: REJECT DAC — reconstruct
+  with minimum 3 data points; all examination data collected with invalid DAC
+  is invalid and must be re-examined.
+- DAC established with different equipment than used in examination: REJECT
+  DAC — re-establish with actual examination equipment and re-examine.
+- Peak response not verified (transducer not maximized on each hole):
+  REJECT DAC point — re-maximize, re-mark, reconstruct curve.
+- DAC not redrawn after equipment or couplant change: REJECT all data collected
+  after change — re-calibrate, rebuild DAC, re-examine.
+
+---
+
+CLAUSE: T-442
+TOPIC: Reference Sensitivity — 6 dB Drop and 20 dB Drop Methods
+         (طرق حساسية الإشارة المرجعية)
+REFERENCE: ASME BPVC Section V, Article 4, T-442
+
+FIELD EXPLANATION:
+Reference sensitivity (الحساسية المرجعية) defines the gain level at which the
+examination is conducted, established from the calibration block reference
+reflectors. In ASME V Article 4, the primary sensitivity reference is the DAC
+curve itself — scanning is performed with the instrument set so that the
+reference reflector produces a response at the primary DAC (100% DAC / reference
+level). The 6 dB drop method (طريقة الانخفاض بمقدار 6 ديسيبل) is used primarily
+for reflector sizing: the transducer is moved until the peak echo from an
+indication drops by 6 dB (half amplitude / 50% of peak height), and the
+reflector boundary is marked at that point on both sides — the reflector length
+equals the distance between the 6 dB drop points. This method is valid when
+the reflector length is greater than the beam width at the examination depth.
+The 20 dB drop method (طريقة الانخفاض بمقدار 20 ديسيبل) maps the outer
+boundary of a reflector by finding positions where the echo drops to 10% of
+peak (20 dB below peak), and is typically used for mapping larger volumetric
+reflectors. The sensitivity setting used during scanning must be established
+and documented before scanning begins; scanning sensitivity (مستوى الحساسية
+أثناء المسح) is typically set at the primary DAC reference level, not at the
+evaluation or recording threshold level.
+
+ACCEPTANCE:
+- Scanning sensitivity: set so reference reflector (SDH or FBH per procedure)
+  produces response at primary DAC (100% DAC ≡ reference level ≡ 0 dB
+  correction).
+- 6 dB drop sizing: transducer positions where amplitude = 50% of peak are
+  recorded; distance between positions = reported reflector length.
+- 20 dB drop sizing: transducer positions where amplitude = 10% of peak
+  (−20 dB from peak) used for bounding volumetric or large reflectors.
+- All sizing performed with same calibration and gain settings as used during
+  detection scan.
+
+REJECTION:
+- Scanning sensitivity set below reference sensitivity (less sensitive than
+  DAC) without written justification: REJECT scan — scanning sensitivity must
+  be at or above reference sensitivity. Re-scan at correct sensitivity.
+- 6 dB drop sizing applied to reflectors smaller than beam width at that depth:
+  REJECT sizing result — use alternative sizing method (tip diffraction or
+  equivalent sizing technique per procedure).
+- Gain changed during scanning without recalibration: REJECT all data collected
+  at non-calibrated gain setting.
+
+---
+
+CLAUSE: T-450
+TOPIC: Scan Coverage Requirements — Overlap ≥ 10% (تداخل المسح)
+REFERENCE: ASME BPVC Section V, Article 4, T-450
+
+FIELD EXPLANATION:
+Complete volumetric coverage (تغطية حجمية كاملة) of the examination volume
+is the fundamental requirement of ASME V Article 4. For weld examination, the
+entire weld cross-section — including weld metal, heat-affected zone (HAZ —
+المنطقة المتأثرة بالحرارة), and adjacent base metal — must be interrogated
+by the ultrasonic beam at the required angle(s). T-450 requires that the
+scanning index overlap (تداخل الأثر الفعال للمسح) between adjacent passes be
+a minimum of 10% of the transducer element (crystal) size, ensuring that no
+gap exists between adjacent scan strips. In practice, the effective beam width
+at the examination depth governs the maximum scan index (scan pitch / خطوة
+المسح), and operators must verify that adjacent scan passes overlap by at
+least 10% of the near-surface beam diameter. For standard manual contact UT
+in oilfield field welds, a scan index (lateral step between passes) of no more
+than 1/2 the transducer active element dimension is typical. Examination
+coverage must be documented in the UT report using a scan map or scan diagram
+showing transducer positions, angles used, and zones covered. Areas of
+limited access (e.g., near nozzles, flanges, or supports) must be documented
+as scan limitations in the report, and alternative examination methods should
+be proposed if critical areas cannot be covered.
+
+ACCEPTANCE:
+- Scan index overlap: ≥ 10% of transducer active element size between
+  adjacent scan passes (T-450.2).
+- 100% of the required examination volume covered as defined in the written
+  procedure and scan plan.
+- Scan diagram or coverage map included in examination report confirming
+  full coverage.
+- All required scan directions completed (minimum: parallel and perpendicular
+  to weld axis for angle-beam; 0° for straight-beam base metal check).
+
+REJECTION:
+- Scan overlap < 10% of active element size between passes: REJECT scan
+  coverage — re-scan with corrected index to achieve minimum 10% overlap.
+- Any portion of required examination volume not covered (documented scan gap):
+  REJECT weld examination as incomplete — identify uncovered zone, re-scan
+  with additional transducer positions or angles.
+- Scan map not completed or coverage not documentable: REJECT UT report as
+  incomplete — document cannot be released without coverage verification.
+
+---
+
+CLAUSE: T-461
+TOPIC: Recording Thresholds — 100% DAC and 20% DAC Rules
+         (عتبات التسجيل والتوثيق)
+REFERENCE: ASME BPVC Section V, Article 4, T-461
+
+FIELD EXPLANATION:
+Recording thresholds (عتبات التسجيل) define the minimum indication amplitude
+above which the technician must record the indication in the UT examination
+report for further evaluation. ASME V T-461.1 establishes that all indications
+with amplitudes at or above 20% of the primary DAC level (20% DAC) must be
+investigated to determine their nature and origin. All indications with
+amplitudes at or above 100% DAC (primary reference level) must be recorded,
+characterized, and evaluated for acceptance or rejection against the applicable
+Construction Code. The three zones defined by the DAC curves create a practical
+decision framework: indications below 20% DAC (non-recordable zone — المنطقة
+غير القابلة للتسجيل) are typically not recorded unless their nature or
+location makes them significant; indications in the 20% to 100% DAC range
+(evaluation zone — منطقة التقييم) require investigation and characterization;
+indications at or above 100% DAC (recordable and rejectable zone — منطقة
+الرفض) must be recorded with all required data and evaluated. Note: the
+recording threshold (20% DAC) is an examination/documentation requirement per
+Article 4; the acceptance/rejection criteria (whether an indication > 100% DAC
+is actually rejectable) come from the Construction Code (e.g., ASME VIII,
+B31.3, API 1104). Distance, orientation, and classification of indications
+at or above 20% DAC must be recorded including sound path, transducer angle,
+and location coordinates.
+
+ACCEPTANCE:
+- Indications < 20% DAC: not required to be recorded (may be noted for
+  information if deemed significant by Level II).
+- Indications ≥ 20% DAC but < 100% DAC: must be investigated and documented
+  (location, amplitude, direction, depth); evaluated per construction code.
+- Indications ≥ 100% DAC: must be fully recorded and reported — amplitude,
+  location (weld station, depth, lateral position), sound path length, transducer
+  angle, and reflector length (by 6 dB drop or specified method).
+
+REJECTION:
+- Indication ≥ 100% DAC not recorded in the examination report: REJECT report —
+  missing required data; examiner must provide supplemental data from saved
+  A-scan or repeat examination.
+- Indication ≥ 20% DAC not investigated for classification: REJECT UT report
+  — incomplete evaluation; return to site for characterization of all
+  unclassified indications.
+- Recording threshold set above 20% DAC in procedure without Construction Code
+  approval: REJECT procedure as non-conforming — revise and re-qualify.
+
+---
+
+CLAUSE: T-462
+TOPIC: Characterization of Reflectors — Planar vs Volumetric
+         (تصنيف العواكس: مستوية أم حجمية)
+REFERENCE: ASME BPVC Section V, Article 4, T-462
+
+FIELD EXPLANATION:
+Characterization (تصنيف العاكس) determines the nature of a recorded indication:
+whether it is a planar reflector (عاكس مستوٍ — a crack, lack of fusion, or
+linear discontinuity lying in a plane essentially parallel to the beam) or a
+volumetric reflector (عاكس حجمي — a porosity cluster, slag inclusion, or void
+with extent in three dimensions). This distinction is critical because planar
+reflectors are generally more detrimental than volumetric ones of the same
+overall size. Characterization is performed using angle-beam scan data:
+a planar reflector typically produces a sharp, high-amplitude echo that
+maximizes strongly at a specific transducer position and angle, shows amplitude
+response from both forward and backward scan directions, and often shows tip
+diffraction signals from its upper and lower extremities. A volumetric reflector
+produces a broader, lower-amplitude response that changes slowly with transducer
+movement, typically with lower amplitude-to-length ratio. Scanning the indication
+from multiple angles (e.g., 45° and 70°) and from both sides of the weld aids
+characterization. The technician must document the characterization basis —
+using transducer response pattern, amplitude variations, and reflector geometry
+— in the examination report. ASME VIII Div. 1 and most Construction Codes apply
+more stringent acceptance limits to planar reflectors than volumetric ones.
+
+ACCEPTANCE:
+- Volumetric indication: characterized when amplitude response is gradual with
+  transducer movement, shows no sharp maximization, and is consistent from
+  multiple angles.
+- Planar indication: characterized when sharp amplitude peak is found at
+  specific transducer angle and position, often with tip diffraction signals.
+- Characterization must be documented with the scan angles used, amplitude
+  behavior description, and examiner's conclusion in the UT report.
+
+REJECTION:
+- Indication ≥ 100% DAC not characterized (not classified as planar or
+  volumetric): REJECT UT report — characterization is required for all
+  recordable indications; return for additional scanning or assessment.
+- Planar indication classified as volumetric without documented justification
+  from multi-angle scanning: REJECT classification — re-examine from additional
+  angles; apply planar reflector acceptance criteria as conservative default
+  until proper characterization is completed.
+
+---
+
+CLAUSE: T-463
+TOPIC: Sizing Methods — 6 dB Drop and Tip Diffraction
+         (طرق قياس الأبعاد: الانخفاض 6 ديسيبل وانعراج الطرف)
+REFERENCE: ASME BPVC Section V, Article 4, T-463; Mandatory Appendix I
+
+FIELD EXPLANATION:
+Sizing (قياس أبعاد العيب) determines the through-wall height and length of a
+detected reflector to enable engineering fitness-for-service assessment or
+Construction Code evaluation. Two primary sizing methods are recognized in
+ASME V Article 4 practice: (1) The 6 dB drop method (طريقة الانخفاض بـ 6
+ديسيبل) — the transducer is moved until the peak echo amplitude from the
+indication drops to 50% of its maximum (a 6 dB reduction), and the transducer
+cursor positions at each drop point define the reflector's edges. Length is
+the distance between two lateral 6 dB drop positions. This method is applicable
+when the reflector's extent is larger than the beam width. (2) Tip diffraction
+method (طريقة انعراج الطرف أو TOFD — Time of Flight Diffraction) identifies
+discrete diffraction signals from the upper and lower tips of a crack or
+lack-of-fusion defect; the time-of-flight difference between upper and lower
+tip signals directly converts to the through-wall height of the defect. TOFD
+is substantially more accurate for through-wall height sizing than amplitude
+methods and is preferred for fitness-for-service (FFS) assessments. When using
+the 6 dB drop for length sizing, the reported length is the distance between
+6 dB drop points on the scanning surface. Through-wall height by 6 dB drop
+requires precise depth coordinate calculations from sound path and refracted
+angle geometry.
+
+ACCEPTANCE:
+- 6 dB drop method applicable when reflector length > beam width at examination
+  depth (verify beam width from transducer specification or measurement).
+- Reported reflector length = distance between 6 dB drop positions (lateral
+  scan) on the scanning surface.
+- TOFD tip diffraction: height = (c × Δt) / 2, where c = shear wave velocity
+  and Δt = time difference between upper and lower tip diffraction signals.
+- Sizing results must be referenced to the weld coordinate system and recorded
+  in the UT report.
+
+REJECTION:
+- 6 dB drop sizing applied to reflectors smaller than beam width: REJECT length
+  measurement — beam width overestimates small reflectors; use alternative
+  method (TOFD or documented AWS Table 6.3 equivalent correction factor).
+- Tip diffraction sizing performed without documented velocity verification:
+  REJECT height measurement — verify shear wave velocity in material, recalculate.
+- Through-wall height sizing not performed on indications ≥ 100% DAC where
+  acceptance criterion is height-based: REJECT evaluation — perform required
+  sizing before accepting or rejecting the indication.
+
+---
+
+CLAUSE: T-470
+TOPIC: Evaluation of Indications — Amplitude Evaluation and Disposition
+         (تقييم الإشارات: تقييم السعة والقرار النهائي)
+REFERENCE: ASME BPVC Section V, Article 4, T-470; T-471
+
+FIELD EXPLANATION:
+Evaluation (التقييم) is the step following detection and characterization where
+the technician and/or Engineer applies the Construction Code acceptance criteria
+to determine whether an indication is acceptable or rejectable. ASME V Article 4
+itself does not contain acceptance criteria — it specifies only the examination
+method and recording requirements. Acceptance criteria are provided by the
+applicable Construction Code: for pressure vessels, ASME VIII Div. 1 Appendix 12;
+for piping, B31.3 Chapter VI; for pressure piping in refineries, API 570;
+for pipelines, API 1104; and for structural welds, AWS D1.1. The evaluation
+process in the field involves: (1) confirming the indication is real and not
+a geometric echo (false indication from weld crown, root geometry, or backing
+strip); (2) recording the amplitude as a percentage of DAC; (3) sizing the
+reflector; (4) classifying as planar or volumetric; and (5) comparing all
+measured parameters to the applicable code acceptance table. Amplitude alone
+is not sufficient for evaluation in all codes — AWS D1.1 and ASME VIII use
+amplitude combined with reflector length and distance from the weld surface.
+The Level II examiner makes the recording; the acceptance/rejection evaluation
+for Construction Code compliance may require Level III or engineer review
+depending on the employer's written practice.
+
+ACCEPTANCE:
+- Indication characterized and evaluated per all applicable Construction Code
+  criteria (amplitude, length, depth, and classification).
+- Indication evaluated using correct acceptance table for the applicable code
+  (e.g., ASME VIII Div. 1 App. 12 Table UW-52 or equivalent).
+- Geometric echoes (false indications from root, crown, or backing) confirmed
+  as non-relevant and documented with evidence (geometry sketch, supporting
+  scan data, or reference reflector comparison).
+
+REJECTION:
+- Any indication ≥ 100% DAC not evaluated against applicable Construction Code
+  acceptance criteria: REJECT weld — evaluation is incomplete; Level III review
+  required before acceptance.
+- Planar indication exceeding construction code length or amplitude acceptance
+  limit: REJECT weld — require repair (إعادة اللحام أو الإصلاح) and re-examination.
+- Volumetric indication exceeding applicable code limits for size or density:
+  REJECT weld — require repair and re-examination per repair procedure.
+- Indication classified as geometric (non-relevant) without documented
+  supporting evidence: REJECT classification — must provide documented basis;
+  re-examine with additional techniques to confirm.
+
+---
+
+CLAUSE: T-471
+TOPIC: Acceptance Criteria Reference — Construction Code Interface
+         (مرجع معايير القبول: الارتباط بكود البناء)
+REFERENCE: ASME BPVC Section V, Article 4, T-471; ASME VIII App. 12;
+            B31.3 Para. 344.6; AWS D1.1 Table 6.2 / 6.3
+
+FIELD EXPLANATION:
+As stated in T-471, the acceptance criteria to be applied in evaluating UT
+indications must come from the Construction Code under which the component
+is designed and fabricated — not from ASME V itself. This clause functions
+as a mandatory cross-reference requirement. The examiner must have the
+applicable acceptance table available at the examination site and must record
+which code and edition is being applied in the UT examination report. Common
+acceptance criteria references encountered in Egyptian petrochemical and oil
+and gas projects include: ASME VIII Div. 1 Mandatory Appendix 12 (UT of welds
+in pressure vessels), which uses a combination of amplitude above reference
+and reflector length; B31.3 para. 344.6 referring to Appendix 12 of ASME V
+for technique, with acceptance from ASME VIII or a project-specific standard;
+AWS D1.1 Annex S (UT of structural welds) which uses a dB rating system;
+and API 1104 Section 9 for pipeline girth weld UT. Examiners must verify that
+the acceptance table is from the correct edition of the Construction Code
+referenced by the project specification. In Egyptian projects governed by
+Egyptian Standard ES or ISO 17640, additional criteria from those standards
+may supplement the above. All acceptance decisions must be signed and dated
+by the responsible Level II or Level III.
+
+ACCEPTANCE:
+- ASME VIII Div. 1 App. 12: indications accepted when amplitude < 100% DAC
+  AND classified as non-planar; planar indications ≥ 100% DAC are rejectable.
+- B31.3 (per App. 12 reference): same amplitude criteria as ASME VIII App. 12.
+- AWS D1.1 (UT Class B welds): indication accepted when dB rating ≤ acceptance
+  value from Table 6.2 (combination of amplitude + weld thickness correction).
+- API 1104 Section 9: indications accepted when amplitude < 100% DAC AND
+  length < code-specified limits per discontinuity type and pipe wall thickness.
+
+REJECTION:
+- Any planar indication ≥ 100% DAC in ASME VIII or B31.3 pressure boundary
+  welds: REJECT — repair required regardless of length.
+- AWS D1.1: dB rating > acceptance value from Table 6.2 for the applicable
+  weld category: REJECT weld — repair and re-test.
+- API 1104: amplitude ≥ 100% DAC AND length exceeding code-permitted limits
+  for that indication type: REJECT weld — cut out and re-weld or engineer-
+  approved repair.
+- Acceptance criteria not identified in UT report (no code reference stated):
+  REJECT report as incomplete — add code reference and re-issue.
+
+---
+
+CLAUSE: T-491
+TOPIC: Report Requirements — Minimum Content of UT Examination Report
+         (متطلبات التقرير: الحد الأدنى لمحتوى تقرير الفحص)
+REFERENCE: ASME BPVC Section V, Article 4, T-491
+
+FIELD EXPLANATION:
+T-491 requires a written examination report (تقرير الفحص الكتابي) for every
+ultrasonic examination performed under Article 4. The report is a quality
+record that must be retained per the Construction Code and Owner's requirement
+(typically minimum 5 years for pressure equipment in Egypt per EPC/EGPC
+specifications, or the design life of the equipment). The minimum required
+content of the UT report per T-491 includes: equipment identification
+(manufacturer, model, serial number), transducer identification (frequency,
+size, type, serial number), calibration block identification and reference
+reflector data, couplant used, calibration date and personnel identification,
+component identification (drawing number, weld number, material, thickness),
+scan coverage diagram, all recorded indications with amplitude, location,
+depth, sound path, transducer angle, and classification, disposition (accept
+or reject with code reference), and the examiner's name, certification level,
+and signature. Digital UT instruments with data logging must have the scan file
+archived with the report. In Egyptian oil company (EGPC, EGAS, ENI Egypt,
+Eni/IEOC) projects, the UT report must typically also carry the third-party
+inspection company stamp and the Owner's inspector signature before the weld
+is released. Any open indications requiring disposition by Level III or
+engineering must be noted as "PENDING" until resolved.
+
+ACCEPTANCE:
+- Report must contain all mandatory elements per T-491 (see field explanation
+  above) — all 14 minimum data fields must be present.
+- All recorded indications (≥ 20% DAC) documented with amplitude, location,
+  depth, sound path, angle, and classification.
+- Disposition recorded for every indication: "Acceptable" or "Rejectable"
+  with specific code paragraph reference.
+- Examiner signature, certification level, and date on every report page.
+- Calibration data appended or referenced by unique calibration record number.
+
+REJECTION:
+- Report missing any mandatory T-491 data field: REJECT report — return to
+  examiner for completion; weld release is on hold pending complete report.
+- Indication recorded without disposition (blank disposition field): REJECT
+  report — all recorded indications must have documented disposition.
+- Report signed by Level I examiner without Level II countersignature: REJECT
+  report — Level I cannot independently release UT results; Level II or Level
+  III countersignature required.
+- No scan coverage diagram or coverage description: REJECT report — add
+  coverage diagram and re-issue.
+
+---
+
+CLAUSE: T-434.2 (Supplemental)
+TOPIC: Equipment Calibration Drift — When to Re-Examine
+         (انجراف معايرة الجهاز: متى يجب إعادة الفحص)
+REFERENCE: ASME BPVC Section V, Article 4, T-434.2; T-434.3
+
+FIELD EXPLANATION:
+Calibration drift (انجراف المعايرة) occurs when the instrument's calibration
+shifts from its established baseline during an examination session due to
+temperature change, battery depletion, component aging, or physical shock
+to the equipment. ASME V T-434.2 specifies that if, at any calibration
+verification check, the equipment is found to have drifted beyond permitted
+limits (> 2 dB amplitude change or > ±1 mm / ±2% sweep position change),
+all examination data collected since the last valid calibration verification
+is suspect and must be voided. A formal "drift event" (حدث الانجراف) must
+be documented in the examination record, identifying the time of last valid
+calibration, the time the drift was discovered, and the identity of all
+welds or areas examined during the suspect period. All welds in the suspect
+period must be re-examined after equipment is repaired or replaced and
+re-calibrated. In summer field conditions in Egypt (ambient temperatures
+reaching 45–50°C), battery-powered UT instruments frequently experience
+voltage sag that causes gain drift; calibration verification every 30
+minutes is strongly recommended under these conditions rather than waiting
+for the 30-minute mandatory minimum. Equipment that experiences physical
+shock (dropped transducer, cable pulled sharply) must be immediately
+re-calibrated before any further examination is recorded.
+
+ACCEPTANCE:
+- Calibration drift discovered at verification check within allowed limits:
+  ± 2 dB amplitude AND distance within ±1 mm or ±2% sweep — calibration
+  remains valid; document verification result and continue.
+- All calibration verification results documented chronologically in the
+  calibration log with time, result, and examiner initials.
+
+REJECTION:
+- Amplitude drift > 2 dB at verification check: REJECT all examination data
+  since last valid calibration — document drift event; re-calibrate; re-examine
+  all suspect welds.
+- Distance drift > ±1 mm or > ±2% sweep at verification check: REJECT all data
+  since last valid calibration — same consequence as amplitude drift.
+- Physical shock to equipment (dropped transducer, cable jerk) without immediate
+  re-calibration: REJECT all data collected after shock event — re-calibrate and
+  re-examine.
+- No calibration log entries for a shift: REJECT entire shift's examination data
+  — calibration history is unverifiable; re-examine all welds from that shift.
+
+---
+
+CLAUSE: T-420 (Supplemental)
+TOPIC: Phased Array Ultrasonic Testing (PAUT — الفحص الطوري متعدد العناصر)
+         — When Applicable and Basic Setup Requirements
+REFERENCE: ASME BPVC Section V, Article 4, T-420; Mandatory Appendix D;
+            ASME V Article 4 Nonmandatory Appendix N (PAUT)
+
+FIELD EXPLANATION:
+Phased Array Ultrasonic Testing (PAUT — الفحص بالموجات فوق الصوتية متعدد
+العناصر والتحكم في الطور) uses multi-element transducer arrays (typically 16,
+32, or 64 elements) with electronically controlled time delays to steer and
+focus the ultrasonic beam at multiple angles and depths simultaneously — without
+physically moving a single-element transducer wedge. PAUT is recognized within
+the ASME V Article 4 framework when implemented per a qualified written procedure,
+with the technique demonstrated to meet or exceed the detection capability of
+conventional UT. Under ASME V 2023, PAUT procedures must be formally qualified,
+either by demonstration or by use of a procedure qualification record (PQR)
+showing equivalent performance on representative specimens. PAUT basic setup
+elements required by the written procedure include: focal law file definition
+(element selection, aperture, delays), angular range and step (e.g., 40°–70°
+in 1° increments), focus depth or focal law optimization depth, index point
+verification for each active focal law, TCG (Time-Corrected Gain) calibration
+replacing conventional DAC for each focal law, reference sensitivity set from
+calibration block SDHs, and minimum required S-scan angular coverage of the
+weld cross-section. PAUT is increasingly mandatory in Egyptian refinery turnaround
+inspection (TAR) for code-compliant weld examination of high-value equipment
+where conventional UT coverage is limited by geometry.
+
+ACCEPTANCE:
+- PAUT procedure qualified by performance demonstration on a qualification test
+  block containing representative flaws of the minimum detectable size for the
+  applicable construction code.
+- Focal law file verified: index point per focal law within ±1 mm; refracted
+  angle per law within ±2° of nominal.
+- TCG calibration established from reference SDH at minimum 3 depths per focal
+  law, all reference amplitudes within ±2 dB after TCG application.
+- Full weld cross-section coverage demonstrated on procedure qualification block
+  before production examination.
+- S-scan angular range covers full required weld bevel geometry with ≥ 2°
+  overlap between adjacent angular positions.
+
+REJECTION:
+- PAUT procedure not formally qualified per T-420 or equivalent qualification
+  evidence: REJECT — PAUT results not acceptable; supplement with conventional
+  UT from a qualified procedure or formally qualify the PAUT procedure.
+- Index point deviation per focal law > ±1 mm: REJECT focal law file — recalculate
+  delays, re-verify, and re-calibrate before scanning.
+- TCG calibration deviation > ±2 dB from reference on any focal law: REJECT
+  TCG setup — rebuild focal law file and re-calibrate.
+- S-scan angular coverage gap leaving any portion of weld cross-section
+  unexamined: REJECT scan coverage — add supplemental focal laws or conventional
+  UT to cover gap.
+
+---
+
+CLAUSE: T-432 / T-433 (Supplemental)
+TOPIC: Weld Geometry Limitations — Crown, Root, Backing Strip, and Access
+         Restrictions Affecting Scan Coverage
+         (قيود هندسة اللحام: تأثير الوجه والجذر وشريط الدعم على المسح)
+REFERENCE: ASME BPVC Section V, Article 4, T-432; T-433; T-450;
+            ASME V Article 4 Nonmandatory Appendix B
+
+FIELD EXPLANATION:
+Weld geometry limitations (قيود هندسة اللحام) represent the most frequent
+source of incomplete scan coverage in field UT operations. Three primary
+geometric features cause scan limitations: (1) The weld crown (وجه اللحام
+المرتفع / reinforcement) — a raised weld crown prevents the angle-beam
+transducer from being positioned directly adjacent to the weld centerline,
+creating a dead zone (منطقة عمياء) near the weld root when scanning from
+one side. The crown height must be measured and documented; if crown height
+> 3 mm (1/8 in.) interferes with required beam path, the crown must be
+dressed flush. (2) The weld root with a backing strip (شريط الدعم / backing
+bar) — a permanent backing strip creates a geometric reflector at the weld
+root that can mask real root discontinuities (incomplete fusion to backing,
+root cracks). This is the most problematic condition in weld UT; the examiner
+must document the backing strip presence and the Construction Code's position
+on whether root zone UT is considered meaningful in this condition. ASME VIII
+App. 12 acknowledges that root zone detection is compromised by backing strips.
+(3) Access restrictions from nozzle, flange, or structural clamp proximity —
+when the scan cannot reach within the required minimum distance of the weld
+centerline, the uncovered zone must be documented in the scan limitation table
+of the UT report. Alternative methods (TOFD, PAUT, or RT) must be considered
+for areas with geometric scan limitation. Crown height ≤ 3 mm and smooth
+transition to base metal are targets for acceptable geometry.
+
+ACCEPTANCE:
+- Weld crown height: ≤ 3 mm (1/8 in.) with smooth blend to base metal — allows
+  transducer positioning within code-required distance of weld centerline.
+- Backing strip (permanent): document its presence in UT report; root zone UT
+  is performed but results are qualified with notation that geometric masking
+  may affect detectability of root discontinuities.
+- Access restriction: document the unexamined volume precisely (station, depth
+  range, and reason). Propose alternative examination method for unexamined zone.
+- Scan limitation noted and signed by Level II: acceptable as documented
+  limitation provided alternative method is applied or Owner accepts the risk
+  in writing.
+
+REJECTION:
+- Weld crown height > 3 mm (1/8 in.) blocking required transducer access to
+  weld centerline: REJECT — crown must be dressed flush before UT is performed;
+  document in NCR (Non-Conformance Report — تقرير عدم المطابقة).
+- Backing strip present and root zone UT reported as "complete and valid" without
+  acknowledging geometric masking: REJECT characterization — UT report must note
+  the limitation; root zone results qualified accordingly.
+- Unexamined volume > 5% of required examination volume with no alternative
+  examination method proposed or applied: REJECT weld as insufficiently examined
+  — apply supplemental method (TOFD, RT, or PAUT) to cover the gap.
+- Crown geometry causing scan gap > 3 mm through-wall at the root zone without
+  documentation: REJECT report — undocumented geometric limitation is a
+  reportable procedure non-conformance.
+
+---
+
+================================================================================
+END OF ASME V ARTICLE 4 — ULTRASONIC EXAMINATION KNOWLEDGE FILE
+TOTAL CLAUSES: 20
+GENERATION DATE: 2026-09-23
+FILE VERSION: 1.0
+================================================================================
+
+QUICK REFERENCE — KEY NUMERIC LIMITS (ASME V ARTICLE 4):
+
+| Parameter                         | Limit / Value               |
+|-----------------------------------|-----------------------------|
+| Transducer frequency range        | 1 MHz – 6 MHz               |
+| Amplitude control linearity       | ±20% of nominal dB value    |
+| Screen height linearity           | ±5% FSH                     |
+| Gain control step maximum         | 2 dB                        |
+| Index point tolerance             | ±1 mm                       |
+| Refracted angle tolerance         | ±2° of nominal              |
+| Calibration verification interval | Every 30 minutes (minimum)  |
+| Calibration amplitude drift limit | ±2 dB                       |
+| Calibration distance drift limit  | ±1 mm or ±2% sweep          |
+| DAC minimum reference points      | 3 points                    |
+| Primary DAC = Reference level     | 100% DAC = 0 dB correction  |
+| Evaluation zone                   | 20% DAC to 100% DAC         |
+| Recording threshold               | ≥ 20% DAC                   |
+| Mandatory recording/evaluation    | ≥ 100% DAC                  |
+| Scan overlap minimum              | 10% of active element size  |
+| Surface roughness max (scan zone) | Ra ≤ 6.3 µm (250 µin)       |
+| Couplant Cl content (SS/Ni alloy) | ≤ 200 ppm chloride          |
+| Calibration block thickness range | T/2 to 2T                   |
+| Weld crown height max (no dress)  | ≤ 3 mm (1/8 in.)            |
+| PAUT index point per focal law    | ±1 mm                       |
+| PAUT angle per focal law          | ±2° of nominal              |
+| PAUT TCG calibration tolerance    | ±2 dB                       |
+| 6 dB drop = reflector edge at     | 50% of peak amplitude       |
+| 20 dB drop = reflector edge at    | 10% of peak amplitude       |
+
+================================================================================

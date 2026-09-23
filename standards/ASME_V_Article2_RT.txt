@@ -1,0 +1,1312 @@
+[STANDARD: ASME V]
+[TITLE: ASME Boiler and Pressure Vessel Code Section V — Nondestructive Examination]
+[EDITION: 2023]
+[ARTICLE: 2 — Radiographic Examination]
+
+================================================================================
+GENERAL NOTES
+================================================================================
+This knowledge file is structured for use by an AI-powered inspection assistant
+operating in oilfield, refinery, petrochemical, and pressure equipment fabrication
+environments in Egypt and the MENA region. All clause numbers follow the ASME
+Section V, 2023 Edition, Article 2 numbering convention (T-2xx series). Acceptance
+and rejection criteria are stated as hard numeric limits — no grey zones. Arabic
+terms are included in parentheses where commonly used in Egyptian/MENA oilfield
+practice. All density values are optical density (OD) unless stated otherwise.
+Field inspectors (مفتشي اللحام والفحص بالأشعة) should verify that all referenced
+documents are current-edition before applying this file.
+================================================================================
+
+---
+
+CLAUSE T-210 — SCOPE AND GENERAL REQUIREMENTS
+(نطاق الفحص بالأشعة ومتطلباته العامة)
+
+T-210.1 SCOPE
+Radiographic Examination (RT — الفحص بالأشعة السينية أو أشعة جاما) per ASME Section V
+Article 2 covers the radiographic examination of metallic and nonmetallic materials
+using X-ray or gamma-ray sources. The article establishes minimum requirements for
+technique, equipment, film, processing, image quality, and record retention. It applies
+wherever referenced by a Construction Code (كود الإنشاء) such as ASME Section VIII,
+ASME B31.3, or API 1104. The inspector must confirm which Construction Code is
+invoked before commencing examination, because acceptance criteria are always taken
+from the Construction Code — not from Article 2 itself.
+
+T-210.2 WRITTEN PROCEDURE REQUIREMENT
+A written RT procedure (إجراء مكتوب) shall be established, qualified, and followed for
+all radiographic examinations. The procedure must be demonstrated to produce acceptable
+radiographs on a calibration or mockup assembly if required by the referencing Code.
+Essential variables, when changed beyond the documented limits, require re-qualification
+of the procedure. Non-essential variables may be changed without re-qualification
+provided the change is documented. The procedure document number, revision, and date
+shall be recorded on the examination report.
+
+T-210.3 PERSONNEL QUALIFICATION
+All personnel performing and interpreting radiographic examinations shall be qualified
+and certified in accordance with their employer's written practice, which shall conform
+to SNT-TC-1A (latest edition referenced by the Construction Code) or ASNT CP-189.
+Interpretation of radiographs (قراءة وتفسير الأفلام الإشعاعية) shall be performed by
+Level II or Level III certified RT personnel. Level I personnel may operate equipment
+under the direct supervision of a Level II or Level III. Certifications shall be
+current and on file, and copies shall be available to the Authorized Inspector (AI)
+upon request.
+
+T-210.4 APPLICABLE MATERIAL FORMS
+Article 2 applies to welds (لحامات), castings (مسبوكات), forgings (مطروقات), and
+plate material. Pipe and tube welds are covered by specific technique paragraphs
+(T-271 through T-274). The article does not cover real-time radiography (RTR) or
+computed radiography (CR) and digital detector array (DDA) systems — those are
+covered by Articles 2 and Mandatory Appendices II, III, and IV respectively, and
+require additional procedure requirements if applied.
+
+T-210.5 SURFACE PREPARATION
+Surfaces to be radiographed (السطح المراد فحصه بالأشعة) shall be free of irregularities
+that could mask or be confused with discontinuities. Weld reinforcement and backing
+rings, if present, shall be documented. Surface preparation (تجهيز السطح) may be by
+mechanical grinding or other suitable means. No filler compound or masking material
+shall be applied to the weld surface unless specifically permitted by the Construction
+Code.
+
+ACCEPTANCE: Written procedure exists, is Rev-controlled, and personnel hold current
+Level II or III certification. Surface condition suitable for interpretation.
+REJECTION: No written procedure; personnel uncertified or expired certification;
+surface irregularities that prevent reliable interpretation of the radiograph.
+
+---
+
+CLAUSE T-221 — FILM TYPE SELECTION (CLASS I vs CLASS II)
+(اختيار نوع الفيلم الإشعاعي — الفئة الأولى مقابل الفئة الثانية)
+
+T-221.1 FILM CLASSIFICATION
+ASME Section V recognizes two classes of industrial radiographic film:
+  • Class I (الفئة الأولى) — Fine-grain, high-contrast film. Examples: Kodak T-MAT D,
+    Agfa D4, FUJI IX80. Provides the highest image quality and is required for Code
+    work on pressure-containing welds unless the referencing Code specifically permits
+    Class II.
+  • Class II (الفئة الثانية) — Coarser grain, lower contrast, but higher speed. Examples:
+    Kodak T-MAT G, Agfa D7, FUJI IX100. Permitted only when specifically allowed by
+    the applicable Construction Code and engineering authority.
+
+T-221.2 SELECTION CRITERIA
+The film class shall be selected based on:
+  (a) Required image quality (IQI sensitivity — حساسية مؤشر جودة الصورة).
+  (b) Radiation source energy and exposure geometry.
+  (c) Requirements of the Construction Code.
+Film class shall be documented in the written RT procedure. Mixing film classes
+within a single exposure is not permitted.
+
+T-221.3 FILM STORAGE AND HANDLING
+Unexposed film (الفيلم غير المعرض) shall be stored in a cool, dry location away from
+radiation sources, chemical fumes, and direct sunlight. Storage temperature shall not
+exceed 24°C (75°F) and relative humidity shall be 30–60%. Film shall be used prior
+to its expiration date. Outdated film shall not be used for Code examination.
+Film boxes shall not be stored horizontally under heavy loads to prevent pressure fog.
+
+T-221.4 FILM CASSETTES AND HOLDERS
+Film cassettes (كاسيتات الفيلم) shall be light-tight and shall hold the film flat
+against the intensifying screens with intimate contact. Poor screen-to-film contact
+causes geometric unsharpness and image blur — which is a cause for rejection.
+Lead cassettes or flexible film holders may be used, provided contact is verified.
+
+ACCEPTANCE: Class I film used for all Code pressure-containing weld RT unless
+Construction Code explicitly permits Class II. Film within expiration date. Storage
+conditions documented and within limits.
+REJECTION: Class II film used where Class I is required. Film past expiration date.
+Film fogged from improper storage (background density > 0.05 H&D units above base
+plus fog). Evidence of pressure marks, scratches, or light leaks on processed film.
+
+---
+
+CLAUSE T-222 — INTENSIFYING SCREENS
+(شاشات التكثيف / شاشات الرصاص)
+
+T-222.1 TYPES PERMITTED
+Two types of intensifying screens (شاشات التكثيف) are used in industrial RT:
+  (a) Lead screens (شاشات الرصاص) — Most common in industrial work. Front and back
+      lead screens reduce scatter radiation and improve image contrast. Lead screen
+      thickness for X-ray up to 150 kV: front screen 0.010 in. (0.25 mm) min;
+      back screen 0.010 in. (0.25 mm) min. For higher energies and Ir-192/Co-60:
+      front screen 0.010–0.020 in., back screen 0.020 in. min.
+  (b) Fluorescent screens — NOT permitted under ASME Section V Article 2 for Code
+      radiography because they reduce geometric sharpness (unsharpness — ضبابية هندسية).
+
+T-222.2 SCREEN CONDITION
+Intensifying screens shall be free of:
+  - Scratches (خدوش)
+  - Dents (حفر أو تشوهات)
+  - Oxidation or tarnish (أكسدة)
+  - Foreign matter between screen and film
+Damaged screens shall be removed from service. Screen condition shall be verified
+prior to each use and shall be documented on the examination record.
+
+T-222.3 SCATTER RADIATION CONTROL
+A lead letter "B" (2 in. high, 1/4 in. thick minimum) shall be attached to the back
+of each film cassette to check for back-scatter radiation. If the letter "B" appears
+as a lighter image (light "B") on the processed film, it indicates excessive back
+scatter — the exposure is rejected and must be repeated with additional shielding.
+If the "B" appears darker or is not visible, back-scatter is acceptable.
+
+T-222.4 SCREEN-TO-FILM CONTACT
+Uniform, intimate contact between lead screens and film shall be maintained throughout
+the exposure. Air gaps caused by warped cassettes or debris cause localized blur.
+Contact shall be verified by bending test or vacuum-cassette pressure test prior to
+use on Code work.
+
+ACCEPTANCE: Lead screens used; screen thickness meets minimum per source energy;
+screens free of damage; "B" not visible or appears dark on processed film; intimate
+screen-film contact confirmed.
+REJECTION: Fluorescent screens used. Damaged screens in service. Light "B" (back
+scatter) appears on processed film — exposure void, must repeat. Evidence of poor
+contact causing unacceptable blur in the region of interest.
+
+---
+
+CLAUSE T-223 — RADIATION SOURCES (X-RAY vs GAMMA-RAY)
+(مصادر الإشعاع — الأشعة السينية مقابل أشعة جاما)
+
+T-223.1 APPROVED RADIATION SOURCES
+ASME Section V Article 2 permits the following radiation sources:
+  (a) X-ray machines (أجهزة الأشعة السينية) — Energies up to 1,000 kV (1 MeV) for
+      conventional RT; higher energies (linac/betatron) for thick materials.
+  (b) Iridium-192 (Ir-192 — إيريديوم 192) — Gamma energy ~0.31–0.61 MeV; suitable
+      for steel thickness 20–90 mm (3/4 in. to 3-1/2 in.); most common gamma source
+      in Egyptian and MENA oilfield practice.
+  (c) Cobalt-60 (Co-60 — كوبالت 60) — Gamma energy ~1.17–1.33 MeV; suitable for
+      steel thickness 50–175 mm (2 in. to 7 in.); used for heavy-wall vessels and
+      reactors.
+  (d) Selenium-75 (Se-75) — Gamma energy ~0.27 MeV; suitable for thin-wall pipe
+      10–40 mm; produces finer-grain images than Ir-192 on thin material.
+  (e) Ytterbium-169 (Yb-169) — Very low energy; for very thin sections 2–15 mm.
+
+T-223.2 SOURCE SIZE AND ACTIVITY
+Source size (حجم المصدر / البقعة المضيئة) — also called focal spot size for X-ray —
+directly affects geometric unsharpness (Ug). Smaller source = less Ug = sharper image.
+Source activity (نشاط المصدر — measured in TBq or Ci) determines exposure time.
+Source dimensions (effective focal spot — البقعة الفعلية) shall be as specified in
+the RT procedure and shall be confirmed from source manufacturer's certificate or
+X-ray machine data plate.
+
+T-223.3 TECHNIQUE SELECTION BY MATERIAL THICKNESS
+Recommended source selection by nominal material thickness (steel):
+  • Up to 3 mm (1/8 in.):    X-ray preferred; Yb-169
+  • 3–20 mm:                  X-ray (100–200 kV); Se-75
+  • 20–90 mm:                 X-ray (200–400 kV); Ir-192
+  • 50–175 mm:                X-ray (MeV); Co-60
+  • >175 mm:                  Linac / Betatron
+Using a source with energy too high for the material thickness reduces image
+contrast and may result in failure to meet IQI sensitivity requirements.
+
+T-223.4 SOURCE CERTIFICATION
+Each radioactive source (مصدر إشعاعي) shall have a current source certificate (شهادة
+المصدر) traceable to the manufacturer, showing:
+  - Isotope identification
+  - Source size (nominal and effective focal spot dimensions, both directions)
+  - Activity at reference date
+  - Wipe test results (leak test — اختبار التسرب) current within 6 months
+Sources with expired leak tests shall not be used until re-tested and passed.
+
+ACCEPTANCE: Source type appropriate for material thickness; source size documented
+in procedure; leak test current (within 6 months for gamma sources); focal spot
+size confirmed from manufacturer's data.
+REJECTION: Source type not appropriate for thickness range (e.g., Co-60 on thin
+wall ≤ 10 mm causing excessive scatter and loss of sensitivity); leak test expired;
+source size not documented; X-ray machine voltage exceeding equipment rated capacity.
+
+---
+
+CLAUSE T-224 — GEOMETRIC UNSHARPNESS (Ug) — CALCULATION AND LIMITS
+(الضبابية الهندسية — الحساب والحدود المسموح بها)
+
+T-224.1 DEFINITION
+Geometric unsharpness (Ug — الضبابية الهندسية) is the penumbra (zone of partial shadow)
+created at the edge of a discontinuity image due to the finite size of the radiation
+source. Smaller source size and longer source-to-object distance reduce Ug and improve
+image sharpness. Ug is one of the most critical parameters in RT quality control.
+
+T-224.2 FORMULA
+Ug = (F × t) / D
+
+Where:
+  F = Source size (effective focal spot dimension, mm or in.)
+  t = Object-to-film distance (OFD — المسافة من الجسم إلى الفيلم), mm or in.
+      (distance from source-side surface of the object to the film)
+  D = Source-to-object distance (SOD — المسافة من المصدر إلى الجسم), mm or in.
+      (distance from source to source-side surface of the object)
+
+Units: F, t, and D must be in the same units (all mm or all inches).
+Ug result is in the same units as F and t.
+
+T-224.3 MAXIMUM PERMITTED Ug VALUES (ASME V T-274 Table T-274)
+Material thickness (t_weld — سُمك المادة عند موضع اللحام):
+
+  t_weld ≤ 3/4 in. (19 mm):       Ug max = 0.020 in. (0.51 mm)
+  t_weld > 3/4 in. to 2 in.       Ug max = 0.030 in. (0.76 mm)
+    (19 mm to 50 mm):
+  t_weld > 2 in. to 3-1/2 in.     Ug max = 0.040 in. (1.02 mm)
+    (50 mm to 88.9 mm):
+  t_weld > 3-1/2 in. (88.9 mm):   Ug max = 0.070 in. (1.78 mm)
+
+NOTE: For nozzle welds and other complex geometries, the controlling thickness is
+the nominal thickness of the thicker member at the weld.
+
+T-224.4 VERIFICATION
+Ug shall be calculated for each technique (each combination of source, geometry,
+and material thickness) and the result shall be recorded in the RT procedure and
+on the examination report. If geometry changes during a job (different pipe
+schedules, different nozzle configurations), Ug shall be recalculated and
+re-documented. The inspector shall verify that SFD and OFD measurements used in
+the calculation are taken accurately in the field.
+
+ACCEPTANCE: Calculated Ug ≤ maximum permitted value for the applicable thickness
+range, as tabulated above. Ug calculation and inputs documented in procedure and
+on each examination report.
+REJECTION: Calculated Ug exceeds maximum permitted value for the applicable
+thickness range. Ug not calculated or not documented. SFD/OFD measurements
+inconsistent with as-built geometry.
+
+---
+
+CLAUSE T-225 — SOURCE-TO-FILM DISTANCE (SFD) / FOCUS-TO-FILM DISTANCE (FFD)
+(مسافة المصدر إلى الفيلم / مسافة البؤرة إلى الفيلم)
+
+T-225.1 DEFINITION
+Source-to-Film Distance (SFD), also called Focus-to-Film Distance (FFD) for X-ray
+(مسافة البؤرة إلى الفيلم), is the total distance from the radiation source (focal
+spot or gamma source capsule) to the film plane. SFD is the sum of:
+  SFD = SOD + OFD
+Where SOD = source-to-object distance and OFD = object-to-film distance.
+Increasing SFD improves geometric sharpness (reduces Ug) but requires longer
+exposure times to maintain adequate film density.
+
+T-225.2 MINIMUM SFD — FORMULA-BASED CONTROL
+Article 2 does not mandate a single minimum SFD, but instead uses Ug limits
+(T-224) to control geometry. The minimum SFD must be whatever distance satisfies:
+  D_min = (F × t) / Ug_max
+
+Where Ug_max is the maximum permitted geometric unsharpness from Table T-274 for
+the applicable thickness.
+
+Example: For F = 3 mm source, t (OFD) = 15 mm, material thickness ≤ 19 mm (Ug_max = 0.51 mm):
+  D_min = (3 × 15) / 0.51 = 88 mm SOD minimum
+  SFD_min = 88 + 15 = 103 mm (approximately 4 inches minimum)
+
+T-225.3 FIELD MEASUREMENT
+SFD shall be physically measured in the field using a calibrated tape measure or
+fixture — not estimated. For circumferential pipe shots with the source inside
+(panoramic exposure — التصوير البانورامي), SFD is measured from the source centerline
+to the outer surface of the pipe wall (OFD = wall thickness). Variance in pipe
+roundness shall be accounted for when calculating OFD at multiple film positions.
+
+T-225.4 DOCUMENTATION
+The SFD (or SOD and OFD individually) shall be recorded on the RT examination
+report for every exposure. When the SFD is changed from the procedure value (e.g.,
+because of access limitations), the inspector shall:
+  (a) Recalculate Ug to confirm compliance.
+  (b) Recalculate exposure time or mA-min to maintain density.
+  (c) Document the change as a procedure variable change.
+
+ACCEPTANCE: SFD results in Ug ≤ limit for applicable thickness. SFD measured and
+documented for each exposure. Recalculation performed and documented when SFD
+changes from procedure.
+REJECTION: SFD results in Ug exceeding the permitted limit. SFD not measured but
+estimated. No documentation of SFD in the examination record.
+
+---
+
+CLAUSE T-230 — FILM PROCESSING AND DARKROOM REQUIREMENTS
+(معالجة الفيلم ومتطلبات غرفة التحميض)
+
+T-230.1 PROCESSING METHOD
+Film shall be processed (تحميض الفيلم) using either:
+  (a) Manual (hand) processing (التحميض اليدوي) — Developer, stop bath, fixer, wash,
+      and drying in a controlled darkroom (غرفة مظلمة).
+  (b) Automatic processing (معالجة أوتوماتيكية) — Roller-transport processor with
+      temperature-controlled chemical tanks; most common on modern site labs.
+The processing method shall be documented in the RT procedure.
+
+T-230.2 DEVELOPER TEMPERATURE AND TIME
+Manual processing:
+  - Developer temperature: 18–24°C (65–75°F). Optimal: 20°C (68°F).
+  - Development time at 20°C: per film manufacturer's recommendation, typically
+    5–8 minutes for most Class I industrial films.
+  - Time-temperature relationship: Higher temperature = shorter time. Deviations
+    from manufacturer's chart result in under- or over-development.
+  - Under-development: Low density, low contrast — may cause rejection for density.
+  - Over-development: High fog, high base density — may cause rejection for density.
+
+T-230.3 CHEMICAL REPLENISHMENT AND REPLACEMENT
+Developer and fixer chemicals (مواد التحميض) shall be replenished or replaced per
+the chemical supplier's recommendations. Chemical exhaustion causes:
+  - Reduced image density (under-developed appearance)
+  - Loss of contrast
+  - Increased development time requirements
+Chemical activity shall be monitored using a step-wedge sensitometric strip
+(شريط الحساسية) daily when the darkroom is in active use.
+
+T-230.4 WASH AND DRYING
+Films shall be washed in running water for a minimum of 20–30 minutes after fixing
+(per manufacturer) to remove residual fixer (hypo). Residual fixer causes long-term
+image deterioration (yellow-brown stain — بقع صفراء). Rapid fixers and wash aids
+(hypo eliminators) may reduce wash time. Films shall be dried in a dust-free
+environment and shall not be viewed until completely dry and cool.
+
+T-230.5 DARKROOM SAFELIGHTS AND CLEANLINESS
+The darkroom (غرفة التحميض المظلمة) shall be light-tight. Safelights shall use filters
+appropriate for the film type (green or amber — as specified by film manufacturer).
+Exposed film shall not be loaded or unloaded except under safelight conditions.
+Darkroom surfaces, tanks, and hangers shall be cleaned regularly to prevent chemical
+contamination of films.
+
+T-230.6 SENSITOMETRIC CONTROL
+A sensitometric quality control (QC) program shall be in place when automatic
+processors are used. Daily step-wedge strips shall be processed and evaluated for:
+  - Speed index (±0.15 OD from control)
+  - Contrast index (±0.15 OD from control)
+  - Base + fog (≤ 0.30 OD above unexposed base)
+If QC strips fall outside control limits, the processor shall be taken out of
+service and corrected before processing Code radiographs.
+
+ACCEPTANCE: Processing by documented method; developer at 18–24°C; manual time
+per manufacturer chart; QC sensitometric strips within ±0.15 OD of control;
+base + fog ≤ 0.30 OD; films fully washed and dried.
+REJECTION: Processing outside temperature/time limits; base + fog > 0.30 OD on
+processed film; chemical exhaustion causing non-compliant density; light leaks in
+darkroom causing film fog; films not fully dry when viewed.
+
+---
+
+CLAUSE T-241 — IMAGE QUALITY INDICATOR (IQI) — HOLE-TYPE AND WIRE-TYPE SELECTION
+(مؤشر جودة الصورة — اختيار نوع الثقب أو السلك)
+
+T-241.1 PURPOSE OF IQI
+The Image Quality Indicator (IQI — مؤشر جودة الصورة), also called a penetrameter
+(بينيترامتر), is placed on the object being radiographed to provide a direct visual
+indication of the quality (sensitivity — الحساسية) of the radiographic technique.
+The IQI does NOT measure the minimum detectable flaw size — it measures technique
+quality. Its visibility on the radiograph confirms that the technique meets minimum
+ASME sensitivity requirements.
+
+T-241.2 HOLE-TYPE (ASTM E1025) — PLAQUE IQI
+Hole-type IQIs (مؤشر الثقب / البلاك بينيترامتر) are flat metal plates with:
+  - Three drilled holes: 1T, 2T, and 4T diameter
+    (T = nominal plaque thickness in inches)
+  - Made from the same material group as the object being radiographed
+    (steel IQI for steel welds; aluminum IQI for aluminum welds, etc.)
+IQI designation number = IQI thickness × 1000 (in inches). Example: IQI #10 = 0.010 in. thick.
+Plaque IQI selection based on nominal single-wall thickness of weld:
+
+  Material Thickness (in.)   |  IQI Designation Number
+  Up to 0.25                 |  5
+  0.26 – 0.375               |  7
+  0.376 – 0.50               |  10
+  0.51 – 0.75                |  12
+  0.76 – 1.00                |  15
+  1.01 – 1.50                |  17
+  1.51 – 2.00                |  20
+  2.01 – 2.50                |  25
+  2.51 – 3.00                |  30
+  3.01 – 4.00                |  35
+  4.01 – 6.00                |  40
+  6.01 – 8.00                |  50
+(Per ASME Section V Table T-276)
+
+T-241.3 WIRE-TYPE (ASTM E747) — WIRE IQI
+Wire-type IQIs (مؤشر السلك) consist of 6 wires of increasing diameter encased in
+a plastic envelope. There are four standard wire sets (A, B, C, D):
+  Wire Set A: Wire diameters 0.0032–0.010 in. (0.08–0.25 mm)  — for thin materials
+  Wire Set B: Wire diameters 0.010–0.032 in. (0.25–0.81 mm)   — most common
+  Wire Set C: Wire diameters 0.032–0.10 in. (0.81–2.54 mm)    — for thick materials
+  Wire Set D: Wire diameters 0.10–0.32 in. (2.54–8.13 mm)     — for very thick
+Wire IQI material shall match the object material group. Wire IQIs are preferred
+for curved surfaces (pipe welds — لحامات الأنابيب) where flat plaques cannot lie flat.
+
+T-241.4 MATERIAL GROUPING FOR IQI
+IQI material shall be selected from the same material group as the part:
+  Group 1: Carbon and low-alloy steel (الفولاذ الكربوني)
+  Group 2: Austenitic stainless steel (الفولاذ المقاوم للصدأ الأوستنيتي)
+  Group 3: Aluminum alloys (سبائك الألومنيوم)
+  Group 4: Titanium alloys
+  Group 5: Nickel alloys
+  Group 6: Copper and alloys
+  Group 7: Zirconium alloys
+
+ACCEPTANCE: IQI type (hole or wire) documented in procedure; IQI material matches
+object material group; correct IQI designation selected from Table T-276 for the
+applicable wall thickness; IQI within calibration/certification traceability.
+REJECTION: Wrong IQI material group used (e.g., aluminum IQI on steel); wrong IQI
+designation number (too thick or too thin for the material thickness range); IQI
+without traceable manufacturer identification.
+
+---
+
+CLAUSE T-242 — IQI PLACEMENT (SOURCE-SIDE vs FILM-SIDE)
+(وضع مؤشر جودة الصورة — جانب المصدر مقابل جانب الفيلم)
+
+T-242.1 PREFERRED PLACEMENT — SOURCE SIDE
+IQIs shall be placed on the source side (جانب المصدر) of the part being examined,
+in contact with the weld or object surface. Source-side placement gives the most
+conservative (most demanding) sensitivity result because the IQI image has
+maximum penumbra. The IQI shall be placed on the weld or adjacent to the weld
+(within 1/4 T of the weld edge or on the weld crown — on the source side).
+
+T-242.2 ALTERNATIVE PLACEMENT — FILM SIDE
+Film-side placement (جانب الفيلم) is permitted when source-side placement is
+physically impossible (e.g., inside pipe welds where access is blocked, or
+double-wall techniques). When film-side IQI placement is used:
+  (a) A lead letter "F" shall be placed near the IQI on the film side.
+  (b) The "F" shall appear on the processed radiograph.
+  (c) The required IQI sensitivity shall be one IQI number or wire size finer
+      (more sensitive) than the standard source-side requirement, unless a
+      technique demonstration was performed showing equivalence.
+
+T-242.3 NUMBER OF IQIs PER RADIOGRAPH
+  - Single radiograph (single film placement): 1 IQI per image.
+  - Panoramic (360° single exposure — التصوير البانورامي الكامل): At minimum, IQIs
+    shall be placed at 120° intervals (3 IQIs minimum around the circumference)
+    to verify sensitivity around the full exposure.
+  - Film strips covering one weld in multiple shots: 1 IQI per film position.
+
+T-242.4 IQI LOCATION ON THE IMAGE
+The IQI image shall appear within the area of interest on the processed radiograph.
+The IQI shall not be placed over the weld unless the weld crown has been flush-
+ground, as the crown height will produce a false density differential.
+For fillet welds and nozzle welds, the IQI shall be placed on a shim (رقاقة فاصلة)
+of the same material and of thickness equal to the weld reinforcement, so that the
+IQI sits at the same nominal elevation as the weld surface.
+
+T-242.5 IQI ORIENTATION
+Hole-type IQI: Placed with the largest hole (4T) nearest the weld, away from
+the edge of the part.
+Wire-type IQI: Wires oriented perpendicular to the weld axis (عمودي على محور اللحام)
+for best sensitivity to longitudinal defects.
+
+ACCEPTANCE: IQI on source side unless access impossible; "F" marker present and
+visible on radiograph when film-side placement used; minimum number of IQIs present
+per radiograph area; IQI within area of interest; correct orientation.
+REJECTION: IQI missing from radiograph; "F" designation absent when film-side
+placement was used; IQI image outside area of interest; IQI placed on opposite side
+from required without documentation or "F" marking.
+
+---
+
+CLAUSE T-243 — IQI SENSITIVITY REQUIREMENTS (2-2T HOLE OR DESIGNATED WIRE)
+(متطلبات حساسية مؤشر جودة الصورة — ثقب 2-2T أو السلك المحدد)
+
+T-243.1 REQUIRED SENSITIVITY — HOLE-TYPE IQI
+For hole-type (plaque) IQIs, the minimum required sensitivity is:
+  Visibility of the 2T hole (ثقب 2T) in the correct IQI designation.
+  This means: on the processed radiograph, the 2T hole (whose diameter = 2 × IQI
+  thickness) must be visible as a distinct circular image within the IQI body.
+  This is the "2-2T" requirement — IQI #X with the 2T hole visible.
+  The 1T hole is NOT required to be visible (it is the "quality check" extra).
+
+T-243.2 REQUIRED SENSITIVITY — WIRE-TYPE IQI
+For wire-type IQIs, the essential wire (السلك الأساسي) must be visible on the
+processed radiograph. The required essential wire number for each material
+thickness range is as specified in ASME Section V Table T-276. Example (steel):
+  t ≤ 0.25 in.:      Wire #5 (0.008 in. / 0.20 mm)
+  0.26–0.375 in.:    Wire #6 (0.010 in. / 0.25 mm)
+  0.376–0.50 in.:    Wire #7 (0.013 in. / 0.33 mm)
+  0.51–0.75 in.:     Wire #8 (0.016 in. / 0.40 mm)
+  0.76–1.00 in.:     Wire #9 (0.020 in. / 0.51 mm)
+  1.01–1.50 in.:     Wire #10 (0.025 in. / 0.64 mm)
+  1.51–2.00 in.:     Wire #11 (0.032 in. / 0.81 mm)
+  2.01–2.50 in.:     Wire #12 (0.040 in. / 1.02 mm)
+  2.51–4.00 in.:     Wire #13 (0.050 in. / 1.27 mm)
+(Consult Table T-276 for exact wire requirements per material and thickness.)
+
+T-243.3 VERIFICATION ON RADIOGRAPH
+The interpreter (مفتش القراءة) shall confirm:
+  (a) The correct IQI designation is used for the material thickness.
+  (b) The required 2T hole or essential wire is visible on the radiograph image.
+  (c) The IQI image is within the area of interest.
+  (d) The image quality (density, contrast) is sufficient to see the IQI clearly.
+If the required hole or wire is not visible, the radiograph fails sensitivity
+requirements and the weld must be re-radiographed.
+
+T-243.4 ADDITIONAL THICKNESS ALLOWANCE (SHIM)
+When the IQI is placed on a shim adjacent to a weld with reinforcement, the shim
+thickness shall equal the actual weld reinforcement (crown height — ارتفاع التدعيم).
+The IQI designation shall be selected based on:
+  Nominal single-wall thickness + allowable weld reinforcement height.
+This ensures the IQI sensitivity reflects the actual radiographic thickness.
+
+ACCEPTANCE: 2T hole visible (plaque) or essential wire visible (wire IQI) on
+processed radiograph within the area of interest. Correct IQI designation for
+applicable thickness. IQI shim used where required.
+REJECTION: 2T hole NOT visible on processed radiograph. Essential wire NOT visible.
+Wrong IQI designation used (too heavy — does not meet sensitivity). IQI image
+outside area of interest or obscured by weld image.
+
+---
+
+CLAUSE T-260 — RADIOGRAPH DENSITY LIMITS (OPTICAL DENSITY)
+(حدود كثافة التصوير الإشعاعي — الكثافة الضوئية)
+
+T-260.1 DEFINITION OF OPTICAL DENSITY
+Optical density (OD — الكثافة الضوئية) is the measure of the degree of blackening
+of the processed radiographic film. It is measured using a calibrated densitometer
+(جهاز قياس الكثافة). OD is defined as:
+  OD = log10 (I0 / I)
+Where I0 = incident light intensity and I = transmitted light intensity through film.
+Higher OD = darker film = more radiation absorbed in that area.
+
+T-260.2 MINIMUM AND MAXIMUM DENSITY REQUIREMENTS
+Per ASME Section V T-282.1 and Table T-282.1:
+
+  MINIMUM optical density (OD) in the area of interest:
+    X-ray:     OD ≥ 1.8
+    Gamma ray: OD ≥ 2.0
+
+  MAXIMUM optical density (OD) in the area of interest:
+    All sources: OD ≤ 4.0
+
+  These limits apply throughout the area of interest of the weld being examined
+  (المنطقة موضع الاهتمام — region of interest including weld and minimum 1/4 in.
+  each side of weld).
+
+T-260.3 ACCEPTABLE DENSITY RANGE SUMMARY
+  Technique      |  Minimum OD  |  Maximum OD
+  X-ray          |     1.8      |     4.0
+  Gamma-ray      |     2.0      |     4.0
+
+  NOTE: Many fabricators target 2.5–3.5 OD as the practical working range for
+  best contrast and sensitivity.
+
+T-260.4 BASE PLUS FOG DENSITY
+The base + fog density (الكثافة الأساسية + الضباب) of the unexposed but processed
+film shall not exceed 0.30 OD above the clear film base. If base + fog exceeds
+0.30 OD, the film lot or processing is suspect and shall be investigated before
+use on Code radiographs.
+
+T-260.5 EFFECT OF DENSITY ON IMAGE QUALITY
+Density below minimum (under-exposed or under-developed — كثافة أقل من المطلوب):
+  - Reduces subject contrast, making thin laminations and porosity harder to see.
+  - May cause failure to resolve IQI 2T hole or essential wire.
+Density above maximum (over-exposed or over-developed — كثافة أعلى من المطلوب):
+  - Film too dark to read on standard film viewer.
+  - Requires high-intensity viewer (شاشة عرض عالية الكثافة) rated ≥ 300 cd/m².
+  - Even with high-intensity viewer, OD > 4.0 is not acceptable under ASME V.
+
+ACCEPTANCE: OD ≥ 1.8 (X-ray) or OD ≥ 2.0 (gamma) AND OD ≤ 4.0 throughout
+the area of interest. Base + fog ≤ 0.30 OD.
+REJECTION: OD < 1.8 (X-ray) or OD < 2.0 (gamma) anywhere in area of interest —
+REJECT, re-expose. OD > 4.0 anywhere in area of interest — REJECT, re-expose.
+Base + fog > 0.30 OD — investigate and reject the film lot or processing.
+
+---
+
+CLAUSE T-261 — DENSITY VARIATION LIMITS ACROSS THE RADIOGRAPH
+(حدود تباين الكثافة عبر الصورة الإشعاعية)
+
+T-261.1 PURPOSE
+Even when each individual film density reading falls within the T-260 limits
+(1.8–4.0 OD), extreme density variation within a single radiograph may indicate:
+  - Non-uniform radiation beam
+  - Geometric thickness changes not accounted for in technique
+  - Processing irregularities (streaks — خطوط على الفيلم)
+  - Film cassette air gaps (poor screen contact)
+The density variation requirement protects against localized areas of the radiograph
+that technically "pass" absolute limits but have insufficient contrast or sensitivity
+relative to adjacent areas.
+
+T-261.2 PERMITTED DENSITY VARIATION
+Per ASME Section V T-261:
+The density through the IQI image (or adjacent to it, in the area of interest) and
+the density in the same area of interest shall not vary by more than MINUS 15% or
+PLUS 30% from the density reading taken through the IQI.
+
+  That is:
+  D_min_permitted = D_IQI × (1 − 0.15) = D_IQI × 0.85
+  D_max_permitted = D_IQI × (1 + 0.30) = D_IQI × 1.30
+
+  Example: If density through IQI = 2.50 OD:
+    D_min = 2.50 × 0.85 = 2.13 OD
+    D_max = 2.50 × 1.30 = 3.25 OD
+
+  All density readings within the area of interest must fall within this range AND
+  also within the absolute limits of T-260 (min 1.8/2.0, max 4.0 OD).
+
+T-261.3 MEASUREMENT POINTS
+Density readings shall be taken at:
+  (a) The IQI location (through the IQI body, not through a hole).
+  (b) At the darkest area within the area of interest.
+  (c) At the lightest area within the area of interest.
+All three readings shall be documented in the examination record.
+
+T-261.4 WHEN VARIATION IS EXCEEDED
+If the density variation exceeds the ±15%/+30% limit, the radiograph (or the
+affected portion) is rejected. Causes shall be investigated:
+  - Multiple-film technique with mismatched exposures
+  - Irregular surface geometry
+  - Processing streaks or chemical contamination
+  - Partial blockage of the beam by fixtures or clamps
+
+ACCEPTANCE: All density readings within area of interest fall within ±15% (lower)
+/ +30% (upper) of the IQI density reading, AND within absolute limits (1.8/2.0 to 4.0 OD).
+Density readings documented at IQI, darkest point, and lightest point.
+REJECTION: Any area-of-interest density reading deviates more than −15% below or
++30% above the IQI density, OR falls outside absolute OD limits. Density variation
+not measured and documented.
+
+---
+
+CLAUSE T-262 — DENSITY MEASUREMENT — DENSITOMETER USE
+(قياس الكثافة الضوئية — استخدام جهاز الدنسيتومتر)
+
+T-262.1 DENSITOMETER REQUIREMENT
+All film density measurements for Code radiography shall be performed using a
+calibrated transmission densitometer (دنسيتومتر — جهاز قياس الكثافة الضوئية بالإرسال).
+Visual estimation of film density is not acceptable for Code work. The densitometer
+shall be the transmission type (not reflection type used for photographic prints).
+
+T-262.2 CALIBRATION REQUIREMENTS
+The densitometer shall be calibrated using a calibrated step-tablet (شريط درجات
+الكثافة المعايَر — step-wedge film) traceable to the National Institute of Standards
+and Technology (NIST) or equivalent national standards body. Calibration shall be
+verified:
+  (a) At the beginning of each period of use (each shift or each day of use).
+  (b) After any repair or battery replacement.
+  (c) At the end of each period of use to confirm no drift.
+
+T-262.3 CALIBRATION TOLERANCE
+The densitometer reading on each step of the calibration step-tablet shall be
+within ±0.05 OD of the certified value stamped on the step-tablet. If any step
+reads outside ±0.05 OD, the instrument is out of calibration and shall not be
+used until calibrated.
+
+T-262.4 STEP-TABLET CALIBRATION
+Step-tablets shall have a current calibration certificate (شهادة معايرة) with
+certified OD values. Step-tablets shall be replaced or recertified if:
+  - The certification is expired (typically annual or per laboratory schedule).
+  - The tablet is scratched or damaged.
+  - Any certified step reads visually different from adjacent steps.
+
+T-262.5 MEASUREMENT PROCEDURE
+When measuring film density:
+  (a) Clean the densitometer aperture and the film surface.
+  (b) Allow the densitometer to warm up per manufacturer requirements (typically
+      5–10 minutes).
+  (c) Zero the instrument (or verify zero on clear area of film or air).
+  (d) Place the film on the aperture and read the density.
+  (e) Record each reading to at least two decimal places (e.g., 2.35 OD).
+  (f) Densitometer aperture size shall be ≤ 1/16 in. (1.6 mm) for most measurements
+      to avoid averaging over too large an area.
+
+ACCEPTANCE: Densitometer calibrated with NIST-traceable step-tablet within ±0.05 OD.
+Calibration verified at start and end of each use period. Step-tablet current
+certification. Readings documented to ≥ 2 decimal places.
+REJECTION: Densitometer not calibrated or calibration expired. Densitometer reads
+outside ±0.05 OD on calibration step-tablet. Density estimated visually without
+densitometer. Step-tablet uncertified or expired calibration.
+
+---
+
+CLAUSE T-270 — EXAMINATION COVERAGE AND OVERLAP REQUIREMENTS
+(تغطية الفحص ومتطلبات التداخل بين اللقطات)
+
+T-270.1 GENERAL COVERAGE REQUIREMENT
+All required weld length or area shall be covered by radiography with no un-examined
+gaps. The extent of examination (نطاق الفحص) is defined by the Construction Code
+(e.g., 100% RT, spot RT, or random RT). The RT procedure shall define the film
+placement map (خريطة مواضع الفيلم) showing coverage of the entire required weld length.
+
+T-270.2 FILM OVERLAP REQUIREMENT
+Adjacent film placements (لقطات متجاورة) shall overlap each other sufficiently to
+ensure full coverage with no gaps in the area of interest. Minimum overlap:
+  - Minimum 1/2 in. (13 mm) between adjacent film exposures.
+  - For circumferential pipe welds shot with multiple longitudinal film placements
+    (external source — multiple shots): films shall overlap by ≥ 1/2 in. at each
+    joint between adjacent film positions.
+  - For panoramic (single-shot 360°) exposures: full circumference is covered in
+    one exposure — overlap N/A for the weld, but IQI placement at 120° intervals
+    verifies full circumference coverage.
+
+T-270.3 WELD LENGTH COVERAGE VERIFICATION
+The examination map shall be reviewed by the examiner and signed off. Coverage
+shall account for:
+  - Weld start and stop points (beginning and end of each weld pass)
+  - Any areas where access is limited
+  - Heat-affected zones (HAZ — منطقة التأثير الحراري) in cases where HAZ examination
+    is required by the Construction Code
+
+T-270.4 DOUBLE-FILM TECHNIQUE COVERAGE
+When a double-film technique (طريقة الفيلم المزدوج) is used (two films in one cassette,
+processed separately), the coverage requirements apply to both films. If the two
+films show different areas in focus due to radiation geometry, the film providing
+coverage of the area of interest for interpretation purposes shall be clearly
+identified in the examination record.
+
+ACCEPTANCE: Film placement map showing 100% coverage of required weld (or spot
+percentage as required by Construction Code). Minimum 1/2 in. overlap between
+adjacent film positions confirmed on examination map and radiographic images.
+REJECTION: Gaps in coverage — any required weld length with no valid radiograph.
+Overlap less than 1/2 in. between adjacent shots. No film placement map or coverage
+documentation in examination record.
+
+---
+
+CLAUSE T-271 — TECHNIQUE FOR CYLINDRICAL WELDS (SINGLE-WALL, DOUBLE-WALL)
+(تقنية التصوير لحامات الأسطوانية — جدار واحد، جدارين)
+
+T-271.1 TECHNIQUE CLASSIFICATION
+ASME Section V defines four primary radiographic techniques for pipe and vessel
+cylindrical welds based on source position, film position, and number of walls:
+
+  (a) Single-Wall Single-Image (SWSI — جدار واحد / صورة واحدة):
+      Source inside pipe, film outside. Best technique for pipe with sufficient
+      bore to allow internal source placement. For panoramic (360°) exposure:
+      source at pipe centerline. For offset source: source inside near weld.
+
+  (b) Double-Wall Single-Image (DWSI — جداران / صورة واحدة):
+      Source outside, film outside, source ellipse technique. Pipe axis at ~3–7°
+      to beam to separate near-wall and far-wall weld images. Only the far-wall
+      image is interpreted. Used for pipe OD 3.5 in. (88.9 mm) and larger.
+      Requires minimum 2 exposures 90° apart (or 3 exposures 60° apart).
+
+  (c) Double-Wall Double-Image (DWDI — جداران / صورتان):
+      Source outside, film outside, beam through both walls. Both welds superimposed
+      on the same film and both are interpreted. Used for small-diameter pipe
+      OD < 3.5 in. (88.9 mm). Minimum 3 exposures at 60° intervals OR 2 exposures
+      at 90° intervals to give full coverage of weld circumference.
+
+  (d) Single-Wall Single-Image (SWSI) — external source, internal film:
+      Used for flat plates or vessels with film clamped inside. Less common.
+
+T-271.2 PANORAMIC TECHNIQUE (SWSI — Source Inside at Centerline)
+For pipe OD ≥ 3.5 in. and source placed at pipe centerline (تصوير بانورامي كامل):
+  - Single exposure covers entire weld circumference.
+  - SFD = pipe ID/2 (source to film = pipe inner radius to outer wall + film).
+  - Three IQIs minimum at 0°, 120°, 240° positions.
+  - Elliptical distortion less than ±1 in. (25 mm) from weld centerline is acceptable.
+
+T-271.3 DOUBLE-WALL SINGLE-IMAGE TECHNIQUE (DWSI)
+  - Source offset 5° to 7° from perpendicular to pipe axis (elliptical technique).
+  - Minimum 2 shots at 90° apart, or 3 shots at 60° apart.
+  - IQI placed on the source-side (outer) surface adjacent to the weld.
+  - Only the far (film-side) weld image is interpreted for DWSI.
+  - Geometric unsharpness calculation uses full OD of the pipe as OFD approximation.
+
+T-271.4 DOUBLE-WALL DOUBLE-IMAGE TECHNIQUE (DWDI)
+  - Source perpendicular to pipe axis.
+  - Both near and far wall weld images are superimposed — both evaluated.
+  - Minimum 3 exposures at 60° intervals required for full circumference coverage.
+  - IQI on source side. Film-side "F" designation if film-side IQI required.
+  - The elliptical image separation shall be between 1/4 OD and 3/4 OD of the pipe
+    to ensure near-wall and far-wall images are distinguishable.
+
+ACCEPTANCE: Technique (SWSI/DWSI/DWDI) selected per pipe OD and access as specified
+in written procedure. Minimum number of exposures made for full coverage. IQIs in
+correct positions. Image readable and meeting density/sensitivity requirements.
+REJECTION: DWDI technique used on pipe OD ≥ 3.5 in. without documented justification.
+Insufficient number of exposures leaving weld area un-covered. Images elliptically
+distorted beyond limits. Coverage less than 100% of required weld circumference.
+
+---
+
+CLAUSE T-274 — TECHNIQUE FOR NOZZLE WELDS
+(تقنية تصوير لحامات الوصلات / البوق النافذ)
+
+T-274.1 APPLICABILITY
+Nozzle welds (لحامات الوصلات / البوق النافذ) and set-in or set-on branch connections
+present complex geometry for radiography. The examination technique shall be
+specifically addressed in the written RT procedure. Common nozzle configurations:
+  - Set-through (set-in) nozzle: nozzle bore penetrates the shell or head.
+  - Set-on nozzle: nozzle butt-welded onto the shell exterior.
+  - Elbolet, weldolet, sockolet connections.
+
+T-274.2 SOURCE PLACEMENT OPTIONS FOR NOZZLES
+  (a) Source inside nozzle bore, film on shell exterior: Best technique when
+      nozzle ID is sufficient for source placement. Gives SWSI geometry.
+  (b) Source on shell exterior, film on nozzle exterior: Used for small nozzle
+      bores. Requires careful calculation of OFD across the weld.
+  (c) Panoramic from vessel interior, film outside nozzle and shell: For large
+      vessels with internal access.
+
+T-274.3 IQI PLACEMENT ON NOZZLE WELDS
+IQIs shall be placed on the source side. For nozzle welds with variable thickness
+across the exposure:
+  - Use the maximum single-wall thickness within the radiographic image to
+    determine IQI designation.
+  - Place IQI on a shim equal in thickness to the weld reinforcement if present.
+  - Minimum 1 IQI per nozzle radiograph (more if coverage requires multiple shots).
+
+T-274.4 GEOMETRIC UNSHARPNESS — NOZZLE SPECIAL CASE
+For nozzle welds where the OFD is variable (e.g., oblique exposures), Ug shall be
+calculated using the maximum OFD within the area of interest. The Ug shall not
+exceed the limits in T-224.3 based on the nominal thickness of the thicker member
+joined by the weld.
+
+T-274.5 MINIMUM COVERAGE
+For a full-circumference nozzle weld:
+  - If source can be placed inside at nozzle centerline: 1 panoramic exposure covers
+    full weld. IQI at 3 positions minimum.
+  - If external source technique: minimum 3 exposures at 120° intervals (or more as
+    required to eliminate unexamined areas).
+
+ACCEPTANCE: Nozzle RT technique documented in procedure showing source location,
+film location, and IQI positions. Ug calculated using maximum OFD. Full
+circumference of nozzle weld covered by valid exposures. IQI sensitivity met.
+REJECTION: Nozzle weld technique not documented in procedure. Ug exceeds limit
+using maximum OFD for nozzle geometry. Gaps in nozzle weld coverage. IQI missing
+or sensitivity not demonstrated.
+
+---
+
+CLAUSE T-280 — EVALUATION — READABLE vs UNREADABLE RADIOGRAPHS
+(تقييم الصور الإشعاعية — قابلة للقراءة مقابل غير قابلة للقراءة)
+
+T-280.1 DEFINITION OF A READABLE RADIOGRAPH
+A radiograph is considered readable (قابل للقراءة) and acceptable for evaluation if:
+  (a) It meets the minimum density requirements (OD ≥ 1.8 for X-ray; ≥ 2.0 for gamma).
+  (b) Density does not exceed maximum (OD ≤ 4.0).
+  (c) Required IQI sensitivity is demonstrated (2T hole or essential wire visible).
+  (d) There are no processing artifacts or physical damage in the area of interest
+      that could mask or simulate discontinuities.
+  (e) The area of interest is correctly positioned within the film image.
+  (f) Correct identification markers are present and legible.
+
+T-280.2 UNREADABLE RADIOGRAPHS — CAUSES
+A radiograph is declared unreadable (غير قابل للقراءة) and must be repeated if any
+of the following artifacts or deficiencies occur in the area of interest:
+
+  PROCESSING ARTIFACTS (عيوب المعالجة):
+    - Chemical streaks (خطوط الكيماويات)
+    - Pressure marks (علامات الضغط)
+    - Light leaks / fog (تسرب الضوء)
+    - Static marks (علامات الكهرباء الساكنة)
+    - Scratches (خدوش على الفيلم)
+    - Water spots or drying marks (بقع الماء)
+    - Crimp marks (طيات الفيلم)
+    - Dichroic fog (ضباب ثنائي اللون) from fixer contamination
+
+  TECHNIQUE DEFICIENCIES (عيوب التقنية):
+    - Density out of limits
+    - IQI sensitivity not met
+    - Geometric distortion (image blur, double image)
+    - Incorrect film placement (weld not in image)
+    - Back-scatter ("B" light image)
+
+T-280.3 EVALUATION PROCEDURE
+The certified Level II or Level III RT interpreter shall:
+  (1) Examine radiographs on a calibrated film viewer (شاشة عرض معايَرة) in a
+      darkened room, eliminating extraneous light at film edges with masking cards.
+  (2) Verify density with densitometer before interpretation.
+  (3) Verify IQI sensitivity.
+  (4) Scan entire film systematically (weld and both heat-affected zones).
+  (5) Document any observed indications with location, orientation, and size.
+  (6) Make accept/reject determination per Construction Code acceptance criteria.
+  (7) Sign and date the examination report.
+
+T-280.4 FILM VIEWER (ILLUMINATOR) REQUIREMENTS
+The film viewer (جهاز عرض الأفلام) shall:
+  - Provide uniform diffuse light.
+  - Have adjustable intensity (variable intensity type).
+  - Be rated for high-density films when viewing OD > 3.0 (minimum 300 cd/m²
+    transmitted luminance at OD 3.0).
+  - Be calibrated for light output (verified annually or per employer procedure).
+
+ACCEPTANCE: Radiograph free of artifacts in area of interest; density 1.8–4.0 OD
+(X-ray) or 2.0–4.0 OD (gamma); IQI sensitivity demonstrated; identification
+markers present; interpreted by Level II or III; report signed and dated.
+REJECTION: Any processing artifact, physical damage, or density non-compliance in
+the area of interest — REJECT, repeat exposure. IQI sensitivity not demonstrated.
+Radiograph interpreted by Level I without direct Level II/III supervision.
+
+---
+
+CLAUSE T-282 — DISPOSITION OF INDICATIONS — LINEAR vs ROUNDED
+(التصرف في المؤشرات — خطية مقابل مستديرة)
+
+T-282.1 CLASSIFICATION OF RADIOGRAPHIC INDICATIONS
+Radiographic indications (المؤشرات الإشعاعية) observed in the area of interest shall
+be classified as:
+  (a) LINEAR INDICATIONS (مؤشرات خطية):
+      Length ≥ 3 × width in any orientation.
+      Examples: cracks (تشققات), lack of fusion (عدم الانصهار), incomplete penetration
+      (عدم الاختراق الكامل), elongated slag lines (خبث خطي), undercut (الحفر الجانبي).
+  (b) ROUNDED INDICATIONS (مؤشرات مستديرة):
+      Length < 3 × width. Circular or irregularly shaped but not linear.
+      Examples: porosity (المسامية — isolated pores), inclusions (شوائب),
+      clustered porosity (مجموعات مسامية).
+  (c) GEOMETRIC INDICATIONS (مؤشرات هندسية):
+      Indications caused by joint geometry, not actual discontinuities.
+      Examples: weld root geometry, backing ring shadows.
+      Geometric indications are NOT evaluated as weld defects.
+
+T-282.2 SIZING OF INDICATIONS
+Linear indication length and width shall be measured in the direction of maximum
+extent on the radiograph image. Rounded indication maximum dimension shall be
+measured as the maximum diameter of the indication image. Sizing shall be performed
+using calibrated measuring tools on the film (loupe — عدسة مكبرة — or ruler).
+Image scale correction shall be applied if magnification from geometry is significant.
+
+T-282.3 DISPOSITION PROCEDURE
+  Step 1: Classify the indication as linear or rounded.
+  Step 2: Measure dimensions (length, width, maximum diameter).
+  Step 3: Determine if the indication is a true discontinuity (not a processing
+           artifact or geometric image).
+  Step 4: Apply Construction Code acceptance criteria (see T-283).
+  Step 5: If rejected, notify the responsible engineering or QC authority.
+  Step 6: Document all indications — accept and reject — on the examination report
+           with sketch or schematic showing indication location and orientation.
+
+T-282.4 MULTIPLE INDICATIONS (CUMULATIVE LENGTH)
+Some Construction Codes require evaluation of cumulative indication lengths within
+a defined weld length (e.g., in any 6 in. of weld, maximum total indication length
+is limited). The inspector shall evaluate both individual and cumulative indication
+dimensions when required.
+
+ACCEPTANCE: Indications classified as linear or rounded; sized accurately; evaluated
+per applicable Construction Code acceptance criteria; all accept/reject decisions
+documented with indication location, type, size, and disposition.
+REJECTION: Any linear indication with length ≥ applicable Construction Code limit
+(e.g., ≥ 3/4 in. for full penetration welds per ASME VIII). Indications not
+classified or sized. Disposition not documented.
+
+---
+
+CLAUSE T-283 — ACCEPTANCE CRITERIA REFERENCE (B31.3 and ASME VIII)
+(مرجع معايير القبول — B31.3 وASME القسم الثامن)
+
+T-283.1 ARTICLE 2 DOES NOT SPECIFY ACCEPTANCE CRITERIA
+ASME Section V Article 2 establishes examination TECHNIQUE requirements only.
+Acceptance criteria (معايير القبول) for radiographic indications are ALWAYS taken
+from the applicable Construction Code. The inspector must confirm which Construction
+Code governs the examination before applying accept/reject limits.
+
+T-283.2 ACCEPTANCE CRITERIA — ASME SECTION VIII DIV. 1 (UW-51 and UW-52)
+For pressure vessels (أوعية الضغط) under ASME Section VIII Division 1:
+
+  REJECTABLE INDICATIONS (100% RT — UW-51):
+    - Any crack (تشقق) — any size — REJECT.
+    - Any incomplete fusion (عدم الانصهار) — REJECT.
+    - Any incomplete penetration (عدم اختراق كامل) — REJECT.
+    - Any elongated slag inclusion with length > 1/3 T where T is the lesser of the
+      two plate thicknesses joined (and not exceeding 3/4 in. absolute maximum).
+    - Aligned slag in a line where aggregate length in 6T exceeds T and gaps < 3L
+      (where L = longer slag inclusion length).
+    - Rounded indication: charts in ASME VIII Appendix 4 define maximum allowed
+      rounded indication size and count per 6 in. of weld.
+    - Undercut > 1/32 in. (0.8 mm) depth if discernible by RT.
+
+T-283.3 ACCEPTANCE CRITERIA — ASME B31.3 (PROCESS PIPING — أنابيب العمليات الصناعية)
+Per ASME B31.3 Table 341.3.2 (for Normal Fluid Service, 100% RT):
+
+  REJECTABLE INDICATIONS:
+    - Any crack — REJECT.
+    - Any lack of fusion — REJECT.
+    - Any lack of penetration — REJECT (Normal Service); depth > 1 mm or 20% of
+      thinner wall (whichever is less) for Category D normal fluid service.
+    - Elongated indication (single): length > 1/3 T or 6 mm (0.25 in.) — REJECT.
+      (T = weld thickness at indication location)
+    - Rounded indication: maximum size 3 mm (1/8 in.) for T ≥ 3/4 in.; maximum
+      size 2.5 mm for T < 3/4 in.; no more than 12 in any 6 in. of weld (consult
+      B31.3 Appendix A Fig. A341.3.2 rounded indication acceptance charts).
+    - Underfill (concavity) > 1 mm or 20% of wall thickness — REJECT.
+
+T-283.4 ACCEPTANCE CRITERIA — API 1104 (PIPELINE WELDS — لحامات خطوط الأنابيب)
+For pipeline welds under API 1104:
+    - Cracks: REJECT — any length.
+    - Incomplete fusion: individual length > 1 in. (25 mm), aggregate in 12 in.
+      weld > 1 in. — REJECT.
+    - Incomplete penetration (IP): individual IP > 1 in. (25 mm), aggregate in
+      12 in. weld > 1 in., or aggregate in total weld > 8% of weld length — REJECT.
+    - Burn-through: any burn-through exceeding applicable chart limits — REJECT.
+    - Porosity: consult API 1104 Section 9.3 chart limits by pipe size and wall.
+
+T-283.5 INSPECTOR DUTY
+The inspector (مفتش الفحص) shall confirm which Code applies to each joint before
+issuing a disposition. Mixing acceptance criteria from different Codes on the same
+joint is NOT permitted. The applicable Code and edition shall be recorded on the
+examination report.
+
+ACCEPTANCE: Indications evaluated per applicable Construction Code; no linear
+indications (crack, LF, LP) per ASME VIII UW-51 or B31.3; rounded indications
+within chart limits; accept/reject decision documented per correct Code.
+REJECTION: Any crack (any size, any Code). Any lack of fusion. Any incomplete
+penetration beyond Code limits. Slag or rounded indications exceeding applicable
+Code charts. Wrong Code acceptance criteria applied.
+
+---
+
+CLAUSE T-291 — RADIOGRAPH RETENTION REQUIREMENTS
+(متطلبات الاحتفاظ بالأفلام الإشعاعية وسجلات الفحص)
+
+T-291.1 RETENTION PERIOD
+Per ASME Section V T-291, radiographic films and examination records shall be
+retained for a minimum period as specified by the applicable Construction Code.
+Typical requirements:
+  - ASME Section VIII Div. 1: Films and records shall be retained for the life
+    of the vessel or as agreed upon in the purchase specification (minimum 5 years
+    in the absence of other requirements). Many jurisdictions require retention for
+    the life of the pressure vessel.
+  - ASME B31.3: Minimum 5 years from the date of examination.
+  - API 1104: Minimum 3 years from the date of examination (some owner specifications
+    require longer — always check owner's ITP or project specification).
+
+T-291.2 RECORDS REQUIRED
+The following records shall be maintained and retained:
+
+  (a) Radiographic examination report (تقرير الفحص الإشعاعي) including:
+      - Job/project identification
+      - Component identification (weld number, spool number, joint ID)
+      - Applicable code and edition
+      - Radiographic procedure number and revision
+      - Technique parameters (source type, SFD, OFD, exposure time, kV or Ci,
+        film type, screen type, Ug calculation)
+      - IQI type, designation, and placement (source or film side)
+      - Film density readings (at IQI, darkest, lightest areas)
+      - Description of all indications found (type, location, size, disposition)
+      - Accept/reject disposition per Construction Code
+      - Name, certification level, and signature of interpreter
+      - Date of examination and date of report
+
+  (b) Radiographic films themselves (الأفلام الإشعاعية نفسها) — properly identified
+      with permanent film identification.
+
+  (c) Densitometer calibration records.
+
+  (d) RT personnel qualification and certification records.
+
+T-291.3 FILM STORAGE FOR RETENTION
+Films retained for the long term shall be stored:
+  - In a cool, dry environment (temperature < 20°C / 68°F; RH < 50%).
+  - Away from radiation sources, chemical fumes, and magnetic fields.
+  - In acid-free envelopes or sleeves.
+  - In labeled, indexed files traceable to the examination record.
+Improper long-term storage (humidity, heat, chemical fumes) causes film deterioration
+(yellow-brown staining — بقع صفراء وتدهور الفيلم) that can render films unreadable.
+
+T-291.4 DIGITAL RECORDS
+Where digital records (سجلات رقمية) are maintained as backup to or replacement for
+paper records, the digital system shall:
+  - Be backed up regularly (minimum daily).
+  - Have access control to prevent unauthorized modification.
+  - Provide traceability (revision history, date/time stamps).
+  - Be maintained in a readable format for the full retention period.
+
+ACCEPTANCE: Examination reports complete and signed by Level II/III; films
+identified, indexed, and stored per T-291.3; retention period per applicable
+Construction Code maintained; densitometer calibration records and personnel
+certification records on file.
+REJECTION: Examination reports incomplete, unsigned, or missing. Films not
+retained for required period or lost. Film storage conditions causing film
+deterioration. No traceability between film and examination report.
+
+---
+
+CLAUSE RT-SAFETY-01 — RADIATION SAFETY AND AREA CONTROL
+(السلامة الإشعاعية والتحكم في المنطقة الإشعاعية)
+
+NOTE: While ASME Section V Article 2 covers examination technique, radiation
+safety requirements are governed by national nuclear regulatory authorities
+and employer radiation safety programs. In Egypt: Egyptian Nuclear and Radiological
+Regulatory Authority (ENRRA — هيئة الرقابة النووية والإشعاعية المصرية) and applicable
+Ministry of Manpower regulations. The following requirements represent minimum
+industry-standard radiation safety practices applicable in oilfield and fabrication
+environments in Egypt and the MENA region.
+
+RT-SAFETY-01.1 RADIATION EXCLUSION ZONE
+A controlled exclusion zone (منطقة الإقصاء الإشعاعي) shall be established around the
+radiation source during all exposures. Zone dimensions shall be calculated using
+the source activity, beam direction, and dose rate survey. The exclusion zone shall
+be established to maintain dose rates at the zone boundary ≤ 0.5 mSv/hr (2.5 mR/hr
+or 50 μGy/hr) for controlled areas, and ≤ 0.02 mSv/hr (2 mR/hr) at uncontrolled
+area boundaries (per IAEA and ENRRA guidelines). For Ir-192 at typical field
+activity levels (5–75 Ci), controlled exclusion zones typically range from 30 to
+150 meters in the unshielded beam direction.
+
+RT-SAFETY-01.2 ZONE MARKING AND BARRICADING
+The exclusion zone shall be physically barricaded and marked with:
+  - Radiation warning rope or tape (شريط تحذير الإشعاع — yellow and magenta radiation
+    hazard tape)
+  - Standard radioactive/radiation hazard warning signs (ملصقات التحذير من الإشعاع)
+  - Warning lights (red rotating or flashing light visible in daylight and dark)
+  - Audible warning (horn or siren) activated during exposure
+Guards (حراس المنطقة الإشعاعية) shall be posted at all access points to the exclusion
+zone. No unauthorized personnel may enter the exclusion zone during exposure.
+
+RT-SAFETY-01.3 PERSONNEL DOSIMETRY
+All personnel working in or near the radiation zone shall wear:
+  - Thermoluminescent dosimeters (TLDs — جرعات التيرمولومينسنت) — worn at chest or
+    collar, processed and read monthly.
+  - Direct-reading dosimeters (pocket dosimeters — جرعات جيب — or digital dosimeters)
+    for real-time dose monitoring, read before and after each shift.
+  - Film badges (شارات الفيلم) — acceptable alternative to TLD in some jurisdictions.
+Dose records shall be maintained and reviewed against regulatory annual dose limits:
+  - Occupational workers: 20 mSv/year (whole body) averaged over 5 years, max
+    50 mSv in any single year (IAEA BSS / Egyptian regulations).
+  - Lens of eye: 20 mSv/year.
+  - Extremities and skin: 500 mSv/year.
+Personnel exceeding dose limits shall be removed from radiation work until reviewed
+by Radiation Protection Officer (RPO — مسؤول الحماية من الإشعاع).
+
+RT-SAFETY-01.4 SURVEY METERS
+Before commencing each RT exposure session:
+  - Survey the area with a calibrated Geiger-Müller (GM) or ionization chamber
+    survey meter (جهاز مسح الإشعاع المعايَر).
+  - Verify source is fully retracted to safe position before personnel approach.
+  - After exposure: Verify source retraction with survey meter before releasing
+    the exclusion zone. Dose rate at source position (at 1 m from source, after
+    retraction) shall be ≤ background + 0.5 μSv/hr before releasing.
+Survey meters shall be calibrated annually by an accredited laboratory.
+
+RT-SAFETY-01.5 SOURCE TRANSPORT AND STORAGE
+Radioactive sources (المصادر المشعة) in the field shall be transported in Type B
+transport containers (حاويات النقل من النوع ب) with:
+  - Current transport certificate and package identification.
+  - Surface dose rate ≤ 2 mSv/hr (200 mR/hr) at container surface.
+  - Dose rate at 1 m from surface ≤ 0.1 mSv/hr (10 mR/hr).
+Containers shall be secured during transport and stored in a locked, access-controlled
+location when not in use. Inventory of all radioactive sources shall be maintained
+by the RPO.
+
+RT-SAFETY-01.6 EMERGENCY PROCEDURES
+A source emergency procedure (إجراء طوارئ المصدر الإشعاعي) shall be available at the
+work site and all RT personnel shall be trained in:
+  - Response to source ejection (stuck-open source — مصدر متوقف في الفتح)
+  - Evacuation of the area
+  - Notification of RPO and site emergency response
+  - First aid for radiation exposure victims
+Emergency equipment (طوارئ الإشعاع) including long-handled tongs, lead containers,
+and emergency survey meter shall be available at the RT work site.
+
+ACCEPTANCE: Exclusion zone established, marked, and guarded. Personnel in radiation
+zone wearing TLD and direct-reading dosimeter. Survey meter calibrated and used
+before and after each exposure. Source retraction verified before zone release.
+Source transport in Type B container with current documentation.
+REJECTION: No exclusion zone or zone inadequately marked. Personnel in zone without
+dosimetry. Survey meter not used or uncalibrated. Source not verified retracted
+before zone release. Radioactive source unaccounted for or not in secure storage.
+Any stuck-source incident without immediate emergency response activation.
+
+---
+
+CLAUSE RT-ID-01 — FILM IDENTIFICATION REQUIREMENTS (MARKING AND TRACEABILITY)
+(متطلبات تعريف الفيلم — التحديد والتتبع)
+
+RT-ID-01.1 MANDATORY FILM IDENTIFICATION
+Every radiographic film shall carry identification information that is visible on the
+processed radiograph (مرئي على الفيلم المعالج). Identification shall be applied using
+lead letters and numerals (حروف وأرقام رصاص) placed on the film side of the object
+before exposure, so the identification images are cast directly onto the film by the
+radiation source. Do NOT write identification on the film after processing with pen
+or marker — this does not satisfy the Article 2 requirement for permanent, radiograph-
+integral identification.
+
+RT-ID-01.2 REQUIRED IDENTIFICATION INFORMATION
+Each radiograph shall show the following minimum identification on the film image:
+
+  (a) MANUFACTURER / CONTRACTOR NAME or code (اسم الشركة المصنعة أو المقاول)
+  (b) PART or WELD NUMBER (رقم الجزء أو رقم اللحام) — unique identifier traceable to
+      the examination map and project documentation.
+  (c) FILM LOCATION MARKER (مؤشر موضع الفيلم) — showing the exact position of the
+      film along the weld, referenced to a fixed datum point on the component
+      (e.g., weld start point 0°, or a stamped reference mark).
+  (d) DATE OF EXAMINATION (تاريخ الفحص) — in lead numbers or coded notation traceable
+      to the examination report date.
+  (e) REVISION NUMBER if re-examination (رقم المراجعة) — e.g., "RT-2" for a second
+      attempt at a previously examined joint.
+  (f) WELDER / WELD IDENTIFICATION (رقم تعريف اللحام واللحام) — for production traceability.
+
+RT-ID-01.3 LOCATION MARKERS
+Film location markers (مؤشرات موقع الفيلم) shall be placed at each end of the film
+and shall appear on the processed radiograph. For circumferential welds:
+  - Markers shall show the distance from a fixed reference datum.
+  - "0°" or "0 in." marker at the reference start point.
+  - Each subsequent film position shows its distance from 0 (e.g., 6 in., 12 in.)
+    or angular position (e.g., 120°, 240°).
+For panoramic shots: markers at 0°, 90°, 180°, 270° around circumference, or as
+required to uniquely identify every point on the weld.
+
+RT-ID-01.4 ADDITIONAL MARKERS
+  - IQI identification: IQI designation number shall be visible on the IQI body
+    as cast on the film. Lead "F" marker if film-side IQI placement was used.
+  - Lead "B" marker on back of cassette (for back-scatter verification — T-222.3).
+  - "+" or arrow markers to indicate direction of examination (beam direction) when
+    relevant for complex geometry.
+  - Shipper or owner ID when required by purchase specification.
+
+RT-ID-01.5 LEAD LETTER SIZE AND PLACEMENT
+Lead identification letters/numbers shall be:
+  - Minimum 3/8 in. (10 mm) height for legibility.
+  - Placed outside the area of interest but within the film boundaries.
+  - Not placed over the weld unless flush-ground and inspection of that area is
+    not required at that location.
+  - Fastened securely to prevent movement during exposure.
+
+RT-ID-01.6 TRACEABILITY TO EXAMINATION RECORD
+The film identification shall provide a direct, unambiguous link between the film
+image and the examination report. Any film that cannot be positively identified
+and traced to its examination record is not acceptable as a Code record. The
+inspector shall verify identification completeness before removing films from
+cassettes and before signing off the examination report.
+
+ACCEPTANCE: All required identification (company/contractor, weld/part number,
+film location marker, date, revision if applicable) visible on processed radiograph
+in lead image form. Identification legible (≥ 3/8 in. character height). Positive
+traceability to examination report and component.
+REJECTION: Any required identification element missing from the film image.
+Identification applied post-processing with ink/marker (not lead image on film).
+Film position marker absent or ambiguous — film cannot be unambiguously placed on
+the weld. Film not traceable to examination report. Identification obscures or
+falls within the area of interest.
+
+---
+
+================================================================================
+SUMMARY QUICK-REFERENCE TABLE
+================================================================================
+
+PARAMETER                    | REQUIREMENT / LIMIT
+-----------------------------|--------------------------------------------------
+Film class (Code work)       | Class I required unless Construction Code allows II
+Min. optical density (X-ray) | OD ≥ 1.8
+Min. optical density (gamma) | OD ≥ 2.0
+Max. optical density (all)   | OD ≤ 4.0
+Base + fog limit             | ≤ 0.30 OD
+Density variation (±)        | −15% / +30% of IQI density
+Densitometer calibration tol.| ±0.05 OD against NIST-traceable step-tablet
+IQI sensitivity (plaque)     | 2T hole visible in correct IQI designation
+IQI sensitivity (wire)       | Essential wire visible per Table T-276
+Geometric unsharpness (≤19mm)| Ug ≤ 0.020 in. (0.51 mm)
+Geometric unsharpness (≤50mm)| Ug ≤ 0.030 in. (0.76 mm)
+Geometric unsharpness (≤89mm)| Ug ≤ 0.040 in. (1.02 mm)
+Geometric unsharpness (>89mm)| Ug ≤ 0.070 in. (1.78 mm)
+Film overlap (adjacent shots)| ≥ 1/2 in. (13 mm)
+IQI position (preferred)     | Source side
+Film-side IQI marker         | "F" lead letter visible on radiograph
+Panoramic IQI minimum qty    | 3 IQIs at 0°, 120°, 240°
+Back-scatter check           | "B" lead letter on cassette back
+Source leak test currency    | Within 6 months
+Densitometer calibration     | Start and end of each use period
+Occupational dose limit      | 20 mSv/year whole body (IAEA/Egyptian)
+Controlled zone boundary rate| ≤ 0.5 mSv/hr
+Film retention minimum       | Per Construction Code (ASME VIII: vessel life;
+                             | B31.3: 5 years; API 1104: 3 years)
+Personnel certification      | Level II or III for interpretation
+Film ID character height      | ≥ 3/8 in. (10 mm) lead letters
+
+================================================================================
+FORMULA QUICK REFERENCE
+================================================================================
+
+GEOMETRIC UNSHARPNESS:
+  Ug = (F × t) / D
+  F = source size (mm or in.)
+  t = object-to-film distance (mm or in.)
+  D = source-to-object distance (mm or in.)
+
+MINIMUM SOURCE-TO-OBJECT DISTANCE:
+  D_min = (F × t) / Ug_max
+
+DENSITY VARIATION LIMITS:
+  D_min_acceptable = D_IQI × 0.85
+  D_max_acceptable = D_IQI × 1.30
+
+================================================================================
+END OF ASME V ARTICLE 2 — RADIOGRAPHIC EXAMINATION KNOWLEDGE FILE
+Edition: 2023 | File Version: 1.0 | Date Generated: 2026-09-23
+Prepared for: AI Inspection Assistant — Egypt / MENA Oilfield Operations
+================================================================================

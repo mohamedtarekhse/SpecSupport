@@ -1,0 +1,986 @@
+[STANDARD: ASME B31.8]
+[TITLE: Gas Transmission and Distribution Piping Systems]
+[EDITION: 2022]
+[ARTICLE: Full Scope — Gas Pipeline Inspection and Testing]
+[GENERATED: 2026-09-23]
+[JURISDICTION: USA / Applicable MENA/Egypt Oilfield Context]
+[LANGUAGE: English with Arabic oilfield terms where applicable]
+
+================================================================================
+PURPOSE: AI-assisted inspection knowledge base. Each clause contains real B31.8
+clause references, field-language description, numeric acceptance/rejection
+criteria, and Arabic oilfield terminology for Egypt/MENA operations.
+================================================================================
+
+---
+
+CLAUSE 01 — SCOPE AND APPLICABILITY
+[REF: ASME B31.8 Section 800 / Para. 800.1]
+
+ASME B31.8 covers the design, fabrication, installation, inspection, testing,
+and safety of gas transmission and distribution piping systems (خطوط أنابيب نقل
+وتوزيع الغاز). The standard applies onshore gas transmission lines, gathering
+lines (خطوط التجميع), distribution mains (خطوط التوزيع الرئيسية), and service
+lines from the wellhead or production facility to the customer meter. Offshore
+gas pipelines that transition onshore within the first valve assembly are also
+covered. This standard does NOT apply to: piping within compressor stations
+(beyond the station block valve), gas-fired appliances downstream of the
+customer meter, or liquid petroleum pipelines governed by B31.4. Inspectors
+must confirm which B31 code governs the system before applying criteria.
+ASME B31.8 is frequently referenced alongside DOT Part 192 (USA) and EGPC/EGAS
+regulations in Egypt.
+
+ACCEPTANCE:
+- System is a gas transmission, gathering, or distribution line per Para. 800.1.
+- All design, fabrication, and testing documentation references ASME B31.8-2022
+  or the edition specified in the purchase order / regulatory authority.
+- Code edition year on engineering documentation matches physical nameplate and
+  inspection records.
+
+REJECTION:
+- Application of B31.8 to liquid petroleum pipelines (use B31.4) — reject code
+  reference immediately and halt inspection until correct standard is identified.
+- Absence of any code reference on engineering drawings for new construction —
+  reject; require code identification before pressure testing.
+- System operating above MOP with no B31.8-compliant design documentation —
+  immediate flagging for engineering review.
+
+---
+
+CLAUSE 02 — LOCATION CLASS DEFINITIONS
+[REF: ASME B31.8 Para. 840.2, Table 840.3.1]
+
+Location class (تصنيف الموقع) is determined by counting the number of buildings
+intended for human occupancy within a corridor 1 mile (1.6 km) long and 220 yards
+(200 m) wide on each side of the pipeline centerline — a "unit area" of 1 mile.
+Class 1 applies where 10 or fewer buildings for human occupancy exist; Class 2
+covers areas with 11 to 45 such buildings; Class 3 applies to areas with 46 or
+more buildings or in any area within 100 yards of a building that is occupied by
+20 or more persons at any one time; Class 4 applies where multi-story buildings
+are prevalent and where traffic is heavy or where there may be numerous pedestrians.
+Location class governs design factor F, inspection frequency, patrolling schedule,
+test pressure, and leak survey requirements — it is the single most important
+classification an inspector (مفتش الخط) must verify in the field. Class can
+upgrade (increase) as population grows; downgrade requires regulatory approval.
+
+ACCEPTANCE:
+- Class 1: ≤10 buildings/mile corridor. Two subdivisions: Div 1 and Div 2.
+- Class 2: 11–45 buildings/mile corridor.
+- Class 3: ≥46 buildings/mile OR within 100 yd of a structure occupied by
+  ≥20 persons at any one time.
+- Class 4: Multi-story buildings prevalent (≥4 stories), heavy traffic.
+- Location class documented in pipeline design dossier and reviewed annually.
+
+REJECTION:
+- Location class not re-evaluated after community development (urban encroachment
+  — الزحف العمراني) within 1-mile corridor — reject; require immediate reassessment.
+- Pipeline operating with Class 1 design factor in what is now a Class 3 or
+  Class 4 area without MAOP reduction or pressure test upgrade — REJECT; pipeline
+  must be de-rated or upgraded within regulatory timeline.
+- Absence of a population density survey in the integrity management file — reject
+  IMP documentation as incomplete.
+
+---
+
+CLAUSE 03 — DESIGN PRESSURE FORMULA
+[REF: ASME B31.8 Para. 841.11 / Equation 841.114(a)]
+
+The design pressure formula for steel pipe is:
+    P = (2 × S × t / D) × F × E × T
+where:
+  P = maximum allowable operating pressure, MAOP (أقصى ضغط تشغيل مسموح), in psi
+  S = specified minimum yield strength, SMYS (أدنى قيم مقاومة الخضوع المحددة),
+      in psi per applicable API or ASTM pipe standard
+  t = nominal wall thickness (سماكة الجدار الإسمية), in inches
+  D = nominal outside diameter (القطر الخارجي الإسمي), in inches
+  F = design factor (عامل التصميم) — see Clause 04
+  E = longitudinal joint factor (عامل الوصل الطولي) — see Clause 06
+  T = temperature derating factor (عامل التخفيض الحراري) — see below.
+T = 1.000 for temperatures at or below 250°F (121°C); T = 0.967 at 300°F;
+T = 0.933 at 350°F; T = 0.900 at 400°F; T = 0.867 at 450°F (ASME B31.8
+Table 841.116A). At operating temperatures ≤250°F (the vast majority of gas
+pipelines), T = 1.000 and drops out of the calculation. Inspectors must verify
+all five inputs against the actual pipe mill certificate (شهادة المصنع) and
+design drawing before accepting any MAOP stamp.
+
+ACCEPTANCE:
+- All five formula inputs confirmed from traceable, certified documents.
+- Calculated MAOP equals or exceeds actual operating pressure by ≥0 psi (no
+  deficit permitted — actual OP must be ≤ calculated MAOP at all times).
+- T factor = 1.000 for gas temperatures ≤250°F (121°C) — confirm gas temperature
+  from SCADA or process data.
+- Formula applied using nominal wall thickness minus no mill tolerance deduction
+  unless specifically required by design; B31.8 Para. 841.11 uses nominal t.
+
+REJECTION:
+- Any formula input (S, t, D, F, E, T) taken from an unverified or assumed value
+  with no mill certificate or drawing backing — REJECT design basis.
+- Calculated MAOP less than actual operating pressure — REJECT; immediate
+  shutdown or pressure reduction required until engineering review complete.
+- Temperature derating factor not applied when gas temperature >250°F — REJECT
+  calculation; pipeline operating above permitted MAOP.
+- SMYS value used exceeding the API 5L grade listed on mill certificate — REJECT.
+
+---
+
+CLAUSE 04 — DESIGN FACTORS (F) PER LOCATION CLASS
+[REF: ASME B31.8 Para. 841.114 / Table 841.114A]
+
+The design factor F is the single largest variable controlling MAOP in a gas
+transmission pipeline (خط نقل الغاز). B31.8 Table 841.114A assigns F as follows:
+  - Class 1, Division 1 (bare or minimal coated, no cathodic protection
+    in remote areas with ≤10 buildings): F = 0.80
+  - Class 1, Division 2 (Class 1 with cathodic protection and coated pipe): F = 0.72
+  - Class 2: F = 0.60
+  - Class 3: F = 0.50
+  - Class 4: F = 0.40
+Note: Class 1 Div 1 at 0.80 is permitted ONLY for cross-country pipelines with
+established cathodic protection — field inspectors (مفتشو الحقل) must confirm CP
+system is active before accepting F = 0.80. Division 1 vs Division 2 distinction
+within Class 1 relates to the presence or absence of cathodic protection and
+coating, not just building count. A pipeline originally designed as Class 1 Div 1
+in an area that becomes Class 2 must have its F factor reduced from 0.80 to 0.60,
+which directly reduces allowable MAOP and may require physical pressure reduction
+or line upgrade.
+
+ACCEPTANCE:
+- F = 0.80: Class 1 Div 1 only — confirm CP system active, coating intact.
+- F = 0.72: Class 1 Div 2 — confirm CP + coating, area remains Class 1.
+- F = 0.60: Class 2 — verify population count 11–45 buildings/mile.
+- F = 0.50: Class 3 — verify population count ≥46 buildings/mile OR proximity
+  criteria met.
+- F = 0.40: Class 4 — multi-story, high density confirmed.
+- Design factor documented on P&ID and pipeline design dossier with location
+  class justification.
+
+REJECTION:
+- F = 0.80 applied without active cathodic protection (حماية كاثودية) system —
+  REJECT; immediately reduce to F = 0.72 maximum or lower per actual class.
+- Design factor not revised after location class upgrade due to urban growth —
+  REJECT; pipeline operating above recalculated MAOP.
+- F value higher than permitted for assigned class — REJECT; engineering de-rating
+  required before continued operation.
+- Use of F > 0.80 for any steel gas transmission line — absolute REJECTION; no
+  B31.8 provision allows F > 0.80 for gas transmission.
+
+---
+
+CLAUSE 05 — WALL THICKNESS SELECTION AND SMYS REQUIREMENTS
+[REF: ASME B31.8 Para. 841.11 / 841.12 / API 5L Table 1]
+
+Pipe for gas transmission and distribution shall be manufactured in accordance
+with API 5L, ASTM A53, ASTM A106, or other standards listed in B31.8 Table
+841.111. The minimum wall thickness (الحد الأدنى لسماكة الجدار) used in design
+must be the nominal mill wall thickness as certified; mill tolerance is not
+deducted by B31.8 unless the designer specifically applies it. For distribution
+piping, minimum wall thickness for steel pipe NPS 2 and smaller shall be
+Schedule 40 or equivalent per Para. 841.12. SMYS values by grade:
+  - API 5L Grade B: SMYS = 35,000 psi (241 MPa)
+  - API 5L X42: SMYS = 42,000 psi (290 MPa)
+  - API 5L X52: SMYS = 52,000 psi (359 MPa)
+  - API 5L X60: SMYS = 60,000 psi (414 MPa)
+  - API 5L X65: SMYS = 65,000 psi (448 MPa)
+  - API 5L X70: SMYS = 70,000 psi (483 MPa)
+  - API 5L X80: SMYS = 80,000 psi (552 MPa)
+Inspectors must verify pipe grade from the stencil/marking on the pipe body and
+cross-check against the mill test certificate (MTR — شهادة اختبار المصنع) before
+allowing installation. Substitution of a lower-grade pipe for a higher-grade
+design is not permitted without engineering recalculation of MAOP.
+
+ACCEPTANCE:
+- Pipe grade and heat number match the approved MTO (material take-off) and MTR.
+- Wall thickness measured by UT gauge within -0% to +mill tolerance of nominal
+  (B31.8 does not deduct mill tolerance from design calculation by default).
+- SMYS on MTR ≥ specified grade SMYS (e.g., X52 MTR shows ≥52,000 psi yield).
+- CVN (Charpy V-notch — اختبار شاربي) toughness requirements met per API 5L for
+  high-pressure sour service where H₂S is present (NACE MR0175 cross-reference).
+
+REJECTION:
+- Pipe grade marking absent, illegible, or inconsistent with MTR — REJECT pipe;
+  do not install until traceability is restored.
+- Measured wall thickness below nominal by more than mill tolerance
+  (API 5L: -12.5% for seamless, -0% for ERW per relevant table) — REJECT pipe.
+- MTR not available for pressure-containing pipe — REJECT; no substitution or
+  engineering assumption permitted.
+- SMYS on MTR below specified grade minimum — REJECT; pipe cannot be used for
+  intended design MAOP.
+
+---
+
+CLAUSE 06 — LONGITUDINAL WELD JOINT FACTOR (E)
+[REF: ASME B31.8 Para. 841.115 / Table 841.115A]
+
+The weld joint factor E accounts for the efficiency (كفاءة الوصل الطولي) of the
+longitudinal seam weld in the pipe body — not the field girth welds. E values
+per B31.8 Table 841.115A:
+  - Seamless pipe (أنبوب بدون درز): E = 1.000
+  - Electric Resistance Welded (ERW — لحام المقاومة الكهربائية): E = 1.000
+    (post-1970 ERW meeting API 5L SR4/SR15 — full seam NDE required)
+  - Electric Flash Welded (EFW): E = 1.000
+  - Submerged Arc Welded (SAW — لحام القوس المغمور) — double seam, full RT:
+    E = 1.000
+  - Submerged Arc Welded — single seam: E = 1.000 (with full RT)
+  - Electric Fusion Welded (EFW) — single pass, partial RT: E = 0.800
+  - Furnace Butt Welded (FBW — لحام الفرن): E = 0.600
+  - Spiral (helical) welded, SAW, full RT: E = 1.000
+  - Pre-1970 ERW pipe (low-frequency ERW): E = 0.800 — this is a critical field
+    issue; older vintage pipe must be identified and derated accordingly.
+Inspectors must check the pipe specification and purchase date; unidentified
+vintage ERW on older gathering lines may be operating with E = 1.000 applied
+incorrectly, resulting in an overstated MAOP.
+
+ACCEPTANCE:
+- E = 1.000: Seamless, post-1970 HF-ERW (API 5L), SAW (full RT), EFW (full RT).
+- E = 0.800: Pre-1970 LF-ERW, single-pass EFW with partial RT.
+- E = 0.600: Furnace butt welded — essentially legacy pipe; rarely new construction.
+- Pipe manufacture year and seam type documented in pipeline records.
+- Full seam NDE documentation available for any pipe using E = 1.000 on a
+  welded seam type.
+
+REJECTION:
+- E = 1.000 applied to pre-1970 LF-ERW pipe — REJECT calculation; derate to
+  E = 0.800 immediately, recalculate MAOP, reduce pressure if required.
+- E = 1.000 applied to furnace butt welded pipe — REJECT; E = 0.600 mandatory.
+- Pipe seam type unknown (no records, illegible markings) and E = 1.000 assumed
+  — REJECT; use E = 0.800 as conservative minimum until seam type confirmed.
+- No seam NDE records for welded pipe claiming E = 1.000 — REJECT; require full
+  seam RT/UT records or apply lower E factor.
+
+---
+
+CLAUSE 07 — WELDING PROCEDURE AND WELDER QUALIFICATION
+[REF: ASME B31.8 Para. 823 / 826 — Reference API 1104 (Ed. 22)]
+
+All welding on gas pipeline systems covered by B31.8 shall be performed in
+accordance with a qualified welding procedure specification (WPS — مواصفات إجراء
+اللحام) and by welders (لحامون) or welding operators qualified per API Standard
+1104, "Welding of Pipelines and Related Facilities." The WPS must be qualified
+by a pre-production procedure qualification record (PQR — سجل تأهيل الإجراء)
+using destructive and non-destructive tests as required by API 1104 Section 5.
+Each welder must pass a performance qualification test (PQT) specific to the
+process, position, pipe diameter, and wall thickness range to be welded in
+production. Welder qualification expires after 6 months of non-use of the
+specific process; continuity of qualification requires work records showing
+production welds within the preceding 6-month period. All WPS, PQR, and welder
+qualification records (سجلات التأهيل) must be maintained by the contractor and
+available for inspector review at the job site.
+
+ACCEPTANCE:
+- WPS is pre-qualified or procedure-tested per API 1104 Section 5.
+- PQR test results on file: tensile, nick-break, bend tests passing API 1104 Table 3.
+- Each production welder has a current PQT (within 6-month continuity window)
+  covering the position, diameter, and wall thickness being welded.
+- Welder identification (الرقم التعريفي للحام) stamped or recorded on joint record
+  for every production weld — mandatory for traceability.
+- Preheat temperature per WPS confirmed by contact thermometer or Tempilstik
+  before arc start — API 1104 / B31.8 Para. 823.
+
+REJECTION:
+- Welder performing production work with no current PQT on file — STOP WORK;
+  weld is unacceptable; cut out and re-weld with qualified welder.
+- WPS applied outside its qualified range (e.g., wall thickness, pipe grade,
+  preheat, filler metal) — REJECT weld; evaluate for repair or removal.
+- No preheat applied when WPS requires minimum preheat — REJECT weld;
+  evaluate by NDE, likely require cut-out.
+- Welder identification not recorded — REJECT weld record; weld remains but
+  full NDE (100% RT or UT) mandatory before acceptance.
+- WPS not signed and approved by a responsible welding engineer — REJECT WPS.
+
+---
+
+CLAUSE 08 — NONDESTRUCTIVE EXAMINATION (NDE) REQUIREMENTS
+[REF: ASME B31.8 Para. 826 / Table 826.1]
+
+B31.8 requires NDE of girth welds (اللحامات الدائرية) based on location class —
+higher classes demand more intensive examination. Inspection methods used are
+radiographic testing (RT — الفحص الإشعاعي), ultrasonic testing (UT — الفحص
+بالموجات فوق الصوتية), magnetic particle testing (MT — الفحص بالجسيمات
+المغناطيسية), and liquid penetrant testing (PT — فحص اختراق السوائل). Per
+B31.8 Table 826.1 (minimum NDE requirements for steel pipe welds):
+  - Class 1: NDE of girth welds — 10% random RT or equivalent (مضغوط عشوائي
+    بنسبة 10%)
+  - Class 2: NDE — 15% random RT or equivalent
+  - Class 3: NDE — 100% RT or equivalent for all tie-in welds; 15% random for
+    others unless crossings apply
+  - Class 4: NDE — 100% RT or equivalent for ALL girth welds
+  - All pipeline crossings (highway, railroad, river — معابر الطرق والسكك
+    الحديدية والأنهار): 100% RT regardless of class
+  - All compressor station welds: 100% RT
+  - Repair welds: 100% RT on the repaired joint regardless of class
+Automated Ultrasonic Testing (AUT) is accepted as an equivalent to RT where
+validated per B31.8 Appendix B and API 1104 Annex A.
+
+ACCEPTANCE:
+- Class 1: ≥10% of girth welds examined per lot; defects found trigger additional
+  testing per API 1104 Section 9 (if defect rate >0% in sample, expand to 20%
+  then 100%).
+- Class 2: ≥15% examined per lot; same defect-triggered escalation applies.
+- Class 3 tie-in and Class 4: 100% NDE with no welds skipped.
+- All crossing welds: 100% NDE — no exception.
+- AUT procedures validated and demonstrated equivalent sensitivity to RT.
+- NDE performed by Level II or Level III technician (فني) per SNT-TC-1A or
+  ISO 9712, qualified for the method and pipe size.
+
+REJECTION:
+- Class 4 or crossing welds with any untested girth welds — REJECT; NDE must be
+  completed before backfilling (الردم).
+- NDE performed by uncertified or expired-certification technician — REJECT results;
+  repeat NDE by qualified personnel.
+- RT image quality inadequate (IQI sensitivity not met) — REJECT radiograph; repeat.
+- Defect rate in Class 1 or 2 random sample >0% without expanding to additional
+  welds per API 1104 — REJECT NDE program; escalate testing immediately.
+- Backfilling over un-NDE'd welds in Class 3 or 4 — STOP WORK; excavate and
+  perform NDE before re-covering.
+
+---
+
+CLAUSE 09 — RT AND UT WELD ACCEPTANCE CRITERIA
+[REF: ASME B31.8 Para. 826 — API 1104 Sections 9 and 11 (incorporated by reference)]
+
+B31.8 Para. 826 invokes API 1104 for weld acceptance criteria. API 1104 Section 9
+(radiography) and Section 11 (UT) govern acceptance of girth weld flaws. Key
+radiographic acceptance criteria (معايير القبول الإشعاعي):
+  - Incomplete fusion (انصهار ناقص) and incomplete penetration: NOT ACCEPTABLE
+    in any length — reject if visible on film.
+  - Burn-through: NOT ACCEPTABLE if ≥3 mm (1/8 in) in any dimension.
+  - Porosity (مسامية): individual pore ≤3.2 mm (1/8 in) acceptable; cluster
+    porosity ≤ 6.4 mm (1/4 in) in total aggregate length per any 12-inch
+    weld length; elongated porosity ≤ 50.8 mm (2 in) in any 12-inch length.
+  - Slag inclusions (شوائب الخبث): individual slag ≤ 50.8 mm (2 in) length OR
+    ≤ 1/3 weld seam length, whichever is less; width ≤ 3.2 mm (1/8 in).
+  - Cracks (شقوق): NOT ACCEPTABLE in any length — immediate rejection.
+  - Undercutting (الحفر الجانبي): depth ≤ 0.8 mm (1/32 in) and length ≤ 50.8 mm
+    (2 in) in any 12-inch length.
+  - Internal concavity (التقعر الداخلي): acceptable if RT density shows wall
+    thickness not reduced below minimum; otherwise reject.
+All rejectable indications must be repaired per API 1104 Section 10 (repair) or
+the joint must be cut out and re-welded.
+
+ACCEPTANCE:
+- Porosity: single pore ≤3.2 mm; cluster total ≤6.4 mm per 12 in; elongated
+  ≤50.8 mm per 12 in.
+- Slag: individual ≤50.8 mm long AND ≤3.2 mm wide; aggregate ≤ 1/3 seam length.
+- Undercut: depth ≤0.8 mm AND length ≤50.8 mm per 12 in.
+- No cracks. No incomplete fusion. No burn-through ≥3 mm.
+- IQI (image quality indicator — مؤشر جودة الصورة): 2% wire or hole IQI visible
+  on film as required by API 1104.
+
+REJECTION:
+- Any crack detected — REJECT WELD; cut-out or repair (crack removal to sound
+  metal + full re-weld + 100% RT of repair).
+- Incomplete fusion or incomplete penetration — REJECT WELD; repair mandatory.
+- Porosity exceeding limits — REJECT; repair affected area, re-RT.
+- Slag exceeding limits — REJECT; repair, re-RT.
+- Undercut depth >0.8 mm — REJECT; grind and verify remaining wall ≥ minimum;
+  may require weld build-up.
+- IQI not visible on film — REJECT radiograph; retake with proper technique.
+
+---
+
+CLAUSE 10 — HYDROSTATIC PRESSURE TEST — NEW CONSTRUCTION
+[REF: ASME B31.8 Para. 841.3 / 847.1 / Table 841.3.2]
+
+All new gas transmission pipelines (خطوط نقل الغاز الجديدة) must be hydrostatically
+tested (اختبار ضغط مائي) with water before being placed in service unless a
+pneumatic test is specifically authorized. The minimum test pressure (ضغط الاختبار
+الأدنى) shall be:
+  - Class 1 and Class 2 pipelines: 1.25 × MOP (maximum operating pressure)
+    sustained for a minimum of 8 continuous hours.
+  - Class 3 and Class 4 pipelines: 1.50 × MOP sustained for a minimum of
+    8 continuous hours.
+The test pressure shall not exceed 100% of the SMYS-based yield pressure
+(i.e., shall not cause permanent deformation of the pipe wall). Test medium
+must be water; if dewatering is not feasible for short-duration testing in remote
+areas, a variance under Para. 841.3 may allow pneumatic test subject to Class 1
+or Class 2 restriction — see Clause 12. After a successful hydrostatic test, the
+test establishes the pipeline's ability to operate at MOP; the MAOP is then set
+at or below the pressure that is 80% of the test pressure (for Class 1 Div 1).
+
+ACCEPTANCE:
+- Class 1 & 2: test pressure ≥ 1.25 × MOP, held for ≥8 hours, no pressure drop
+  >1% not explained by temperature correction.
+- Class 3 & 4: test pressure ≥ 1.50 × MOP, held for ≥8 hours, same drop criterion.
+- Test pressure ≤ yield pressure (100% SMYS yield at test temperature) —
+  calculated from: P_yield = 2 × SMYS × t / D.
+- Chart recorder traces (مسجل الضغط والحرارة) maintained continuously for
+  full hold duration.
+- Test manifold calibrated pressure gauges (2 minimum), calibration traceable
+  to national standard, calibration date within 1 year.
+
+REJECTION:
+- Test pressure below the required multiple of MOP — REJECT test; re-pressurize
+  to correct level and restart the 8-hour hold.
+- Unaccounted pressure drop (تسرب) during hold period — REJECT test; locate and
+  repair leak; repeat full test.
+- Hold time less than 8 hours — REJECT test; extend hold time and restart count.
+- Test pressure exceeding yield pressure — REJECT; risk of permanent deformation
+  (over-strain); evaluate pipe condition before re-test.
+- Chart recorder absent or malfunctioning during test — REJECT test records;
+  repeat test with functioning recording equipment.
+- Water not fully evacuated (dewatered) after test before gas introduction —
+  REJECT commissioning; dewater to <0.1 L/m of pipe before gas in.
+
+---
+
+CLAUSE 11 — HYDROSTATIC TEST HOLD TIME AND TEMPERATURE REQUIREMENTS
+[REF: ASME B31.8 Para. 847.1(d) / 841.3.2]
+
+The hydrostatic test hold period (فترة التثبيت) must be uninterrupted for the
+minimum duration specified. During the hold, pressure and temperature must be
+continuously monitored and recorded at a minimum at both the high and low
+elevation test segments. Temperature correction (تصحيح درجة الحرارة) is
+mandatory: a pressure drop caused solely by a decrease in water temperature does
+not constitute a test failure provided the corrected pressure-temperature
+relationship remains stable. The temperature-corrected acceptance criterion is:
+if ambient temperature drops by ΔT°F, the resulting pressure change ΔP = 0.013 ×
+P_test × ΔT (°F) is acceptable as a temperature effect — any additional drop
+beyond this correction is a LEAK (تسرب). Test water must be free of sediment and
+contaminants that could damage the pipeline interior (especially critical for
+gas distribution PE pipe or internally coated transmission lines). Freeze risk:
+if ambient temperature is forecast to drop below 35°F (2°C) during or within
+12 hours of the test, inhibited water or other antifreeze measures are required.
+
+ACCEPTANCE:
+- Hold period: ≥8 hours continuous per Class requirement (Clause 10).
+- Pressure drop: ≤1% of initial test pressure per 8 hours, after temperature
+  correction — or zero unexplained drop.
+- Temperature recorded at intervals ≤15 minutes throughout hold period.
+- Elevation difference accounted for: test pressure at high point ≥ 1.25 × MOP
+  (or 1.50 × MOP for Class 3-4) at that elevation.
+- Test records signed by certified test supervisor and inspector.
+
+REJECTION:
+- Hold period interrupted by pressure fluctuation requiring re-pressurization
+  above test pressure — REJECT; reset hold timer from zero after re-pressurization.
+- Unaccounted pressure drop >1% per 8-hour period — REJECT; classify as leak;
+  locate, repair, retest.
+- Temperature not recorded — REJECT test data; temperature correction cannot
+  be applied; retest with monitoring.
+- No elevation correction applied for pipeline with ≥30 ft (9 m) elevation
+  change over test section — REJECT test acceptance; recalculate pressures
+  at all critical elevations.
+
+---
+
+CLAUSE 12 — PNEUMATIC PRESSURE TEST
+[REF: ASME B31.8 Para. 847.3 / 841.3.4]
+
+Pneumatic testing (الاختبار الهوائي أو الغازي) with gas (inert gas, air, or the
+operating gas) is permitted ONLY when: (a) the line cannot be filled with water
+due to structural or operational reasons documented in writing; OR (b) the pipe
+material is not compatible with water (e.g., certain PE distribution lines where
+water ingress cannot be tolerated). For steel gas transmission pipelines,
+pneumatic testing is permissible for Class 1 and Class 2 locations ONLY.
+Pneumatic test pressure is LIMITED to 1.10 × MOP (110% of maximum operating
+pressure). The pneumatic test is inherently more hazardous than hydrostatic
+testing because compressed gas stores far more energy than liquid water at the
+same pressure (فارق الطاقة المخزنة). Special safety requirements apply:
+  - All personnel must be evacuated from the hazard zone (منطقة الخطر) — 200 m
+    minimum radius from the test section during pressurization above 80% of
+    test pressure.
+  - Pressure must be raised in steps: 25%, 50%, 75%, 90%, 100%, with 10-minute
+    holds at each step for visual/audio inspection.
+  - Test pressure hold: minimum 4 hours at 1.10 × MOP.
+
+ACCEPTANCE:
+- Pneumatic test authorized in writing by the responsible engineer with documented
+  justification for inability to hydrotest.
+- Test pressure: ≤ 1.10 × MOP. No exceedance permitted.
+- Location: Class 1 or Class 2 ONLY — no pneumatic testing in Class 3 or Class 4.
+- Step pressurization performed with holds at 25%, 50%, 75%, 90%, 100% of
+  test pressure (10-minute minimum at each step).
+- Evacuation zone: 200 m minimum radius established and enforced.
+- Hold period: ≥4 hours at test pressure with no pressure drop >1% (uncorrected).
+- Leak detection by approved method (bubble solution, acoustic, gas detector).
+
+REJECTION:
+- Pneumatic test pressure >1.10 × MOP — REJECT; immediately vent to safe level;
+  test is invalid; risk of catastrophic failure.
+- Pneumatic test applied in Class 3 or Class 4 — REJECT; not permitted;
+  hydrostatic test required.
+- Personnel within 200 m during pressurization above 80% of test pressure —
+  REJECT test; evacuate immediately; safety violation.
+- No documented engineering justification for pneumatic test in lieu of
+  hydrostatic — REJECT test; require hydrostatic test.
+- Hold period <4 hours — REJECT; extend or retest.
+
+---
+
+CLAUSE 13 — LEAK SURVEY — GAS DISTRIBUTION SYSTEMS
+[REF: ASME B31.8 Para. 851 / Table 851-1]
+
+Gas distribution systems (شبكات توزيع الغاز) require periodic leak surveys
+(مسح التسربات) to detect and quantify leaks before they reach hazardous
+concentrations. Survey frequency per B31.8 Table 851-1 (distribution mains
+— خطوط التوزيع الرئيسية):
+  - Business districts (مناطق تجارية): survey at least annually (once per year)
+    using a gas-detecting instrument capable of measuring 10% of LEL.
+  - All other areas: survey at least once every 3 years using approved methods.
+  - Known leak-prone pipe materials (bare steel, uncoated cast iron, vintage PE):
+    annual survey at minimum.
+  - Service lines in business districts: annual survey.
+Survey instruments must be calibrated before each survey day. Flame ionization
+detectors (FID — كاشف التأين اللهبي) and photo-ionization detectors (PID) are
+acceptable; catalytic bead sensors calibrated to methane are also used.
+Inspectors must maintain survey maps (خرائط المسح) showing route walked, GPS
+track, and any indications found, classified per the operator's leak classification
+procedure (leak Grade 1 = immediate hazard; Grade 2 = non-immediate but requires
+repair; Grade 3 = non-hazardous, monitor).
+
+ACCEPTANCE:
+- Business district mains: surveyed annually with calibrated instrument.
+- Other areas: surveyed at minimum every 3 years.
+- Survey instrument calibration: performed daily before use, within 6-month
+  calibration interval by certified lab.
+- Survey records (سجلات المسح): GPS route logged, all indications documented
+  with location, concentration, classification.
+- Grade 1 leaks (>80% LEL in confined space or ≥1% gas in building): repaired
+  immediately or emergency isolation applied before leaving site.
+- Grade 2 leaks: repair scheduled within 30 days (or per company procedure,
+  maximum 12 months with quarterly monitoring).
+
+REJECTION:
+- Business district survey interval >12 months — REJECT program; schedule
+  immediate make-up survey.
+- Non-business district survey interval >3 years — REJECT; immediate survey
+  required.
+- Instrument used without current calibration certificate — REJECT survey
+  results; resurvey with calibrated instrument.
+- Grade 1 leak (immediate hazard) left unrepaired without emergency isolation —
+  IMMEDIATE STOP WORK; notify emergency response; evacuate area.
+- Survey route not GPS-tracked or walking routes unverifiable — REJECT records;
+  resurvey.
+
+---
+
+CLAUSE 14 — ODORIZATION REQUIREMENTS
+[REF: ASME B31.8 Para. 860 / DOT Part 192.625 (harmonized)]
+
+Natural gas (الغاز الطبيعي) is odorless in its natural state and must be odorized
+(إضافة مادة رائحة) so that it can be detected by smell alone before reaching a
+dangerous concentration. B31.8 Para. 860 requires that the odorant concentration
+be sufficient to make the gas detectable (بالشم فقط) at a concentration of NOT
+LESS THAN 1% by volume in air — this corresponds to 20% of the lower explosive
+limit (LEL) of methane (5% by volume), providing a safety factor of 5× before
+reaching the explosive range. The standard odorant is Tertiary Butyl Mercaptan
+(TBM) or a blend (commonly ethyl mercaptan — إيثيل مركبتان) at a typical
+injection rate of 1 pound per million cubic feet (lb/MMSCF) of gas, though the
+exact rate depends on the specific odorant compound used. Odorization equipment
+(wick-type, drip-type, or bypass-type) must be inspected and maintained at
+regular intervals. Odorant inventory (مخزون المادة المعطرة) must be tracked.
+Gas not required to be odorized: gas used in industrial processes where odorant
+would contaminate the product, or gas in Class 1 gathering lines not in proximity
+to populated areas (with regulatory approval).
+
+ACCEPTANCE:
+- Gas detectable by smell at 1% by volume in air — verified by sniff test or
+  odorant concentration measurement instrument.
+- Odorant injection rate calibrated to achieve ≥1% detectability; typical
+  TBM rate ≥0.5 lb/MMSCF (confirm by odorant supplier data sheet for specific
+  compound used).
+- Odorization equipment inspected and maintained per operator's O&M manual —
+  minimum monthly visual inspection of injection rate.
+- Odorant level in storage tank ≥ 15-day supply at current injection rate.
+- Gas samples tested for odorant concentration at representative monitoring
+  points at least quarterly.
+
+REJECTION:
+- Gas odor undetectable (لا رائحة) at 1% by volume in air — REJECT gas supply;
+  shut down distribution until odorization is restored and verified.
+- Odorization equipment failed or empty — REJECT; emergency isolation of
+  affected distribution segment required.
+- Odorant injection rate below minimum detectable threshold per compound data
+  sheet — REJECT; adjust rate, re-verify detectability.
+- No odorant monitoring records for >90 days — REJECT program; require immediate
+  inspection and odorant verification.
+- Any distribution system operating without odorization in Class 2, 3, or 4
+  areas without documented regulatory waiver — REJECT; immediate violation.
+
+---
+
+CLAUSE 15 — PRESSURE RELIEF AND OVERPRESSURE PROTECTION
+[REF: ASME B31.8 Para. 845 / 845.1 / 845.2]
+
+Every pipeline system operating at a pressure that could create a hazard must be
+equipped with pressure-relieving (أجهزة تخفيف الضغط) or pressure-limiting devices
+to prevent the operating pressure from exceeding the MAOP by more than the
+amounts specified in B31.8 Para. 845.1:
+  - For MAOP ≤15 psig: maximum allowable overpressure = 6 psi above MAOP.
+  - For MAOP 16 to 60 psig: overpressure ≤ 10% above MAOP.
+  - For MAOP 61 to 100 psig: overpressure ≤ 10% above MAOP.
+  - For MAOP 101 to 400 psig: overpressure ≤ 10% above MAOP.
+  - For MAOP >400 psig: overpressure ≤ 10% above MAOP.
+  - In all cases: the relieving pressure shall not exceed 110% of MAOP.
+Pressure safety valves (PSV — صمامات أمان الضغط) must be sized to relieve the
+full delivery capacity of the upstream source. Pressure regulators (منظمات
+الضغط) used as the primary protection must have a monitoring (slam-shut) device
+or backup regulator in series. All pressure relief devices must be tested and
+inspected at intervals not exceeding 5 years (Para. 845.2) or per manufacturer
+recommendation if more frequent.
+
+ACCEPTANCE:
+- PSV set pressure: ≤110% of MAOP. (e.g., MAOP = 1000 psig → PSV set ≤1100 psig)
+- PSV capacity: capable of passing full upstream flow at set + 10% overpressure.
+- Slam-shut valve (SSV — صمام الإغلاق الفوري) or monitoring regulator installed
+  in series with pressure regulators per Para. 845.1(b).
+- PSV tested and documented: within previous 5 years (or manufacturer interval).
+- Vent stack (مدخنة التهوية) discharge: directed to safe location, ≥3 m above
+  highest adjacent structure, no ignition sources within 15 m.
+
+REJECTION:
+- PSV set pressure >110% of MAOP — REJECT; adjust set point or replace valve.
+- PSV capacity insufficient to handle full upstream flow — REJECT; size and
+  replace with adequate capacity.
+- PSV test overdue (>5 years since last test) — REJECT; tag out and test before
+  continued operation.
+- No PSV or slam-shut protection on distribution station outlet — REJECT;
+  immediate installation required before operation.
+- PSV vent stack discharge directed toward building, personnel area, or ignition
+  source — REJECT; re-route immediately.
+
+---
+
+CLAUSE 16 — PATROLLING FREQUENCY — GAS TRANSMISSION LINES
+[REF: ASME B31.8 Para. 851.2 / Table 851-2]
+
+Gas transmission pipelines (خطوط النقل) must be patrolled (دوريات المراقبة) at
+regular intervals to observe surface conditions, detect leaks, observe construction
+activity near the ROW (حق العبور), and check for unauthorized encroachment. Per
+B31.8 Table 851-2, minimum patrolling frequency:
+  - Class 1 locations: patrol at least once every 3 weeks (approximately every
+    15 calendar days — not exceeding 3 calendar weeks).
+  - Class 2 locations: patrol at least once every 2 weeks.
+  - Class 3 locations: patrol at least once every 1 week (7 days).
+  - Class 4 locations: patrol at least once every 4 days.
+Patrol method may be aerial, vehicle, or foot — aerial is most common for
+long-distance transmission lines. Patrol records must include the patrol date,
+method, route, findings, and name of the patrol person. Third-party damage
+(الضرر من الأطراف الثالثة — داماج) is the leading cause of transmission pipeline
+incidents; patrol frequency directly addresses this risk. Any patrol finding of
+encroachment, excavation near ROW, or ground movement must be reported within
+24 hours.
+
+ACCEPTANCE:
+- Class 1: patrol interval ≤ 21 calendar days (3 weeks).
+- Class 2: patrol interval ≤ 14 calendar days (2 weeks).
+- Class 3: patrol interval ≤ 7 calendar days (1 week).
+- Class 4: patrol interval ≤ 4 calendar days.
+- Patrol records: date, method, route, name, findings — retained ≥5 years.
+- Any third-party activity within 30 m of pipeline ROW reported to management
+  within 24 hours of detection.
+
+REJECTION:
+- Patrol interval exceeds maximum allowed for the location class — REJECT
+  patrol program; schedule make-up patrol immediately and increase frequency.
+- No patrol records maintained — REJECT; program non-compliant; require
+  immediate documentation system.
+- Patrolman not qualified or unfamiliar with the patrol route and emergency
+  procedures — REJECT; retrain before returning to patrol duty.
+- Third-party excavation within 1 m of pipeline found during patrol — IMMEDIATE
+  STOP WORK on excavation; verify pipeline integrity before allowing resumption.
+
+---
+
+CLAUSE 17 — MAOP REDUCTION AND DE-RATING CRITERIA
+[REF: ASME B31.8 Para. 845.3 / 841.3 / 855]
+
+A pipeline operator must reduce MAOP (تخفيض أقصى ضغط التشغيل المسموح) when
+the location class has changed (population increase), a defect has been found
+that reduces the effective wall thickness or yield strength, or the design
+documentation cannot support the current operating pressure. Para. 845.3 requires
+that when location class changes from Class 1 to Class 2, Class 3, or Class 4,
+the operator must within 24 months either: (a) pressure-test the line to the
+new class test pressure requirement, (b) physically upgrade the line
+(replace pipe, increase wall thickness), OR (c) reduce MAOP to a value
+consistent with the new class design factor. MAOP de-rating formula:
+  MAOP_new = 2 × S × t / D × F_new × E × T
+where F_new corresponds to the new (higher) class. Loss of traceability of pipe
+grade (SMYS unknown) forces use of SMYS = Grade B minimum (35,000 psi) in the
+calculation — a significant MAOP reduction for high-strength pipe of unknown
+grade. ILI results showing wall loss >10% of nominal wall thickness require an
+engineering fitness-for-service (FFS — الصلاحية للخدمة) assessment before
+maintaining MAOP.
+
+ACCEPTANCE:
+- MAOP re-calculated using correct F for current location class.
+- If class upgraded: operator response (test, upgrade, or de-rate) completed
+  within 24 months of class change determination.
+- Fitness-for-service assessment per ASME B31G or RSTRENG (modified B31G)
+  accepted as engineering basis for maintaining MAOP with corrosion defects.
+- Pipe grade unknown: SMYS assumed = 35,000 psi (Grade B minimum) and MAOP
+  calculated accordingly.
+- All MAOP changes recorded and communicated to SCADA (السكادا) operating team.
+
+REJECTION:
+- MAOP not reduced within 24 months of confirmed location class change —
+  REJECT operating basis; mandatory pressure reduction until compliance.
+- ILI results showing remaining wall <87.5% of nominal (>12.5% wall loss) with
+  no FFS assessment — REJECT continued operation at current MAOP; reduce pressure
+  or repair immediately.
+- MAOP maintained using higher-class pipe grade without MTR to prove it —
+  REJECT; assume lowest grade (Grade B) until certified MTRs recovered.
+- Operator has no documented MAOP change management procedure — REJECT
+  integrity management program as incomplete.
+
+---
+
+CLAUSE 18 — IN-LINE INSPECTION (ILI) IN HIGH CONSEQUENCE AREAS
+[REF: ASME B31.8 Para. 855 / Appendix P — Integrity Management / CFR Part 192 Subpart O]
+
+High Consequence Areas (HCA — مناطق العواقب الوخيمة) are defined as areas where
+a potential pipeline failure could cause significant harm to people or the
+environment — including Class 3 and Class 4 locations, certain Class 2 areas,
+specific identified sites (schools, hospitals, commercial buildings occupied by
+50+ persons), and unusually sensitive ecological areas (مناطق بيئية حساسة).
+B31.8 Appendix P (Integrity Management Program for Gas Transmission Pipelines)
+requires baseline assessment of all HCA segments. In-line inspection (ILI) using
+intelligent pigs (الخنازير الذكية — الرسالة الداخلية) is the preferred baseline
+assessment method when the pipeline is piggable. ILI tool types:
+  - Magnetic Flux Leakage (MFL — تفريغ الفيض المغناطيسي): detects metal loss
+    (corrosion — تآكل), pitting, general wall loss.
+  - Ultrasonic Testing (UT pig — خنزير UT): detects wall loss and cracking.
+  - Caliper pig (قياس الأبعاد): detects geometry anomalies — dents, ovality, wrinkles.
+  - Crack Detection Tool (CDT): detects SCC (stress corrosion cracking — تشقق
+    الإجهاد التآكلي) and seam weld anomalies.
+ILI must be performed by a qualified ILI vendor (مورد ILI مؤهل) and results
+interpreted by qualified analysts meeting NACE/AMPP or company standards.
+
+ACCEPTANCE:
+- Baseline ILI completed within 7 years of initial HCA designation per Appendix P.
+- ILI tool specification (MFL or UT) appropriate for threat type (corrosion vs.
+  cracking vs. geometry).
+- ILI tool performance specification: MFL tool minimum detection threshold ≤10%
+  wall loss for metal loss; sizing accuracy ±10% wall at 80% confidence.
+- All ILI-identified anomalies with estimated failure pressure <1.10 × MAOP:
+  immediate excavation and evaluation required.
+- Anomalies with estimated failure pressure 1.10–1.25 × MAOP: excavation and
+  repair within 60 days.
+- Annual reassessment of HCA segments for new threats; full ILI re-run at
+  intervals not exceeding 7 years.
+
+REJECTION:
+- Baseline ILI not completed for piggable HCA segment within 7-year window —
+  REJECT IMP; mandatory completion before next operating year.
+- ILI tool run without pre-run geometry/caliper pass — REJECT ILI data if tool
+  geometry issues (dents, bore restrictions) could have impacted data quality.
+- Anomaly with failure pressure <1.10 × MAOP not actioned within 5 days —
+  REJECT operation at current MAOP; reduce pressure to bring failure pressure
+  above 1.10 × reduced MAOP.
+- ILI vendor not meeting qualification criteria — REJECT ILI results; repeat
+  with qualified vendor.
+- No ILI re-assessment within 7 years on HCA segment — REJECT continued
+  operation without pressure reduction or alternative assessment.
+
+---
+
+CLAUSE 19 — INTEGRITY MANAGEMENT PROGRAM (IMP) — BASELINE AND RE-ASSESSMENT
+[REF: ASME B31.8 Para. Appendix P / P-5 / P-6 / P-7]
+
+The B31.8 Integrity Management Program (برنامج إدارة النزاهة) for gas transmission
+pipelines requires operators to systematically identify HCA segments, assess the
+relevant threats (التهديدات), evaluate and reduce risks, and confirm the pipeline's
+continued fitness-for-service. The IMP must be documented, reviewed annually, and
+audited. Baseline assessment must be completed within 10 years of the IMP effective
+date (or 7 years for HCA segments identified from the initial analysis) using at
+least one of: ILI, pressure test, or direct assessment (DA — التقييم المباشر).
+Reassessment intervals are threat-dependent:
+  - Internal corrosion: ≤7 years between ILI runs or DIA (direct internal
+    assessment) inspections, or more frequently if corrosion rate data warrants.
+  - External corrosion: ≤7 years between ECDA or ILI runs.
+  - SCC: ≤7 years between SCC-DA or crack ILI runs.
+  - Third-party damage: reassess after significant events; no fixed time interval
+    but patrol and DA must be ongoing.
+  - Manufacturing defects: reassess per original design pressure test or ILI results.
+Threat interaction (تفاعل التهديدات) must be considered — e.g., SCC is more likely
+where cathodic protection is inadequate AND high-pH coating disbondment occurs.
+
+ACCEPTANCE:
+- IMP document: current edition, reviewed within last 12 months, signed by
+  responsible engineer (مهندس مسؤول).
+- HCA identification: updated within 12 months using current population data
+  and aerial/satellite imagery.
+- Baseline assessment completed for all HCA segments within required window.
+- Reassessment intervals: ≤7 years for corrosion and SCC threats in HCA.
+- Performance metrics tracked: number of leaks, ruptures, ILI anomalies found
+  vs. predicted, repair completion timeliness — reviewed annually.
+- IMP audit (تدقيق البرنامج): internal audit annually; external/regulatory audit
+  per jurisdiction schedule.
+
+REJECTION:
+- IMP not updated within 2 years — REJECT; treat as non-compliant; update
+  immediately before regulatory audit.
+- HCA segments not identified using current (≤12-month-old) population data —
+  REJECT; update HCA identification.
+- Baseline assessment overdue for any HCA segment — REJECT IMP as complete;
+  conduct assessment immediately.
+- Reassessment interval exceeded without risk-based justification accepted by
+  regulator — REJECT; mandate assessment within 90 days.
+- No performance metrics tracked — REJECT IMP as lacking continuous improvement
+  process; implement metrics tracking.
+
+---
+
+CLAUSE 20 — REPAIR CRITERIA — DENTS, GOUGES, AND CORROSION DEFECTS
+[REF: ASME B31.8 Para. 851.4 / Appendix P / ASME B31G / API 579-1/ASME FFS-1]
+
+Field repairs on in-service gas pipelines must follow documented engineering
+criteria. Key rejectable defect thresholds:
+
+DENTS (انبعاجات):
+  - Plain dent (no metal loss) in body: depth >6% of outside diameter (OD) —
+    REJECT; requires immediate repair.
+  - Dent affecting top 1/3 of pipe (上方 — overhead arc): depth >2% OD if the
+    dent is at 10-to-2 o'clock position — REJECT; higher risk of rebound cracking.
+  - Dent with stress concentrators (gouges, weld, seam, corrosion within dent):
+    ANY depth with associated damage — REJECT immediately.
+  - Kinked or buckled pipe: any visible kink — REJECT.
+
+CORROSION (تآكل) — Metal Loss:
+  - Assess per ASME B31G (original method) or Modified B31G (RSTRENG):
+  - If remaining wall thickness < 80% of nominal (>20% wall loss) in a localized
+    area: REJECT per B31G; repair or FFS assessment required.
+  - Safe maximum operating pressure (SMOP) from B31G: if SMOP < 1.10 × MAOP —
+    REJECT; repair or reduce MAOP.
+  - Corrosion length criterion: if (L²/Dt) ≤ 20 (dimensionless), use B31G
+    area criterion; if (L²/Dt) > 20, SMOP = MAOP × (1 - d/t) — simplified.
+
+GOUGES (خدوش معدنية):
+  - Metal loss due to mechanical damage with reduced wall thickness: evaluate as
+    corrosion per B31G; if stress raiser suspected (cold work, cracking),
+    perform MT or PT before accepting.
+  - Gouge depth >12.5% of nominal wall (mill tolerance) — REJECT; evaluate
+    and repair.
+
+ACCEPTANCE:
+- Plain dents: depth ≤6% OD in pipe body (excluding dents with stress raisers).
+- Body dents with no associated damage at 4-to-8 o'clock position: ≤6% OD.
+- Corrosion: remaining wall ≥80% of nominal AND SMOP per B31G ≥1.10 × MAOP.
+- Gouge: depth ≤12.5% of nominal wall with no evidence of cold work or cracking.
+- All accepted defects: documented with dimensions, location, UT wall readings,
+  and B31G calculation in the inspection record.
+
+REJECTION:
+- Dent depth >6% OD — REJECT; repair by cut-out, full encirclement sleeve, or
+  approved composite repair per ASME B31.8 Appendix R.
+- Any dent with associated gouge, corrosion, crack, or weld — REJECT regardless
+  of depth; immediate repair.
+- B31G SMOP < 1.10 × MAOP — REJECT; reduce MAOP or repair before continued
+  operation.
+- Gouge depth >12.5% nominal wall — REJECT; evaluate by NDE for cracking; repair.
+- Any visible crack in pipe body — REJECT; cut-out mandatory; no in-situ repair
+  of cracks permitted under B31.8.
+
+---
+
+CLAUSE 21 — ABANDONMENT REQUIREMENTS
+[REF: ASME B31.8 Para. 853 / 853.1 / 853.2]
+
+When a gas pipeline segment is permanently taken out of service (يُغلق نهائياً —
+هجر الخط)، the operator must perform abandonment procedures (إجراءات الهجر) to
+ensure safety and environmental protection. Para. 853.1 requires that the
+pipeline be disconnected from all sources of gas and purged (تنقية — تطهير) of
+gas using an inert gas (nitrogen — نيتروجين) or water until combustible gas
+content is ≤10% of LEL at the venting point. Cathodic protection (الحماية
+الكاثودية) on the abandoned segment does not need to be maintained after
+abandonment if the pipeline no longer contains gas; however, interference
+effects on adjacent active pipelines must be checked. Inspection requirements
+for abandoned lines: no ongoing inspection obligation unless the abandoned
+segment physically affects an adjacent active pipeline. All valves on the
+abandoned segment must be physically removed or physically locked in the closed
+position and tagged. The abandonment must be documented with a record of the
+abandonment date, the purging method, the final gas-free verification reading,
+and the record filed in the pipeline records permanently.
+
+ACCEPTANCE:
+- Purging complete: combustible gas concentration ≤10% of LEL at vent endpoints
+  — confirmed by calibrated gas detector (كاشف الغاز المعاير).
+- Physical isolation: all tie-in valves closed and locked; blind flanges (شفاة
+  عمياء) or pipe caps installed at all connection points.
+- CP system: interference check on adjacent active pipelines completed post-
+  abandonment; stray current (<1 mV/m² on adjacent pipe) confirmed acceptable.
+- Abandonment record: filed permanently in pipeline records with purging data,
+  isolation as-built, and gas-free verification.
+- Regulatory notification: abandonment reported to applicable authority within
+  required timeframe (30 days typical in most jurisdictions).
+
+REJECTION:
+- Pipeline physically isolated but gas concentration >10% LEL at vent — REJECT
+  abandonment as incomplete; continue purging.
+- No physical isolation (blind or cap) — REJECT; connection to gas source
+  remains; must be physically severed.
+- CP interference on adjacent active pipeline not checked — REJECT; conduct
+  close-interval potential survey (CIPS — مسح التدرج الكاثودي) on adjacent lines
+  within 90 days.
+- Abandonment records not retained — REJECT; records are permanent; reconstruct
+  from field logs and retain.
+- Abandoned segment left partially filled with gas without purging >10% LEL —
+  REJECT; immediate re-purge required.
+
+---
+
+CLAUSE 22 — GAS DISTRIBUTION SERVICE LINE INSPECTION
+[REF: ASME B31.8 Para. 857 / 855.5 / Table 857-1]
+
+Gas service lines (خطوط الخدمة — خطوط الاتصال) are the small-diameter piping
+connecting the distribution main to the customer meter assembly. B31.8 Para. 857
+requires that each service line be inspected at the time of installation and
+periodically thereafter. Inspection includes:
+  - Pressure test at installation: service lines NPS 2 and smaller must be tested
+    at a minimum of 90 psig (620 kPa) or 1.5 × MOP, whichever is greater, for
+    a minimum of 15 minutes with no pressure drop.
+  - Periodic inspection: each service line must be visually inspected and leak-
+    checked at a minimum whenever the meter is changed, when service is
+    interrupted and restored, and whenever any construction activity disturbs the
+    ground within 1 m of the service line.
+  - Leakage survey: service lines in business districts — annual leak survey
+    (same as mains per Clause 13).
+  - Service line materials: steel, copper, or approved PE (polyethylene — البولي
+    إيثيلين المعتمد) per ASTM D2513 / PE 2708 or PE 4710. Galvanized pipe not
+    permitted in gas service (Para. 841.32). Copper not permitted if gas contains
+    >0.3 grains H₂S per 100 SCF (sour gas — غاز حامضي).
+  - All service lines through building foundations or walls: metallic sleeve or
+    equivalent protection, mechanically protected from settlement.
+
+ACCEPTANCE:
+- Installation pressure test: ≥90 psig OR ≥1.5 × MOP (whichever is greater)
+  for ≥15 minutes with zero pressure drop.
+- Pipe material: steel, copper (sweet gas only), or PE per ASTM D2513.
+- PE pipe: tracer wire (سلك الكشف) or locating system installed alongside for
+  locatability.
+- Annual leak survey completed for service lines in business districts.
+- Service lines inspected at each meter change and after any nearby excavation.
+- Through-wall penetrations: approved sleeve with mechanical protection installed.
+
+REJECTION:
+- Installation test pressure < 90 psig or < 1.5 × MOP — REJECT; retest to
+  correct pressure before burying.
+- Any pressure drop during 15-minute test — REJECT; locate and repair leak;
+  retest entire service line.
+- Galvanized pipe installed in gas service — REJECT; remove and replace with
+  approved material.
+- Copper pipe used on gas containing >0.3 grains H₂S/100 SCF — REJECT; replace
+  with steel.
+- PE service line installed without tracer wire — REJECT; excavate and install
+  tracer wire; re-backfill.
+- Service line not protected through building foundation — REJECT; install sleeve
+  before gas-up.
+- Meter changed without post-change leak check — REJECT; perform immediate leak
+  check before leaving site.
+
+---
+
+================================================================================
+END OF STANDARD KNOWLEDGE FILE — ASME B31.8 GAS TRANSMISSION AND DISTRIBUTION
+================================================================================
+FILE STATISTICS:
+  Clauses generated : 22
+  Standard edition  : ASME B31.8-2022
+  Key cross-references: API 1104 (Ed. 22), ASME B31G, API 579/ASME FFS-1,
+                        ASTM D2513, NACE MR0175, SNT-TC-1A, ISO 9712,
+                        DOT CFR Part 192 (harmonized reference)
+  Field language    : Yes — oilfield English with Arabic oilfield terms (MENA)
+  Numeric criteria  : All clauses contain explicit numeric ACCEPTANCE and
+                      REJECTION thresholds — no grey areas
+  Generated by      : AI Inspection Knowledge Engine
+  Date              : 2026-09-23
+================================================================================

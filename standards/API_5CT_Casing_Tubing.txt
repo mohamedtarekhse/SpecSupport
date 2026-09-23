@@ -1,0 +1,896 @@
+[STANDARD: API 5CT]
+[TITLE: Specification for Casing and Tubing]
+[EDITION: 10th Edition]
+[ARTICLE: Full Scope — Casing and Tubing Inspection]
+[GENERATED: 2026-09-23]
+[SCOPE: Wellsite and pipe-yard casing/tubing inspection — running inspector reference]
+
+================================================================================
+IMPORTANT: All acceptance and rejection limits are HARD LIMITS. No field
+deviation is permitted without a written concession signed by the company
+drilling engineer. If in doubt — REJECT and tag the joint.
+================================================================================
+
+---
+
+CLAUSE 01 — PRODUCT GROUPS AND STEEL GRADES
+[REF: API 5CT 10th Ed., Clause 4 / Table C.1 / Table C.2]
+
+API 5CT organises casing and tubing into four Product Groups: Group 1 (H-40,
+J-55, K-55, N-80 Type 1, N-80Q, R-95), Group 2 (L-80, L-80 9Cr, L-80 13Cr,
+C-90, T-95), Group 3 (C-110, P-110), and Group 4 (Q-125). Each product group
+has its own mandatory mechanical property table, heat-treatment requirement,
+and NDT regime. As a running inspector (مفتش تشغيل الغلاف / مفتش التيوبينج),
+the first check on any pipe rack is grade identification against the stencil
+marking — wrong grade in hole is a well-integrity catastrophe. H-40 and J-55
+are the most common surface and intermediate casing grades on Egyptian shelf
+wells; P-110 and Q-125 appear in deep, high-pressure gas wells. Never mix
+grades on a string without a written design basis.
+
+ACCEPTANCE:
+- Grade stencil on pipe body matches purchase order (PO) and mill test report
+  (MTR / شهادة الاختبار المعملي) for every joint.
+- Product Group designation matches the required grade: e.g., L-80 must be
+  labelled as Group 2, not Group 1.
+- Color band (color code) matches API 5CT Table E.7: J-55 = green band;
+  K-55 = green + green; N-80 Type 1 = red band; N-80Q = red + white;
+  L-80 = red + green; C-90 = brown + green; T-95 = silver + green;
+  P-110 = white band; Q-125 = orange band.
+
+REJECTION:
+- Any joint with illegible, missing, or conflicting grade stencil — REJECT
+  and quarantine (عزل الأنبوب) for MTR verification.
+- Grade on pipe does not match MTR heat number — REJECT entire heat.
+- Color band absent or mis-matched to stated grade — REJECT pending
+  re-identification.
+
+---
+
+CLAUSE 02 — GRADE SELECTION FOR SOUR SERVICE (SSC/HIC ENVIRONMENTS)
+[REF: API 5CT 10th Ed., Clause 4.3 / Clause 7.2 / NACE MR0175 / ISO 15156-2]
+
+Sour service (خدمة بيئة الهيدروجين الكبريتيدي) is defined per NACE MR0175 /
+ISO 15156-1 as any environment where H₂S partial pressure ≥ 0.0003 MPa
+(0.05 psi) in the produced fluid. For such wells, only API 5CT Group 2 SSC
+grades are permitted: L-80 (all types), C-90, and T-95. These grades undergo
+mandatory quench-and-temper heat treatment and are subject to hardness ceiling
+limits to resist sulphide stress cracking (SSC / تشقق الإجهاد الكبريتيدي).
+Group 1 grades (J-55, K-55, N-80) are NOT permitted in confirmed sour
+environments. P-110 and Q-125 are also excluded unless specific NACE testing
+proves SSC resistance — which is non-standard and requires company-level
+approval. The inspector must verify the sour-service designation on the MTR and
+confirm the heat treatment record is present.
+
+ACCEPTANCE:
+- Grades permitted for sour service: L-80, L-80 9Cr, L-80 13Cr, C-90, T-95
+  — with quench-and-temper (Q&T) certification on MTR.
+- MTR must explicitly state "Sour Service" or "SSC Resistant" with hardness
+  results per coupon (≤ 23 HRC — see Clause 06).
+- NACE MR0175 / ISO 15156-2 compliance statement present on MTR.
+
+REJECTION:
+- J-55, K-55, N-80 Type 1, R-95, P-110, or Q-125 specified or run in a
+  confirmed sour environment without written engineering deviation — REJECT
+  entire string.
+- MTR missing heat treatment type (must state Q&T) — REJECT until confirmed.
+- MTR hardness exceeds 23 HRC for L-80 / C-90 / T-95 — REJECT heat (see
+  Clause 06 for full hardness rules).
+
+---
+
+CLAUSE 03 — OUTSIDE DIAMETER (OD) TOLERANCE
+[REF: API 5CT 10th Ed., Clause 8.3 / Table C.30]
+
+The OD of casing and tubing (القطر الخارجي) is measured at the pipe body, not
+at the upset or coupling. API 5CT specifies OD tolerances that are grade- and
+size-independent for most products: the standard body OD tolerance is +1.0% /
+–0.5% of the specified OD. For sizes ≥ 4½ in., the same ±1% general rule is
+sometimes referenced in older editions, but the 10th edition Table C.30 is the
+controlling document — use it. OD measurement is taken with a calibrated
+outside micrometre or PI tape (شريط القياس الدائري) at the pipe body at
+minimum 300 mm from the pipe end, at two perpendicular planes. Out-of-roundness
+(ovality) is the difference between maximum and minimum OD readings in the same
+cross-section — it is controlled by the OD tolerance itself.
+
+ACCEPTANCE:
+- Casing body OD: within +1.0% / –0.5% of specified OD at any point in the
+  pipe body.
+  Example: 9⅝ in. (244.5 mm) casing → max OD = 247.0 mm; min OD = 243.3 mm.
+- Tubing OD (non-upset): within +0.79 mm / –0.79 mm of specified OD (sizes
+  ≤ 2⅞ in.) or +1.0% / –0.5% for larger sizes.
+- Calibration of PI tape / micrometre: valid calibration certificate within
+  12 months.
+
+REJECTION:
+- OD exceeds +1.0% above specified OD — REJECT (joint will not pass through
+  casing shoe or wellhead).
+- OD below –0.5% of specified OD — REJECT (insufficient wall strength,
+  collapse rating compromised).
+- Visible flattening (تفطيح) causing measurable out-of-roundness exceeding OD
+  tolerance range — REJECT.
+
+---
+
+CLAUSE 04 — WALL THICKNESS TOLERANCE
+[REF: API 5CT 10th Ed., Clause 8.4 / Table C.30]
+
+Wall thickness (سماكة الجدار) is a primary control parameter for both burst and
+collapse pressure ratings. API 5CT permits a minus tolerance on wall thickness
+of –12.5% of the nominal (specified) wall thickness; there is no plus tolerance
+limit stated — over-thickness is acceptable. Wall thickness is measured with a
+calibrated ultrasonic thickness gauge (جهاز قياس السماكة بالموجات فوق الصوتية)
+or an OD/ID micrometre. For mill inspection, thickness is checked on the pipe
+body at minimum 4 equally spaced points per cross-section. At the wellsite, the
+running inspector must spot-check any joint that shows a visible dent, gouge,
+or body corrosion. Internally coated pipe requires wall thickness measurement
+before applying coating, and the coating thickness must not be deducted from
+the nominal wall.
+
+ACCEPTANCE:
+- Wall thickness at any point: ≥ 87.5% of specified (nominal) wall thickness
+  (i.e., minus tolerance of –12.5% maximum).
+  Example: 9⅝ in., 47 lb/ft, Grade N-80 — nominal t = 11.99 mm →
+  minimum acceptable t = 10.49 mm.
+- Plus tolerance: unlimited (no upper wall thickness rejection criterion under
+  5CT body).
+- UT gauge calibration: to calibrated step-wedge, same grade steel, within
+  current calibration period.
+
+REJECTION:
+- Wall thickness at any measured point < 87.5% of nominal — REJECT joint.
+- UT reading not reproducible within ±0.1 mm over three consecutive readings
+  at the same spot — re-calibrate gauge before proceeding.
+- Visible mechanical damage (gouge, grind mark) in the pipe body reducing
+  wall below 87.5% limit even locally — REJECT.
+
+---
+
+CLAUSE 05 — WEIGHT PER FOOT — NOMINAL VS. ACTUAL TOLERANCE
+[REF: API 5CT 10th Ed., Clause 8.6 / Table C.3 through C.24]
+
+The nominal weight per foot (الوزن الاسمي للقدم الواحدة) is a calculated value
+based on the specified OD and wall thickness — it is used for string weight
+calculations, casing design, and rig hook-load planning. API 5CT does not
+mandate a weigh-every-joint requirement at the wellsite, but the string tally
+(جدول الأعماق / تالي الغلاف) must record the nominal weight per foot for each
+size-grade-weight combination. The actual joint weight is controlled indirectly
+by OD and wall thickness tolerances. Where accurate hook-load budgets are
+critical (slim-hole wells, marginal rigs), the operator may require individual
+joint weighing on a certified pipe scale. The inspector must confirm that the
+weight stencilled on the pipe matches the weight in the MTR and PO.
+
+ACCEPTANCE:
+- Stencilled weight per foot matches PO and MTR within one standard API
+  weight class (e.g., 47.0 lb/ft — not 53.5 lb/ft stencilled on 47.0 lb/ft
+  pipe body).
+- Individual joint weighing (if specified): ±3.5% of calculated theoretical
+  joint weight.
+- String tally: every joint serial or sequential number recorded with
+  measured length, grade, and nominal weight/ft.
+
+REJECTION:
+- Pipe stencilled weight does not match PO weight class — REJECT joint and
+  flag for grade/weight re-identification.
+- Individual joint weight (when tested) deviates > ±3.5% from theoretical —
+  investigate, measure OD and wall, and reject if dimensions are also out.
+- Tally sheet missing weight per foot column — incomplete, return for
+  correction before running.
+
+---
+
+CLAUSE 06 — LENGTH RANGES — DEFINITIONS AND TOLERANCES
+[REF: API 5CT 10th Ed., Clause 8.7 / Table C.28]
+
+API 5CT defines three pipe length ranges (نطاقات الطول). Range 1: 16–25 ft
+(4.88–7.62 m). Range 2: 25–34 ft (7.62–10.36 m). Range 3: 34–48 ft
+(10.36–14.63 m). Range 2 is by far the most common for oilfield casing
+operations in Egypt and MENA. The inspector measures each joint with a
+calibrated steel tape (شريط الصلب) from the pin end face to the coupling face
+(box end) for coupled pipe, or from end-to-end for plain-end pipe. Measured
+lengths are recorded on the tally sheet and cumulative depth calculated for the
+string design. Short joints (قصيرات) may be permitted by the operator in
+limited quantity (typically ≤ 5% of string) for landing depth adjustment —
+this must be pre-approved by the drilling engineer.
+
+ACCEPTANCE:
+- Range 1 joints: individual length 4.88–7.62 m; minimum average for any
+  lot of 10 joints: 5.49 m (18 ft).
+- Range 2 joints: individual length 7.62–10.36 m; minimum average for any
+  lot of 10 joints: 8.53 m (28 ft).
+- Range 3 joints: individual length 10.36–14.63 m; minimum average for any
+  lot of 10 joints: 11.58 m (38 ft).
+- Measurement accuracy: ±50 mm (2 in.) on calibrated tape, rechecked on
+  joints used for depth control (landing joints / shoe joints).
+
+REJECTION:
+- Any single joint shorter than the minimum of its specified range — REJECT
+  unless pre-approved as a pup joint (قصيرة معتمدة).
+- Any single joint longer than the maximum of its specified range — REJECT
+  (over-length may cause tally error and depth miscalculation).
+- Tally cumulative depth discrepancy > 0.3 m at any depth marker —
+  stop, re-measure flagged joints before continuing.
+
+---
+
+CLAUSE 07 — MECHANICAL PROPERTIES PER GRADE
+[REF: API 5CT 10th Ed., Clause 7 / Tables C.25 through C.27]
+
+Mechanical properties (الخصائص الميكانيكية) are mill-certified and cannot be
+re-verified in the field — the inspector relies entirely on the MTR. The key
+values are Yield Strength (YS / حد الخضوع), Ultimate Tensile Strength (UTS /
+أقصى مقاومة للشد), and Elongation. Minimum and maximum yield limits are both
+specified for all grades. The yield strength window (minimum to maximum) is
+critical — a joint at excessive yield is too brittle; one below minimum yield
+is structurally weak. All mechanical tests are performed on specimens per
+API 5CT / ASTM A370. The inspector's job is to confirm the MTR values are
+within the limits for the ordered grade before running any joint.
+
+ACCEPTANCE:
+- H-40: YS min 276 MPa (40,000 psi) / max not specified; UTS min 414 MPa.
+- J-55: YS min 379 MPa (55,000 psi) / max 552 MPa; UTS min 517 MPa.
+- K-55: YS min 379 MPa / max 552 MPa; UTS min 655 MPa.
+- N-80 Type 1 & Q: YS min 552 MPa / max 758 MPa; UTS min 689 MPa.
+- L-80: YS min 552 MPa / max 655 MPa; UTS min 655 MPa.
+- C-90: YS min 621 MPa / max 724 MPa; UTS min 689 MPa.
+- T-95: YS min 655 MPa / max 758 MPa; UTS min 724 MPa.
+- P-110: YS min 758 MPa / max 965 MPa; UTS min 862 MPa.
+- Q-125: YS min 862 MPa / max 1,034 MPa; UTS min 931 MPa.
+- Elongation: ≥ 0.5% × (170,000 / UTS in psi)^0.9 per API 5CT formula,
+  minimum 0.5%.
+
+REJECTION:
+- Any MTR value (YS, UTS, or elongation) outside the limits in the table
+  above for the specified grade — REJECT the entire heat.
+- MTR unsigned, undated, or missing heat number — REJECT; do not run
+  until original certified MTR is received.
+- Test specimen count less than required by API 5CT (one tensile per heat
+  per size; one Charpy set per heat for Group 2/3/4) — REJECT.
+
+---
+
+CLAUSE 08 — HARDNESS LIMITS — SOUR SERVICE GRADES
+[REF: API 5CT 10th Ed., Clause 7.2.3 / Table C.25 / NACE MR0175]
+
+Hardness (الصلادة) is the primary SSC-resistance indicator for sour service
+casing. API 5CT mandates that for L-80, C-90, and T-95, hardness must not
+exceed 23 HRC (Rockwell C scale / مقياس روكويل C) at any point on the pipe
+body, wall cross-section, or coupling. Full-thickness cross-section hardness
+traverses are required at the mill — minimum 4 readings through the wall.
+The inspector must verify that every MTR for sour-service grades includes
+a hardness traverse report, not just a surface reading. HRC ≤ 22 is the
+practical target; 23 HRC is the hard ceiling. Equivalent in HBW: 23 HRC
+≈ 237 HBW — also used as an acceptance limit per NACE MR0175 Table A.1.
+
+ACCEPTANCE:
+- L-80 (all types): Maximum hardness 23 HRC (237 HBW) at every point in
+  the full wall cross-section traverse.
+- C-90: Maximum hardness 23 HRC (237 HBW) at every point.
+- T-95: Maximum hardness 23 HRC (237 HBW) at every point.
+- Hardness uniformity: difference between max and min readings through wall
+  ≤ 3.0 HRC for C-90 and T-95 (API 5CT Table C.25, Note c).
+- Hardness conversion: use ASTM E140 Table 2 for HRC to HBW cross-check.
+
+REJECTION:
+- Any hardness reading > 23 HRC (or > 237 HBW) anywhere in the wall
+  cross-section — REJECT entire heat; do not run in sour service well.
+- Hardness spread (max minus min through wall) > 3.0 HRC for C-90 or T-95
+  — REJECT; indicates non-uniform heat treatment.
+- MTR for sour service grade showing only surface hardness (not full
+  traverse) — REJECT documentation; return for complete traverse results.
+- Any sour-service grade showing hardness measured only by Brinell (HBW)
+  without HRC cross-check for values near the limit (21–23 HRC) — require
+  HRC confirmation test.
+
+---
+
+CLAUSE 09 — CHARPY IMPACT REQUIREMENTS
+[REF: API 5CT 10th Ed., Clause 7.3 / Table C.26 / Table C.27]
+
+Charpy V-notch (CVN / اختبار الشارپي) impact testing is required for Group 2
+(L-80, C-90, T-95), Group 3 (P-110), and Group 4 (Q-125) grades. Testing
+temperature is 0 °C (32 °F) for all mandatory Charpy grades unless the
+operator specifies a lower temperature for arctic or cold-service design.
+Specimens are transverse (T-L orientation) per ASTM A370. Three specimens
+constitute one set. Full-size (10 × 10 mm) specimens are required where
+wall thickness permits; sub-size specimens (10 × 7.5 mm or 10 × 5 mm) are
+used for thin walls with a proportional energy reduction factor. The inspector
+checks that the MTR Charpy results are reported as individual values plus the
+average of three — both must comply.
+
+ACCEPTANCE:
+- L-80 (all types): Average CVN energy ≥ 40 J (29.5 ft-lbf) at 0 °C;
+  minimum single specimen ≥ 30 J (22 ft-lbf).
+- C-90: Average CVN energy ≥ 40 J at 0 °C; minimum single specimen ≥ 30 J.
+- T-95: Average CVN energy ≥ 40 J at 0 °C; minimum single specimen ≥ 30 J.
+- P-110: Average CVN energy ≥ 40 J at 0 °C; minimum single specimen ≥ 30 J.
+- Q-125: Average CVN energy ≥ 40 J at 0 °C; minimum single specimen ≥ 30 J.
+- Sub-size correction: for 10 × 7.5 mm specimens, multiply above limits by
+  0.75; for 10 × 5 mm specimens, multiply by 0.50.
+- One Charpy set (3 specimens) required per heat per size per pipe grade.
+
+REJECTION:
+- Average CVN energy of any set < 40 J at 0 °C — REJECT heat.
+- Any single specimen value < 30 J — REJECT heat (no sub-set re-test
+  permitted for values below this floor without re-heat-treat).
+- Sub-size adjusted value fails proportional limit — REJECT.
+- MTR missing Charpy test results for a mandatory grade (Group 2, 3, or 4)
+  — REJECT; do not run until test results are provided.
+
+---
+
+CLAUSE 10 — VISUAL INSPECTION AND DRIFT DIAMETER TEST
+[REF: API 5CT 10th Ed., Clause 10.2 / Clause 10.3 / Table C.32]
+
+Visual inspection (الفحص البصري) covers the full external surface and both
+ends of every joint. The inspector walks every joint on the rack and checks for
+dents, cuts, cracks, longitudinal seams, laminations, and coupling condition.
+The drift test (اختبار الانجراف / اختبار المندريل) verifies that the pipe bore
+is clear and round enough to pass the API drift mandrel (mandrel drift /
+مندريل الانجراف) — a hardened steel cylinder of specified diameter and length.
+Drift is run by hand or by pipe-running tool through every joint before it
+enters the rotary table. A joint that stops the mandrel is drifted-out (فشل
+الانجراف) and must be rejected or sidelined for investigation. The drift test
+detects: internal dents, OD upsets, debris, and collapsed sections.
+
+ACCEPTANCE:
+- Visual: pipe surface free of cracks, splits, laps, deep pits, and
+  visible seams.
+- Drift mandrel (API standard): passes freely through the full length of
+  every joint under its own weight or light push — no binding.
+- API drift mandrel OD and length per Table C.32 of API 5CT:
+  Example: 9⅝ in., 47 lb/ft → drift diameter = 231.78 mm (9.125 in.);
+  mandrel length = 1.524 m (5 ft).
+  Example: 7 in., 26 lb/ft → drift diameter = 159.41 mm (6.276 in.).
+  Example: 5½ in., 17 lb/ft → drift diameter = 121.36 mm (4.778 in.).
+- Coupling hand-tight and free of visible cracks, cross-threading, or
+  stripped threads.
+
+REJECTION:
+- Drift mandrel stops or binds at any point inside the joint — REJECT
+  joint; do not attempt to force mandrel through.
+- Visible crack (ترك / شق) anywhere on pipe body or coupling — REJECT
+  immediately; tag with red tag and quarantine.
+- Visible lap or seam (طبقة / درز) on OD or ID surface — REJECT.
+- Heavy pitting (نقر عميق) reducing apparent wall below visible 87.5%
+  estimate — REJECT; send for UT wall measurement.
+
+---
+
+CLAUSE 11 — HYDROSTATIC TEST PRESSURE PER GRADE AND SIZE
+[REF: API 5CT 10th Ed., Clause 10.4 / Table C.33 / Table C.34]
+
+Every joint of API 5CT casing and tubing must be hydrostatic pressure tested
+(اختبار الضغط المائي) at the mill prior to shipment. The mill hydrostatic test
+pressure is the minimum of: (a) the pressure calculated by the internal yield
+pressure formula, capped at 80% of yield; or (b) the maximum allowable mill
+test pressure from Table C.33/C.34. At the wellsite, the inspector does not
+re-perform the hydrostatic test — instead, the mill hydrostatic test record
+(included in the MTR package) is verified. If the operator specifies a field
+hydrostatic test (rare, for critical wells), the test pressure must not exceed
+the values in Tables C.33/C.34 and must be held for a minimum of 5 seconds.
+
+ACCEPTANCE:
+- MTR must include the actual mill hydrostatic test pressure (in MPa or psi)
+  applied to each pipe size-grade-weight combination.
+- Mill test pressure formula: P_test = (2 × f × YS_min × t) / D
+  where f = 0.80 (80% yield factor), YS_min = minimum yield strength (MPa),
+  t = nominal wall thickness (mm), D = OD (mm).
+  Example: 9⅝ in. (244.5 mm), 47 lb/ft, N-80, t = 11.99 mm:
+  P_test = (2 × 0.80 × 552 × 11.99) / 244.5 = 43.3 MPa (6,280 psi)
+  capped at Table C.33 maximum (= 43.3 MPa for this size/grade).
+- Field re-test (if ordered): hold pressure for ≥ 5 seconds with no drop,
+  no seep at connections.
+
+REJECTION:
+- MTR missing hydrostatic test record — REJECT; do not accept pipe without
+  confirmed mill hydrostatic test.
+- Field re-test: pressure drop > 0 MPa during hold period — REJECT joint,
+  investigate leak source (body, pin, coupling).
+- Field re-test pressure applied > Table C.33/C.34 maximum — stop test;
+  this risks permanent deformation of the pipe.
+
+---
+
+CLAUSE 12 — THREAD INSPECTION — THREAD TYPES AND GAUGING
+[REF: API 5CT 10th Ed., Clause 10.5 / API 5B Clause 5 / Table B.1]
+
+API 5CT casing connections are governed by API 5B for thread form and gauging.
+Three standard end-finish types are common: Short Round Thread Casing (STC /
+خيط دائري قصير), Long Round Thread Casing (LTC / خيط دائري طويل), and
+Buttress Thread Casing (BTC / خيط مسطح). Premium/proprietary threads (خيوط
+ممتازة — e.g., Vam Top, TenarisHydril, NK3SB) are increasingly common in
+HPHT, sour, and deviated wells, and their inspection is governed by the
+connection manufacturer's specification, not API 5B directly. The running
+inspector must verify that the thread type on the joint matches the connection
+type on the PO and design string — mixing STC pin with LTC coupling is a
+critical error. Gauging is a mill operation; at the wellsite, the inspector
+performs visual and tactile thread inspection, not formal gauge re-runs.
+
+ACCEPTANCE:
+- Thread type on stencil and coupling matches PO thread designation.
+- API thread gauge records on MTR or test certificate: thread must pass
+  API 5B gauge requirements (standoff, thread height, taper) at the mill.
+- Wellsite visual: thread flanks clean, no damage, no visible cross-thread,
+  no rust beyond light surface oxidation (requiring cleaning only).
+- Premium thread: connection manufacturer's field inspection record present
+  per manufacturer's QC document; torque window stamped on joint or on
+  the running sheet.
+
+REJECTION:
+- Thread type on joint (stencil or coupling OD stamp) does not match PO
+  or design string — REJECT; halt running, verify string design.
+- Crossed or damaged thread on pin or box: any thread flank that is nicked,
+  torn, or visibly deformed — REJECT; do not dress with a file and run.
+- Premium thread: no manufacturer torque window documented — do not run
+  until torque data is obtained from mill/manufacturer.
+
+---
+
+CLAUSE 13 — THREAD FORM — PITCH, HEIGHT, TAPER, GAUGING
+[REF: API 5B 15th Ed., Clause 5 / Tables 1–12 / API 5CT Clause 10.5.2]
+
+Thread form parameters (شكل الخيط) — taper, pitch, and thread height — are
+verified by API 5B gauging at the mill using a set of API master gauges. The
+taper for STC/LTC and BTC is 1 in 16 on diameter (0.0625 in./in.) — this is
+the engagement taper. Pitch (number of threads per inch / عدد الخيوط في البوصة)
+for STC/LTC is 8 TPI; for BTC it is 5 TPI. The gauging check is a standoff
+measurement: the distance the gauge ring stands off from the pipe end face when
+hand-tight. At the wellsite, the inspector uses a thread profile gauge (gauge
+comb / مشط القياس) to spot-check profiles on joints with any doubt about thread
+condition, and checks the standoff on API pin gauge (if available).
+
+ACCEPTANCE:
+- STC/LTC pin standoff from API ring gauge (hand-tight): +1 to –1 turn
+  (±1 turn from gauge reference; i.e., standoff within 1 turn of flush).
+- BTC pin standoff from API ring gauge: +3/4 to –1/4 turn (API 5B Table 7).
+- Pitch check with thread comb: 8 threads per inch for STC/LTC (tolerance
+  ±0.0005 in./thread); 5 threads per inch for BTC.
+- Taper uniformity across engagement length: no visible reduction of thread
+  height in mid-engagement zone (all flanks in contact with comb gauge).
+
+REJECTION:
+- STC/LTC pin standoff outside ±1 turn from API gauge reference — REJECT;
+  thread is under- or over-cut.
+- BTC standoff outside +3/4 to –1/4 turn limit — REJECT.
+- Thread comb reveals pitch variation or damaged thread form — REJECT.
+- Coupling with visibly tapered ID bore not matching pin taper
+  (visual cross-thread indication) — REJECT.
+
+---
+
+CLAUSE 14 — COUPLING INSPECTION — OD, LENGTH, STANDOFF
+[REF: API 5CT 10th Ed., Clause 9 / API 5B Clause 7 / Table C.36]
+
+The coupling (الكبل / الوصلة) is a critical component — it carries the full
+make-up torque and sealing load of the connection. Each coupling must be the
+correct size, grade, and thread type for the joint. The inspector measures
+coupling OD and length on a spot-check basis (minimum 10% of joints, or all
+joints for critical strings). Coupling OD must meet API 5CT Table C.36 limits.
+Standoff is the distance the pipe pin end stands off from the coupling centre-
+face (or end face) when fully made up — it indicates correct engagement.
+For STC/LTC connections, the coupling is pre-applied at the mill at power-tight;
+for BTC, the coupling is pre-applied similarly. The running inspector checks
+make-up position vs. reference mark on the pin.
+
+ACCEPTANCE:
+- Coupling OD: within ±0.79 mm (1/32 in.) of specified coupling OD per
+  API 5CT Table C.36 for the casing size.
+  Example: 9⅝ in. STC coupling OD specified = 273.1 mm; acceptable range
+  = 272.3 mm to 273.9 mm.
+- Coupling length: ≥ minimum specified coupling length in Table C.36.
+  Example: 9⅝ in. STC coupling length min = 193.7 mm.
+- Standoff on made-up pin: STC — pin end within 0 to +2 threads of
+  coupling end face after power-tight make-up.
+- Coupling grade and heat number: must be same grade or higher than pipe body;
+  coupling MTR must be available in the mill certificate package.
+
+REJECTION:
+- Coupling OD outside ±0.79 mm of specified OD — REJECT; oversize coupling
+  may not pass through wellhead or BOP stack.
+- Coupling visibly cracked, split, or showing surface seam — REJECT
+  immediately (قطعة وصلة مرفوضة).
+- Standoff > 3 threads after power-tight — REJECT; insufficient thread
+  engagement (may back-off under tension).
+- Coupling grade lower than pipe body grade — REJECT.
+
+---
+
+CLAUSE 15 — END FINISH INSPECTION AND THREAD PROTECTOR REQUIREMENTS
+[REF: API 5CT 10th Ed., Clause 10.6 / Clause 11.4]
+
+End finish (تشطيب الطرف / الخيط والغطاء) inspection covers the pin (male end)
+and box (female end / coupling) before and after thread protector removal.
+Thread protectors (واقيات الخيوط) must remain on all joints during storage,
+transport, and pipe-yard lay-down. They are removed immediately before the joint
+is picked up for running. On removal, the inspector inspects the thread condition
+under the protector and records any damage. Thread compound (مادة تشحيم الخيوط /
+دهان الخيوط) — API-modified thread compound or manufacturer-specified compound
+for premium threads — is applied before stabbing (إدخال الخيط). Compound
+coverage must be complete on pin threads and the first 2–3 threads of the box.
+
+ACCEPTANCE:
+- Thread protectors: intact, seated fully, no impact damage or missing
+  segments, present on both pin and coupling ends during storage and
+  transport.
+- Thread condition on protector removal: clean, no rust beyond light surface
+  bloom (removed by wire brush or thread cleaner), no mechanical damage.
+- Thread compound: API Modified compound (meeting API 5A3) applied to full
+  pin thread coverage; for premium threads, manufacturer-specified compound
+  ONLY — no API compound on metal-seal premium threads.
+- Compound temperature range: API 5A3 compound rated for wellsite ambient
+  temperature; if T < 0 °C, use low-temp rated compound.
+
+REJECTION:
+- Thread protector missing or loose on any joint in the pipe yard or on the
+  rig floor before make-up — REJECT; inspect thread, wire-brush, and apply
+  compound before running.
+- Thread damaged after protector removal: nicked, torn, or galled flanks —
+  REJECT joint.
+- Wrong thread compound applied to premium metal-seal connection — stop;
+  break out, clean, re-compound per manufacturer spec, then re-make-up.
+- Thread compound coverage < 80% of pin thread surface — re-apply before
+  stabbing.
+
+---
+
+CLAUSE 16 — NDT REQUIREMENTS — ELECTROMAGNETIC INSPECTION (EMI)
+[REF: API 5CT 10th Ed., Clause 10.7.2 / Table C.38]
+
+Electromagnetic inspection (الفحص الكهرومغناطيسي — EMI / فحص التيار الدوامي)
+of the pipe body is a mill-applied NDT method used to detect longitudinal
+defects (seams, cracks, laps) and transverse defects (cracks, hook cracks) in
+the pipe body. EMI uses a rotating magnetic field or flux leakage technique.
+API 5CT requires EMI or an equivalent volumetric NDT (e.g., UT) for all Group 2,
+3, and 4 grades, and it is mandatory for SR2 (Special Requirements 2) product.
+The mill NDT record must be included in the MTR package. At the wellsite, the
+inspector does not have EMI equipment — but must verify the mill EMI
+certification is present and covers 100% of the pipe body length.
+
+ACCEPTANCE:
+- EMI calibration reference standard: longitudinal notch, depth = 12.5% of
+  nominal wall thickness (t_nom × 0.125), length ≤ 50 mm, width ≤ 1.6 mm,
+  as per API 5CT Table C.38, Note a.
+- EMI scan: 100% of pipe body length (excluding end zones not covered by
+  EMI — these end zones must be addressed by rotating UT or magnetic
+  particle inspection per API 5CT Clause 10.7.4).
+- MTR must reference the specific NDT procedure number, equipment type,
+  operator certification level (minimum ASNT Level II), and calibration
+  standard results.
+
+REJECTION:
+- MTR missing EMI inspection record for a Group 2/3/4 grade — REJECT; do
+  not run until EMI certification is provided.
+- EMI calibration standard exceeded during production run (calibration check
+  failed) and affected joints cannot be identified — REJECT entire run
+  between two successful calibrations.
+- End zones (الأطراف) not covered by EMI and no supplemental end-zone NDT
+  record present — REJECT; end zones are the highest-stress point in the
+  string.
+
+---
+
+CLAUSE 17 — NDT REQUIREMENTS — ULTRASONIC WALL THICKNESS INSPECTION
+[REF: API 5CT 10th Ed., Clause 10.7.3 / Table C.38]
+
+Ultrasonic inspection (الفحص بالموجات فوق الصوتية — UT) is used at the mill
+for 100% wall thickness scanning of the pipe body and, in some specifications,
+for detection of laminar flaws. For SR2 product, both EMI and UT are mandatory.
+The UT system must be calibrated to a flat-bottomed hole or a side-drilled hole
+in a reference standard of the same material grade and nominal wall thickness.
+At the wellsite, the running inspector may use a portable UT thickness gauge
+for spot checks on suspect areas (dents, grind repairs, heavy corrosion) —
+but full automated mill UT cannot be replicated in the field. The mill UT
+record must confirm scan coverage and calibration compliance.
+
+ACCEPTANCE:
+- Calibration reference: flat-bottomed hole at 80% depth from scanning
+  surface (i.e., representing 20% remaining wall), or as specified in
+  Table C.38.
+- Wall thickness rejection level at mill: any area showing wall thickness
+  < 87.5% of nominal — removed from the production run.
+- Field spot UT: minimum 3 readings per suspect area; accept only if all
+  readings ≥ 87.5% of nominal wall.
+- UT gauge calibration at field: re-calibrated to a step-wedge of same
+  grade steel every 4 hours of continuous use or after any drop/impact.
+
+REJECTION:
+- Any single UT reading in the pipe body (mill or field) < 87.5% of nominal
+  wall thickness — REJECT joint.
+- Mill UT record missing coverage confirmation (must state "100% body scan")
+  — REJECT documentation.
+- Field UT gauge reading not repeatable (±0.2 mm between three consecutive
+  readings on the same spot) — re-calibrate before accepting any reading.
+- Laminar indication (horizontal signal at mid-wall) confirmed by UT angle
+  beam — REJECT joint; lamination is a rejectable imperfection per API 5CT.
+
+---
+
+CLAUSE 18 — STRAIGHTNESS REQUIREMENTS
+[REF: API 5CT 10th Ed., Clause 8.5 / Table C.29]
+
+Pipe straightness (استقامة الأنبوب) is critical for smooth running through BOP
+stacks, wellhead equipment, and curved wellbores. API 5CT limits the total
+deviation from a straight line (bow / الانحناء) measured along the pipe length.
+The measurement method is: lay the pipe on a flat surface or V-blocks, stretch
+a wire or string along the full length, and measure the maximum gap between the
+string and the pipe OD surface. For sizes > 4½ in. (casing), the limit is 0.2%
+of the total pipe length. For sizes ≤ 4½ in. (tubing), the limit is 0.3% of
+length. Crooked or bowed pipe can cause make-up difficulties, eccentric wear
+in deviated wells, and casing centraliser damage.
+
+ACCEPTANCE:
+- Casing (> 4½ in.): maximum bow (total deviation over full length) ≤ 0.2%
+  of total pipe length.
+  Example: 9⅝ in. joint, 12.0 m long: max bow = 12,000 mm × 0.002 = 24 mm.
+- Tubing (≤ 4½ in.): maximum bow ≤ 0.3% of total pipe length.
+  Example: 3½ in. joint, 9.0 m long: max bow = 9,000 mm × 0.003 = 27 mm.
+- Measurement tool: calibrated wire/string + calibrated steel ruler.
+
+REJECTION:
+- Bow exceeds 0.2% (casing) or 0.3% (tubing) of pipe length — REJECT joint;
+  tag as "crooked" (منحني / مرفوض للانحناء).
+- Visible kink (انكسار حاد) or sharp bend at any point — REJECT immediately,
+  regardless of measured bow value.
+- Pipe that rocks on a flat surface at more than two support points over its
+  length — flag for wire-line straightness check; if confirmed bowed beyond
+  limit, reject.
+
+---
+
+CLAUSE 19 — MARKING REQUIREMENTS — STENCIL CONTENT
+[REF: API 5CT 10th Ed., Clause 11 / Table E.4 through E.7]
+
+Every pipe joint must be stencilled (مختوم / وسم الأنبوب) in a specified
+sequence on the pipe OD, at a location visible when the pipe is in the rack.
+The mandatory stencil content per API 5CT Clause 11 is: (1) Manufacturer's
+name or mark, (2) API monogram (if licensed), (3) Specification designation
+(API 5CT), (4) Size (OD in inches), (5) Weight per foot (lb/ft), (6) Grade
+(including type suffix: e.g., N-80, not just "N80"), (7) End finish code,
+(8) Heat number, (9) Test pressure (optional if covered by grade tables),
+(10) Length (individual joint measured length). Color code bands (Clause 11.3)
+are applied additionally for grade identification in low-light / muddy
+conditions. The running inspector checks every joint stencil against the PO.
+
+ACCEPTANCE:
+- All 10 stencil elements present and legible on every joint.
+- Stencil on pipe OD, white paint on dark pipe or black paint on light pipe,
+  minimum character height 12 mm (0.5 in.).
+- Heat number on pipe matches heat number on MTR for that batch.
+- Color band (see Clause 01) correctly applied for the grade.
+- Joint length stencilled: within ±0.15 m of inspector's tape measurement.
+
+REJECTION:
+- Any of the 10 mandatory stencil elements missing or illegible — REJECT
+  joint until re-marked from MTR verification.
+- Heat number on pipe cannot be matched to any MTR in the package — REJECT;
+  quarantine joint.
+- Grade stencil smeared, partially missing, or ambiguous (e.g., "N80" vs.
+  "N-80Q" unclear) — REJECT; re-stencil after verification.
+- Color band absent or wrong color for the grade — REJECT; re-band after
+  grade confirmation.
+
+---
+
+CLAUSE 20 — STORAGE AND HANDLING — STACKING, SLINGS, THREAD PROTECTION
+[REF: API 5CT 10th Ed., Clause 12 / API RP 5C1 — Care and Use of Casing]
+
+Improper storage and handling (التخزين والمناولة) is one of the leading causes
+of pre-run pipe damage in MENA oilfields. Casing must be stored on wooden
+dunnage or steel pipe racks with minimum 4 support points per joint, avoiding
+contact with the soil (which causes crevice corrosion). Stacking height must
+not exceed: 4 joints high for sizes ≥ 9⅝ in.; 6 joints high for 7 in.; 8 joints
+for 5½ in. and smaller — to prevent crushing of lower joints under load.
+Wire rope slings (حبال رافعة سلكية) must NEVER contact bare threads — use
+softeners or nylon slings. Thread protectors must remain installed at all times
+during storage and transport (see also Clause 15). The inspector must document
+any handling damage before and during running.
+
+ACCEPTANCE:
+- Dunnage: wood or rubber pad, minimum 150 mm wide, at ≤ 3 m intervals
+  along joint length.
+- Stack height: ≤ 4 joints for ≥ 9⅝ in. casing; ≤ 6 joints for 7 in.;
+  ≤ 8 joints for ≤ 5½ in.
+- Slings: nylon slings or wire rope with rubber/nylon lagging at thread
+  protector location — no bare wire rope contact with coupling or pin.
+- Thread protectors: fully seated, nut-tightened if metal type; no gap at
+  pin or box face.
+- Pipe yard drainage: joints not in standing water or mud.
+
+REJECTION:
+- Any joint stored directly on soil or in standing water — remove, inspect,
+  and clean before running; reject if corrosion pitting exceeds Clause 04
+  wall tolerance.
+- Stack height exceeding limits above — reduce immediately before any joint
+  in the lower tier is inspected for crush damage.
+- Bare wire rope sling contact with coupling or pin — stop lift, inspect
+  thread damage; reject if thread flanks are damaged.
+- Thread protector missing or dislodged during transport/storage — inspect
+  thread, wire-brush, re-compound, replace protector or run immediately.
+
+---
+
+CLAUSE 21 — RUNNING INSPECTION — PRE-RUN VISUAL AND TONG SPACE CHECK
+[REF: API 5CT 10th Ed., Clause 12 / API RP 5C1 / Company Running Procedures]
+
+The running inspection (فحص التشغيل / فحص الإدخال) is the last line of defence
+before the joint enters the well. For every joint, the running inspector
+performs: (1) remove thread protector — inspect pin thread; (2) apply compound;
+(3) drift test (see Clause 10); (4) stab into previous joint — observe stab;
+(5) spin-in; (6) apply power tongs; (7) verify final make-up torque is within
+the torque window; (8) record joint serial/tally number, length, and torque on
+the tally sheet. Tong space (مساحة الكلاب / الكماشة) must be clear of coupling
+and must be on the pipe body — minimum 600 mm (24 in.) of clear pipe body for
+power tong engagement on most casing sizes. The inspector calls out any
+anomaly to the driller and company man before the joint is run.
+
+ACCEPTANCE:
+- Torque: final make-up torque within the API 5C1 or manufacturer's
+  recommended torque window (minimum optimal, maximum optimal) for the
+  size-grade-weight-thread combination.
+  Example: 9⅝ in., 47 lb/ft, N-80, LTC: optimal torque = 27,115 N·m
+  (20,000 ft-lbf); window = 20,340–33,900 N·m (15,000–25,000 ft-lbf).
+- Tong space: ≥ 600 mm of pipe body clear of coupling face for the back-up
+  tong; ≥ 300 mm for the power tong on the pin side of the coupling.
+- Stab: joint stabs in straight, no cross-thread, spins freely for ≥ 3
+  turns by hand before tongs engage.
+- Tally: length and cumulative depth recorded before joint is lowered below
+  rotary table.
+
+REJECTION:
+- Torque below minimum window — break out; clean, re-compound, re-make-up.
+- Torque above maximum window — break out; inspect thread for galling; reject
+  if galling (تآكل الاحتكاك) is confirmed on any thread flank.
+- Cross-thread detected during spin-in (stab cants or requires force to spin)
+  — stop immediately; break out; inspect threads; reject if damaged.
+- Tong marks (bite marks / علامات الكلاب) on coupling OD — reject coupling;
+  replace before running.
+- Tally not updated before lowering — stop lowering; update tally.
+
+---
+
+CLAUSE 22 — REJECT CRITERIA — SPLITS, LAPS, CRACKS, PITS, OUT-OF-ROUND
+[REF: API 5CT 10th Ed., Clause 9.3 / Clause 10.2 / Clause 10.7]
+
+This clause consolidates the primary visual and dimensional rejection criteria
+(معايير الرفض) for pipe body and connection conditions encountered at the
+wellsite. These are hard rejection criteria — no waiver is possible in the
+field without a written concession from the operator's drilling engineer and
+the company's materials engineer. Splits (انشقاقات), laps (طبقات), and cracks
+(شقوق) are automatically rejectable at any size or depth. Deep pits
+(نقر عميقة) must be assessed for remaining wall thickness before acceptance.
+Out-of-round conditions (عدم الاستدارة) are evaluated against OD tolerance.
+All rejected joints must be physically tagged (red tag — بطاقة حمراء) and
+removed from the running stack.
+
+ACCEPTANCE (conditions that may continue to run):
+- Surface dents: depth ≤ 3.2 mm (1/8 in.) and length ≤ OD of the pipe,
+  with no sharp edges or cracks at the dent perimeter.
+- Corrosion pits on body: pit depth estimated < 12.5% of nominal wall and
+  pit area ≤ 6,450 mm² (10 in²) — confirm by UT before accepting.
+- OD variation: within +1.0% / –0.5% of specified OD.
+- Grind repairs: smooth, gradual taper, depth ≤ 12.5% of nominal wall,
+  confirmed by UT; no hard edges.
+
+REJECTION:
+- Split (crack through the full wall) — REJECT; immediately quarantine.
+- Visible crack (any crack, any depth, any orientation) on pipe body,
+  upset, coupling, or thread — REJECT.
+- Lap or seam (rolled-in steel fold on OD or ID) — REJECT; these are
+  manufacturing defects that propagate under pressure.
+- Deep pit: any pit where remaining wall < 87.5% of nominal (confirmed by
+  UT) — REJECT.
+- Out-of-round: OD range at any cross-section exceeds the +1.0% / –0.5%
+  limits — REJECT; joint will not pass through wellhead or shoe uniformly.
+- Buckle or collapse: any visible inward deformation of the pipe body —
+  REJECT; ID is compromised, drift will fail.
+- Electrode burn mark (لحام قوس كهربائي غير مقصود / arc burn) on pipe body
+  — REJECT; arc burns create hardened zones susceptible to brittle fracture
+  and SSC.
+
+---
+
+CLAUSE 23 — MILL CERTIFICATE REQUIREMENTS — MTR CONTENT
+[REF: API 5CT 10th Ed., Clause 10.8 / Annex A / ISO 10474 Type 3.1]
+
+The Mill Test Report (MTR / شهادة الاختبار المعملي) is the primary
+documentary evidence that the pipe was manufactured and tested in accordance
+with API 5CT. The inspector must receive, review, and file the complete MTR
+package before any joint is run. The MTR is typically certified to ISO 10474
+Type 3.1 (third-party witnessed) for critical strings, or Type 3.2 for normal
+service. The MTR must be physically available at the wellsite (hard copy or
+accessible electronic copy) for the duration of the casing running operation.
+A single MTR covers one heat (one melt) of steel. If a string contains multiple
+heats, an MTR must be present for each heat represented.
+
+ACCEPTANCE:
+- MTR must include ALL of the following:
+  (a) Manufacturer name, plant location, and API licence number.
+  (b) Purchase Order number and customer name.
+  (c) Specification (API 5CT) and edition (10th).
+  (d) Grade (including type suffix), size (OD × wall), weight/ft, end finish.
+  (e) Heat number and quantity (number of joints, total footage).
+  (f) Chemical composition: C, Mn, P, S, Si, Cr (if alloy), Ni, Mo, Cu, V,
+      Nb, Al, N — actual values, not just "meets specification".
+  (g) Tensile results: YS, UTS, elongation — actual values (MPa or psi).
+  (h) Hardness results: HRC or HBW — actual readings (for Group 2/3/4).
+  (i) Charpy results (for Group 2/3/4): individual specimen values + average,
+      test temperature, specimen size (full or sub-size).
+  (j) Hydrostatic test pressure actually applied (MPa or psi).
+  (k) NDT records: EMI and/or UT — procedure reference, equipment, operator
+      certification, and calibration standard results.
+  (l) Heat treatment type (for Q&T grades): furnace records reference or
+      statement of compliance.
+  (m) Length list or bundle list with measured individual joint lengths.
+  (n) Signatory: responsible metallurgist or QC manager, with date and stamp.
+- ISO 10474 Type 3.1 certification: countersigned by independent inspection
+  body (e.g., TÜV, Bureau Veritas, Intertek, SGS).
+
+REJECTION:
+- MTR missing any of items (a) through (n) above — REJECT the pipe lot;
+  do not run until complete MTR is received.
+- Chemical composition on MTR does not comply with API 5CT Table C.5 (or
+  Table C.6 for Group 2) limits — REJECT heat.
+- MTR shows a heat number not matching any stencil on the delivered pipe —
+  REJECT; reconcile before running.
+- MTR is a photocopy without original signature or stamp — REJECT; require
+  original or certified true copy with stamp.
+- MTR issued by the mill's own QC department only (Type 2.2) when the PO
+  requires ISO 10474 Type 3.1 — REJECT; require third-party witnessed
+  documentation.
+- MTR date of testing prior to the purchase order date by more than
+  12 months — flag; verify pipe was not from old stock not covered by PO
+  quality requirements; reject if unresolved.
+
+---
+
+CLAUSE 24 — CHEMICAL COMPOSITION LIMITS PER GRADE
+[REF: API 5CT 10th Ed., Tables C.5 and C.6]
+
+Chemical composition (التركيب الكيميائي) determines the base hardenability,
+corrosion resistance, and weldability of the steel. While the running inspector
+does not perform chemical analysis in the field, the MTR must be reviewed
+against the API 5CT limits before acceptance. Elevated sulphur (S) and
+phosphorus (P) increase susceptibility to HIC (Hydrogen Induced Cracking /
+التشقق الناتج عن الهيدروجين) and SSC. For sour service grades, the P and S
+limits are tighter than standard grades. Carbon equivalent (CE) is relevant
+for field welding of conductor and surface casing — though API 5CT does not
+mandate a CE limit, company weld procedures typically require CE ≤ 0.43
+(IIW formula) for J-55 and K-55 conductor casing welding.
+
+ACCEPTANCE:
+- H-40 / J-55 / K-55: no mandatory chemical limits in API 5CT (manufacturer's
+  discretion) except S ≤ 0.030% and P ≤ 0.030% (common mill practice);
+  confirm limits are stated in PO.
+- N-80 Type 1: no mandatory chemical limits; S ≤ 0.030%; P ≤ 0.030%.
+- N-80Q, L-80, C-90, T-95 (Group 2): Per Table C.6:
+  C ≤ 0.43%, Mn ≤ 1.90%, P ≤ 0.020%, S ≤ 0.010%, Si ≤ 0.45%.
+  For L-80 13Cr: C ≤ 0.22%, Cr 12.0–14.0%, Ni ≤ 1.0%, Mo ≤ 0.5%.
+- P-110 (Group 3): P ≤ 0.020%, S ≤ 0.010%; other elements manufacturer
+  discretion with agreed chemical range on PO.
+- Q-125 (Group 4): P ≤ 0.020%, S ≤ 0.010%; Nb + V + Ti ≤ 0.15% combined.
+- Sour service additional requirement: S ≤ 0.005% (ultra-low sulphur —
+  often specified in company PO for L-80/C-90/T-95 in H₂S wells) when
+  required by NACE MR0175.
+
+REJECTION:
+- P > 0.020% or S > 0.010% on any Group 2, 3, or 4 MTR — REJECT heat.
+- S > 0.005% for sour service product when company PO specifies ULS
+  (ultra-low sulphur) requirement — REJECT heat.
+- Any element exceeding the PO-agreed chemical range — REJECT heat; notify
+  procurement immediately.
+- Chemical analysis performed by non-accredited laboratory — REJECT; require
+  repeat analysis at an ISO 17025-accredited laboratory.
+
+---
+
+================================================================================
+END OF API 5CT KNOWLEDGE FILE
+================================================================================
+[CLAUSE COUNT: 24]
+[MINIMUM LINE COUNT: 600+]
+[STANDARD COVERAGE: API 5CT 10th Edition — Full Scope]
+[LANGUAGE: English with Arabic oilfield terms (MENA/Egypt)]
+[GENERATED FOR: AI-Powered Inspection Assistant — Wellsite and Pipe-Yard Use]
+[AUTHOR: Senior Inspection Engineer — 25+ yrs Oil & Gas, NDT, Drilling]
+[VERSION: 1.0 — 2026-09-23]
+================================================================================

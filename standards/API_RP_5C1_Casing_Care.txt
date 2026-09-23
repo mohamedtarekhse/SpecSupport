@@ -1,0 +1,963 @@
+[STANDARD: API RP 5C1]
+[TITLE: Recommended Practice for Care and Use of Casing and Tubing]
+[EDITION: 19th Edition]
+[ARTICLE: Full Scope — Handling, Inspection, and Running Practice]
+[GENERATED: 2026-09-23]
+[SCOPE: Wellsite receiving, yard storage, thread care, makeup, running, recovery, and rejection criteria]
+[LANGUAGE: English with Arabic oilfield terms (MENA/Egypt usage) in parentheses]
+
+================================================================================
+NOTE TO USER: All numeric acceptance/rejection values are based on API RP 5C1
+19th Edition tables, text clauses, and referenced API Spec 5CT and API Spec 5B
+tolerances. Where specific weight-per-foot or grade table values are referenced,
+field personnel MUST cross-check the applicable API RP 5C1 Table in the edition
+in use on site. OEM torque values for premium connections ALWAYS take precedence.
+================================================================================
+
+---
+
+CLAUSE 01 — RECEIVING INSPECTION AT WELLSITE (VISUAL CHECK AND STENCIL VERIFICATION)
+[REF: API RP 5C1, Section 5 — Receiving, Unloading, and Handling; Subsection 5.1]
+
+Inspect every joint of casing or tubing (غلاف / أنابيب إنتاج) immediately upon
+arrival at the wellsite before unloading commences. Verify that the stencil
+markings (الطباعة على الأنبوب) on each pipe joint match the mill certificate
+and delivery ticket item-by-item; minimum stencil data to verify includes:
+API size (outside diameter), nominal weight (lb/ft), grade, connection type,
+and heat number (رقم الصهر). Reject any joint whose stencil is missing,
+illegible, or does not match the delivery documentation; do not downgrade or
+accept on verbal assurance alone. Perform an overall visual survey (الفحص
+البصري) of each joint for gross damage — dents, bends, crushed ends, missing
+thread protectors — before the pipe leaves the transport vehicle. Any joint
+showing visible buckling (تشوه / انحناء) or more than one (1) missing thread
+protector from a bundle must be segregated and individually re-inspected before
+acceptance. Record the joint count against the packing list; a discrepancy of
+more than 1% of the tally count shall trigger a full physical recount before
+offloading continues.
+
+ACCEPTANCE:
+- All stencil data matches delivery ticket and mill cert; OD size ±1.0%, grade
+  matches, heat number present and legible.
+- Thread protectors (واقيات الخيوط) installed on both pin and box ends of
+  every joint.
+- Visual condition: no visible bends, no dents deeper than 1/4 in (6.35 mm),
+  no crushed pipe body.
+- Joint count within ±1% of packing list quantity.
+
+REJECTION:
+- Any joint with stencil missing, illegible, or mismatched to delivery
+  documents — reject entire joint; do not use.
+- Any joint showing visible bow or curvature that, when rolled on a flat rack,
+  shows gap > 1/4 in per 10 ft (6.35 mm per 3 m) of pipe length — reject.
+- Any joint with both thread protectors missing; inspect threads immediately;
+  reject if thread damage is confirmed.
+- Count discrepancy > 1% with packing list — halt offloading, perform recount.
+
+---
+
+CLAUSE 02 — UNLOADING AND HANDLING — SLING REQUIREMENTS, NO HOOKS ON THREADS
+[REF: API RP 5C1, Section 5.2 — Unloading]
+
+Pipe (أنابيب) shall be unloaded from transport vehicles using wide-body fabric
+slings (حبال قماشية / شناكل قماشية), minimum 6 in (150 mm) wide, or purpose-built
+pipe cradles; sling material must be rated for the calculated load with a safety
+factor of not less than 5:1 on the working load. Wire rope slings are NOT
+permitted to contact the pipe body directly without protective lagging because
+steel wire will indent the pipe surface and initiate corrosion pits. Under no
+circumstances shall pipe handling hooks (شناكل معدنية / خطاف) be inserted into
+the threaded box or pin end for lifting purposes; hook-on-thread lifting crushes
+thread form and renders the connection unacceptable. When a crane or forklift is
+used, the lift points must be positioned to prevent overhang of more than 10 ft
+(3 m) beyond the support point so that the pipe does not deflect and take a
+permanent set. Tag lines shall be used to control swing during all crane
+lifts; pipe bundles shall not be allowed to impact rig structures, crown block
+substructure, or other pipe joints during the swing arc. Bundles shall be broken
+apart on the ground before individual joints are handled by personnel; do not
+allow workers to stand directly under suspended loads at any time.
+
+ACCEPTANCE:
+- Fabric sling minimum 6 in (150 mm) wide, rated ≥ 5:1 safety factor, no cuts
+  or fraying present.
+- Wire rope slings used only with full-length rubber or canvas lagging covering
+  the pipe-contact zone.
+- Overhang not exceeding 10 ft (3 m) per support point.
+- Zero instances of hook insertion into threaded ends; any attempt is an
+  immediate stop-work condition.
+
+REJECTION:
+- Any unpadded wire rope sling contacting bare pipe body — stop lift, replace
+  with padded sling before continuing.
+- Any pipe joint dropped or swung into contact with another pipe or structure —
+  reject that joint, inspect for dents and ovality before use.
+- Any joint picked by inserting a hook or casing spider into the thread box
+  without a proper thread-saver sub — reject, perform thread inspection.
+- Fabric sling showing cut, burn, or load-rating tag missing — remove from
+  service immediately.
+
+---
+
+CLAUSE 03 — STORAGE YARD INSPECTION — STACKING HEIGHT AND PIPE RACK REQUIREMENTS
+[REF: API RP 5C1, Section 6 — Storage]
+
+Pipe stored in the yard (مستودع الأنابيب / الساحة) must be laid on wooden or
+rubber-topped pipe racks with a minimum of two support points per joint; skid
+spacing shall not exceed 20 ft (6.1 m) for casing and 15 ft (4.6 m) for tubing
+to prevent sag and permanent bow. Maximum stacking height (ارتفاع التكديس) for
+casing shall not exceed 5 ft (1.5 m) above the bottom pipe, and shall not
+exceed 3 ft (0.9 m) for tubing, regardless of pipe weight; exceeding these
+heights risks crushing lower joints and deforming thread-protector fit. The
+bottom layer of pipe must be chocked (كتل خشبية) front and rear on every skid
+to prevent rolling; wooden chocks must contact the pipe body and be spiked or
+wired to the skid so they cannot kick out. Pipe shall be stored with the box-end
+(الصندوق / الكوبلينج) facing in a consistent direction and elevated slightly to
+allow rainwater drainage away from threads; standing water inside box ends
+initiates corrosion under thread protectors within 24–48 hours in humid or
+saline environments. Inspect the yard storage area after any high-wind event,
+rain, or sand storm (عاصفة رملية) for displaced chocks, rolled pipe, and
+protector condition before the next picking cycle begins.
+
+ACCEPTANCE:
+- Rack skid spacing ≤ 20 ft (6.1 m) for casing, ≤ 15 ft (4.6 m) for tubing.
+- Stack height ≤ 5 ft (1.5 m) for casing; ≤ 3 ft (0.9 m) for tubing.
+- Chocks present, secured, and in contact on both sides of every bottom-tier
+  joint at every skid.
+- Thread protectors intact on all stored joints; no standing water visible
+  inside box ends.
+
+REJECTION:
+- Any stack exceeding maximum height limits — immediately de-stack to
+  acceptable height before pulling further joints.
+- Bottom-layer joints with missing chocks on any skid — stop picking, re-chock
+  before proceeding.
+- Any joint discovered to have rolled off the rack — segregate, inspect for
+  dents, ovality, and thread damage before allowing to be run.
+- Thread protectors missing or displaced and threads showing corrosion or
+  debris accumulation — tag joint for cleaning and thread inspection before
+  acceptance.
+
+---
+
+CLAUSE 04 — THREAD PROTECTOR INSPECTION — WHEN TO REMOVE AND INSPECT
+[REF: API RP 5C1, Section 7.1 — Thread Protectors]
+
+Thread protectors (واقيات الخيوط / بلاستيك الخيوط) shall remain installed on
+all pipe joints until the joint is positioned on the V-door or catwalk
+immediately prior to picking to the rig floor. Do not remove protectors in the
+yard simply to inspect threads unless the joint is being prepared for a specific
+inspection programme; premature removal exposes threads to sand, moisture, and
+mechanical damage with no benefit. When protectors are removed for inspection,
+do so by hand or with a protector wrench; never use pipe tongs or strap wrenches
+directly on the protector body because overtorquing can crack plastic protectors
+and drive fragments into threads. Examine the interior of each removed protector
+for debris, rust staining, moisture, or damaged plastic that could indicate the
+thread beneath has been compromised; a protector that contains red or orange
+rust water must be treated as a warning sign and the thread inspected immediately.
+Thread protectors that have been removed must be replaced with new or undamaged
+protectors if the joint is being returned to storage; do not re-install a
+cracked, stripped, or broken protector as it offers no protection. When
+protectors are removed at the wellsite for running, lay them out of the work
+area to prevent tripping hazards on the rig floor.
+
+ACCEPTANCE:
+- Protectors intact, no cracks, no stripped threads on the protector itself,
+  and no rust water visible inside the protector cavity.
+- Protector removed by hand torque or protector wrench only; no tong marks
+  on the protector body.
+- Threads beneath protector: free of foreign material, no rust, no mechanical
+  damage; dope film (if factory-applied) intact.
+
+REJECTION:
+- Protector containing rust-colored water or visible corrosion product —
+  remove and inspect underlying thread immediately; reject joint if thread
+  corrosion pitting depth exceeds 1/32 in (0.8 mm).
+- Cracked or stripped protector — replace before returning to storage; do not
+  re-install damaged protector.
+- Thread protector showing tong jaw marks on its body — inspect protector
+  engagement thread for deformation; if deformed, replace protector and inspect
+  pipe thread.
+
+---
+
+CLAUSE 05 — DRIFTING REQUIREMENTS — API DRIFT MANDREL SIZE PER GRADE AND WEIGHT
+[REF: API RP 5C1, Section 7.2 — Drifting; API Spec 5CT, Table C.41 (Drift Dimensions)]
+
+Every joint of casing and tubing (غلاف / أنبوب إنتاج) shall be drifted at the
+wellsite with the correct API drift mandrel (مندريل القياس / مقياس الانزلاق)
+immediately before running, regardless of whether the joint was drifted at the
+mill; yard handling, transport, and storage can introduce deformation that was
+not present at the time of mill inspection. The drift mandrel shall conform to
+API Spec 5CT Table C.41 for the specific size, weight, and grade combination;
+using an undersized or oversized mandrel is not acceptable and will give false
+results. The mandrel must pass through the full joint length by gravity or by
+hand push only; no hammering, jarring, or forcing of the drift mandrel is
+permitted because this can temporarily spring a deformed pipe and give a false
+pass. If the mandrel hangs up at any point, rotate it 90° and attempt once more;
+if it still hangs, reject the joint — do not attempt to force through. Both the
+drift mandrel and the pipe bore must be clean and free of dope, debris, and
+scale before drifting; contamination can cause a false failure on a good joint.
+Record the drift result (pass/fail) against the joint serial or tally number on
+the running tally sheet.
+
+ACCEPTANCE (example values — confirm per API Spec 5CT Table C.41 for actual size/weight):
+- 9-5/8 in, 47.0 lb/ft — drift OD: 8.525 in (216.5 mm); mandrel passes full
+  length by gravity or light hand push.
+- 7 in, 26.0 lb/ft — drift OD: 6.151 in (156.2 mm); mandrel passes freely.
+- 4-1/2 in tubing, 12.60 lb/ft — drift OD: 3.795 in (96.4 mm); mandrel
+  passes freely.
+- In all cases: full unobstructed passage of the correct API drift mandrel.
+
+REJECTION:
+- Any joint where the API-size drift mandrel does not pass freely through the
+  full joint length — reject immediately; do not run; tag and set aside.
+- Any joint where the mandrel was forced, hammered, or jarred through — result
+  is invalid; re-drift with correct procedure; if unable to drift cleanly, reject.
+- Drifting performed with wrong mandrel size — results are invalid; re-drift
+  with correct mandrel.
+- Any joint not drifted at wellsite before running — stop, pull back, drift
+  before continuing.
+
+---
+
+CLAUSE 06 — THREAD CLEANING PROCEDURE — CLEAN, DRY, INSPECT BEFORE CONNECTION
+[REF: API RP 5C1, Section 7.3 — Cleaning and Inspection of Threads]
+
+All thread forms (خيوط) on both pin (ذكر) and box (أنثى / صندوق) ends must be
+cleaned to bare metal before application of any makeup compound; residual old
+dope, rust, scale, sand, or elastomeric debris from protectors will cause
+false torque readings and incomplete thread engagement. Approved cleaning method:
+wire brush (فرشاة سلكية) for base cleaning, followed by solvent wipe (قطعة نظيفة
+مع مذيب) to remove hydrocarbon residue; compressed air at a maximum of 30 psi
+(207 kPa) directed along the thread helix to remove brush fragments and solvent.
+Do not use chlorinated solvents that leave a residue harmful to thread compound
+chemistry. After cleaning, inspect threads in good lighting — daylight or a
+minimum 50 foot-candle (540 lux) artificial light — for mechanical damage, tears,
+galling, or erosion. The thread must be completely dry before applying makeup
+compound; moisture trapped under dope during makeup can cause hydrogen-assisted
+stress corrosion under operating conditions. Any thread that cannot be
+cleaned to bare metal because of severe corrosion bonding shall be condemned
+and the joint rejected.
+
+ACCEPTANCE:
+- Thread surfaces cleaned to bare, bright metal; no residual dope, grease,
+  scale, or debris visible.
+- Thread surface dry; no moisture film or water droplets present before doping.
+- Light level at inspection point ≥ 50 foot-candles (540 lux).
+- Wire brush and solvent method used; no chemical etch products unless
+  specifically approved by the connection OEM.
+
+REJECTION:
+- Threads that cannot be cleaned to bare metal after two wire-brush passes and
+  solvent wipe — reject joint; do not apply dope over contamination.
+- Threads still wet with solvent or moisture when dope application begins —
+  stop, re-dry, re-inspect.
+- Any use of chlorinated solvent not approved by connection OEM for premium
+  connections — stop cleaning, switch to approved solvent, re-clean.
+
+---
+
+CLAUSE 07 — THREAD INSPECTION — VISUAL AND GAUGE (THREAD GAUGE REQUIREMENTS)
+[REF: API RP 5C1, Section 7.4; API Spec 5B — Threading, Gauging, and Thread
+Inspection; Sections 6, 8]
+
+After cleaning, perform a systematic visual inspection of every thread using
+a thread pick (مسبار الخيط) and adequate lighting to identify cuts, tears,
+galling, compression damage, or deformed crests and roots; these defects are
+the primary cause of makeup failure and connection leak paths (تسرب). Round
+thread (خيط دائري) and Buttress thread (خيط مسطح الأسنان) connections shall be
+gauged using calibrated API Spec 5B thread gauges — ring gauge on the pin,
+plug gauge on the box — at a minimum frequency of 1 in 50 joints (2%) for
+new pipe from the mill and 100% frequency for all recovered or re-use pipe.
+Thread gauge calibration must be verified against certified master gauges at
+the start of each inspection campaign and at intervals not exceeding 4 hours
+of continuous use. For premium connections, thread profile gauging (hand-tight
+standoff measurement) must conform to the OEM's published gauge specification;
+API Spec 5B gauges alone are not sufficient for premium connection acceptance.
+Document every gauge result on the tally sheet; if a pin passes visual but
+fails gauge, the joint is rejected for running and tagged for mill repair.
+
+ACCEPTANCE:
+- Visual: no cuts, tears, or galling visible; thread crests and roots conform
+  to API thread profile; no compressed or flattened threads.
+- Gauge result (API Round Thread): pin hand-tight standoff within ±1 turn of
+  the plug gauge reference face (API Spec 5B, Section 8.4).
+- Gauge result (Buttress Thread): pin hand-tight standoff within ±1.5 turns
+  of the reference face (API Spec 5B, Section 8.7).
+- Gauge calibration verified against master within the last 4 hours of use.
+
+REJECTION:
+- Any thread with visible cut, tear, or galling over more than 1 continuous
+  thread turn — reject joint.
+- Pin gauge standoff outside ±1 turn (Round) or ±1.5 turns (Buttress) of
+  reference — reject joint; tag for mill return.
+- Gauge not calibrated within 4-hour period — all results since last
+  calibration are invalid; re-gauge all joints inspected since last valid
+  calibration.
+- Any joint not gauged when 100% gauging is required (recovered pipe) —
+  remove from running string until gauged.
+
+---
+
+CLAUSE 08 — MAKEUP COMPOUND APPLICATION — API MODIFIED THREAD COMPOUND (DOPE)
+[REF: API RP 5C1, Section 7.5 — Thread Compound]
+
+Thread compound (دهان الخيط / دوب) applied to casing and tubing connections shall
+meet API modified thread compound specification as defined in API RP 5A3;
+compounds not meeting this specification (e.g., general-purpose pipe dope, grease,
+or petroleum jelly) shall not be used because they alter the torque-turn
+relationship and risk either overtorque-induced yield or undertorque-related
+leakage. Apply compound to the full length of the pin thread from root to last
+thread, and on the inner 2–3 threads of the box; do not apply compound to the
+thread protector; do not apply compound to the coupling shoulder face of
+Buttress connections unless explicitly specified by the connection OEM. The
+correct application is a continuous, even coat approximately 1/32 in (0.8 mm)
+thick covering all thread roots and flanks; bare metal must not be visible
+through the compound film after application. In cold temperatures (below 5°C /
+41°F), warm the compound container to room temperature before application to
+restore correct viscosity; cold compound applied too thick will squeeze out
+during makeup and produce incorrect torque readings. Dispose of excess compound
+and used brushes per the site environmental management plan; do not allow
+compound to drain into the wellbore or open ground.
+
+ACCEPTANCE:
+- API RP 5A3 compliant modified thread compound, within manufacturer's stated
+  shelf life, stored at manufacturer-recommended temperature range.
+- Even coat applied to 100% of pin thread surface; box first 2–3 threads coated.
+- Film thickness approximately 1/32 in (0.8 mm); no bare metal spots visible.
+- Compound temperature ≥ 5°C (41°F) at time of application.
+
+REJECTION:
+- Any non-API compound or unapproved substitute used — stop makeup, clean
+  threads, re-apply correct compound.
+- Compound past shelf-life date on container — discard, obtain fresh compound.
+- Uneven or bare-metal-visible application — re-apply before proceeding.
+- Compound applied over uncleaned thread (dirt or residual old dope visible
+  beneath) — clean threads completely, re-apply.
+
+---
+
+CLAUSE 09 — API ROUND THREAD MAKEUP — HAND-TIGHT POSITION PLUS WRENCH TURNS
+[REF: API RP 5C1, Section 8.3 — Round Thread Makeup; Table 5 — API Round Thread
+Makeup Turns]
+
+API 8-round thread connections (خيط دائري) are made up by first establishing the
+hand-tight position (وضع اليد) with the coupling flush on the pin by manual
+rotation, then applying the specified number of additional wrench turns (دورات
+المفتاح) with power tongs (كماشة الشد) to reach final makeup. Hand-tight position
+is defined as the point where the coupling shoulder is flush with the last thread
+on the pin — this is the baseline; do not use torque as the reference for
+hand-tight position, use visual thread engagement. Additional wrench turns from
+hand-tight to final makeup vary by size; standard values per API RP 5C1 Table 5
+range from 3 to 7 turns depending on nominal size — field personnel must consult
+the table for the exact size being run. Final position (الوضع النهائي) is
+confirmed when the correct number of wrench turns has been completed AND the
+coupling end face is within ±1 thread pitch of the optimum makeup position
+shown in API RP 5C1 Table 5; torque monitoring is secondary but must be within
+the range stated in API RP 5C1 Tables for the specific size and weight. Never
+back off (فك) a made-up round thread connection and re-make it in the same
+session without re-cleaning and re-doping the threads.
+
+ACCEPTANCE (example — verify per API RP 5C1 Table 5 for actual size):
+- 9-5/8 in Round Thread: hand-tight + 3 turns wrench turns; coupling end face
+  flush to +3 thread pitch of pin end face.
+- 7 in Round Thread: hand-tight + 3 turns wrench turns.
+- 4-1/2 in Round Thread: hand-tight + 3.5 turns wrench turns.
+- Thread compound applied per Clause 08 before makeup commences.
+
+REJECTION:
+- Final coupling position more than ±2 thread pitches outside the optimum
+  window after correct wrench turns applied — reject makeup; inspect threads for
+  damage; clean, re-dope, re-make.
+- Final torque reading lower than the minimum tabulated value for the size and
+  weight — investigate; joint may be under-engaged; inspect.
+- Final torque reading exceeding the maximum tabulated value for the size and
+  weight — inspect for possible overtorque; check for galling.
+- Makeup achieved with fewer than specified wrench turns — back off, clean,
+  re-dope, re-make to correct turn count.
+
+---
+
+CLAUSE 10 — BUTTRESS THREAD MAKEUP — TORQUE RANGE PER SIZE AND WEIGHT
+[REF: API RP 5C1, Section 8.4 — Buttress Thread Makeup; Tables 6 and 7]
+
+Buttress thread connections (خيط مسطح) use torque as the primary makeup control
+parameter, unlike Round Thread which uses turn count; therefore, a calibrated
+torque monitoring system on the power tongs is mandatory for all Buttress
+makeup operations. API RP 5C1 Tables 6 and 7 provide the optimum, minimum, and
+maximum torque values (ft-lb) for each size and weight combination; field
+personnel must use the correct table row and must not extrapolate between rows.
+Hand-tight position for Buttress is identified when the coupling face is flush
+with the last thread on the pin; from hand-tight, apply tong torque continuously
+and monitor the torque chart or display in real time — the torque vs. turn
+signature should rise smoothly without spikes or flat spots, which would indicate
+thread cross-threading (عبور الخيوط) or jump-out. Final makeup is reached when
+the torque reading falls within the optimum range specified in the table for the
+applicable size and weight; if optimum cannot be reached without exceeding
+the maximum, the connection must be backed off and inspected for thread damage.
+Document the final makeup torque value and turn count on the running tally for
+every joint made up in the string.
+
+ACCEPTANCE (example values — confirm per API RP 5C1 Table 6/7 for actual size/weight):
+- 9-5/8 in, 47.0 lb/ft, K55 Buttress: Optimum 13,200 ft-lb; Min 9,900 ft-lb;
+  Max 16,500 ft-lb.
+- 7 in, 26.0 lb/ft, N80 Buttress: Optimum 7,200 ft-lb; Min 5,400 ft-lb;
+  Max 9,000 ft-lb.
+- 5-1/2 in, 20.0 lb/ft, L80 Buttress: Optimum 5,000 ft-lb; Min 3,750 ft-lb;
+  Max 6,250 ft-lb.
+- Torque chart: smooth monotonic rise; no spikes > 20% above prevailing torque.
+
+REJECTION:
+- Final torque below minimum table value — back off, inspect, re-dope, re-make.
+- Final torque above maximum table value — back off immediately; inspect for
+  galling; if galled, reject joint.
+- Torque-turn chart showing spike > 20% above prevailing torque at any point
+  during makeup — indicates possible cross-threading; back off, clean, inspect,
+  re-make.
+- Torque monitoring equipment not calibrated within the shift — all makeup
+  results are suspect; verify calibration before continuing.
+
+---
+
+CLAUSE 11 — PREMIUM CONNECTION MAKEUP — PROPRIETARY TORQUE WINDOWS (OEM REQUIREMENT)
+[REF: API RP 5C1, Section 8.5 — Premium Connection Makeup; OEM Technical
+Bulletins (applicable per connection type)]
+
+Premium connections (وصلات متميزة / وصلات بريميوم) — including but not limited to
+Vallourec VAM, Tenaris TenarisHydril, NOV Grant Prideco, and other proprietary
+designs — shall be made up strictly in accordance with the OEM's published
+running procedure for that specific connection, size, weight, and grade
+combination; API RP 5C1 standard torque tables do NOT apply to premium
+connections. The OEM running procedure must be on the rig floor in hard copy
+or approved electronic format before running commences; no OEM document means
+no premium connection makeup shall proceed. Minimum torque (دوزة دنيا), optimum
+torque (دوزة مثلى), and maximum torque (دوزة قصوى) windows must be loaded into
+the tong control unit before makeup begins; the control unit must be capable
+of recording torque vs. turn trace for every joint. A qualified premium
+connection make-up supervisor or OEM-certified technician shall be present
+during makeup of the first 10 joints of any new premium connection run, and
+upon any change of crew running the connection. Torque-turn trace for every
+joint must be archived and made available for post-run quality review.
+
+ACCEPTANCE:
+- Final torque falls within OEM-specified optimum window (min to max) for the
+  specific connection, size, weight, and grade.
+- Torque-turn trace shows smooth curve with delta-torque per turn within OEM
+  acceptance band; no spikes or flat spots beyond OEM tolerance.
+- Shoulder torque (for shouldered designs) confirmed on trace; OEM-defined
+  "shoulder" event visible on chart.
+- All makeup performed with OEM-approved compound only.
+
+REJECTION:
+- Final torque outside OEM minimum-to-maximum window — back off immediately;
+  inspect per OEM protocol; re-make or reject per OEM guidance.
+- Torque-turn trace shows spike > OEM-specified limit at any point — back off,
+  inspect; if galling found on metal-to-metal seal zone, reject joint.
+- OEM running procedure not available on rig floor — suspend premium makeup
+  until document is available and verified.
+- Non-OEM thread compound used on premium connection — back off, clean,
+  obtain OEM-approved compound, re-make.
+
+---
+
+CLAUSE 12 — POWER TONG USE — TONG PLACEMENT, BACKUP, AND TORQUE MONITORING
+[REF: API RP 5C1, Section 8.6 — Power Tong Operation]
+
+Power tongs (كماشة الشد الآلية) shall be positioned so that the tong jaw grips
+the pipe body in the tong area between the upset and coupling; the jaw must
+never grip on the upset taper zone, the thread, or the coupling itself. The
+backup tong (كماشة التثبيت) must be engaged on the coupling or on the joint
+below the connection being made up, gripping the body — not the threads —
+so that torque reaction is absorbed by the tong and not by the rig floor
+or rotary table components. Tong jaw dies (أسنان الكماشة) shall be inspected
+every shift for worn or broken teeth; a worn die transfers point loads that
+produce tong marks (نقوش الكماشة) exceeding API RP 5C1 maximum allowable
+depth; replace dies before they are worn to 50% of original tooth height.
+The torque measuring system — mechanical dial gauge or electronic load-cell
+system — shall be calibrated with a certified deadweight or load-cell reference
+at the beginning of every running job; calibration records must be retained on
+site. Hydraulic supply pressure must be verified against the tong manufacturer's
+torque-pressure chart before makeup begins to confirm the gauge can reach
+the required torque range; if the hydraulic system cannot reach required pressure,
+do not attempt makeup and resolve the hydraulic issue first.
+
+ACCEPTANCE:
+- Tong jaw positioned on pipe body in the tong grip area only; minimum 6 in
+  (150 mm) from the coupling face.
+- Backup tong engaged on pipe body of joint below; no jaw contact with
+  any threaded area.
+- Tong dies: tooth height ≥ 50% of original; no broken die segments.
+- Torque measuring system calibrated at start of job; calibration certificate
+  available on site.
+
+REJECTION:
+- Tong jaw mark found on coupling, thread taper, or last-engaged thread zone
+  — stop makeup; inspect connection for damage; reject if deformation present.
+- Torque gauge reading higher than calibration chart value for the applied
+  hydraulic pressure by > 5% — recalibrate before continuing.
+- Backup tong slipping or absent — halt makeup; re-position backup before
+  resuming.
+- Tong dies with > 50% tooth wear or broken segments — replace dies before
+  next joint.
+
+---
+
+CLAUSE 13 — TONG MARK ACCEPTANCE — MAXIMUM DEPTH AND LOCATION
+[REF: API RP 5C1, Section 7.8 — Pipe Body Damage; Section 8.6.4 — Tong Mark
+Acceptance Criteria]
+
+Tong marks (نقوش الكماشة / علامات الكماشة) are the most common form of handling
+damage on casing and tubing and must be assessed quantitatively, not subjectively.
+Measure the tong mark depth with a calibrated pit gauge (مقياس العمق) or depth
+micrometer; visual assessment alone is not acceptable for borderline cases.
+A tong mark located in the pipe body (not in the coupling zone) with a depth
+that does not reduce the remaining wall thickness below the minimum wall
+thickness per API Spec 5CT (87.5% of nominal wall) is potentially acceptable
+if no other damage is present. However, any tong mark located within 12 in
+(305 mm) of the coupling face or within the tong-area upset is subject to closer
+scrutiny because stress concentration at the coupling proximity is higher in
+service. Tong marks with sharp, tool-mark profiles must be dressed with a fine
+file to remove the stress-riser cusp before measurement; the dressed mark depth
+is then used for the assessment. Marks that form a continuous groove around
+more than 40% of the pipe circumference at any single cross-section shall be
+rejected regardless of depth.
+
+ACCEPTANCE:
+- Tong mark depth ≤ 12.5% of nominal wall thickness (leaving ≥ 87.5% wall)
+  when measured with calibrated depth gauge.
+- Mark located > 12 in (305 mm) from coupling face; not in upset zone.
+- Circumferential extent of mark at any cross-section ≤ 40% of pipe
+  circumference.
+- Sharp cusp dressed smooth before acceptance measurement.
+
+REJECTION:
+- Tong mark depth > 12.5% of nominal wall (i.e., remaining wall < 87.5% of
+  nominal) — reject joint or cut and re-thread per mill if feasible.
+- Tong mark located within 12 in (305 mm) of coupling face and depth > 10%
+  of nominal wall — reject joint from running string.
+- Circumferential groove mark at any cross-section exceeding 40% of
+  circumference — reject regardless of depth.
+- Any tong mark in the threaded area or on the coupling — reject connection;
+  do not make up.
+
+---
+
+CLAUSE 14 — PICKING AND STABBING — STABBING GUIDE USE AND THREAD DAMAGE PREVENTION
+[REF: API RP 5C1, Section 8.2 — Stabbing]
+
+When stabbing (تثبيت / إدخال) a joint of casing or tubing into the joint below
+in the rotary, always use a correctly sized stabbing guide (دليل الإدخال) on the
+box end of the joint being picked up; a stabbing guide centers the pin and
+prevents the thread face from contacting the coupling shoulder obliquely, which
+is the primary cause of first-thread damage during running. Stabbing guides
+shall be sized to fit snugly inside the coupling bore and must be made of brass,
+aluminum, or reinforced plastic — materials that will not score the thread form
+on contact; steel stabbing guides are prohibited on API round and Buttress
+threads and on all premium connections. The joint being stabbed must be held
+vertically plumb within ±3° of vertical before the stabbing guide enters the
+coupling; oblique stabbing beyond 3° forces the pin thread into the coupling
+shoulder and causes jump-in damage. After stab, slowly lower the joint under
+control and rotate slowly (maximum 10 RPM) to start thread engagement; do not
+spin a joint freely without thread engagement confirmed. The pick-up elevator
+must be equipped with slips or a safety latch; do not depend on friction alone
+to retain the joint during the stab.
+
+ACCEPTANCE:
+- Correct-size brass or aluminum stabbing guide fitted on box before stab.
+- Joint plumb within ±3° of vertical at point of stab.
+- Thread engagement confirmed before power tong makeup begins; no grinding or
+  resistance at stab indicating oblique contact.
+- Maximum stabbing speed: joint lowered under operator control; no free drops.
+
+REJECTION:
+- Stabbing performed without stabbing guide — stop; retrieve joint; inspect
+  thread for damage before proceeding.
+- Joint stabbed at > 3° oblique — retrieve, inspect thread; if first thread
+  torn, reject joint.
+- Steel stabbing guide used on any connection — prohibited; replace with
+  brass/aluminum immediately.
+- Any joint free-dropped onto the joint below without controlled stab —
+  inspect both pin and box for thread damage; reject if damaged.
+
+---
+
+CLAUSE 15 — RUNNING SPEEDS — MAXIMUM JOINT RUNNING SPEED THROUGH ROTARY
+[REF: API RP 5C1, Section 9 — Running Casing and Tubing; Section 9.5 — Running
+Speed]
+
+Running speed (سرعة الإدخال) for casing and tubing shall be controlled to
+prevent formation damage from surge pressure (ضغط الموجة) generated by the
+annular piston effect as the pipe displaces fluid below it; excessive running
+speed is a primary cause of lost circulation (فقدان الدوران) and formation
+breakdown in tight or depleted zones. API RP 5C1 does not specify a single
+universal running speed but requires the operator to calculate the maximum
+permissible running speed based on the equivalent circulating density (ECD)
+at the formation of interest and the fracture gradient; the wellsite engineer
+is responsible for providing the permitted running speed in the running
+programme. As a field guidance value, a maximum running speed of 150 ft/min
+(45.7 m/min) shall not be exceeded for casing and 100 ft/min (30.5 m/min) for
+liner or tight-clearance situations unless surge calculations confirm a higher
+speed is safe. When running through troublesome zones (lost circulation zones,
+weak formations, or open hole), speed shall be reduced to 50 ft/min (15.2 m/min)
+or as directed by the wellsite engineer. Never reciprocate the string at
+running speed; reciprocation and rotation (if used) must be done at controlled
+speed with the driller monitoring hook load for overpull or set-down weight
+indicating stuck pipe.
+
+ACCEPTANCE:
+- Maximum running speed ≤ 150 ft/min (45.7 m/min) in open hole for standard
+  casing; ≤ 100 ft/min (30.5 m/min) for tight clearance liner.
+- In weak or depleted zones: ≤ 50 ft/min (15.2 m/min) or as specified in
+  approved running programme.
+- Surge pressure calculation performed and approved by wellsite engineer before
+  running commences.
+- Driller monitoring hook load continuously; weight indicator visible from
+  driller's position.
+
+REJECTION:
+- Running speed exceeding approved maximum for any zone — immediately slow down;
+  document exceedance in the morning report.
+- No surge calculation performed and no running speed limit defined in running
+  programme — suspend running until calculation is provided.
+- Hook load indicates set-down weight exceeding 10% of string weight in air
+  while running — stop, assess for tight hole or bridge before continuing.
+
+---
+
+CLAUSE 16 — CENTRALIZER AND FLOAT EQUIPMENT INSTALLATION — INSPECTION CRITERIA
+[REF: API RP 5C1, Section 9.3 — Float Equipment and Centralizers; API RP 10D-2
+(Centralizer Placement)]
+
+Centralizers (ملمِّعات / مركِّزات) and float equipment (معدات التعويم — float
+collar, float shoe) shall be inspected at the wellsite before installation; each
+unit shall be free of cracks, visible deformation, and missing or damaged
+elastomeric elements. Float shoes and float collars shall be pressure-tested at
+the surface using water or drilling fluid before running; the test pressure shall
+be not less than the maximum anticipated wellbore pressure at the float depth,
+typically 1.5× the hydrostatic head at shoe depth, but not exceeding the
+equipment manufacturer's rated working pressure. Bow-spring centralizers shall
+be checked for broken or permanently deformed bows; any centralizer with more
+than one broken bow or with spring bows that do not return to within 90% of the
+rated stand-off after manual compression must be discarded and replaced. Slip-on
+centralizers must be secured with properly sized stop collars; stop collars shall
+be set at the manufacturer's specified torque to prevent migration during
+running. Centralizer placement shall conform to the centralizing programme in
+the casing design; field changes to placement spacing require written approval
+from the wellsite engineer.
+
+ACCEPTANCE:
+- Float shoe and collar: no cracks, no deformation; float valve seats and
+  discs intact; elastomers free of cuts or swelling incompatible with mud type.
+- Surface pressure test of float valve: holds test pressure for minimum 10
+  minutes with zero pressure drop.
+- Test pressure = 1.5 × hydrostatic head at shoe depth, not exceeding OEM
+  rated WP.
+- Bow-spring centralizer: all bows intact; restoring force ≥ 90% of rated
+  at maximum expected wellbore OD.
+- Stop collar torque set per manufacturer specification.
+
+REJECTION:
+- Float valve leaks at any pressure during 10-minute test — reject; replace
+  float shoe or collar; re-test before running.
+- Centralizer with > 1 broken bow — reject; replace.
+- Centralizer with stand-off restoring force < 90% of rated — reject; replace.
+- Stop collar not torqued to spec or found loose on inspection — re-torque
+  or replace; do not run loose stop collars.
+- Float equipment OEM rated pressure less than calculated test pressure —
+  do not test to that level; consult OEM for alternative; if no resolution,
+  replace equipment with higher-rated unit.
+
+---
+
+CLAUSE 17 — DAMAGE ASSESSMENT — WHEN TO REJECT PIPE FROM THE HOLE
+(BUCKLING AND OVALITY)
+[REF: API RP 5C1, Section 7.6 — Pipe Body Damage; API Spec 5CT — OD Tolerance
+and Ovality Limits]
+
+A joint of casing or tubing that has been subjected to sinusoidal or helical
+buckling (انحناء لولبي / انبعاج) in the hole may exhibit permanent plastic
+deformation that cannot be detected by visual inspection of the pipe body alone;
+the only reliable field assessment is an ovality measurement (قياس الاستدارة)
+using an external diameter gauge or a calliper at multiple cross-sections.
+Ovality is defined as (OD_max − OD_min) / OD_nominal × 100%; API Spec 5CT
+permits a maximum OD tolerance of +0.75% / −0.75% on individual measurements,
+but post-buckling ovality is assessed against a tighter field criterion.
+Pipe with measured ovality exceeding 1.5% of nominal OD at any cross-section
+shall be rejected from the running string until further assessment (wall
+thickness at the ovalised section, yield verification) confirms it is fit for
+service. Any joint with visible permanent bow (sagitta > 1/4 in per 10 ft or
+6.35 mm per 3 m) shall be rejected outright without ovality measurement; it
+cannot be straightened and re-used in a high-pressure string. Joints with
+dents (انبعاج موضعي) exceeding 2% of OD in depth — measured as the perpendicular
+depth from the original pipe surface contour to the dent bottom — shall be
+rejected.
+
+ACCEPTANCE:
+- Ovality at any cross-section ≤ 1.5% of nominal OD.
+- No visible permanent bow; sagitta ≤ 1/4 in per 10 ft (6.35 mm per 3 m)
+  over full joint length.
+- Dent depth ≤ 2% of nominal OD at any location on the pipe body.
+
+REJECTION:
+- Ovality > 1.5% of nominal OD at any measured cross-section — reject joint
+  from running string.
+- Visible permanent bow with sagitta > 1/4 in per 10 ft — reject joint;
+  do not attempt to straighten.
+- Dent depth > 2% of nominal OD — reject joint from running string.
+- Any joint with deformation in the coupling zone or within 6 in (150 mm)
+  of pin end — reject; connection integrity cannot be assured.
+
+---
+
+CLAUSE 18 — PIPE WITH MASHED OR DAMAGED CONNECTION — RETURN TO YARD VS. DISCARD
+[REF: API RP 5C1, Section 7.9 — Handling Damage to Ends; Section 10 —
+Reconditioning]
+
+When a connection (وصلة) is found to be mashed, galled, or damaged beyond the
+acceptance criteria in Clause 07 and Clause 13, it must be assessed against two
+disposition options: return to mill for reconditioning, or discard. A connection
+may be returned to an API-licensed mill or thread shop for reconditioning if the
+pipe body is within all acceptance criteria, the connection damage is confined to
+the last 1–3 threads and is not in the body of the coupling, and the overall pipe
+length after re-cutting will remain within API Spec 5CT minimum joint-length
+requirements (L-80: minimum 28 ft / 8.5 m for casing; minimum 28 ft for long
+threads). A joint shall be discarded (disposed of as scrap) if the damage extends
+into the pipe body beyond the thread makeup length, the pipe body has already
+been cut to minimum acceptable joint length, or the grade or wall thickness of
+the remaining body is insufficient to justify the cost of reconditioning.
+Document the disposition decision on a Non-Conformance Report (NCR); verbal
+disposition without documentation is not acceptable.
+
+ACCEPTANCE FOR RETURN TO MILL:
+- Pipe body within all dimensional and condition acceptance criteria per
+  Clauses 07, 13, 17.
+- Connection damage confined to last 1–3 threads only; coupling body undamaged.
+- After re-cutting, joint length will be ≥ 28 ft (8.5 m) for casing or ≥ 25 ft
+  (7.6 m) for tubing (verify per API Spec 5CT Table A.24 for actual size).
+- NCR raised and disposition signed off by wellsite engineer.
+
+REJECTION / DISCARD:
+- Pipe body damaged, ovalised, or buckled in addition to connection damage —
+  discard.
+- After re-cutting, joint length would fall below API Spec 5CT minimum — discard.
+- Connection damage extending into pipe body beyond thread makeup length —
+  discard.
+- Any grade H40, J55, or K55 casing with severe corrosion in body — assess
+  wall; if remaining wall < 87.5% of nominal anywhere in body — discard.
+
+---
+
+CLAUSE 19 — PIPE INSPECTION IN HOLE — CALLIPER LOGS AND ACCEPTABLE WALL LOSS
+[REF: API RP 5C1, Section 11 — Inspection of Casing in Service; API RP 5C2 —
+Maintenance of Casing and Tubing (cross-reference)]
+
+Casing (غلاف) remaining in a well after initial placement is subject to ongoing
+corrosion from formation fluids, CO₂ (ثاني أكسيد الكربون), H₂S (كبريتيد
+الهيدروجين), and mechanical wear from drill string rotation. Periodic calliper
+surveys (مسح الكاليبر / مسح سُمك الجدار) using multi-finger callipers or
+electromagnetic inspection tools shall be run at intervals specified in the well
+integrity programme, or triggered by any indication of sustained casing pressure,
+increased hook load on wireline, or anomalous fluid flow. The calliper log
+shall be interpreted to determine the minimum remaining wall thickness (t_min)
+at each depth; a wall loss calculation shall be performed as:
+    % Wall Loss = [(t_nominal − t_min) / t_nominal] × 100%
+where t_nominal is the nominal wall thickness per API Spec 5CT for the applicable
+casing size and weight. Any zone with wall loss exceeding 20% of nominal wall
+shall be assessed for remedial action — squeeze, patch, or liner — before the
+casing is returned to service at its rated burst/collapse pressure. The calliper
+log interpretation report shall be peer-reviewed by a qualified casing design
+engineer before a remedial decision is made.
+
+ACCEPTANCE:
+- Measured minimum remaining wall (t_min) ≥ 80% of nominal wall thickness
+  for the applicable size and weight per API Spec 5CT.
+- Calliper log resolution: tool vertical resolution ≤ 6 in (150 mm); radial
+  resolution ≤ 0.02 in (0.5 mm).
+- % Wall Loss ≤ 20% at any logged depth.
+
+REJECTION:
+- % Wall Loss > 20% at any depth — flag zone; casing rated capacity at that
+  depth must be derated; initiate remedial programme.
+- % Wall Loss > 37.5% at any depth — equivalent to remaining wall < 62.5%
+  of nominal; casing at that depth is to be treated as requiring immediate
+  remedial action; do not pressure-test above derated rating.
+- Calliper log tool quality insufficient for reliable interpretation (poor
+  centralization, tool malfunction > 20% of fingers stuck) — re-log before
+  any remedial decision.
+
+---
+
+CLAUSE 20 — RECOVERED PIPE INSPECTION — MILL SCALE, CORROSION, PITS, AND
+ACCEPTANCE CRITERIA
+[REF: API RP 5C1, Section 10.2 — Inspection of Recovered Pipe; API Spec 5CT,
+Section 10]
+
+Casing or tubing recovered (مسترجع) from a well must be treated as used pipe
+and subjected to a full inspection campaign before any decision is made to
+re-run it in the same or a different well; it shall never be mixed into a
+new-pipe running string without passing this inspection. Visual inspection of
+the external pipe body must identify and quantify: mill scale (قشر المطحنة)
+remaining from original manufacture, active or arrested corrosion (تآكل),
+and pitting (حُفر / نقوش تآكل). For pitting, measure the maximum pit depth
+using a calibrated pit gauge; a corrosion pit does not fail solely on the basis
+of area or cosmetic appearance but on the basis of remaining wall thickness.
+Internal visual inspection using a bore scope or camera shall be performed on
+all recovered tubing and on any casing joint where internal fluid-flow evidence
+suggests internal corrosion; scale and wax deposits must be cleaned before
+inspection. All joints must pass the full drift and thread inspection per
+Clauses 05 and 07 before re-run acceptance; recovered pipe requires 100%
+thread gauging, not the 2% sampling rate applicable to new mill pipe.
+
+ACCEPTANCE:
+- Mill scale: no active corrosion beneath; scale is tight and not
+  underlift (no loose flakes); OD after scale is within nominal OD tolerance
+  per API Spec 5CT (±1.0%).
+- Corrosion pits: maximum pit depth ≤ 12.5% of nominal wall thickness
+  (remaining wall ≥ 87.5% of nominal) at the deepest pit.
+- Internal inspection: no active pitting exceeding 20% of nominal wall
+  (see Clause 19 criterion); bore free of scale deposits after cleaning.
+- 100% drift pass; 100% thread gauge pass.
+
+REJECTION:
+- Any corrosion pit where remaining wall at the pit bottom is < 87.5% of
+  nominal wall — reject joint.
+- Active (wet) corrosion present — clean, re-inspect; if corrosion extends
+  to > 12.5% of nominal wall depth, reject.
+- Mill scale that is loose, underlift, or blistered — remove; measure OD
+  beneath; if OD < minimum API Spec 5CT tolerance, reject.
+- Any recovered joint that fails drift — reject immediately; do not re-run.
+- Any recovered joint that fails thread gauge — reject; tag for mill
+  reconditioning assessment per Clause 18.
+
+---
+
+CLAUSE 21 — INTERNAL CORROSION ASSESSMENT — MINIMUM WALL THICKNESS FORMULA
+[REF: API RP 5C1, Section 11.3 — Remaining Strength Assessment; API RP 579-1
+(fitness-for-service basis); Barlow Formula for Burst Pressure]
+
+When a calliper log or bore scope inspection identifies internal corrosion
+(تآكل داخلي), the remaining burst pressure capacity of the affected zone must
+be recalculated before the casing or tubing is accepted for continued or future
+service. Use the Barlow formula (or API RP 5C3 burst formula) as the basis for
+remaining burst capacity:
+    P_burst(remaining) = [2 × SMYS × t_min] / OD
+where:
+    P_burst(remaining) = derated burst pressure (psi)
+    SMYS = specified minimum yield strength for the grade (psi):
+           J55: 55,000 psi; N80: 80,000 psi; L80: 80,000 psi;
+           P110: 110,000 psi; Q125: 125,000 psi
+    t_min = minimum measured remaining wall thickness (in)
+    OD = nominal outside diameter (in)
+This derated burst pressure must be compared to the maximum anticipated surface
+treating pressure (MASP) or maximum wellhead pressure for the string; if
+P_burst(remaining) < 1.1 × MASP, the affected joint does not have adequate
+safety margin and must be remediated or replaced. Document the calculation on
+a dedicated well integrity assessment form signed by the casing design engineer.
+
+ACCEPTANCE:
+- P_burst(remaining) ≥ 1.1 × MASP (10% safety margin above MASP).
+- Alternatively, P_burst(remaining) ≥ 80% of the original API burst rating
+  for the pipe in new condition, as a secondary check.
+- Calculated using t_min from calliper log (worst case measurement in the
+  assessed zone).
+
+REJECTION:
+- P_burst(remaining) < 1.1 × MASP — reject pipe at that depth for full-rated
+  service; initiate remedial programme (liner, patch, squeeze).
+- P_burst(remaining) < 80% of original API burst rating — flag for engineering
+  review; may require well shut-in or operational pressure reduction.
+- t_min used in calculation was not measured by a calibrated tool (estimated
+  or assumed) — result is invalid; re-run calliper before accepting calculation.
+- Any zone where t_min < 50% of nominal wall — do not calculate; treat as
+  failed section; initiate emergency remedial action.
+
+---
+
+CLAUSE 22 — REJECTION CRITERIA FOR RECOVERED PIPE — ABSOLUTE MINIMUM WALL
+[REF: API RP 5C1, Section 10.3 — Rejection Criteria; API Spec 5CT, Section 10.15
+— Minimum Wall Thickness Requirement]
+
+The absolute minimum acceptable remaining wall thickness (الحد الأدنى المطلق
+لسُمك الجدار) for recovered casing or tubing being considered for re-use is
+87.5% of the nominal wall thickness specified in API Spec 5CT for that size and
+weight; this is the same criterion as the manufacturing minimum wall tolerance
+and represents the absolute floor below which no pipe body is acceptable for
+re-run service regardless of the load calculation result. In practice, a field
+rejection criterion of 80% of nominal wall (20% wall loss) is used as a
+planning threshold to trigger formal engineering review; the absolute rejection
+below 87.5% is non-negotiable at wellsite level without written engineering
+exception from the company well integrity authority. Calculate the absolute
+minimum wall thickness for each size and weight using:
+    t_min_absolute = 0.875 × t_nominal
+For example:
+    9-5/8 in, 47.0 lb/ft (t_nominal = 0.472 in): t_min = 0.413 in (10.49 mm)
+    7 in, 26.0 lb/ft (t_nominal = 0.362 in): t_min = 0.317 in (8.05 mm)
+    4-1/2 in, 12.60 lb/ft (t_nominal = 0.271 in): t_min = 0.237 in (6.02 mm)
+Recovered pipe meeting the 87.5% minimum wall criterion still requires passing
+all other acceptance criteria in Clauses 05, 07, 17, and 20 before it can
+be cleared for re-run.
+
+ACCEPTANCE:
+- Remaining wall thickness at all measured points ≥ 87.5% of nominal wall
+  thickness per API Spec 5CT for the applicable size and weight.
+- All other criteria per Clauses 05, 07, 17, 20 simultaneously satisfied.
+- Written re-run clearance issued by casing design engineer.
+
+REJECTION (ABSOLUTE — NO EXCEPTIONS AT WELLSITE LEVEL):
+- Any measured remaining wall thickness < 87.5% of nominal wall at any point
+  on the pipe body — reject joint; do not re-run under any circumstances
+  without written engineering exception from company well integrity authority.
+- Wall loss > 20% of nominal at any measured point — mandatory engineering
+  review before any re-run decision; field supervisor cannot clear this.
+- Any joint where the minimum wall cannot be confirmed (no calliper or UT data)
+  — treat as rejected until measurement is available.
+- Any recovered joint cleared verbally without written engineer sign-off —
+  not accepted; written clearance mandatory.
+
+---
+
+================================================================================
+END OF API RP 5C1 KNOWLEDGE FILE
+TOTAL CLAUSES: 22
+STANDARD: API RP 5C1 — 19th Edition
+FILE GENERATED: 2026-09-23
+PREPARED FOR: AI-Powered Inspection Assistant — MENA/Egypt Oilfield Operations
+================================================================================
+
+CROSS-REFERENCE INDEX:
+  API Spec 5CT   — Casing and Tubing material specification (grades, dimensions,
+                   mechanical properties, drift mandrel sizes)
+  API Spec 5B    — Threading, gauging, and thread inspection of casing and tubing
+  API RP 5A3     — Thread compound (dope) specification
+  API RP 5C3     — Equations and calculations for casing design (burst, collapse,
+                   tension)
+  API RP 5C2     — Maintenance of casing and tubing in service
+  API RP 10D-2   — Centralizer placement
+  API RP 579-1   — Fitness-for-service assessment (pressure equipment — basis for
+                   remaining strength calculations)
+  ISO 11960      — International equivalent of API Spec 5CT (used in some MENA
+                   regulatory frameworks)
+
+ARABIC TERMS GLOSSARY (used in this file):
+  غلاف                    = Casing
+  أنابيب إنتاج            = Tubing
+  خيوط                    = Threads
+  خيط دائري               = Round Thread (API 8-round)
+  خيط مسطح / خيط مسطح الأسنان = Buttress Thread
+  وصلة / كوبلينج          = Coupling / Connection
+  دهان الخيط / دوب        = Thread Compound (Dope)
+  كماشة الشد الآلية       = Power Tongs
+  كماشة التثبيت           = Backup Tong
+  واقيات الخيوط           = Thread Protectors
+  دليل الإدخال            = Stabbing Guide
+  مندريل القياس           = Drift Mandrel
+  فحص بصري               = Visual Inspection
+  تآكل                    = Corrosion
+  حُفر / نقوش تآكل        = Corrosion Pits
+  انحناء / انبعاج         = Buckling / Deformation
+  سُمك الجدار             = Wall Thickness
+  ضغط الموجة             = Surge Pressure
+  فقدان الدوران           = Lost Circulation
+  مركِّزات                = Centralizers
+  الطباعة على الأنبوب     = Pipe Stencil Markings
+  رقم الصهر              = Heat Number
+  مسح الكاليبر            = Calliper Survey
+================================================================================

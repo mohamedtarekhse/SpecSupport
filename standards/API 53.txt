@@ -1,0 +1,1376 @@
+﻿API Standard RP 53 Recommended Practice For Blowout Equipment
+  
+
+Contents of substraction from API Recommended Practice 53 Recommended Practice for
+Blow-Out Prevention Equipment.
+
+7.1.1 Surface BOP Arrangements
+
+7.4.1 Choke Manifold and Choke Lines Surface BOP Installations
+
+7.4.3 Kill Lines Surface BOP Installations
+
+7.9.9 Control System for surface BOP stacks.
+
+7.5.4 Trip tank Surface BOPs
+
+7.11.1 Testing and maintenance - surface BOP stacks and well control equipment.
+
+7.11.2 Surface BOP stack equipment.
+
+7.4.6 Chokes and choke manifolds for Surface BOP installations.
+
+7.11.2 Accumulator system for Surface BOP installations
+
+7.11.5 Blow-out preventers for hydrogen sulphide service.
+
+Comments
+No. Instructions Standards and
+
+and recorded No.
+values instructions
+
+
+
+7.1.1 Surface BOP Arrangements
+
+Every installed ram BOP should have, as a minimum, a API RP 53
+7.1.1.1 working pressure equal to the maximum anticipated surface chapter 6.2
+
+pressure to be encountered.
+
+7.1.1.2 Ram type preventers should be equipped with extension API RP 53
+hand wheels or hydraulically operated locks. chapter 6.3
+
+Drilling spools for BOP stacks should meet the following 
+minimum qualifications: a. 3K and 5K arrangements should 
+have two side outlets no smaller than a 2-inch (5.08 cm) 
+nominal diameter and be flanged, studded, or hubbed. 10K, 
+15K and 20K arrangements should have two side outlets, one API RP 53
+
+7.1.1.3 3-inch (7.62 cm) and one 2-inch (5.08 cm) nominal diameter chapter 6.6.1
+as a minimum, and be flanged, studded, or hubbed. b. Have a a,b and c
+vertical bore diameter the same internal diameter as the 
+mating BOPs and at least equal to the maximum bore of the 
+uppermost casing/tubing head. c.Have a rated working 
+pressure equal to the rated working pressure of the installed 
+ram BOP.
+
+7.1.1.4 For drilling operations, wellhead outlets should not be API RP 53
+employed for choke or kill lines. chapter 6.6.2
+
+7.4.1 Choke Manifold and Choke Lines Surface BOP Installations
+
+Manifold equipment subject to well and/or pump pressure 
+(normally upstream of and including the chokes) should have 
+
+7.4.1.1 a working pressure equal to or greater than the rated working API RP 53
+pressure of the ram BOPs in use. This equipment should be chapter 8.2.a
+tested when installed in accordance with provisions of 
+Section 17 of API RP 53
+
+For working pressures of 3,000 psi (20.7 MPa) and above, 
+
+7.4.1.2 flanged, welded, clamped, or other end connections that are API RP 53
+in accordance with API Specification 6A, should be employed chapter 8.2.b
+on components subjected to well pressure.
+
+7.4.1.3 The choke manifold should be placed in a readily accessible API RP 53
+location, preferably outside the rig substructure. chapter 8.2.c
+
+7.4.1.4 When buffer tanks are employed, provision should be made API RP 53
+to isolate a failure or malfunction. chapter 8.2.d
+
+All choke manifold valves should be full bore. Two valves are 
+recommended between the BOP stack and the choke 
+
+7.4.1.5 manifold for installations with rated working pressures of API RP 53
+5,000 psi (34,5 MPa) and above, One of these two valves chapter 8.2.e
+should be remotely controlled. During operations, all valves 
+should be fully opened or fully closed.
+
+A minimum of one remotely operated choke should be 
+
+7.4.1.6 installed on 10,000 psi (69.0 MPa), 15,000 psi (103.5 MPa), API RP 53
+and 20,000 psi (138.0 MPa) rated working pressure chapter 8.2.f
+manifolds.
+
+7.4.1.7 Choke manifold configurations should allow for re-routing of API RP 53
+flow (in the event of eroded, plugged, or malfunctioning chapter 8.2.g
+
+
+
+parts) without interrupting flow control.
+
+Consideration should be given to the low temperature 
+properties of the materials used in installations to be exposed API RP 53
+
+7.4.1.8 to unusually low temperatures and should be protected from chapter 8.2.h
+freezing by heating, draining, filling with appropriate fluid, or 
+other appropriate means.
+
+Pressure gauges suitable for operating pressure and drilling 
+fluid service should be installed so that drill pipe and annulus API RP 53
+
+7.4.1.9 pressures may be accurately monitored and readily observed chapter 8.2.I
+at the station where well control operations are to be 
+conducted.
+
+The choke control station, whether at the choke manifold or 
+remote from the rig floor, should be as convenient as possible
+and should include all monitors necessary to furnish an API RP 53
+
+7.4.1.10 overview of the well control situation. The ability to monitor chapter 8.2.j
+and control from the same location such items as standpipe 
+pressure, casing pressure, pump strokes, etc., greatly 
+increases well control efficiency.
+
+Rig air systems should be checked to assure their adequacy to
+provide the necessary pressure and volume requirements for 
+
+7.4.1.11 controls and chokes. The remotely operated choke should be API RP 53
+equipped with an emergency backup system such as a chapter 8.2.k
+manual pump or nitrogen for use in the event rig air becomes
+unavailable.
+
+Installation guide lines-Choke lines
+
+The choke lines should be as straight as possible, because API RP 53
+7.4.1.12 erosion at bends is possible during operations, consideration chapter
+
+should be given to using flow targets at bends and on block 8.3.1.a.1
+ells and tees.
+
+In general, short radius pipe bends (R/d<10) should be 
+targeted in the direction of expected flow. For large radius 
+pipe bends (R/d>10), targets are generally unnecessary. 
+Bends sometime have a wall thickness greater than the API RP 53
+
+7.4.1.13 straight pipe in the choke system (such as the next higher chapter
+schedule) to further compensate for the effect of erosion. 90° 8.3.1.a.1
+block ells and tees should be targeted in the direction of flow.
+Where: R= Radius of pipe bend measured at the centreline. 
+d= Nominal diameter of the pipe.
+
+For flexible lines, consult the manufacturer's guidelines on API RP 53
+7.4.1.14 working minimum bend radius to ensure proper length chapter
+
+determination and safe working configuration. 8.3.1.a.2
+
+For articulated line assemblies, consult with the API RP 53
+7.4.1.15 manufacturer's written specifications to determine the chapter
+
+degree of relative movement allowable between end points. 8.3.1.a.3
+
+The lines and the lines down stream the choke should be API RP 53
+7.4.1.16 firmly anchored to prevent excessive ship or vibration. chapter
+
+8.3.1.b
+
+7.4.1.17 The choke line and the lines downstream the choke should API RP 53
+
+
+
+have a bore of sufficient size to prevent excessive erosion or 
+fluid friction: 1.Minimum recommended size for choke lines is chapter
+2-inch (5.08 cm) nominal diameter for 3K and 5K 8.3.1.c.1
+arrangements and 3-inch (7.62 cm) nominal diameter for 10K,
+15K and 20K arrangements.
+
+The choke line and the lines down stream the choke should API RP 53
+7.4.1.18 have a minimum recommended nominal inside diameter for chapter
+
+lines downstream of the chokes should be equal to or greater 8.3.1.c.2
+than the nominal connection size of the chokes.
+
+The choke line and the lines down stream the chokes lines API RP 53
+7.4.1.19 downstream of the choke manifold are not normally required chapter
+
+to contain pressure. 8.3.1.c.3
+
+The choke line and the lines down stream the choke should API RP 53
+7.4.1.20 have for air or gas drilling operations, minimum 4-inch (10.16 chapter
+
+cm) nominal diameter lines installed. 8.3.1.c.4
+
+The bleed line (the line that bypasses the chokes) should be 
+at least equal in diameter to the choke line. This line allows API RP 53
+
+7.4.1.21 circulation of the well with the preventers closed while chapter
+maintaining a minimum back pressure. It also permits high 8.3.1.c.5
+volume bleed off of well fluids to relieve casing pressure with 
+the preventers closed.
+
+7.4.3 Kill Lines Surface BOP Installations
+
+All lines, valves, check valves and flow fittings should have a 
+working pressure at least equal to the rated working pressure API RP 53
+
+7.4.3.1 of the ram BOPs in use. This equipment should be tested chapter
+when installed in accordance with provisions of Section 17 of 10.2.1.a
+API RP 53
+
+For working pressures of 3,000 psi (20.7 MPa) and above, API RP 53
+7.4.3.2 flanged, welded, hubbed, or other end connections that are chapter
+
+in accordance with API Specification 6A, should be employed. 10.2.1.b
+
+Component should be of sufficient diameter to permit API RP 53
+7.4.3.3. reasonable pumping rates without excessive friction. The chapter
+
+minimum recommended size is 2-inch (5.08mm) nominal 10.2.1.c
+diameter.
+
+Two full bore manual valves plus a check valve or two full 
+bore valves (one of which is remotely operated) between the API RP 53
+
+7.4.3.4 stack outlet and the kill line are recommended for chapter
+installations with rated working pressure of 5,000 psi (34.5 10.2.1.d
+MPa) or greater. Refer to Figures 11 and 12 of API RP 53
+
+Periodic operation, inspection, testing and maintenance API RP 53
+7.4.3.5 should be performed on the same schedule as employed for chapter
+
+the BOP Stack in use (Refer to API RP 53 section 17.10) 10.2.1.e
+
+All components of the kill line system should be protected API RP 53
+7.4.3.6 from freezing by heating, draining, filling with proper fluid, or chapter
+
+other appropriate means. 10.2.1.f
+
+7.4.3.7 Consideration should be given to the low temperature API RP 53
+properties of the materials used in installations to be exposed chapter
+
+
+
+to unusually low temperatures and should be protected from 
+freezing by heating, draining, filling with appropriate fluid, or 10.2.1.g
+other appropriate means.
+
+Lines should be as straight as possible. When bends are 
+required to accommodate either dimensional variation(s) on API RP 53
+
+7.4.3.8 sequential rig ups or to facilitate hook-up to the BOP, the chapter
+largest bend radius allowable under the hook-up restraints 10.2.1.h
+should be provided.
+
+For rigid pipe, the bend radius should be maximized. Because 
+erosion at bends is possible during operation, consideration 
+should be given to using flow targets at bends and on block 
+ells and tees. The degree to which pipe bends are susceptible 
+to erosion depends on the bend radius, flow rate, flow 
+medium, pipe wall thickness, and pipe material. However, in 
+general, short radius pipe bends (R/d<10) should be targeted API RP 53
+
+7.4.3.9 in the direction of expected flow. For large radius pipe bends chapter
+(R/d>10), targets are generally unnecessary. Bends sometime 10.2.1.h.1
+have a wall thickness greater than the straight pipe in the kill 
+system (such as the next higher schedule) to further 
+compensate for the effect of erosion. 90° block ells and tees 
+should be targeted in the direction of flow. Where: R=Radius 
+of pipe bend measured at the centreline. d=Nominal 
+diameter of the pipe.
+
+For flexible lines, consult the manufacturer's guidelines on API RP 53
+7.4.3.10 working minimum bend radius to ensure proper length chapter
+
+determination and safe working configuration. 10.2.1.h.2
+
+For articulated line assemblies, consult with the API RP 53
+7.4.3.11 manufacturer's written specifications to determine the chapter
+
+degree of relative movement allowable between end points. 10.2.1.h.3
+
+All lines should be firmly anchored to prevent excessive whip API RP 53
+7.4.3.12 or vibration. chapter
+
+10.2.1.I
+
+The kill line should not be used as a fill-up line during normal API RP 53
+7.4.3.13 drilling operations. chapter
+
+10.2.2
+
+7.9.9 Control System for surface BOP stacks.
+
+The elements of the BOP control system normally include: a. 
+Storage (reservoir) equipment for supplying ample control 
+fluid to the pumping system. b. Pumping systems for 
+pressurizing the control fluid. c. Accumulator bottles for API RP 53
+
+7.9.9.1 storing pressurized the control fluid. d. Hydraulic control chapter
+manifold for regulating the control fluid pressure and 12.1.a-f
+directing the power fluid flow to operate the system 
+functions (BOPs and choke and kill valves). e. Remote control 
+panels for operating the hydraulic control manifold from 
+remote locations. f. Hydraulic control fluid.
+
+Accumulator Volumetric Capacity
+7.9.9.2 Stored hydraulic fluid. The fluid volume recoverable from the definition API RP 53
+
+
+
+accumulator system between the maximum designed chapter
+accumulator operating pressure and the precharge pressure. 12.3.1.a
+
+Usable hydraulic fluid. The hydraulic fluid recoverable from API RP 53
+7.9.9.3 the accumulator system between the maximum accumulator definition chapter
+
+operating pressure and 200 psi (1.38 MPa) above precharge 12.3.1.b
+pressure.
+
+Minimum calculated operating pressure. The minimum 
+calculated pressure to effectively close and seal a ram-type API RP 53
+
+7.9.9.4 BOP against a wellbore pressure equal to the maximum rated definition chapter
+working pressure of the BOP divided by the closing ratio 12.3.1.c
+specified for that BOP.
+
+Component minimum operating pressure recommended by 
+the manufacturer. The minimum operating pressure to API RP 53
+
+7.9.9.5 effectively close and seal ram-type or annular-type definition chapter
+preventers under normal operating conditions, as prescribed 12.3.1.d
+by the manufacturer.
+
+BOP systems should have sufficient usable hydraulic fluid 
+volume (with pumps inoperative) to close one annular-type 
+preventer, all ram-type preventers from a full-open position, API RP 53
+
+7.9.9.6 and open one HCR valve against zero wellbore pressure. After chapter
+closing one annular preventer, all ram-type preventers, and 12.3.2
+opening one HCR valve, the remaining pressure shall be 200 
+psi (1.38 MPa) or more above the minimum recommended 
+precharge pressure.
+
+Accumulator response time. Response time between 
+activation and complete operation of a function is based on 
+BOP or valve closure and seal off. For surface installations, the
+BOP control system should be capable of closing each ram API RP 53
+
+7.9.9.7 BOP within 30 seconds. Closing time should not exceed 30 chapter
+seconds for annular BOPs smaller than 18 ¾ inches (47.63 cm) 12.3.3
+nominal bore and 45 seconds for annular preventers of 18¾ 
+inches (47.63 cm) nominal bore and larger. Response time for
+choke and kill valves (either open or close) should not exceed 
+the minimum observed ram close response time.
+
+Operating pressure. No accumulator bottle should be API RP 53
+7.9.9.8 operated at a pressure greater than its rated working chapter
+
+pressure. 12.3.4
+
+Accumulator precharge. The precharge pressure on each API RP 53
+7.9.9.9 accumulator bottle should be measured prior to each BOP chapter
+
+stack installation on each well and adjusted if necessary. 12.3.5
+
+The minimum precharge pressure for a 3,000 psi (20.7 MPa) 
+working pressure accumulator should be 1,000 psi (6.9 MPa). API RP 53
+
+7.9.9.10 The minimum precharge pressure for a 5,000 psi (34.5 MPa) chapter
+working pressure accumulator should be 1,500 psi (10.3 12.3.5
+MPa).
+
+Only nitrogen gas should be used for accumulator precharge. API RP 53
+7.9.9.11 The precharge pressure should be checked and adjusted to chapter
+
+within 100 psi (0.69 MPa) of the selected precharge pressure 12.3.5
+at the start of drilling each well.
+
+
+
+Multi-bottle accumulator banks should have valving for bank API RP 53
+7.9.9.12 isolation. chapter
+
+12.3.6
+
+An isolation valve should have a rated working pressure at 
+least equivalent to the designed working pressure of the API RP 53
+
+7.9.9.13 system to which it is attached and must be in the open chapter
+position except when accumulators are isolated for servicing, 12.3.6
+testing, or transporting.
+
+A pressure gauge for measuring the accumulator precharge API RP 53
+7.9.9.14 pressure should be readily available for installation at any chapter
+
+time. Pressure gauges should be calibrated to 1 percent of full 12.3.6
+scale at least every three (3) years.
+
+Pump Systems
+A pump system consists of one or more pumps. Each pump API RP 53
+
+7.9.9.15 system ( primary and secondary) should have independent chapter
+power sources, such as electric or air. 12.4.1
+
+With the accumulators isolated from service, the pump 
+system should be capable of closing the annular BOP 
+(excluding the diverter) on the minimum size drill pipe being API RP 53
+
+7.9.9.16 used, open the hydraulically operated choke valve(s), and chapter
+provide the operating pressure level recommended by the 12.4.1
+annular BOP manufacturer to effect a seal on the annulus 
+within two minutes.
+
+The same pump system(s) may be used to provide power API RP 53
+7.9.9.17 fluid to control both the BOP stack and the diverter system. chapter
+
+12.4.2
+
+Each pump system should provide a discharge pressure at 
+least equivalent to the BOP control system working pressure. API RP 53
+
+7.9.9.18 Air pumps should be capable of charging the accumulators to chapter
+the system working pressure with 75 psi (0.52 MPa) minimum 12.4.3
+air pressure supply.
+
+Each pump system should be protected from over 
+pressurization by a minimum of two devices to limit the pump
+discharge pressure. One device, normally a pressure limit 
+switch, should limit the pump discharge pressure so that it API RP 53
+
+7.9.9.19 will not exceed the working pressure of the BOP control chapter
+system. The second device, normally a relief valve, should be 12.4.4
+sized to relieve at a flow rate at least equal to the design flow 
+rate of the pump systems and should be set to relieve at not 
+more than ten percent over the control unit pressure.
+
+Devices used to prevent pump system over pressurization 
+should be installed directly in the control system supply line API RP 53
+
+7.9.9.20 to the accumulators and should not have isolation valves or chapter
+any other means that could defeat their intended purpose. 12.4.4
+Rupture disc(s) or relief valve(s) that do no automatically 
+reset are not recommended.
+
+7.9.9.21 Electrical and/or (pneumatic) supply for powering pumps API RP 53
+should be available at all times such that the pumps will chapter
+
+
+
+automatically start when the system pressure has decreased 
+to approximately 90 percent of the system working pressure 12.4.5
+and automatically stop within plus zero or minus 100 psi (0.69
+MPa) of the BOP control system working pressure.
+
+All valves, fittings, and other components, such as pressure 
+switches, transducers, transmitters, etc., should have a API RP 53
+
+7.9.9.22 working pressure at least equal to the rated working pressure chapter
+of the control system. BOP control system rated working 12.5.1
+pressure is usually 3,000 psi (20.7 MPa).
+
+All piping components and all threaded pipe connections 
+installed on the BOP control system should conform to the API RP 53
+
+7.9.9.23 design and tolerance specifications for American National chapter
+Standards Taper Pipe Threads as specified in ANSI B1.20.1. 12.5.2
+Pipe and pipe fittings should conform to specifications of ANSI
+B31.3.
+
+If weld fittings are used, the welder shall be certified for the 
+applicable procedure required. Welding should be performed API RP 53
+
+7.9.9.24 in accordance with a written weld procedure specification chapter
+(WPS), written and qualified in accordance with Article II of 12.5.2
+ASME Boiler and Pressure Vessel Code, Section IX.
+
+All rigid or flexible lines between the control system and BOP API RP 53
+7.9.9.25 stack should be flame retardant, including end connections, chapter
+
+and should have a working pressure equal to the working 12.5.2
+pressure of the BOP control system.
+
+All control system interconnect piping, tubing, hose, linkages, API RP 53
+7.9.9.26 etc., should be protected from damage during drilling chapter
+
+operations, or day-to-day equipment movement. 12.5.2
+
+The manifold should be equipped with a full-bore valve to API RP 53
+7.9.9.27 which a separate operating fluid pump can be easily chapter
+
+connected. 12.5.3.a
+
+The control system should be equipped to allow isolation of API RP 53
+7.9.9.28 both the pumps and the accumulators from the manifold and chapter
+
+annular control circuits, thus allowing maintenance and 12.5.3.b
+repair work.
+
+The control system should be equipped with accurate API RP 53
+7.9.9.29 pressure gauges to indicate: (1) accumulator pressure, (2) chapter
+
+regulated manifold pressure, (3) annular pressure, and (4) air 12.5.3.c
+supply pressure.
+
+The control system should be equipped with a pressure API RP 53
+7.9.9.30 regulating valve to permit manual control of the annular chapter
+
+preventer operating pressure. 12.5.3.d
+
+The control system should be equipped with a regulating 
+valve to control the operating pressure on the ram BOPs. The API RP 53
+
+7.9.9.31 control unit should be equipped with a bypass line and valve chapter
+to allow full accumulator pressure to be applied on the 12.5.3.e
+manifold, if desired.
+
+7.9.9.32 Control valves must be clearly marked to indicate (1) which API RP 53
+preventer or choke line valve each control valve operates, chapter
+
+
+
+and (2) the position of the valves (i.e., open, closed, neutral). 
+Each BOP control valve should be in the open position (not 12.5.3.f
+the neutral position) during drilling operations.
+
+The choke line hydraulic valve should be in the closed 
+position during normal operations. The control valve handle API RP 53
+
+7.9.9.33 that operates the blind rams should be protected to avoid chapter
+unintentional operation, but allow full operation from the 12.5.3.f
+remote panel without interference.
+
+All pressure gauges on the BOP control system should be API RP 53
+7.9.9.34 calibrated to an accuracy of 1 percent of full scale at least chapter
+
+every 3 years. 12.5.3.g
+
+The use of diesel oil, kerosene, motor oil, chain oil, or any API RP 53
+7.9.9.35 other similar fluid is not recommended because of the chapter
+
+possibility of explosions or resilient seal damage. 12.6.1
+
+Each closing unit should have a fluid reservoir with a capacity API RP 53
+7.9.9.36 equal to at least twice the usable fluid capacity of the chapter
+
+accumulator system. 12.6.2
+
+Air breather outlets, of sufficient size, should be installed to API RP 53
+7.9.9.37 avoid pressurization of the tank during hydraulic transfers or chapter
+
+nitrogen transfers if a nitrogen backup system is installed. 12.6.2
+
+7.9.9.38 The hydraulic control unit should be located in a safe place API RP 53
+that is easily accessible to rig personnel in an emergency. chapter 12.7
+
+The hydraulic control unit should also be located to prevent 
+excessive drainage or flow back from the operating lines to 
+
+7.9.9.39 the reservoir. Should the accumulator banks be located a API RP 53
+substantial distance from or below the BOP stack, additional chapter 12.7
+reservoir volume or alternative means should be provided to 
+compensate for flow back in the closing lines.
+
+The installation should be equipped with a driller remote 
+control panel such that the operation of each BOP and 
+
+7.9.9.40 control valve can be controlled from a position readily API RP 53
+accessible to the driller. Consideration should be given to the chapter 12.8
+need for and additional remote control station(s) at a safe 
+distance from the rig floor.
+
+7.4.5 Trip tank Surface BOPs
+
+A trip tank is a low-volume, [100 barrels(15.9 m³) or less] 
+calibrated tank that can be isolated from the remainder of 
+
+7.4.5.1 the surface drilling fluid system and used to accurately API RP 53
+monitor the amount of fluid going into or coming from the chapter 15.6
+well. A volume change of half a barrel should be easily 
+detected.
+
+A trip tank may be of any shape provided the capability exists API RP 53
+7.4.5.2 for reading the volume contained in the tank at any liquid chapter 15.6
+
+level. The readout may be direct to remote, preferably both.
+
+The size and configuration of the tank should be such that API RP 53
+7.4.5.3 volume changes on the order of one-half barrel can be easily chapter 15.6
+
+detected by the readout arrangement.
+
+
+
+Tanks containing two compartments with monitoring 
+
+7.4.5.4 arrangements in each compartment are preferred as this API RP 53
+facilitates removing or adding drilling fluid without chapter 15.6
+interrupting rig operations.
+
+Other uses of the trip tank include measuring drilling fluid or 
+
+7.4.5.5 water volume into the annulus when returns are lost, API RP 53
+monitoring the hole while logging or following a cement job, chapter 15.6
+calibrating drilling fluid pumps, etc.
+
+The trip tank is also used to measure the volume of drilling API RP 53
+7.4.5.6 fluid bled from or pumped into the well as pipe is stripped chapter 15.6
+
+into or out of the well.
+
+7.11.1 Testing and maintenance - surface BOP stacks and well control equipment.
+The purposes for various field test programs on drilling well 
+control equipment are to verify: API RP 53
+
+7.11.1.1  a. That specific functions are operationally ready. chapter
+ b. The pressure integrity of the installed equipment. 17.1.a-c
+ c. The control system and BOP compatibility.
+Test programs incorporate visual inspections, functional 
+
+7.11.1.2 operations, pressure tests, maintenance practices, and drills. API RP 53
+For purposes of this document, the following definitions are chapter 17.2
+used for the basic types of tests.
+
+The inspection test. The common collective term used to 
+state the various procedural examination of flaws that may 
+influence equipment performance. These inspection tests 
+may include, but are not limited to visual, dimensional, API RP 53
+
+7.11.1.3 audible, hardness, functional, and pressure tests. Inspection definition. chapter
+practices and procedures vary and are outside the scope of 17.2.1
+this document. An example of some inspection guidelines can
+be found in IADC/SPE paper 23900. A field guide for surface 
+BOP Equipment Inspections, W.J Kandel and D.J. Streu, 
+February 1992.
+
+The function test. The operation of a piece of equipment or a 
+system to verify its intended operation. Function testing API RP 53
+
+7.11.1.4 typically does not include pressure testing. Actuation test, definition. chapter
+operating test, and readiness test are other terms commonly 17.2.2
+used synonymously for function test.
+
+The pressure test. Periodic application of pressure to a piece 
+of equipment or a system to verify the pressure containment API RP 53
+
+7.11.1.5 capability for the equipment or system. "Wellbore test" is definition. chapter
+another descriptive term frequently used synonymously for 17.2.3
+pressure test.
+
+7.11.1.6 The hydraulic operator test. The application of a pressure test definition. API RP 53
+to any hydraulic operated component of hydraulic-actuated chapter
+equipment. Hydraulic operator tests are typically specified by 17.2.4
+the manufacturer for such items as: BOP operator cylinders 
+and bonnet assemblies, hydraulic valve actuators, hydraulic 
+connectors, etc. Operating chamber test is frequently used 
+synonymously for hydraulic operator test. (Note: The 
+
+
+
+definitions of test pressure, design pressure, operational 
+characteristic tests, etc., as used in other API documents, may
+have meaning/intent more appropriate to manufacturing 
+processes and the intended description may differ with field 
+usage.)
+
+Site-specific applications of the different types of tests on well
+control equipment should be incorporated during field 
+acceptance tests, initial rig-up tests, drills, periodic operating 
+tests, maintenance practices, and drilling operations. (Note: 
+Techniques and step-by-step or how-to-test procedures 
+should be developed for each rig because of the varying 
+equipment, different installation arrangements and well- API RP 53
+
+7.11.1.7 specific drilling programs. The procedure for testing the BOP definition. chapter
+stack, drill string safety valves, choke/kill lines, and manifold 17.2.4
+upstream of the buffer chamber are usually similar for most 
+rigs. Pressure test programs for the wellhead and casing 
+should be prescribed by the operator on an individual well 
+bases. Manufacturer operating and maintenance documents, 
+contractor maintenance programs, and operating experiences
+should be incorporated into the specific test procedures.
+
+Function tests. Function tests may or may not include 
+pressure tests. Function tests should be alternated from the API RP 53
+
+7.11.1.8 driller's panel and from mini-remote panels, if on location. definition. chapter
+(Refer to worksheets in API RP 53 Appendix A). Actuation 17.3.1
+times should be recorded as a data base for evaluating 
+trends. (Refer to worksheets in API RP 53 Appendix A).
+
+Pressure tests
+All blow-out prevention components that may be exposed to API RP 53
+
+7.11.1.9 well pressure should be tested first to a low pressure of 200 chapter
+to 300 psi (1.38 to 2.1 MPa) and then to a high pressure. 17.3.2.1
+
+When performing the low pressure test, do not apply a higher
+pressure and bleed down to the low test pressure. The higher API RP 53
+
+7.11.1.10 pressure could initiate a seal that may continue to seal after chapter
+the pressure is lowered and therefore misrepresenting a low 17.3.2.1
+pressure condition.
+
+A stable low test pressure should be maintained for at least 5 API RP 53
+7.11.1.11 minutes. chapter
+
+17.3.2.1
+
+The initial high pressure test on components that could be 
+exposed to well pressure (BOP stack, choke manifold, and API RP 53
+
+7.11.1.12 coke/kill lines) should be to the rated working pressure of the chapter
+ram BOPs or to the rated working pressure of the wellhead 17.3.2.2
+that the stack is installed on, whichever is lower.
+
+Initial pressure tests are defined as those tests that should be API RP 53
+7.11.1.13 performed on location before the well is spudded or before chapter
+
+the equipment is put into operational service. 17.3.2.2
+
+Diverter systems are typically pressure tested to a low API RP 53
+7.11.1.14 pressure only (refer to API Recommended Practice 64). chapter
+
+17.3.2.2
+
+
+
+Annular BOPs, with a joint of drill pipe installed, may be API RP 53
+7.11.1.15 tested to the test pressure applied to the ram BOPs or to a chapter
+
+minimum of 70 percent of the annular preventer working 17.3.2.2
+pressure, whichever is the lesser.
+
+The lower kelly valves, kelly, kelly cock, drill pipe safety 
+valves, inside BOPs and top drive safety valves, should be API RP 53
+
+7.11.1.16 tested with water pressure applied from below to a low chapter
+pressure of 200-300 psi (1.38 to 2.1 MPa) then to the rated 17.3.2.2
+working pressure.
+
+There may be instances when the available BOP stack and/or 
+the wellhead have higher working pressures than are API RP 53
+
+7.11.1.17 required for the specific wellbore conditions due to chapter
+equipment availability. Special conditions such as these 17.3.2.2
+should be covered in the site-specific well control pressure 
+test program.
+
+Subsequent high pressure tests on the well control 
+components should be to a pressure greater than the API RP 53
+
+7.11.1.18 maximum anticipated surface pressure, but not to exceed the chapter
+working pressure of the ram BOPs. The maximum anticipated 17.3.2.3
+surface pressure should be determined by the operator based
+on specific anticipated well conditions.
+
+Annular BOPs, with a joint of drill pipe installed, should be 
+tested to a minimum of 70 percent of their working pressure API RP 53
+
+7.11.1.19 or to the test pressure of the ram BOPs, whichever is less. chapter
+Subsequent pressure tests are tests that should be performed 17.3.2.3
+at identified periods during drilling and completion activity on
+a well.
+
+A stable high test pressure should be maintained for at least 5
+minutes. With larger size annular BOPs some small API RP 53
+
+7.11.1.20 movement typically continues within the large rubber mass chapter
+for prolonged periods after pressure is applied. This packer 17.3.2.3
+creep movement should be considered when monitoring the 
+pressure test of the annular.
+
+Pressure test operations should be alternately controlled API RP 53
+7.11.1.21 from the various control stations. chapter
+
+17.3.2.3
+
+The pressure test performed on hydraulic chambers of API RP 53
+7.11.1.22 annular BOPs should be to at least 1,500 psi (10.3 MPa). chapter
+
+17.3.2.4
+
+Initial pressure tests on hydraulic chambers of ram BOPs and API RP 53
+7.11.1.23 hydraulically operated valves should be to the maximum chapter
+
+operating pressure recommended by the manufacturer. 17.3.2.4
+
+The test should be run on both the opening and the closing API RP 53
+7.11.1.24 chambers. chapter
+
+17.3.2.4
+
+API RP 53
+7.11.1.25 Pressure should be stabilized for at least 5 minutes. chapter
+
+17.3.2.4
+
+
+
+Subsequent pressure tests are typically performed on API RP 53
+7.11.1.26 hydraulic chambers only between wells or when the chapter
+
+equipment is reassembled. 17.3.2.4
+
+The initial pressure test on the closing unit valves, manifolds, API RP 53
+7.11.1.27 gauges, and BOP hydraulic control lines should be to the chapter
+
+rated working pressure of the control unit. 17.3.2.5
+
+Subsequent pressure tests of closing unit systems are API RP 53
+7.11.1.28 typically performed following the disconnection or repair of chapter
+
+any operating pressure containment seal in the closing unit 17.3.2.5
+system, but limited to the affected component.
+
+Pressure tests on the well control equipment should be 
+conducted at least: a. Prior to spud or upon installation. b. API RP 53
+
+7.11.1.29 After the disconnection or repair of any pressure containment chapter
+seal in the BOP stack, choke line, or choke manifold, but 17.3.3
+limited to the affected component. c. Not to exceed 21 days.
+
+Well control equipment should be pressure tested with 
+water. Air should be removed from the system before test API RP 53
+
+7.11.1.30 pressure is applied. Control systems and hydraulic chambers chapter
+should be tested using clean control system fluids with 17.3.5
+lubricate and corrosion additives for the intended service and
+operating temperatures.
+
+Pressure gauges and chart recorders should be used and all API RP 53
+7.11.1.31 testing results recorded. Pressure measurements should be chapter
+
+made at not less than 25 percent nor more than 75 percent of 17.3.6
+the full pressure span of the gauge.
+
+The results of all BOP equipment pressure and function tests API RP 53
+7.11.1.32 shall be documented and include, as a minimum, the testing chapter
+
+sequence, the low and high test pressures, the duration of 17.3.7
+each test, and the results of the respective component tests.
+
+Pressure tests shall be performed with a pressure chart API RP 53
+7.11.1.33 recorder or equivalent data acquisition system and signed by chapter
+
+pump operator, contractor's tool pusher, and operating 17.3.7
+company representative.
+
+Problems observed during testing and any actions taken to API RP 53
+7.11.1.34 remedy the problems should be documented. chapter
+
+17.3.7
+
+Manufacturers should be informed of well control equipment API RP 53
+7.11.1.35 that fails to perform in the field. (Refer to API Specification chapter
+
+16A). 17.3.7
+
+General Testing Considerations
+Rig crews should be alerted when pressure test operations API RP 53
+
+7.11.1.36 are to be conducted and when testing operations are chapter
+underway. Only necessary personnel should remain in the 17.3.8
+test area.
+
+Only personnel authorized by the well site supervisor should API RP 53
+7.11.1.37 go into the test area to inspect for leaks when the equipment chapter
+
+involved is under pressure. 17.3.8
+
+
+
+Tightening, repair, or any other work is to be done only after API RP 53
+7.11.1.38 pressure has been released and all parties have agreed that chapter
+
+there is no possibility of pressure being trapped. 17.3.8
+
+Pressure should be released only through pressure-release API RP 53
+7.11.1.39 lines. chapter
+
+17.3.8
+
+All lines and connections that are used in the test procedures API RP 53
+7.11.1.40 should be adequately secured. chapter
+
+17.3.8
+
+All fitting, connections and piping used in pressure testing API RP 53
+7.11.1.41 operations shall have pressure ratings greater than the chapter
+
+maximum anticipated test pressure. 17.3.8
+
+Verify the type, pressure rating, size, and end connections for API RP 53
+7.11.1.42 each piece of equipment to be tested, as documented by chapter
+
+permanent markings on the equipment or by records that are 17.3.8
+traceable to the equipment.
+
+When a BOP stack is tested on the wellhead, a procedure API RP 53
+7.11.1.43 should be available to monitor pressure on the casing should chapter
+
+the test plug leak. 17.3.8
+
+If the control system regulator circuit is equipped with hydro- API RP 53
+7.11.1.44 pneumatic regulators, a backup supply is recommended to chapter
+
+pilot the regulators in case the rig air supply is lost. 17.3.8
+
+Functional tests of the control system should include a API RP 53
+7.11.1.45 simulated loss of power to the control unit and to the control chapter
+
+panel. 17.3.8
+
+Vertical stack alignment should be checked and flange bolt API RP 53
+7.11.1.46 make-up should be torqued to prescribed ratings established chapter
+
+in API Specification 6A. 17.3.8
+
+If hydrogen sulphide bearing formations are anticipated, API RP 53
+7.11.1.47 manufacturer's certification for compliance with NACE chapter
+
+Standard MR0175 should be available and reviewed for well 17.3.8
+control equipment, as described in API RP 53 Section 20.
+
+7.8.3 Diverter System Surface BOP Installations
+
+All diverter system components shall be inspected and tested 
+to ascertain proper installation and functioning. Simulate loss API RP 53
+
+7.8.3.1 of rig air supply to the diverter control system and determine, chapter
+effects, if any, on the diverter system, vent line valves, and 17.4.1
+backup supply systems.
+
+Check and verify the proper structural mounting of the API RP 53
+7.8.3.2 annular sealing device assembly, and, if applicable, that the chapter
+
+insert packing element is secured in place. 17.4.1.a
+
+For installations using remote operators, record hydraulic API RP 53
+7.8.3.3 pressure and air supply pressure with the accumulator fully chapter
+
+charged and the controls in the normal drilling position. 17.4.1.b
+
+7.8.3.4 Actuate the diverter close and open sequence with drill pipe API RP 53
+
+
+
+or test mandrel in the diverter to verify control functions, chapter
+proper equipment operating sequence and interlock, if 17.4.1.c
+applicable, and record response time(s).
+
+A pressure integrity test [200 psi (1.38 MPa) minimum] 
+should be made on the diverter system after each installation. API RP 53
+
+7.8.3.5 The tests may be made on parts of the system or on chapter
+individual components of the system should certain 17.4.1.d
+components of the casing string or riser components not 
+support a complete system test.
+
+Pump water or drilling fluid through the diverter system at 
+low pressure and high flow rates and check vent line(s) for API RP 53
+
+7.8.3.6 returns. Examine the entire system for leaks, excessive chapter
+vibrations, and proper tie down while pumping fluid at high 17.4.1.e
+rates.
+
+In cold climates, the diverter vent lines shall be protected API RP 53
+7.8.3.7 from freezing. Possible methods include flushing with anti- chapter
+
+freeze solution, draining, insulation, and heat tracing. 17.4.1.f
+
+7.11.2 Surface BOP stack equipment.
+
+Unless restricted by height, the entire stack should be API RP 53
+7.11.2.1 pressure tested as a unit. chapter
+
+17.5.2
+
+Annular BOPs should be tested with the smallest OD pipe to API RP 53
+7.11.2.2 be used. chapter
+
+17.5.3
+
+Fixed bore pipe rams should be tested only on the pipe OD API RP 53
+7.11.2.3 size that matches the installed pipe ram blocks. chapter
+
+17.5.4
+
+Variable bore rams should be initially pressure tested on the API RP 53
+7.11.2.4 largest and smallest OD pipe sizes that may be used during chapter
+
+the well operations. 17.5.5
+
+Blind ram BOPs and blind shear ram BOPs should not be API RP 53
+7.11.2.5 tested when pipe is in the stack. chapter
+
+17.5.6
+
+The capability of the shear ram and ram operator should be API RP 53
+7.11.2.6 verified with the BOP manufacturer for the planned drill chapter
+
+string. 17.5.6
+
+The shear ram and preventer design and/or metallurgical API RP 53
+7.11.2.7 differences among drill pipe manufacturers may require high chapter
+
+closing pressures for shear operations. 17.5.6
+
+Prior to testing each ram BOP, the secondary rod seals API RP 53
+7.11.2.8 (emergency packoff assemblies) should be checked to ensure chapter
+
+the seals have not been energized. 17.5.7
+
+Should the ram shaft seal leak during the test, the seal shall API RP 53
+7.11.1.9 be repaired rather than energizing the secondary packing. chapter
+
+17.5.7
+
+
+
+Ram BOPs equipped with ram locks should be pressure tested API RP 53
+7.11.1.10 with ram locks in the closed position and closing pressure chapter
+
+bled to zero. 17.5.8
+
+Manual locks either screw clockwise or counter-clockwise, to API RP 53
+7.11.1.11 hold the rams closed. chapter
+
+17.5.8
+
+Hand wheels should be in place and the threads on the ram API RP 53
+7.11.1.12 locking shaft should be in a condition that allows the locks to chapter
+
+be easily operated. 17.5.8
+
+The BOP elastomeric components that may be exposed to API RP 53
+7.11.1.13 well fluids should be verified by the BOP manufacturer as chapter
+
+appropriate for the drilling fluids to be used and for the 17.5.9
+anticipated temperatures to which exposed.
+
+Consideration should be given to the temperature and fluid API RP 53
+7.11.1.14 conditions during well testing and completion operations. chapter
+
+17.5.9
+
+Manufacturers' markings for BOP elastomeric components API RP 53
+7.11.1.15 should include the durometer hardness, generic type of chapter
+
+compound, date of manufacture, part number, and operating 17.5.9.1
+temperature range of the component.
+
+Consider replacing critical BOP elastomeric components on API RP 53
+7.11.1.16 well control equipment that has been out of service for six (6) chapter
+
+months or longer. 17.5.9.2
+
+Flexible choke and kill lines should be tested to the same API RP 53
+7.11.1.17 pressure, frequency, and duration as the ram BOPs. chapter
+
+17.5.10
+
+Verify that a properly precharged surge bottle is or can be API RP 53
+7.11.1.18 installed adjacent to the annular preventer if contingency chapter
+
+well control procedures include stripping operations. 17.5.12
+
+The drill pipe test joint and casing ram test sub should be API RP 53
+7.11.1.19 constructed of pipe that can withstand the tensile, collapse, chapter
+
+and internal pressures that will be placed on them during 17.5.12
+testing operations.
+
+7.4.6 Chokes and choke manifolds for Surface BOP installations.
+
+The choke manifold upstream of and including the lost high API RP 53
+7.4.6.1 pressure valves (refer to API RP 53 figure 8) should be tested chapter
+
+to the same pressure as the ram BOPs. 17.6.1
+
+The configuration of pipes and valves downstream of the last API RP 53
+7.4.6.2 high pressure valve varies from installation to installation. chapter
+
+Each configuration should be verified for mechanical 17.6.2
+integrity.
+
+The valves and adjustable chokes should be operated to API RP 53
+7.4.6.3 verify smooth operation. chapter
+
+17.6.3
+
+7.4.6.4 Adjustable chokes are not required to be full sealing devices. API RP 53
+
+
+
+Pressure testing against a closed choke is not required. chapter
+17.6.4
+
+The rig maintenance and inspection schedule should provide 
+for periodic non-destructive examination of the mud/gas API RP 53
+
+7.4.6.5 separator to verify pressure integrity. This examination may chapter
+be performed by hydrostatic, ultrasonic, or other examination 17.11.8
+methods.
+
+7.11.2 Accumulator system for Surface BOP installations
+
+Accumulator closing test. The purpose of this test is to verify 
+that the accumulator system is properly sized to support the API RP 53
+
+17.11.2.20 fluid volume and pressure requirements of the BOPs on the chapter
+rig using the following procedure; (Refer to sample 17.7.1
+worksheets and examples in API RP 53 Appendix A).
+
+Accumulator closing test procedure. a. Position a properly 
+size joint of drill pipe or a test mandrel in the BOPs. b. Turn 
+off the power supply to all accumulator charging pumps (air, 
+electric, etc.) c. Record the initial accumulator pressure. (The 
+initial accumulator pressure should be the designed operating
+pressure of the accumulator.) Manifold and annular 
+regulators should be set at the manufacturer's recommended
+operating pressure for the BOP stack. d. Individually close API RP 53
+
+17.11.2.21 each ram BOP (excepting blind or blind/shear ram BOPs) and chapter
+record the closing time. To simulate closure of the blind or 17.7.1 a-g
+blind/shear rams, open one set of the pipe rams. Closing 
+times shall meet the response time stipulated in API RP 53 
+Section 12.3.2. e. Function the hydraulic operated valve(s) 
+and record the time and volume required f. Close the annular 
+BOP and record the closing time. g. Record the final 
+accumulator pressure. The final accumulator pressure shall 
+be equal to or greater than 200 psi (1.8 MPa) above 
+precharge pressure.
+
+After each well, the well control equipment should be API RP 53
+17.11.2.22 cleaned, visually inspected, preventative maintenance chapter
+
+performed, and pressure tested before installation on the 17.10.1
+next well.
+
+The manufacturer's test procedures, as prescribed in their 
+installation, operation, and maintenance (IOM) manual, API RP 53
+
+17.11.2.23 should be followed along with the test recommendations of chapter
+API RP 53 Table 1. All leaks and malfunctions should be 17.10.1
+corrected prior to placing the equipment in service.
+
+Visual inspection flexible choke and kill lines
+
+A visual external inspection of flexible choke and kill lines 
+through the entire length of the line should include: a. Outer 
+Jacket. Visually inspect to ensure that the outer jacket is 
+intact to protect the polymeric sheath underneath from API RP 53
+
+17.11.2.24 tearing and being punctured. Verify that the outer jacket is chapter
+properly attached at both end fittings. Verify that the entire 17.10.2.a
+surface of the polymeric sheath is protected. If any damage is 
+noticed on the outer jacket, verify that it will not be 
+detrimental to the polymeric sheath.
+
+
+
+Termination. Record any damage to the coating on the end- API RP 53
+17.11.2.25 fitting, and monitor progression of damage. Facilitate repair, chapter
+
+if necessary. 17.10.2.b
+
+Connector. Particularly inspect the seal area of the API RP 53
+17.11.2.26 connectors recording any damage and monitor progression of chapter
+
+damage. 17.10.2.c
+
+Major inspections
+
+After every 3-5 years of service, the BOP stack, choke API RP 53
+17.11.2.27 manifold, and diverter components should be disassembled chapter
+
+and inspected in accordance with the manufacturer's 17.10.3
+guidelines.
+
+Elastomeric components should be changed out and surface 
+finishes should be examined for wear and corrosion. Critical API RP 53
+
+17.11.2.28 dimensions should be checked against the manufacturer's chapter
+allowable wear limits. Individual components can be 17.10.3
+inspected on a staggered schedule.
+
+A full internal and external inspection of the flexible choke API RP 53
+17.11.2.29 and kill lines should be performed in accordance with the chapter
+
+equipment manufacturer's guidelines. 17.10.3
+
+Manufacturer's installation, operation, and maintenance API RP 53
+17.11.2.30 (IOM) manuals should be available on the rig for all the BOP chapter
+
+equipment installed on the rig. 17.11.1
+
+Studs and nuts should be checked for proper size and grade. 
+Using the appropriate lubricant, torque should be applied in a
+criss-cross manner to the flange studs. All bolts should then API RP 53
+
+17.11.2.31 be rechecked for proper torque as prescribed in API chapter
+Specification 6A. When making up connections, excessive 17.11.2
+force should not be required to bring the connections into 
+alignment.
+
+Ring gaskets coated with a resilient material such as rubber or
+polyetrafluorethylene (PTFE) should not be used. Due to the API RP 53
+
+17.11.2.32 limited amount of deformation which a groove can make in a chapter
+ring as it is compressed during installation, it is not 17.11.2
+recommended to reuse ring gaskets.
+
+When making up proprietary clamp hubbed connections, the API RP 53
+17.11.2.33 manufacturer's recommended procedure should be followed. chapter
+
+17.11.2
+
+Spare parts should be designed for their intended use by 
+industry approved and accepted practices. After spare part API RP 53
+
+17.11.2.34 installation, the affected pressure-containing equipment shall chapter
+be pressure tested. Elastomeric components shall be stored 17.11.3
+in a manner recommended by the equipment manufacturer.
+
+The original equipment manufacturer should be consulted 
+regarding replacement parts. If replacement parts are API RP 53
+
+17.11.2.35 acquired from a non-original equipment manufacturer, the chapter
+parts shall be equivalent to or superior to the original 17.11.3
+equipment and fully tested, design verified, and supported by
+traceable documentation.
+
+
+
+Manuals or bulletins containing torque specifications should 
+be available on the rig. As stated in API RP 53 section 17.11.2, API RP 53
+
+17.11.2.36 torque specifications and the lubricant's coefficient of friction chapter
+should be considered when trolling fasteners. Deviating from 17.11.4
+the specified lubricant can alter the required torque.
+
+A planned maintenance system, with equipment identified, 
+tasks specified, and the time intervals between tasks stated, API RP 53
+
+7.11.2.37 should be employed on each rig. Records of maintenance chapter
+performed and repairs made should be maintained on file at 17.12.1
+the rig site or readily available for the applicable BOP 
+equipment.
+
+Copies of equipment manufacturers' product alerts or API RP 53
+7.11.2.38 equipment bulletins should be maintained at the rig site or chapter
+
+readily available for the applicable BOP equipment. 17.12.2
+
+Drawing showing ram space-out and bore of the BOP stack 
+and a drawing of the choke manifold showing the pressure API RP 53
+
+7.11.2.39 rating of the components should be on the rig and chapter
+maintained up to date. Refer to API RP 53 figure 19 for an 17.13.1
+example drawing
+
+A bill of material should accompany the equipment drawings API RP 53
+7.11.2.40 to correctly identify the equipment and allow the chapter
+
+procurement of correct replacement parts. 17.13.1
+
+Changes to the BOP control system should be documented. A API RP 53
+7.11.2.41 method should be established to control the drawings, chapter
+
+ensuring that up-to-date documentation is maintained. 17.13.1
+
+Equipment records such as API manufacturing 
+documentation, NACE certification, and factory acceptance API RP 53
+
+7.11.2.42 testing reports should be retained. Where required, copies of chapter
+the manufacturer's equipment data book and third party 17.13.2
+certification should be available for review.
+
+A maintenance and repair historical file should be maintained
+by serial number on each major piece of equipment. This file API RP 53
+
+7.11.2.43 should follow the equipment when it is transferred. chapter
+Equipment malfunctions or failures should be reported in 17.13.3
+writing to the equipment manufacturer as stated in API 
+Specification 16A.
+
+Shop testing after major inspection or equipment weld API RP 53
+7.11.2.44 repairs should be performed according to the manufacturer's chapter
+
+written procedures. 17.13.4
+
+7.11.5 Blow-out preventers for hydrogen sulphide service.
+
+Where there is reasonable expectation of encountering 
+hydrogen sulphide gas zones that could potentially result in 
+the partial pressure of the hydrogen sulphide exceeding 0.05 
+
+7.11.5.1 Asia (0.00034 MPa) in the gas phase at the maximum API RP 53
+anticipated pressure, BOP equipment modifications should be chapter 20.1
+made. Recommended safety guidelines for conducting drilling
+operations in such an environment can be found in API 
+Recommended Practice 49.
+
+
+
+Equipment modifications should be considered since many API RP 53
+7.11.5.2 metallic materials in a hydrogen sulphide environment (sour chapter
+
+service) are subject to a form of hydrogen embrittlement 20.2.1
+known as sulphide stress cracking (SSC).
+
+This type of spontaneous brittle failure is dependent on the 
+metallurgical properties of the material, the total stress or API RP 53
+
+7.11.5.3 load (either internal or applied), and the corrosive chapter
+environment. A list of acceptable materials is given in NACE 20.2.1
+Standard MR0175.
+
+A list of specific items to be changed on annular and ram type API RP 53
+7.11.5.4 BOPs and valves for service in a hydrogen sulphide chapter
+
+environment should be furnished by the manufacturer. 20.2.2
+
+As a guide, all metallic materials which could be exposed to API RP 53
+7.11.5.5 hydrogen sulphide under probable operating conditions chapter
+
+should be highly resistant to sulphide stress cracking. 20.2.2
+
+The maximum acceptable harness for all preventer and valve API RP 53
+7.11.5.6 bodies and spools shall be in accordance with NACE Standard chapter
+
+MR0175. 20.2.3
+
+Ring-joint gaskets should meet the requirements of API API RP 53
+7.11.5.7 Specification 16A and be of the material and hardness chapter
+
+specified in API Specification 6A. 20.2.4
+
+All bolts and nuts used in connection with flanges, clamps, API RP 53
+7.11.5.8 and hubs should be selected in accordance with provisions of chapter
+
+API Specification 6A. 20.2.5
+
+All lines, crosses, valves, and fittings in the choke manifold API RP 53
+7.11.5.9 system and the drill string safety valve should be constructed chapter
+
+from materials meeting applicable requirements of API 20.2.6
+Specification 5L and API Specification 6A.
+
+Heat treating and other applicable requirements, as 
+stipulated in NACE Standard MR0175 should also be reviewed API RP 53
+
+7.11.5.10 and considered. Field welding upstream of the chokes should chapter
+be kept to a minimum and, if performed, should meet original 20.2.6
+shop construction standards and procedures.
+
+Elastomeric components are also subject to hydrogen 
+sulphide attack. Nitrile elastomeric components which meet 
+other requirements may be suitable for hydrogen sulphide 
+service provided drilling fluids are properly treated. Service API RP 53
+
+7.11.5.11 life shortens rapidly as temperature increases from 150°F to chapter
+200°F (65.6°C to 93°C). In the event flowline temperatures in 20.2.7
+excess of 200°F (93°C) are anticipated, the equipment 
+manufacturer should be consulted. Elastomeric components 
+should be changed out as soon as possible after exposure to 
+hydrogen sulphide under pressure.
+
+Changes prescribed by the primary equipment manufacturer API RP 53
+7.11.5.12 to render equipment acceptable for service in a hydrogen chapter
+
+sulphide environment should not be overlooked in providing 20.2.8
+for replacement and repair parts.

@@ -1,0 +1,672 @@
+[STANDARD: ISO 3834-2]
+[TITLE: Quality Requirements for Fusion Welding of Metallic Materials — Part 2: Comprehensive Quality Requirements]
+[EDITION: 2021]
+[ARTICLE: Full Scope — Welding Quality Management]
+
+================================================================================
+GENERATED: 2026-09-23 | SCOPE: Comprehensive Quality Requirements | LEVEL: ISO 3834-2
+APPLICABLE TO: Structural, pressure equipment, pipeline, and process piping fabrication.
+REGIONAL NOTE: Widely enforced in Egypt/MENA oilfield, petrochemical, and EPC projects.
+AI ASSISTANT USE: Match user query to clause number → return ACCEPTANCE / REJECTION criteria.
+================================================================================
+
+---
+
+CLAUSE: 4.1 — Contract Review: Scope and Welding-Specific Requirements
+ISO 3834-2 Ref: Clause 4
+
+Before any fabrication work begins, the manufacturer (المصنّع / الجهة المنفذة) must conduct a formal contract review to confirm all welding-related technical requirements are fully understood and achievable. The review shall identify: the applicable product standard (e.g., EN 13480, ASME VIII, API 1104), welding category (قسم اللحام), joint design, NDE scope, PWHT requirements, and any supplementary or purchaser-specific requirements. Contract review records must be documented and retained. Any ambiguities or deviations between the purchaser's specification and the manufacturer's capability must be resolved in writing before mobilization. Where the contract requires witnessing by a third party (IVB) or client inspector (مفتش العميل), this must be confirmed in the review stage.
+
+ACCEPTANCE:
+- Formal Contract Review Record (CRR) completed and signed before any WPS preparation or material procurement begins.
+- All purchaser supplementary requirements documented and cross-referenced to the manufacturing plan (خطة التصنيع).
+- Written resolution on record for any technical deviation or ambiguity.
+- Applicable product standard and welding category confirmed in writing.
+
+REJECTION:
+- No documented contract review record exists.
+- Welding or NDE has commenced without confirming purchaser's technical requirements in writing.
+- Essential welding requirements (PWHT, NDE scope, product standard) are missing or unresolved in the project file.
+- Supplementary purchaser requirements (e.g., impact testing, hardness limits) not captured in the QA plan.
+
+---
+
+CLAUSE: 4.2 — Contract Review: Capability Assessment
+ISO 3834-2 Ref: Clause 4
+
+The manufacturer must verify that its technical and human resources are sufficient to meet all contract requirements before accepting the order. This assessment includes confirming availability of qualified welders (لحامين مؤهلين), a competent Welding Coordinator (منسق اللحام), suitable welding equipment, and approved WPS/PQR for the required joint types and materials. If capability gaps are identified, the manufacturer must plan to close them (additional qualifications, subcontracting) before committing to the contract. The capability assessment record must be signed by the Welding Coordinator or Responsible Welding Coordinator (RWC).
+
+ACCEPTANCE:
+- Capability Assessment Record signed by the Responsible Welding Coordinator (RWC) prior to order acceptance.
+- All required welder qualifications (ISO 9606-1) and WPS/PQR in place or formally planned with a timeline.
+- Welding equipment inventory confirmed as adequate and calibrated.
+- Subcontract arrangements (if any) identified and approved in the capability record.
+
+REJECTION:
+- No capability assessment on file.
+- Contract accepted when documented gaps in welder qualification, WPS, or equipment exist with no resolution plan.
+- RWC signature missing from capability record.
+- Required WPS not available and no qualification program scheduled before fabrication start.
+
+---
+
+CLAUSE: 5.1 — Design Review: Weldability and Joint Configuration
+ISO 3834-2 Ref: Clause 5
+
+The manufacturer must review all welding-related design drawings before fabrication to confirm that the specified materials are weldable using qualified procedures, and that joint configurations are practical for the required welding process. Design review (مراجعة التصميم) must assess: material weldability (قابلية اللحام) including carbon equivalent (CE) for steels, joint geometry and groove dimensions, preheating requirements, positional constraints, and accessibility for welding tools and electrodes. Where the design specifies materials with CE > 0.43% for carbon-manganese steels (per ISO/TR 15608 Group 1.2–1.3), preheating requirements must be formally evaluated using ISO/TR 17671-2. Weldability concerns must be communicated to the design authority in writing and resolved before release to production.
+
+ACCEPTANCE:
+- Weldability confirmed for all base materials using CE calculation per ISO 15614-1 Annex or equivalent.
+- CE ≤ 0.43% for Group 1.1 steels without mandatory preheat (unless otherwise specified by product standard).
+- Joint geometry matches qualified WPS essential variables (included angle, root gap, root face).
+- Weldability review record signed by Welding Coordinator and filed in the project dossier.
+
+REJECTION:
+- CE > 0.43% for carbon steel with no preheating procedure specified or qualified.
+- Joint geometry requires positions or thicknesses outside the scope of available qualified WPS.
+- Design review not performed or not documented before cutting or fit-up begins.
+- Weldability concerns raised and not resolved in writing before production release.
+
+---
+
+CLAUSE: 5.2 — Design Review: NDE Access and Joint Category Classification
+ISO 3834-2 Ref: Clause 5
+
+The design review must confirm that all welds requiring NDE are physically accessible for the intended examination method. For radiographic testing (RT) (فحص بالأشعة), sufficient clearance for source placement and film positioning must be verified. For ultrasonic testing (UT) (الفحص بالموجات فوق الصوتية), the scanning surface must be flat, smooth, and accessible to probe movement. The joint category (e.g., Category A, B, C, D per ASME VIII Div.1 or EN 13480) must be assigned before NDE scope is finalized, as category determines extent of examination (100% vs. spot). Inaccessible welds must be identified before fabrication and mitigated by design change or alternative examination method agreed with the purchaser.
+
+ACCEPTANCE:
+- All welds requiring NDE shown on a weld map (خريطة اللحامات) with NDE method and access confirmed.
+- RT access clearance: minimum 300 mm from weld centerline to nearest obstruction on source side (or as per applicable product standard).
+- UT scanning surface: minimum 50 mm clear on each side of weld centerline, surface roughness Ra ≤ 6.3 µm.
+- Joint category assigned and documented before NDE plan is issued.
+
+REJECTION:
+- NDE weld map not prepared.
+- Inaccessible welds identified after fabrication with no design solution or agreed substitution.
+- Joint category not assigned; NDE scope undetermined at fabrication start.
+- UT scanning surface blocked by attachments, lugs, or nozzles with no compensating examination planned.
+
+---
+
+CLAUSE: 6.1 — Subcontracting of Welding Work
+ISO 3834-2 Ref: Clause 6
+
+When any part of the welding work (اللحام المقاول من الباطن) is subcontracted, the main manufacturer retains full quality responsibility and must ensure the subcontractor meets the same ISO 3834 quality level (Part 2 for comprehensive, Part 3 for standard). The main manufacturer must verify subcontractor compliance before award and at defined intervals during the contract. Verification shall include: audit of subcontractor WPS/PQR, welder qualification records, welding equipment calibration, and QC system documentation. Subcontractor-produced welds must be fully traceable to the subcontractor's records. The main manufacturer's Responsible Welding Coordinator must formally approve the subcontractor's welding quality plan (خطة جودة اللحام) before work begins.
+
+ACCEPTANCE:
+- Subcontractor holds a valid ISO 3834-2 (or -3 where accepted) certification or documented equivalent verified by audit.
+- Subcontractor WPS/PQR reviewed and approved by main manufacturer's RWC before work starts.
+- Subcontractor welder qualifications confirmed current (within 6-month activity requirement per ISO 9606-1 Clause 9.3).
+- All subcontractor weld records cross-referenced in the main manufacturer's quality dossier.
+
+REJECTION:
+- Subcontractor not assessed for ISO 3834 compliance before work award.
+- Subcontractor welders lacking valid, in-scope ISO 9606-1 qualification certificates.
+- No approval of subcontractor WPS by main manufacturer's RWC on file.
+- Weld traceability from subcontractor work cannot be established in the main project dossier.
+
+---
+
+CLAUSE: 6.2 — Subcontractor Surveillance and Acceptance
+ISO 3834-2 Ref: Clause 6
+
+The main manufacturer must define in writing the inspection hold points, witness points, and document submission requirements imposed on the subcontractor. Minimum inspection hold points shall include: fit-up inspection before welding, in-process inspection (interpass temperature, heat input), and post-weld NDE. The main manufacturer's inspector or Welding Coordinator must review and accept subcontractor weld records before the work is incorporated into the final assembly. Rejection of subcontracted welds does not relieve the main manufacturer of its quality obligations; all repairs must be performed per an approved repair WPS (إجراء اللحام المعتمد للإصلاح) and re-inspected.
+
+ACCEPTANCE:
+- Inspection and Test Plan (ITP) for subcontracted work issued, with hold (H) and witness (W) points defined.
+- Subcontractor weld records reviewed and signed by main manufacturer's QC before acceptance.
+- All NDE results from subcontractor work reviewed by the main manufacturer's Level 2 or Level 3 NDE personnel.
+- Repair welds re-inspected using the same or more stringent method as the original examination.
+
+REJECTION:
+- No ITP issued to subcontractor; inspection hold points undefined.
+- Subcontractor weld records accepted without review by main manufacturer's QC.
+- Repaired welds not re-examined by an approved NDE method.
+- Subcontractor NDE reports signed by personnel without valid certification (PCN/CSWIP/ASNT Level 2 minimum).
+
+---
+
+CLAUSE: 7.1 — Welding Coordinator: Qualification Requirements (IWE/IWT/IWS)
+ISO 3834-2 Ref: Clause 7
+
+ISO 3834-2 requires that a Responsible Welding Coordinator (RWC) (منسق اللحام المسؤول) with adequate technical knowledge be assigned to the project. The RWC must hold a qualification recognized under ISO 14731, which defines three tiers: International Welding Engineer (IWE) — comprehensive technical knowledge; International Welding Technologist (IWT) — specific technical knowledge; International Welding Specialist (IWS) — basic technical knowledge. For complex joints in high-pressure/high-consequence systems (pipeline, pressure vessels), an IWE is required as RWC. IWT may act as RWC for standard structural and general fabrication within defined limits. IWS is limited to supervision of simple repetitive welding operations. The RWC's scope of authority must be formally defined in a written authorization and filed in the quality system.
+
+ACCEPTANCE:
+- IWE appointed as RWC for: pressure vessels, high-pressure pipelines (Class I/II per EN 13480), offshore structural primary members.
+- IWT appointed as RWC for: standard structural steel, general piping (≤ Class III per EN 13480), non-critical process equipment.
+- IWS appointed as RWC for: simple, repetitive, low-consequence welding only, with documented scope limitation.
+- RWC appointment letter signed by company management and filed in the quality system.
+- RWC IIW/EWF diploma or equivalent recognized certification on file and current.
+
+REJECTION:
+- IWS or IWT assigned as RWC for pressure vessels or high-integrity pipeline work without documented justification and purchaser approval.
+- No written scope of authority for the RWC.
+- RWC diploma expired or from a non-recognized body.
+- No RWC appointed to the project; welding coordination delegated entirely to a non-qualified supervisor.
+
+---
+
+CLAUSE: 7.2 — Welding Coordinator: Responsibilities and Daily Duties
+ISO 3834-2 Ref: Clause 7
+
+The Welding Coordinator is responsible for ensuring that all welding activities conform to the approved WPS and that inspection records are maintained throughout production. Daily duties include: confirming welder qualification validity before work assignment, approving fit-up before welding, monitoring preheat and interpass temperatures, ensuring correct filler metal is in use, and reviewing NDE results before weld sign-off. The RWC must be available (on-site or contactable within defined response time) during all production welding. Where multiple shifts are worked, a delegated qualified representative must cover off-shift periods, with a written delegation of authority.
+
+ACCEPTANCE:
+- RWC physically present or contactable (response within 30 minutes) during production welding hours.
+- Written delegation of authority for off-shift coverage, naming a qualified individual (minimum IWS for simple work, IWT for complex).
+- Daily welding log (سجل اللحام اليومي) reviewed and signed by RWC or delegate.
+- Fit-up acceptance signed by RWC or authorized delegate before root pass is deposited.
+
+REJECTION:
+- RWC unavailable (> 30 minutes response) during active production welding with no delegation in place.
+- Off-shift welding proceeding without any qualified coordinator oversight.
+- Daily welding logs unsigned or not reviewed.
+- Fit-up inspection sign-off missing on production joint records.
+
+---
+
+CLAUSE: 7.3 — Welder Qualification: ISO 9606-1 Requirements
+ISO 3834-2 Ref: Clause 7
+
+All production welders (لحامين إنتاجيين) must hold a valid qualification certificate issued per ISO 9606-1 (steels) or equivalent standard (ISO 9606-2 aluminium, ISO 9606-3 copper alloys) covering the welding process, material group, filler metal type, joint type, thickness range, and welding position required for the production joint. Welder qualification tests must be performed on test pieces that replicate production conditions. The qualification is valid for 2 years from the date of the test, provided continuity is confirmed by the RWC every 6 months. Continuity confirmation requires evidence that the welder has been actively welding within the scope of the certificate (recorded in the Welder's Performance Qualification record). Loss of continuity invalidates the qualification; re-testing is required.
+
+ACCEPTANCE:
+- Valid ISO 9606-1 certificate covering: process (111/141/136 etc.), material group (e.g., Group 1), thickness (t), filler metal designation, position (PA/PF/PC etc.), and joint type (BW/FW).
+- Certificate issue date ≤ 2 years from the date of production work.
+- 6-monthly continuity confirmation signed by RWC within the past 6 months.
+- Test piece mechanical test results on file: VT, bend test (2 root + 2 face per ISO 9606-1 Table 4), and macro if applicable.
+
+REJECTION:
+- Certificate expired (> 2 years from test date) with no renewal test.
+- Continuity not confirmed within the past 6 months (certificate suspended per ISO 9606-1 Clause 9.3).
+- Welder assigned to position (e.g., 6G) not covered by the certificate's position variable.
+- Welder assigned to material group (e.g., Group 2.1 Cr-Mo steel) when certificate only covers Group 1.
+- Certificate issued by a non-accredited examiner or examining body.
+
+---
+
+CLAUSE: 8.1 — WPS and PQR: Documentation Requirements
+ISO 3834-2 Ref: Clause 8
+
+A Welding Procedure Specification (WPS) (مواصفة إجراء اللحام) must be prepared for every production weld and must be qualified by a Procedure Qualification Record (PQR) (سجل مؤهلات الإجراء) in accordance with ISO 15614-1 (steels) or applicable part of the ISO 15614 series. The WPS must state all essential and non-essential variables as defined in ISO 15614-1. The PQR must include: test piece details (material, thickness, diameter), welding parameters used (current, voltage, travel speed, heat input), and results of all required mechanical tests (tensile, bend, impact, hardness). The WPS/PQR package must be reviewed and approved by the RWC and, where required by contract, by the purchaser or third-party inspector. Pre-production qualification tests (ISO 15614-1) or Standard Welding Procedures (SWPS) are not acceptable substitutes without explicit purchaser approval.
+
+ACCEPTANCE:
+- WPS document contains all required variables per ISO 15614-1 Table 1 (essential and non-essential).
+- PQR mechanical test results meet minimum requirements: tensile ≥ Rm of base material (lower if dissimilar), bend test mandrel 4t with no crack > 3 mm, Charpy impact per specified temperature and energy (when required).
+- WPS and PQR signed by RWC and dated before first production use.
+- Welding heat input (Q) on PQR matches arc energy used during production within ±25% (ISO 15614-1 Clause 8.4.5).
+
+REJECTION:
+- WPS used in production without a supporting, approved PQR.
+- PQR mechanical test results below specified minimum (tensile, bend, or impact failures).
+- WPS not signed/approved by RWC.
+- Production welding parameters outside the range qualified by the PQR (e.g., heat input > 125% of PQR value).
+- WPS essential variable changed without re-qualification (e.g., new material group, new process, outside thickness range).
+
+---
+
+CLAUSE: 8.2 — Essential Variables Requiring WPS Requalification
+ISO 3834-2 Ref: Clause 8 / ISO 15614-1 Clause 8
+
+Any change to an essential variable listed in ISO 15614-1 Clause 8 invalidates the existing WPS and requires a new PQR test before production resumes. Essential variables include: change of welding process (e.g., SMAW to GMAW); change of material group (المجموعة المادية) as per ISO/TR 15608 (e.g., Group 1 to Group 2.1); change in type of current or polarity (تيار / قطبية); change in filler metal classification (e.g., E7018 to E7010 — different hydrogen designation); change in parent material thickness outside the qualified range; change in base or filler material trade name with different chemical composition; change in shielding gas type or mixture (غاز الحماية); change in heat input beyond ±25% of qualified value; change in joint type (BW to FW or vice versa) for impact-tested applications; and addition or removal of backing (backing/no-backing). The RWC must maintain an essential variable change log and initiate re-qualification if any variable changes.
+
+ACCEPTANCE:
+- Essential variable change log maintained and reviewed by RWC for every production change request.
+- New PQR completed and mechanical tests passed before use of changed variable in production.
+- All new WPS revisions assigned a unique revision number and the old WPS marked superseded.
+- Heat input recalculated per ISO/TR 18491 using measured arc voltage, current, and travel speed from PQR test.
+
+REJECTION:
+- Production welding continues after essential variable change without new PQR.
+- Heat input in production > 125% or < 60% of PQR qualified heat input without WPS revision and re-qualification.
+- Change of material from Group 1.1 to Group 1.2 (higher CE) welded under original Group 1.1 WPS.
+- Filler metal substitution (different AWS classification) made without RWC review and WPS amendment.
+- Shielding gas mixture changed (e.g., C8 to C18) without re-qualification when impact properties are required.
+
+---
+
+CLAUSE: 9.1 — Welding Consumable Control: Procurement and Traceability
+ISO 3834-2 Ref: Clause 9
+
+All welding consumables (مواد اللحام الاستهلاكية) must be procured with a manufacturer's test certificate (شهادة فحص المصنّع) that confirms compliance with the applicable filler metal standard (e.g., ISO 2560, ISO 14341, ISO 18276). Consumables must be traceable to their heat/lot number throughout the entire supply chain from receipt to the weld joint. Traceability records must link: purchase order, delivery note, heat/lot number, material test certificate (MTC), welding inspector acceptance, storage location, and issue record to specific welder and joint. Unauthorized consumable substitution is a non-conformance. Low-hydrogen electrodes (≤ 5 ml H₂/100g) classified as H5 or H4 per ISO 18275 must be handled and stored under strictly controlled conditions to maintain their low-hydrogen designation.
+
+ACCEPTANCE:
+- Material Test Certificate (MTC) available for every consumable lot, showing conformance to the applicable filler standard.
+- Heat/lot number recorded in the weld joint traveler (بطاقة اللحام) for every production weld.
+- Traceability linkage complete: MTC → storage record → issue record → joint record.
+- H5/H4 electrodes issued with heat/lot number tagged on the quiver/oven; traceability maintained to the joint level.
+
+REJECTION:
+- Consumable lot used without MTC on file.
+- Heat/lot number not recorded in the joint weld record.
+- Consumable substitution (different AWS/ISO classification) made without RWC approval and WPS amendment.
+- H5 electrodes found without MTC showing diffusible hydrogen test result ≤ 5 ml/100g.
+
+---
+
+CLAUSE: 9.2 — Welding Consumable Storage and Conditioning
+ISO 3834-2 Ref: Clause 9
+
+Welding consumables (مستهلكات اللحام) must be stored in manufacturer-recommended conditions to prevent moisture absorption, corrosion, or damage. Low-hydrogen SMAW electrodes (E7018, E9018, etc.) must be stored in a heated storage oven (فرن التخزين) at 120–150°C (manufacturer specification) and redried at 250–350°C for 1–2 hours before issue when exposed to atmosphere for > 4 hours (per manufacturer or WPS requirement). Issued electrodes must be kept in a portable quiver (محفظة الأقطاب) at minimum 70°C during use. Flux-cored wire (FCAW) and submerged arc flux must be stored dry and protected from moisture. Solid wire (GMAW) must be stored free from moisture, oil, and surface contamination. Maximum exposure time of low-hydrogen electrodes at ambient conditions must not exceed manufacturer's limit (typically 4 hours); after this, re-drying or discard is mandatory.
+
+ACCEPTANCE:
+- Bulk storage oven temperature: 120–150°C (or per manufacturer's certificate). Temperature chart/log available.
+- Redrying temperature and time: 250–350°C for 1–2 hours (or per manufacturer's instruction — whichever is more stringent).
+- Portable quiver temperature: minimum 70°C during working shift; verified by calibrated thermometer.
+- Maximum ambient exposure before re-dry or discard: ≤ 4 hours (or per manufacturer limit if lower).
+- Storage area protected from rain, condensation, and humidity (relative humidity ≤ 60% in storage room).
+
+REJECTION:
+- Low-hydrogen electrodes found at ambient temperature for > 4 hours without re-drying record.
+- Storage oven temperature out of range (< 120°C or > 180°C) or no temperature log available.
+- Portable quiver temperature < 70°C during production shift.
+- Electrodes with visible moisture, rust, coating damage, or peeling found in use.
+- No re-drying record for electrodes returned from field and re-issued.
+
+---
+
+CLAUSE: 10.1 — Parent Material Control and Traceability
+ISO 3834-2 Ref: Clause 10
+
+All parent materials (المواد الأصلية / الصفائح والمقاطع) used in welded fabrication must be traceable from the mill certificate to the finished weld. Each plate, pipe, or fitting must carry a heat number (رقم الصهرة) or unique identifier that can be cross-referenced to its material test certificate (MTC). The MTC must confirm: chemical composition (including CE for carbon steels), mechanical properties (yield, tensile, elongation, Charpy impact if required), heat treatment condition, and applicable material standard (e.g., EN 10028, ASTM A516, API 5L). Transfer of identification marks during cutting and fabrication must be controlled; when original mill markings are cut away, a new transfer mark must be immediately applied before the original mark is lost. The RWC must verify material identity (positive material identification — PMI (تحديد هوية المادة)) on high-alloy steels and CRA materials before welding.
+
+ACCEPTANCE:
+- Heat number traceable from MTC to each fabricated component and its weld joint record.
+- MTC shows chemical composition, mechanical properties, and delivery condition conforming to the specified material standard.
+- CE ≤ specified limit per project/product standard (e.g., ≤ 0.43% for Group 1.1 per EN 10028-2 or project spec).
+- PMI (XRF or OES) performed on all stainless steel, Cr-Mo alloy, and duplex/super duplex parent materials; results recorded.
+- Transfer marks applied before cutting, legible, and cross-referenced in the material traceability log.
+
+REJECTION:
+- Material on the shop floor without a legible heat number or material identification tag.
+- MTC missing, incomplete (no chemical analysis), or covering a different heat number than marked on the material.
+- PMI not performed on alloy steels or CRA materials when required by contract or product standard.
+- Transfer marking not performed after cutting; original heat number lost.
+- Material CE exceeds the qualified WPS limit and no deviation approval exists.
+
+---
+
+CLAUSE: 11.1 — Post-Weld Heat Treatment (PWHT): When Required
+ISO 3834-2 Ref: Clause 11
+
+Post-weld heat treatment (PWHT) (المعالجة الحرارية بعد اللحام) must be applied when required by: the applicable product standard (e.g., ASME VIII UW-40, EN 13480-4 Clause 10, API 1104 Section 12), the WPS/PQR, the material specification (e.g., Cr-Mo alloys per ISO/TR 17671-2), or the purchaser's specification. The need for PWHT is typically triggered by: wall thickness exceeding the threshold in the product standard (e.g., > 32 mm for carbon steel per ASME VIII), use of P-number materials requiring mandatory PWHT (e.g., P5, P91 Cr-Mo steels), service conditions involving H₂S exposure (per NACE MR0175/ISO 15156), or hardness limits that cannot be met without PWHT. PWHT must be performed before any pressure test and before any NDE that requires the post-PWHT condition (e.g., PWHT-sensitive UT).
+
+ACCEPTANCE:
+- PWHT applied when wall thickness > 32 mm for carbon steel (ASME VIII) or per applicable standard threshold.
+- PWHT mandatory for all P5 (5Cr-½Mo), P91 (9Cr-1Mo-V), and P92 materials regardless of thickness.
+- PWHT mandatory for all welds in sour service (H₂S partial pressure ≥ 0.3 kPa) per NACE MR0175.
+- PWHT procedure (PTR) available on-site; covers: heating rate, soak temperature, soak time, cooling rate.
+- Thermocouple calibration records current (within 12 months) before PWHT execution.
+
+REJECTION:
+- PWHT omitted on P5/P91 weld without documented deviation and purchaser waiver.
+- PWHT omitted on carbon steel weld > 32 mm thickness (or project threshold) without deviation.
+- PWHT applied without a written PWHT Procedure (PTR) or without thermocouple attachment records.
+- Hardness after PWHT exceeds 248 HV10 (max for sour service per NACE MR0175) with no disposition.
+
+---
+
+CLAUSE: 11.2 — PWHT Documentation and Control
+ISO 3834-2 Ref: Clause 11
+
+Each PWHT execution must be fully documented by a time-temperature chart (مخطط الوقت-الحرارة) produced by a calibrated chart recorder connected to thermocouples attached directly to the weld or heat-affected zone (HAZ). The PWHT record must state: component identification, weld joint number(s), thermocouple locations, achieved soak temperature and duration, heating and cooling rates, and the furnace or local heating method used. PWHT by local heating (band heaters / induction) must verify that the heated band extends at least 2.5 × the wall thickness beyond each side of the weld. After PWHT, hardness testing must be performed to confirm softening and to verify compliance with sour service limits where applicable.
+
+ACCEPTANCE:
+- Time-temperature chart available for every PWHT execution; soak temperature within ±14°C of specified temperature (ASME VIII UW-40) or within ±10°C (EN 13480).
+- Soak time at temperature: minimum per product standard (e.g., 1 hour per 25 mm thickness, minimum 1 hour — ASME VIII Table UCS-56).
+- Heating rate ≤ 200°C/hr above 300°C (or per product standard).
+- Cooling rate ≤ 260°C/hr above 300°C (or per product standard).
+- Heated band width: minimum 2.5t beyond weld toes on each side for local PWHT.
+- Post-PWHT hardness: ≤ 248 HV10 (sour service) or ≤ 275 HV10 (non-sour, general fabrication).
+
+REJECTION:
+- Soak temperature deviation > ±14°C (ASME) or > ±10°C (EN) from specified temperature without concession.
+- Soak duration less than required minimum (under-treated weld).
+- No time-temperature chart or chart recorder malfunction with no manual backup.
+- Post-PWHT hardness > 248 HV10 for sour service application with no further treatment.
+- Local PWHT heated band narrower than 2.5t without engineering approval.
+
+---
+
+CLAUSE: 12.1 — Inspection and Testing During Welding
+ISO 3834-2 Ref: Clause 12
+
+In-process inspection (الفحص أثناء اللحام) must be performed at defined stages to detect and correct defects before they are buried under subsequent passes. Required in-process inspection activities include: verification of preheat before root pass (فحص درجة الحرارة قبل اللحام), monitoring interpass temperature (درجة الحرارة بين التمريرات), visual inspection of each pass for cracks, porosity, and undercut, verification that the welder is following the approved WPS parameters (amps, volts, travel speed), and control of interpass cleaning. Preheat and interpass temperatures must be measured with calibrated instruments (contact thermometer or temperature-indicating crayons where permitted). Crayon measurements are NOT acceptable as the sole method for critical applications (P91, high-carbon steels). All in-process inspection activities must be recorded in the weld joint traveler.
+
+ACCEPTANCE:
+- Preheat measured and confirmed before root pass; temperature meets WPS minimum (e.g., 100°C for CE > 0.43%).
+- Preheat measured at ≥ 75 mm from the joint on each side (or 4× the thickness, whichever is greater).
+- Interpass temperature not exceeding WPS maximum (e.g., 250°C for carbon steel, 300°C for LTCS, 150°C for duplex SS).
+- Arc energy (heat input) calculated and confirmed within WPS qualified range for every pass record.
+- In-process VT performed on each pass; weld surface acceptable per ISO 5817 Level B (or applicable standard).
+
+REJECTION:
+- Root pass deposited without confirming preheat reaches WPS minimum.
+- Interpass temperature exceeds WPS maximum; welding continued without cooling stop.
+- Arc energy (heat input) in production > 125% of PQR qualified value without WPS amendment.
+- Crayons used as sole preheat measurement method on P91 or high-CE steels.
+- In-process inspection records missing or unsigned.
+
+---
+
+CLAUSE: 12.2 — Fit-Up Inspection: Hi-Lo, Root Gap, Tack Weld Quality
+ISO 3834-2 Ref: Clause 12
+
+Fit-up inspection (فحص التجميع) is a mandatory hold point before any root welding begins. The inspector (مفتش اللحام) must verify: root gap (فجوة الجذر), root face (وجه الجذر), joint included angle, hi-lo (misalignment / الإزاحة الجانبية), tack weld quality, and cleanliness of the joint. Tack welds must be treated as production welds; they must be made by a qualified welder using an approved WPS, preheated if required, and visually inspected for cracks before the root pass covers them. Defective tack welds must be removed by grinding; they must not be left in the joint and fused over. Fit-up acceptance must be signed by the Welding Coordinator or authorized inspector before welding commences.
+
+ACCEPTANCE:
+- Root gap: within WPS range (typically 1.5–4.0 mm for butt welds; ± 1 mm of WPS nominal — per project spec).
+- Root face: within WPS tolerance (typically 0–2 mm ± 0.5 mm per WPS).
+- Joint included angle: within WPS range (typically 60° ± 5° for V-groove per WPS).
+- Hi-lo (internal misalignment): ≤ 1.5 mm for pipe (per ASME B31.3 Clause 328.4.3) or ≤ 10% of wall thickness (whichever is less per applicable code).
+- Tack welds: ≥ 25 mm long (minimum 4× electrode diameter), crack-free on VT, preheated per WPS requirement.
+- Joint surface: free from oil, paint, scale, rust, and moisture within 25 mm of the joint.
+
+REJECTION:
+- Root gap outside WPS range; welding commenced without RWC disposition.
+- Hi-lo > 1.5 mm for pipe butt weld (ASME B31.3) without approved repair or dimensional correction.
+- Cracked tack welds present and not removed before root pass.
+- Tack welds made by unqualified welder or without preheat when preheat is required.
+- Joint surface shows oil, rust, moisture, or coating within the heat-affected zone.
+- Fit-up acceptance sign-off missing from joint record.
+
+---
+
+CLAUSE: 12.3 — NDE Method Selection Based on Joint Category
+ISO 3834-2 Ref: Clause 12
+
+NDE method selection (اختيار طريقة الفحص غير التدميري) must be based on joint category, weld type, material, thickness, and required flaw detectability. The RWC and Level 3 NDE engineer must jointly define the NDE scope. General guidance for method selection: RT (الأشعة) is best for volumetric detection of porosity, slag, and incomplete fusion in welds ≤ 50 mm thick and where access allows; UT (الموجات فوق الصوتية) is preferred for thicknesses > 20 mm and for planar flaws (cracks, lack of fusion); TOFD/PAUT provide superior coverage for thick sections and subsea/high-integrity welds; MT (الفحص المغناطيسي) is used for surface and near-surface flaws in ferromagnetic materials; PT (الفحص بالسوائل الكاشفة) is used for surface flaws in non-ferromagnetic and austenitic materials. Substitution of one NDE method for another requires written justification and purchaser/third-party approval.
+
+ACCEPTANCE:
+- NDE method selection documented in the project NDE plan, cross-referenced to joint map and weld category.
+- RT used for butt welds ≤ 50 mm where access is confirmed; IQI sensitivity per ISO 17636-1/2 or ASME V Article 2.
+- UT used for butt welds > 20 mm thick or where RT access is impossible; coverage confirmed per ISO 17640 / ASME V Article 4.
+- PAUT/TOFD used in lieu of RT/conventional UT where approved; procedure qualified per ISO 13588 / ISO 10863.
+- MT (yoke or prod) used for surface VT confirmation on ferromagnetic welds; lifting power confirmed ≥ 45 N (AC yoke) or ≥ 177 N (DC yoke).
+- PT used on austenitic stainless steel and non-ferromagnetic welds; dwell time ≥ 10 minutes (per ISO 3452-1).
+
+REJECTION:
+- NDE method changed from RT to UT (or vice versa) without written engineering justification and purchaser approval.
+- RT sensitivity not demonstrated by IQI; image quality unacceptable (IQI wire not visible as required).
+- UT performed by technician holding less than Level 2 certification (PCN/CSWIP/ASNT) per applicable method.
+- PT developer time < 10 minutes or > 30 minutes before interpretation.
+- MT performed on austenitic stainless steel (non-ferromagnetic material).
+
+---
+
+CLAUSE: 13.1 — Non-Conformance Handling: Identification and Disposition
+ISO 3834-2 Ref: Clause 13
+
+When a weld defect or non-conformance (عيب اللحام / عدم المطابقة) is detected — by visual inspection, NDE, or dimensional check — it must be immediately identified, marked, and segregated from conforming work. A Non-Conformance Report (NCR) (تقرير عدم المطابقة) must be raised, describing: the weld joint number, the defect type and location, the inspection method that detected it, and the extent of the non-conformance. The NCR must be reviewed by the RWC for technical disposition. Disposition options are: repair (الإصلاح), re-inspection within-tolerance (use-as-is with engineering justification), or rejection and remake. No weld may be repaired without a written Repair WPS (RWPS) approved by the RWC. All NCRs must be closed with objective evidence of satisfactory re-inspection before the joint is released.
+
+ACCEPTANCE:
+- NCR raised within 24 hours of defect identification; weld joint quarantined and marked "HOLD" (انتظار).
+- NCR includes: joint number, defect type (crack/porosity/LF etc.), location (clock position and depth), detection method, and extent.
+- Repair WPS (RWPS) available and approved by RWC before any repair welding begins.
+- Repair welder holds valid qualification covering the repair scope (process, position, material group).
+- Post-repair re-inspection uses the same NDE method as original plus VT; re-inspection report signed and attached to NCR closure.
+
+REJECTION:
+- Defective weld repaired without an NCR being raised.
+- Repair welding commenced without an approved RWPS.
+- Post-repair NDE not performed or performed by a different method without justification.
+- NCR closed without objective evidence of re-inspection acceptance (no NDE report attached).
+- Weld defect marked "use-as-is" without documented engineering justification and purchaser concession.
+
+---
+
+CLAUSE: 13.2 — Weld Repair: Extent and Re-Inspection Requirements
+ISO 3834-2 Ref: Clause 13
+
+Weld repairs (إصلاح اللحامات) must be excavated by mechanical grinding or machining to sound metal; thermal gouging (arc gouging) is permitted only when followed by grinding to remove all carbon contamination to a depth of 0.5 mm minimum. The excavation must be examined by MT or PT before repair welding begins to confirm all defective material has been removed. The repair cavity dimensions must be recorded; if the cavity length exceeds 50 mm or the repair is in a pressure boundary, the RWC must assess whether re-qualification of the repair WPS is required. Number of repairs at the same location must be limited: a maximum of 2 repair attempts at the same location is permitted; beyond this, the weld must be cut out and remade. Hydrogen cracking-sensitive materials (P5, P91, high CE steels) must be preheated before any repair arc gouging or grinding, and preheated before repair welding per the RWPS.
+
+ACCEPTANCE:
+- Repair cavity examined by MT or PT before repair welding; no indications present before repair WPS is applied.
+- Arc gouging followed by mechanical grinding minimum 0.5 mm deep to remove heat-affected carbon layer.
+- Maximum 2 repair attempts at the same weld location; 3rd attempt requires full weld cut-out.
+- Repair preheat maintained for susceptible materials (P91, CE > 0.43%) per RWPS from excavation through cool-down.
+- Post-repair NDE: RT or UT (full repair zone), MT/PT (surface), hardness check (sour service applications).
+
+REJECTION:
+- Arc gouging on P91 or high-CE carbon steel without preheat.
+- MT/PT not performed on repair cavity before repair welding.
+- 3rd repair attempted at the same location without cut-out order issued.
+- Post-repair NDE covers only part of the repair zone (not the full cavity extent plus 25 mm each side).
+- Hardness > 248 HV10 after repair PWHT in sour service application.
+
+---
+
+CLAUSE: 14.1 — Calibration and Maintenance of Welding Equipment
+ISO 3834-2 Ref: Clause 14
+
+All welding equipment (معدات اللحام) — power sources, wire feeders, preheating systems, and measurement instruments — must be maintained in calibrated condition and in a state suitable for producing welds of the required quality. Calibration of welding power source meters (ammeter, voltmeter) must be performed at defined intervals, typically every 12 months or after any repair. Calibration must be traceable to national or international standards. A calibration register must be maintained listing: equipment ID, calibration date, due date, calibrating body, and pass/fail result. Equipment found out of calibration must be quarantined and all welds made since the last valid calibration must be assessed for impact. Temperature measurement instruments (contact thermometers, pyrometers, oven thermometers) used for preheat and PWHT must be calibrated at intervals not exceeding 12 months.
+
+ACCEPTANCE:
+- Calibration certificate available for every welding power source; interval ≤ 12 months.
+- Ammeter accuracy: ±2% of full scale (or per manufacturer specification).
+- Voltmeter accuracy: ±2% of full scale (or per manufacturer specification).
+- Calibration register maintained and current for all welding and measurement equipment.
+- Temperature instruments calibrated ≤ 12 months; calibration certificate traceable to national standard.
+
+REJECTION:
+- Welding machine with expired calibration certificate (> 12 months) found in active use.
+- No calibration register or equipment ID system in use.
+- Temperature crayon or pyrometer without calibration record used for preheat/interpass measurement.
+- Welding power source ammeter/voltmeter reading deviation > 5% from calibrated reference (out of tolerance).
+- Equipment found out of calibration; no assessment performed on welds made since last valid calibration.
+
+---
+
+CLAUSE: 15.1 — Storage of Welded Products Before Coating and Assembly
+ISO 3834-2 Ref: Clause 15
+
+Completed welded assemblies (المجمّعات اللحامية المنتهية) must be stored in conditions that prevent damage to welds, corrosion of weld surfaces, distortion from stacking, or contamination of CRA (Corrosion-Resistant Alloy) and stainless steel surfaces. Carbon steel and low-alloy steel weldments must be stored above ground on dunnage (wooden or rubber-lined supports), protected from standing water, and clearly identified with the joint/component number. Stainless steel and CRA assemblies must be isolated from carbon steel contact to prevent galvanic contamination and iron contamination of weld surfaces. Areas requiring NDE or dimensional inspection that have not yet been cleared must be clearly marked "HOLD — NOT RELEASED" (انتظار — لم يُفرج عنه). Finished assemblies awaiting coating must be protected from moisture-induced flash rust by application of temporary rust inhibitor within 4 hours of blast cleaning.
+
+ACCEPTANCE:
+- Assemblies stored on dunnage minimum 300 mm above ground level; standing water cannot reach weld areas.
+- Carbon steel and stainless steel stored in separate, identified areas with no metal-to-metal contact.
+- "HOLD" tags physically attached to any assembly with open NCRs, outstanding NDE, or dimensional checks.
+- Temporary rust inhibitor applied within 4 hours of blast cleaning where coating is pending.
+- Storage area dry, covered (or under controlled environment for stainless/duplex SS), and access controlled.
+
+REJECTION:
+- Weldments stored directly on bare ground or in standing water.
+- Stainless steel or CRA assemblies in direct contact with carbon steel surfaces (contamination risk).
+- Assemblies with open NCRs or incomplete NDE found without "HOLD" identification.
+- Rust inhibitor not applied after blast cleaning > 4 hours before painting.
+- Component identification (joint number, heat number) lost or illegible on stored assemblies.
+
+---
+
+CLAUSE: 16.1 — Quality Records: Minimum Retention Period
+ISO 3834-2 Ref: Clause 16
+
+The manufacturer must establish and maintain a quality records system (نظام سجلات الجودة) that captures all welding-related documentation for the specified retention period. Minimum records required per ISO 3834-2 include: WPS and PQR, welder qualification certificates, material test certificates, welding consumable certificates, calibration records, in-process and post-weld inspection records, NDE reports, PWHT records, NCRs and their dispositions, dimensional inspection records, and the final weld joint dossier. Records must be stored in a manner that prevents loss, deterioration, or unauthorized modification. ISO 3834-2 does not specify a single universal retention period; instead, the applicable product standard and purchaser contract govern. Typical minimum retention periods: 10 years for pressure equipment (PED 2014/68/EU), 5 years for structural work, or the working life of the equipment where specified.
+
+ACCEPTANCE:
+- Retention period defined in the QA plan, conforming to the applicable product standard and purchaser contract.
+- Pressure equipment welding records retained minimum 10 years from completion (PED) or as specified by purchaser.
+- Structural welding records retained minimum 5 years (or per contract — longer period governs).
+- Records stored in fire-resistant cabinets, or equivalent electronic backup with controlled access.
+- Final weld dossier (ملف اللحام النهائي) index includes: WPS list, welder list, NDE reports, PWHT charts, and release certificates.
+
+REJECTION:
+- Welding quality records disposed of before the minimum retention period expires.
+- WPS or PQR not traceable from the production joint record.
+- Electronic records stored without backup; single-point-of-failure storage system.
+- Final weld dossier missing NDE reports, PWHT charts, or material test certificates.
+- Records modified without a controlled revision process; no audit trail.
+
+---
+
+CLAUSE: 17.1 — IWE vs IWT vs IWS: Scope of Authority and Minimum Qualification
+ISO 3834-2 Ref: Clause 7 / ISO 14731
+
+The International Welding Engineer (IWE) (مهندس اللحام الدولي) holds the highest IIW qualification and has comprehensive technical knowledge of all aspects of welding metallurgy, processes, design, and quality. The International Welding Technologist (IWT) (تقني اللحام الدولي) holds specific technical knowledge and can act as RWC for applications within defined technical limits. The International Welding Specialist (IWS) (متخصص اللحام الدولي) has basic technical knowledge of welding practice and supervision. Each role has defined authority limits: IWE can sign WPS/PQR and act as RWC for all application levels; IWT can sign WPS and act as RWC for standard fabrication (non-complex joints, Group 1 and 2 materials, standard product standards); IWS can supervise production welding and sign daily inspection records but cannot independently qualify WPS or act as RWC for complex applications.
+
+ACCEPTANCE:
+- IWE required as RWC for: ASME Code pressure vessels, high-integrity pipelines (API 1104 Class I), offshore primary structures, P91/P92 Cr-Mo piping systems.
+- IWT acceptable as RWC for: standard process piping (ASME B31.3 normal fluid service), structural fabrication (EN 1090 EXC3), EN 13480 Class III piping.
+- IWS acceptable as supervisor (not RWC) for: repetitive fillet welds on non-critical structures, secondary attachments, EXC2 structures under IWT/IWE oversight.
+- IIW/EWF diploma verified; issuing body accredited by IIW or ANB (Authorized National Body).
+
+REJECTION:
+- IWS acting as sole RWC for pressure vessel or high-integrity pipeline fabrication.
+- IWT acting as RWC for P91 or Class I offshore primary structure without purchaser approval of an IWE escalation plan.
+- Any coordinator without a recognized IIW/EWF diploma acting as RWC without documented purchaser-approved equivalency.
+- Diploma from a non-ANB-recognized training body presented as IWE/IWT/IWS qualification.
+
+---
+
+CLAUSE: 18.1 — WPS Essential Variables: Full Technical Summary
+ISO 3834-2 Ref: Clause 8 / ISO 15614-1 Clause 8
+
+The essential variables listed in ISO 15614-1 Clause 8 are the parameters that, if changed, require a new PQR test to requalify the WPS. Key essential variables for carbon and low-alloy steels are as follows: (1) Welding process change (e.g., SMAW/111 to GMAW/135) — always requires new PQR. (2) Material group change per ISO/TR 15608 (e.g., Group 1.1 to Group 1.2, or Group 1 to Group 2.1). (3) Filler metal change: any change in classification symbol (AWS/ISO) that represents a different metallurgical type. (4) Shielding gas: change in gas type or mixture proportion (e.g., M21 to C1) when impact testing is required. (5) Preheat minimum temperature: reduction of more than 50°C below the PQR value. (6) Interpass maximum temperature: increase beyond the WPS qualified limit for austenitic or high-strength steels. (7) PWHT: addition or removal of PWHT, or change in PWHT parameters beyond ±15°C of soak temperature. (8) Heat input: outside ±25% of PQR qualified value for impact-tested applications. (9) Thickness: outside qualified range (ISO 15614-1 Table 3 — typically 3–2t for t ≤ 3 mm, 0.5t–2t for 3 < t ≤ 12 mm, 5 mm to 2t for t > 12 mm). (10) Diameter: for pipe, outside 0.5D to unlimited (for D > 25 mm). (11) Welding position: change to a position not covered by the original test piece position coverage per ISO 15614-1 Table 2.
+
+ACCEPTANCE:
+- All essential variables within the range qualified by the PQR before production use.
+- Heat input within ±25% of PQR value for all impact-tested applications.
+- Thickness within qualified range per ISO 15614-1 Table 3 limits.
+- Pipe diameter within qualified range (≥ 0.5D of test piece diameter for D > 25 mm; unlimited for D > 150 mm).
+- Any change to an essential variable prompts an immediate WPS revision request to the RWC before production continues.
+
+REJECTION:
+- Production thickness outside the qualified range with no approved deviation or new PQR.
+- Heat input in production > 125% or < 60% of PQR value for impact-tested application.
+- PWHT applied in production when PQR was tested without PWHT (or vice versa) without re-qualification.
+- Shielding gas mixture changed outside WPS range without new PQR (when impact testing was part of qualification).
+- Preheat reduced by > 50°C below the PQR minimum without re-qualification.
+
+---
+
+CLAUSE: 19.1 — Welder Performance Qualification: Test Piece Requirements and Scope of Approval
+ISO 9606-1 / ISO 3834-2 Ref: Clause 7
+
+Welder performance qualification (تأهيل الحداد / اختبار اللحام) under ISO 9606-1 uses standardized test pieces to demonstrate the welder's skill. Test piece type and configuration determine the scope of approval. Butt weld test pieces (BW) qualify both butt welds and, in certain conditions, fillet welds; fillet weld test pieces (FW) qualify fillet welds only. For full penetration pipe butt welds, the test piece must be pipe (not plate) when the production joint is pipe; plate test pieces are only valid for plate production joints, or for pipe where D > 500 mm (ISO 9606-1 Table 6). The welding position of the test piece defines coverage: PA (flat, 1G) gives coverage for PA only; PC (horizontal, 2G) gives PA + PC; PH (pipe fixed vertical up, 5G) gives PA + PF + PC + PE; H-L045 (pipe inclined 45°, 6G) gives all positions except PE (overhead on plate). Each test piece must undergo: visual examination (VT), radiographic or ultrasonic examination (RT/UT), or bend testing, per ISO 9606-1 Table 4.
+
+ACCEPTANCE:
+- Test piece geometry, material group, and process match the intended production scope.
+- VT result: no cracks, no incomplete fusion, no undercut > 0.5 mm, no porosity > 2 mm diameter.
+- RT/UT result: no linear indications; total length of rounded pore indications ≤ 8% of weld length examined.
+- Bend test (where used instead of RT): 180° bend, mandrel diameter = 4t; no crack > 3 mm on outer surface.
+- H-L045 (6G) test piece used when production joints include inclined pipe or when maximum positional coverage is required.
+
+REJECTION:
+- Test piece position not covering the production position (e.g., PA test used for production 5G joint).
+- VT shows: any crack, undercut > 0.5 mm, incomplete root fusion, or porosity cluster > 2 mm diameter.
+- RT: any crack, lack of fusion, or elongated pore > weld thickness/3.
+- Bend test: crack > 3 mm on outer surface after 180° bend.
+- Plate test piece used to qualify production pipe butt welds with D ≤ 500 mm (not permitted per ISO 9606-1).
+- Certificate issued by an examiner who is not an approved Examiner/Examining Body (EB) per ISO 9606-1 Clause 7.
+
+---
+
+CLAUSE: 20.1 — Traceability of Welds: Joint Identification and Weld Map
+ISO 3834-2 Ref: Clauses 10, 12, 16
+
+Every production weld must be assigned a unique joint identification number (رقم تعريف اللحامة) that links all associated records: WPS used, welder ID, date of welding, NDE method and results, PWHT chart (if applicable), and dimensional inspection. A weld map (خريطة اللحامات) — or weld log for linear work — must be maintained showing every weld on every assembly, its unique number, and its inspection status (accepted/held/repaired). For spool and pipeline work, the joint number must be physically marked adjacent to the weld (with marking method that will not damage the material — no hard stamping on austenitic stainless steel or thin-wall pipe). Traceability must be maintained through all fabrication stages: fit-up, root pass, fill and cap, PWHT, NDE, and pressure test. Loss of traceability is a non-conformance requiring an NCR.
+
+ACCEPTANCE:
+- Every weld joint carries a unique number traceable to the project weld register.
+- Weld map issued, showing all joint numbers and NDE status; updated as work progresses.
+- Weld record (joint traveler — بطاقة اللحامة) completed for every joint covering: WPS number, welder ID, date, parameters, preheat, interpass, and post-weld inspection results.
+- Physical marking of joint number adjacent to the weld; low-stress stamp or paint marker (no hard stamp on austenitic SS or t < 6 mm).
+
+REJECTION:
+- Weld found with no joint number traceable to the weld register.
+- Weld map not maintained or not updated after completion of welds.
+- Joint traveler missing key fields (welder ID, WPS number, or NDE result).
+- Hard stamping used on austenitic stainless steel or LTCS material < 6 mm wall thickness.
+- Traceability broken at any stage (fit-up accepted, but subsequent PWHT chart does not reference the joint number).
+
+---
+
+CLAUSE: 21.1 — Dimensional Inspection and Control of Distortion
+ISO 3834-2 Ref: Clause 12
+
+Dimensional inspection (الفحص الأبعادي) must be performed at defined stages to verify that welding-induced distortion and shrinkage are within the tolerances specified by the applicable product standard or drawing. Dimensional checks must be performed: after fit-up and tacking (before root welding), after completion of welding (before any straightening or heat treatment), after PWHT (for assemblies subject to thermally-induced distortion), and as a final check before release for coating or assembly. Welding sequence (تسلسل اللحام) and pre-setting (pre-camber) must be specified in the WPS or welding plan for complex assemblies to control distortion. All measured dimensions must be recorded; deviations outside tolerance must be reviewed by the RWC and raised as an NCR if not correctable within the fabrication process.
+
+ACCEPTANCE:
+- Dimensional check performed at all defined stages; results recorded on dimensional inspection sheets.
+- Angular distortion of butt welds: ≤ 1° per 300 mm length (or per product standard / drawing tolerance).
+- Straightness of welded beams and columns: ≤ L/1000 (AISC), or per product standard.
+- Weld reinforcement height: ≤ 3 mm for t ≤ 25 mm, ≤ 4 mm for t > 25 mm (per ISO 5817 Level B).
+- Out-of-roundness (ovality) of welded pipe spools: ≤ 1% of nominal OD (or per applicable piping code).
+
+REJECTION:
+- Dimensional check not performed or not recorded at any defined inspection stage.
+- Distortion outside drawing or product standard tolerance with no NCR raised.
+- Weld reinforcement > 4 mm on any butt weld without machining/grinding disposition.
+- Ovality of pipe spool > 1% OD without approved engineering concession.
+- Straightening by heat application (flame straightening) performed without written procedure and RWC approval.
+
+---
+
+CLAUSE: 22.1 — Pressure Testing: Hydrotest and Pneumatic Test Requirements
+ISO 3834-2 Ref: Clause 12 / Applicable Product Standards
+
+Pressure testing (اختبار الضغط) is the final weld integrity verification for pressure-containing equipment and piping. Hydrostatic testing (الاختبار المائي) must be performed after all NDE, PWHT, and dimensional inspections are accepted and documented. The test pressure, hold time, and acceptance criteria are defined by the applicable product standard (e.g., ASME B31.3 Clause 345, ASME VIII UG-99, EN 13480-5 Clause 9). Pneumatic testing (الاختبار الهوائي) is only permitted where hydrostatic testing is impractical and only with prior engineering assessment of the risk of brittle fracture and stored energy. All pressure test records must state: test medium, test pressure, test duration, temperature of test medium, and the name and signature of the witnessing inspector (مفتش الشهود).
+
+ACCEPTANCE:
+- Hydrotest pressure: 1.5 × design pressure (ASME B31.3 normal fluid service) or 1.3 × PS (PED / EN 13480).
+- Hold time at test pressure: minimum 10 minutes (ASME B31.3), or per product standard.
+- Hydrotest water temperature: minimum 10°C above the Minimum Allowable Temperature (MAT) or MDMT of the material.
+- No visible leaks, no pressure drop, and no plastic deformation observed during hold period.
+- Pneumatic test only with risk assessment, bleed-off test first, and personnel clearance zone per energy calculation.
+
+REJECTION:
+- Test pressure below the minimum required by the applicable product standard.
+- Hold time less than the required minimum (under-pressure duration).
+- Any visible leakage at any fitting, flange, or weld during hold period.
+- Test performed before NDE, PWHT, or dimensional inspection is accepted and signed off.
+- Pneumatic test performed without prior engineering risk assessment and formal approval.
+
+---
+
+CLAUSE: 23.1 — Release for Service: Final Weld Dossier and Manufacturer's Certificate
+ISO 3834-2 Ref: Clauses 12, 16
+
+Before any welded assembly is released for service, coating, or dispatch, a final weld dossier (ملف اللحام النهائي) must be compiled and accepted by the Responsible Welding Coordinator and the client inspector (where witnessing is specified). The final dossier must include as a minimum: the as-built weld map showing all joint numbers and NDE coverage, all weld joint travelers, all NDE reports (VT, RT/UT, MT/PT), all PWHT time-temperature charts, all dimensional inspection records, material test certificates for parent materials and consumables, welder qualification records, WPS/PQR index, and the pressure test record. The Manufacturer's Declaration of Conformity (إعلان المطابقة) must reference the applicable standard (e.g., EN 13480, ASME VIII) and be signed by an authorized company representative. Only after the dossier is accepted, all NCRs are closed, and the pressure test is accepted may the assembly be released.
+
+ACCEPTANCE:
+- Final dossier complete with all required documents indexed and cross-referenced to joint numbers.
+- All NCRs closed with documented evidence of re-inspection acceptance before release.
+- Pressure test record included and signed by client inspector (where specified in ITP).
+- Manufacturer's Declaration of Conformity signed and dated after all acceptance activities complete.
+- Final weld map showing 100% NDE coverage (for 100% examination requirement) or spot check coverage documented with joint numbers examined.
+
+REJECTION:
+- Assembly released with open NCRs or outstanding NDE results.
+- Final dossier missing NDE reports, PWHT charts, or material test certificates.
+- Pressure test not performed or not witnessed as per the ITP.
+- Manufacturer's Declaration of Conformity issued before all inspections are complete.
+- Final weld map not reflecting actual as-built condition (joint numbers do not match traveler records).
+
+---
+
+CLAUSE: 24.1 — Audit and Continuous Improvement of Welding Quality System
+ISO 3834-2 Ref: Clause 4 (general management requirements)
+
+The manufacturer must conduct periodic internal audits of the welding quality system to verify ongoing compliance with ISO 3834-2 requirements. Audit frequency must be defined in the quality manual (دليل الجودة), with a minimum annual full-system audit and targeted audits triggered by: increased non-conformance rate, new contract type outside previous experience, significant changes in personnel or equipment, or external audit findings. Audit findings must be classified as: Major Non-Conformance (عدم مطابقة رئيسية — system failure, immediate corrective action required), Minor Non-Conformance (عدم مطابقة ثانوية — isolated lapse, corrective action within defined period), or Observation (ملاحظة — improvement opportunity). All findings must be tracked to closure with objective evidence. Corrective and preventive actions (CAPA) must address root cause, not just the symptom. The RWC must review audit reports and sign off on CAPA closure.
+
+ACCEPTANCE:
+- Annual internal audit of the full welding quality system completed and documented.
+- Audit report issued within 14 days of audit completion; findings classified as Major/Minor/Observation.
+- CAPA plan issued for all Major non-conformances within 7 days of audit report issuance.
+- CAPA objective evidence reviewed and signed off by RWC before finding is closed.
+- Audit records retained for minimum 5 years (or per product standard).
+
+REJECTION:
+- No internal audit conducted in the past 12 months without documented justification.
+- Major non-conformances found without a CAPA plan issued within 7 days.
+- CAPA addresses only the symptom and not the root cause (e.g., "retrained the welder" without process correction).
+- Audit records not retained or not available for review by client or certification body.
+- Corrective actions closed without objective evidence of effectiveness verification.
+
+---
+
+================================================================================
+END OF FILE — ISO 3834-2 WELDING QUALITY REQUIREMENTS — 24 CLAUSES
+TOTAL CLAUSES: 24 | GENERATED: 2026-09-23
+FILE LOCATION: c:\Users\MT\Desktop\inspect support\standards\ISO_3834-2_Welding_Quality.txt
+================================================================================

@@ -1,0 +1,207 @@
+[STANDARD: API 16D]
+[TITLE: Specification for Control Systems for Drilling Well Control Equipment and Control Systems for Diverter Equipment]
+[EDITION: 2nd Edition]
+
+[CLAUSE: 1.1 — Scope]
+API 16D covers the design, manufacture, and testing of control systems for blowout preventer (BOP) stacks and diverter systems used in drilling operations. Control systems covered: accumulator systems (hydraulic), pilot control systems, and associated piping, valves, and manifolds. Does NOT cover the BOP bodies themselves (API 16A) or the BOP stack configuration.
+---
+
+[CLAUSE: 5.1 — Accumulator System Design Requirements]
+ACCUMULATOR SYSTEM:
+The accumulator system shall be capable of closing the BOP stack AND opening the HCR (High-Closing-Ratio) choke and kill line valves simultaneously using fluid stored in the accumulators alone — without pump support — within the required response time, AND still maintain a minimum pre-charge pressure 200 psi (1.38 MPa) above the hydrostatic pressure of the operating fluid column at the BOP.
+
+MINIMUM ACCUMULATOR CAPACITY RULE (SIMPLIFIED):
+After closing all BOP functions specified in the design, the residual pressure in the accumulators shall be:
+≥ 200 psi (1.38 MPa) above the pre-charge pressure
+This residual pressure must remain available for additional functions.
+
+STANDARD MINIMUM SYSTEM CAPACITY:
+For offshore surface BOP: accumulator must provide 1.5× the volume required to close all preventers AND still maintain ≥200 psi above pre-charge.
+ACCEPTANCE: Accumulator capacity calculation documented. Volume and pressure verified by test. 200 psi residual above pre-charge confirmed after closing sequence.
+REJECTION: Accumulator system with insufficient volume for full closing sequence. Residual pressure <200 psi above pre-charge after closing.
+---
+
+[CLAUSE: 5.2 — Response Time Requirements]
+The BOP control system shall close each BOP function within the times specified by the Operator or within these guideline times:
+- Annular BOP (close): ≤ 30 seconds from signal to full close
+- Ram BOP (close): ≤ 30 seconds from signal to full close
+- Ram BOP (open): ≤ 30 seconds from signal to full open
+- Choke and Kill valves: ≤ 30 seconds from signal to full close/open
+
+RESPONSE TIME TESTING:
+Response time shall be measured during function testing with the BOP stack on the wellhead (or on a test stump). Timing starts from activation of control (button push or valve actuation) to full close/open confirmed by pressure indication.
+ACCEPTANCE: All BOP functions close within 30 seconds (or Operator-specified time). Timing documented with date and witness signature.
+REJECTION: Any BOP function exceeding 30 seconds close/open time. Response time not tested or documented. Timing by estimate rather than measurement.
+---
+
+[CLAUSE: 5.3 — Control Fluid Requirements]
+Control fluid used in BOP control systems shall be:
+- Compatible with all seals, hoses, and metals in the system
+- A fire-resistant fluid where required by regulations or Operator specification
+- Filtered to maintain cleanliness per manufacturer requirements (typically ISO 16/13 or better per ISO 4406)
+- Mixed per manufacturer concentration (water-based: usually 3–5% concentrate in treated water)
+- Anti-corrosion additives maintained at required concentration
+
+FLUID SAMPLING AND TESTING:
+Control fluid shall be sampled and tested at minimum monthly (or per Operator's frequency):
+- pH: typically 8.5–9.5 for water-based fluid
+- Concentration of inhibitor/biocide: per manufacturer minimum
+- Particulate cleanliness: ISO 4406 code ≤ 16/13 target
+ACCEPTANCE: All fluid parameters within specified ranges. Monthly test records current.
+REJECTION: pH outside range. Contaminated fluid (visible particulates or discoloration). No fluid test records. Fluid incompatible with seal materials.
+---
+
+[CLAUSE: 6.1 — Piping and Manifold Requirements]
+CONTROL MANIFOLD PRESSURE RATING:
+All components in the high-pressure hydraulic circuit shall be rated for minimum 3000 psi (20.7 MPa) working pressure or the maximum system accumulator pressure, whichever is greater.
+All components in the low-pressure pilot circuit shall be rated for the pilot system pressure.
+
+HYDRAULIC HOSES:
+Control hoses shall be rated for minimum 1.5× the maximum working pressure of the circuit they serve.
+Hoses shall be inspected for: cuts, abrasions, bulges, kinking, and end fitting condition at each BOP function test.
+ACCEPTANCE: All piping, manifold, and hose rated ≥ system working pressure. Hoses without defects.
+REJECTION: Any component with pressure rating below system working pressure. Bulging hose. Kinked hose. Missing end fitting retaining device.
+---
+
+[CLAUSE: 7.1 — Factory Acceptance Testing (FAT)]
+Before delivery, each BOP control system shall be tested:
+1. PRESSURE TEST of hydraulic circuits: 1.5× rated working pressure for minimum 3 minutes. No leaks acceptable.
+2. FUNCTION TEST: All BOP functions actuated at rated pressure. Response times measured and recorded.
+3. ACCUMULATOR TEST: Pumps isolated. Full closing sequence performed from accumulator alone. Residual pressure measured and recorded.
+4. ALARM AND SHUTDOWN TEST: Low pressure alarm, low-low pressure shutdown, pump auto-start verified.
+5. DOCUMENTATION: Complete FAT report with all test results, pressures, and times. Required before release.
+ACCEPTANCE: All above tests pass. FAT report complete and signed.
+REJECTION: Any test failure without documented resolution before release. Missing FAT report. Control system placed in service without FAT.
+---
+
+[CLAUSE: 8.1 — Pressure Testing of Installed BOP Control System]
+After installation on the rig and before first well, the complete installed system shall be tested:
+1. Pressure test: Hydraulic circuits to rated working pressure. Minimum 3-minute hold, zero leaks.
+2. Function test: Each BOP function operated — close and open. Response times recorded.
+3. Accumulator verification: Same as FAT accumulator test in field.
+4. Drills: BOP drills per Operator's well control policy (typically weekly function test, see below).
+
+WEEKLY FUNCTION TEST REQUIREMENT (during drilling):
+Each BOP function shall be tested at least once every 14 days (every other week as a minimum — most operators require weekly). This is the well control drill. Record: date, time, function tested, response time, pressure confirmed, crew members present.
+ACCEPTANCE: All functions tested within 14-day maximum interval. All tests pass. Records maintained at rig site.
+REJECTION: Any function not tested within 14-day interval. Any test failure not immediately investigated and resolved. No test records or incomplete records.
+---
+
+[STANDARD: API 16AR]
+[TITLE: Standard for Repair and Remanufacture of Drill-Through Equipment]
+[EDITION: 1st Edition]
+
+[CLAUSE: 1.1 — Scope]
+API 16AR covers requirements for the repair and remanufacture of:
+- Ram-type BOPs
+- Annular BOPs
+- BOP control system components (accumulators, manifolds)
+- Drilling spools, adapter spools
+- Kelly valves and kelly cocks
+- Inside BOPs and drop-in check valves
+Repair facilities performing work under API 16AR shall be authorized and shall use documented repair procedures.
+---
+
+[CLAUSE: 4.1 — Repair Facility Requirements]
+The repair facility shall have:
+1. Documented Quality Management System (QMS) — minimum ISO 9001 or equivalent.
+2. Written repair procedures for each equipment type covered.
+3. Qualified personnel: engineers, machinists, inspectors, and welders all qualified for their specific role.
+4. Calibrated measuring equipment with current calibration records.
+5. NDE capabilities: MT, PT, and UT at minimum. RT if required for specific repairs.
+6. Pressure testing equipment capable of testing to equipment rated working pressure.
+7. Traceability system for all parts used in repair.
+ACCEPTANCE: Facility meets all above requirements. Third-party audit or API authorization on file.
+REJECTION: Repair performed at uncertified facility. Facility without documented QMS. No written repair procedures used.
+---
+
+[CLAUSE: 5.1 — Disassembly and Initial Inspection]
+COMPLETE DISASSEMBLY required for Category III and IV repairs (API 16AR classification same as API RP 8B: Category I through IV). At disassembly:
+1. Document all part numbers and serial numbers before disassembly.
+2. Mark all parts for traceability (do not use methods that could damage parts — paint pen or tagging preferred).
+3. Inspect all sealing surfaces: no pitting, no scratches, no corrosion. Sealing surfaces shall be free of any defect that would prevent pressure seal.
+4. Inspect bore: measure bore diameter. If bore exceeds manufacturer's maximum wear limit → bore must be re-bored or body replaced.
+5. Inspect all wetted surfaces for corrosion, erosion, and hydrogen damage.
+BORE WEAR LIMIT (typical ram BOP): Bore diameter shall not exceed nominal bore + 1/32 in (0.8mm) without engineering assessment.
+ACCEPTANCE: All seal surfaces free of defects. Bore within wear limit. All parts traceable.
+REJECTION: Any pitting or scratching in seal seat area. Bore exceeded wear limit without engineering disposition. Parts mixed from different serial numbers without documentation.
+---
+
+[CLAUSE: 5.2 — NDE Requirements During Repair]
+After disassembly and cleaning, the following NDE shall be performed on pressure-containing parts:
+BODY (ram BOP and annular BOP):
+- MT (preferred) or PT: All external and accessible internal surfaces. Including: bore surfaces, cylinder bores, outlet connections, and all weld areas.
+- UT: Minimum wall thickness check on body walls at 6 points minimum (or per drawing) to verify wall has not been eroded below minimum.
+RAM BLOCKS:
+- MT or PT: Full surface examination of ram faces and bodies.
+PISTON RODS (Ram operating rods):
+- MT: Full length. Critical area: thread root and change-of-section areas.
+BONNETS:
+- MT or PT: External surfaces and connection areas.
+NDE ACCEPTANCE CRITERIA:
+- No linear relevant indications of any length
+- No rounded relevant indication >5mm (3/16 in) diameter
+- No more than 4 relevant indications in any 38mm × 150mm area
+ACCEPTANCE: All components pass NDE criteria above before proceeding to repair.
+REJECTION: Any linear indication — component must be repaired (weld repair) or scrapped. Any component with wall thickness below minimum — scrap. Any rounded indication >5mm without disposition.
+---
+
+[CLAUSE: 5.3 — Seal and Packing Requirements]
+ALL seals, packing, and elastomeric components shall be replaced at each Category III or IV inspection/repair:
+- Ram packing: Replace 100%. Never re-use ram packing from a previously operated BOP regardless of apparent condition.
+- Annular element: Replace 100% if damaged, worn, or if used for more than the manufacturer's specified number of closures.
+- O-rings and bonnet seals: Replace 100%.
+- Back-up rings: Replace 100%.
+ELASTOMER COMPATIBILITY: Seals shall be rated for the specific fluid service:
+- Oil-based mud (OBM) service: seals must be OBM-compatible grade
+- H2S service: seals must be H2S-resistant (typically HNBR or equivalent)
+- High-temperature: seals must be rated for maximum expected wellbore temperature
+ACCEPTANCE: All seals replaced at repair. Seal material matches service conditions. Certifications for seal material on file.
+REJECTION: Re-use of ram packing at Category III repair. Wrong elastomer grade for service fluid. No certification for seal material in H2S service.
+---
+
+[CLAUSE: 6.1 — Weld Repair Requirements]
+Weld repairs to BOP bodies and pressure-containing components shall:
+1. Be performed per a qualified WPS (ASME IX or equivalent, appropriate for the base material).
+2. Use filler metals qualified for sour service if equipment is for sour service (NACE MR0175 requirements apply — deposited weld hardness ≤ 22 HRC).
+3. Use preheat per WPS.
+4. Be PWHT'd if required by WPS or if base material requires it (typically required for all alloy steel BOP bodies).
+5. Be examined by MT or PT after PWHT.
+6. Be pressure tested as part of final assembly test.
+WELD REPAIRS ON BORE SURFACES:
+Not permitted without specific engineering analysis and API 16AR authorization. Bore surface weld repairs require: stress analysis, weld procedure qualification test, hardness survey of completed repair, and pressure test.
+ACCEPTANCE: Weld repair qualified, welded, PWHT'd, NDE'd, and pressure tested. Documentation in repair record.
+REJECTION: Weld repair without WPS. Weld repair on bore surface without engineering authorization. No PWHT when required. No NDE after repair. No documentation.
+---
+
+[CLAUSE: 7.1 — Pressure Testing After Repair]
+All repaired BOP equipment shall be pressure tested before return to service:
+LOW-PRESSURE TEST: 200–300 psi (1.38–2.07 MPa). Hold 3 minutes minimum. Purpose: Check seals at low differential pressure.
+HIGH-PRESSURE TEST: Rated Working Pressure (RWP) of the BOP. Hold 3 minutes minimum.
+For ram BOPs: test each ram function — close rams, pressurize bore above and below rams separately to RWP.
+For annular BOPs: close element on test mandrel sized per manufacturer specification. Pressure test body and closed element to RWP.
+
+LEAKAGE CRITERIA (both tests):
+- ZERO visible external leakage.
+- ZERO leakage past closed rams or closed annular element.
+- Pressure shall not drop more than what can be accounted for by fluid temperature change during hold period.
+ACCEPTANCE: Both low and high pressure tests pass. Zero leakage. Records complete with date, pressures, hold times, crew, witness.
+REJECTION: Any visible leakage at either test pressure. Pressure drop not explainable by temperature. Missing any test stage (must do both low AND high pressure). Test performed by unqualified personnel. Records incomplete or unsigned.
+---
+
+[CLAUSE: 8.1 — Documentation and Traceability After Repair]
+The repair facility shall provide a complete Repair and Remanufacture Report containing:
+1. Equipment description: serial number, model, size, rated WP
+2. Initial as-received condition report with photographs
+3. Disassembly inspection findings
+4. NDE reports with examiner qualifications and test dates
+5. List of all parts replaced with part numbers and material certifications
+6. Weld repair records (if applicable): WPS, welder ID, NDE results, PWHT chart
+7. Seal and packing material certifications (especially for H2S or high-temperature service)
+8. Final assembly inspection report
+9. Final pressure test records
+10. Re-rating information (if new rated WP established)
+11. Authorized signature and date of the responsible inspector
+ACCEPTANCE: Complete report provided with all above elements. Copy retained by repair facility minimum 10 years. Copy delivered to equipment owner.
+REJECTION: Return of equipment without complete repair report. Missing pressure test records. Missing parts certifications for sour service seals. Report unsigned by responsible inspector.
+---

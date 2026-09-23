@@ -1,0 +1,172 @@
+[STANDARD: ASME VIII DIV 1]
+[TITLE: ASME Boiler and Pressure Vessel Code Section VIII Division 1 — Rules for Construction of Pressure Vessels]
+[ARTICLE: UW — Requirements for Pressure Vessels Fabricated by Welding]
+
+[CLAUSE: UW-1 — Scope]
+The rules in UW apply specifically to pressure vessels and vessel parts fabricated by welding. They supplement the general requirements of Part UG. The weld joint categories (A, B, C, D) determine the examination requirements and joint efficiency factors.
+---
+
+[CLAUSE: UW-3 — Weld Joint Categories]
+CATEGORY A: Longitudinal joints in shells, heads, and nozzles. Joints between hemispherical heads and shells. Any welded joint in a sphere, multi-layer vessel, or nozzle neck.
+CATEGORY B: Circumferential joints in shells, heads, and nozzles. Joints connecting forming heads to shells. Circumferential joints connecting nozzle necks to vessel shells or heads.
+CATEGORY C: Joints connecting flanges, tube sheets, or flat heads to main shell, heads, or nozzles.
+CATEGORY D: Joints connecting communicating chambers, nozzles, or other attachments to main shell or heads.
+
+WHY IT MATTERS: Category determines:
+- Joint efficiency factor (E) used in thickness calculation
+- Radiographic examination extent required
+ACCEPTANCE: Each weld correctly identified by category and examined per its category requirements.
+REJECTION: Category A joint treated as Category B (lower examination requirement). Joint efficiency assumed without performing required examination.
+---
+
+[CLAUSE: UW-11 — Radiographic and Ultrasonic Examination Requirements]
+FULL RADIOGRAPHY (UW-11(a)):
+Required for: All Category A and D welds in vessels designed for lethal service. All Category A and B welds in vessels operating above 50,000 psi. Category A and B welds in unfired steam boilers exceeding 50 psi. Nozzle welds in Category D when full RT is specified.
+Result: Joint efficiency E = 1.00 (full credit).
+
+SPOT RADIOGRAPHY (UW-11(b)):
+May be used for: Category A and B welds when full RT not required. Spot RT = examine 1 spot per 50 ft (15 m) of weld for each welder and each WPS used.
+Result: Joint efficiency E = 0.85.
+
+NO RADIOGRAPHY:
+Permitted for: many applications in standard service. No examination required by code for Category C and D joints in many cases.
+Result: Joint efficiency E = 0.70 for single-welded butt joints with backing. E = 0.65 for other configurations.
+ACCEPTANCE: Examination level matches design intent. Joint efficiency used in calculation matches actual examination performed.
+REJECTION: Using E = 1.00 in design calculation without performing full RT. Claiming spot RT credit without performing spot RT.
+---
+
+[CLAUSE: UW-12 — Joint Efficiency Table — Summary]
+BUTT JOINTS (Table UW-12):
+Type 1 — Double-welded butt joint (fully penetrated both sides):
+- Full RT: E = 1.00
+- Spot RT: E = 0.85
+- No RT: E = 0.70
+
+Type 2 — Single-welded butt joint with backing strip:
+- Full RT: E = 0.90
+- Spot RT: E = 0.80
+- No RT: E = 0.65
+
+Type 3 — Single-welded butt joint without backing (for pipe only):
+- Full RT: E = 0.80
+- No RT: Not permitted for certain applications
+
+Type 6 — Single-welded butt joint with backing, pipe butt welds:
+- Full RT: E = 0.90
+
+FILLET WELD JOINTS (for non-pressure-containing attachments): Not used in thickness calculations for shells. Fillet welds used for: attaching support brackets, stiffening rings, insulation clips. Size per UW-18.
+ACCEPTANCE: Joint type selected matches actual fabrication method. E factor used in calculation matches joint type and examination level.
+REJECTION: Using Type 1 joint efficiency for a Type 2 joint. Applying full RT efficiency without performing full RT.
+---
+
+[CLAUSE: UW-27 — Welding Processes Permitted]
+The following welding processes are permitted for pressure vessel fabrication under ASME VIII Div 1:
+- SMAW (Shielded Metal Arc Welding) — Covered Electrode
+- SAW (Submerged Arc Welding)
+- GMAW (Gas Metal Arc Welding / MIG)
+- GTAW (Gas Tungsten Arc Welding / TIG)
+- PAW (Plasma Arc Welding)
+- EBW (Electron Beam Welding)
+- LBW (Laser Beam Welding)
+- FSW (Friction Stir Welding — limited applications)
+All processes must be qualified per ASME Section IX.
+ACCEPTANCE: All welding performed by processes listed above, each qualified by WPS and PQR per ASME IX.
+REJECTION: Use of any non-listed process without special approval. Use of a listed process without a qualified WPS/PQR.
+---
+
+[CLAUSE: UW-31 — Cutting of Plate and Other Stock]
+Base materials may be cut by: mechanical means, thermal cutting (oxy-fuel, plasma, laser). Thermally cut edges on P-1 through P-4 materials exceeding 1 inch (25mm) thick shall be examined by MT or PT after cutting to verify freedom from cracks.
+ACCEPTANCE: Thermally cut edges on materials >25mm thick examined by MT or PT. No cracks found.
+REJECTION: Heavy section thermally cut edges not examined. Cracks found in cut edge not removed by grinding before welding.
+---
+
+[CLAUSE: UW-32 — Repair of Mill-Induced Defects in Plate]
+Surface and edge defects in base metal (mill-induced seams, laps, laminations) shall be removed by grinding to sound metal. Repaired areas shall be examined by MT or PT. If depth of repair exceeds 1/3 of base metal thickness or 3/8 inch (10mm), whichever is less, the area shall be weld-repaired and the repair examined by the same NDE method.
+ACCEPTANCE: All mill defects removed. Repair examined and accepted by MT or PT. Deep repairs weld-filled and examined.
+REJECTION: Welding over unremoved base metal defects (seams, laps). Repair depth exceeding limit without weld-fill and NDE.
+---
+
+[CLAUSE: UW-33 — Alignment Tolerance (Hi-Lo)]
+BUTT WELDS IN SHELLS AND HEADS:
+For plates of unequal thickness, the transition shall be made so that the offset between plates does not exceed:
+- For thickness ≤ 12.7 mm (1/2 in): maximum offset = 25% of the thinner plate, or 3.2 mm (1/8 in), whichever is less.
+- For thickness 12.7 mm to 19 mm (1/2 to 3/4 in): maximum offset = 3.2 mm (1/8 in).
+- For thickness 19 mm to 38 mm (3/4 to 1.5 in): maximum offset = 3.2 mm (1/8 in).
+- For thickness > 38 mm (1.5 in): maximum offset = 1/16 of the thinner plate, or 9.5 mm (3/8 in), whichever is less.
+For Category A longitudinal joints: offset not to exceed 1/4 of the thinner plate or 1/8 inch, whichever is less, for longitudinal seams in shells.
+ACCEPTANCE: Hi-lo within above limits before welding commences.
+REJECTION: Any hi-lo exceeding applicable limit. Attempts to correct hi-lo by excessive weld buildup rather than proper fit-up.
+---
+
+[CLAUSE: UW-35 — Finished Longitudinal and Circumferential Joints]
+SURFACE FINISH REQUIREMENTS:
+The surfaces of completed welds shall be free of:
+- Cracks
+- Incomplete fusion
+- Crater cracks
+- Visible porosity
+- Undercut exceeding 1/32 in (0.8 mm) in depth
+- Reinforcement exceeding values in Table UW-35 (see below)
+TABLE UW-35 — MAXIMUM WELD REINFORCEMENT:
+Thickness ≤ 1/2 in (12.7mm): max reinforcement = 3/32 in (2.4mm)
+Thickness 1/2 to 1 in (12.7–25mm): max reinforcement = 1/8 in (3.2mm)
+Thickness 1 to 2 in (25–51mm): max reinforcement = 5/32 in (4.0mm)
+Thickness > 2 in (51mm): max reinforcement = 3/16 in (4.8mm)
+ACCEPTANCE: Weld surface free of all above defects. Reinforcement within Table UW-35 limits.
+REJECTION: Any crack. Any incomplete fusion at surface. Reinforcement exceeding table limits. Undercut >0.8mm.
+---
+
+[CLAUSE: UW-51 — Radiographic Examination of Welded Joints]
+RT EXAMINATION REQUIREMENTS:
+Radiographic examination of butt-welded joints shall comply with ASME V Article 2. The following are acceptance criteria from UW-51:
+CRACKS AND LACK OF FUSION: None — any indication interpreted as a crack or lack of fusion is cause for rejection.
+INCOMPLETE PENETRATION: Not acceptable in any amount in joints with full RT (E = 1.00).
+ELONGATED SLAG INCLUSIONS: Not acceptable if length >2/3T (T = thinner plate) individually. Not acceptable if aggregate length in 12T exceeds T.
+ROUNDED INDICATIONS (porosity): Evaluated per Appendix 4. Generally: maximum diameter = 20% of T or 1/4 in (6mm) whichever is less. Cluster of pores: more restrictive limits.
+ACCEPTANCE: No cracks, no LOF, no IP visible on RT film. Slag and porosity within limits.
+REJECTION: Any crack or LOF on film — weld must be cut out and re-welded (no repair patch). Slag or porosity exceeding limits — excavate and reweld.
+---
+
+[CLAUSE: UW-52 — Spot Examination of Welded Joints]
+SPOT RADIOGRAPHIC EXAMINATION:
+One spot per 50 ft (15m) of weld for each welder on each joint category examined per UW-11(b). The spot location shall be selected by the Inspector (not the welder).
+
+If a spot examination reveals a defect:
+Step 1: Examine 2 additional spots in the same weld (different locations, same welder).
+Step 2: If the additional spots are acceptable → repair the original defect and re-examine. The weld qualifies for E = 0.85.
+Step 3: If either additional spot shows a defect → examine the entire weld for that welder and WPS. All defects found shall be repaired and re-examined.
+ACCEPTANCE: Spot examinations reveal no relevant defects. Or: defects found and corrected per progressive examination steps above.
+REJECTION: Defects found in spot AND additional spots — all welds by that welder require full RT.
+---
+
+[CLAUSE: UG-99 — Standard Hydrostatic Test]
+After fabrication and before shipment or placing in service, each vessel shall be hydrostatically tested:
+TEST PRESSURE: 1.3 × MAWP × (stress ratio)
+Where: stress ratio = (allowable stress at test temperature) ÷ (allowable stress at design temperature)
+Simplified: for carbon steel at ambient test temperature and design temperature ≤ 100°F (38°C), test pressure ≈ 1.3 × MAWP.
+TEST PROCEDURE:
+1. Fill vessel completely with water (ambient temperature, no air pockets).
+2. Vent all air before pressurizing.
+3. Raise pressure slowly to test pressure.
+4. Hold at test pressure while inspecting all joints for leaks — minimum 30 minutes.
+5. Reduce to design pressure for detailed inspection.
+TEST TEMPERATURE: Minimum metal temperature during test = higher of: 17°C (60°F) or MDMT + 30°F (17°C) — to avoid brittle fracture during test.
+ACCEPTANCE: No leaks at any joint, nozzle, or flange. No visible deformation. Pressure maintains during inspection period.
+REJECTION: Any visible leak anywhere. Pressure drop during hold not attributable to temperature. Test at wrong pressure. Test temperature below minimum.
+---
+
+[CLAUSE: UG-100 — Pneumatic Test (Alternative to Hydrostatic)]
+Pneumatic testing may be used instead of hydrostatic when:
+- The vessel design or support cannot tolerate the weight of water
+- The process fluid is incompatible with water and purging cannot be guaranteed
+Requires: Owner engineer approval, safety precautions per NBIC (National Board Inspection Code).
+TEST PRESSURE: 1.1 × MAWP
+TEST PROCEDURE:
+1. Raise pressure to 50% of test pressure. Hold. Inspect.
+2. Raise in 10% increments to test pressure. Hold 10 minutes.
+3. Reduce to MAWP for inspection.
+4. Use soap bubble solution or equivalent for leak detection.
+SPECIAL CAUTION: Pneumatic test stores energy — a rupture during test can be catastrophic. Brittle fracture prevention is critical — test temperature minimum = MDMT + 30°F.
+ACCEPTANCE: No leaks detected. Pressure stable.
+REJECTION: Any leak. Any pressure drop. Test above 1.1× MAWP. Test temperature below MDMT + 30°F.
+---

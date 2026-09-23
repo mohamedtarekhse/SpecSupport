@@ -1,0 +1,526 @@
+[STANDARD: API RP 7G-2]
+[TITLE: Recommended Practice for Inspection and Classification of Used Drill Stem Elements]
+[EDITION: 2nd Edition]
+[ARTICLE: Full Scope — Drill Pipe, BHA, Tool Joints]
+[GENERATED: 2026-09-23]
+[LANGUAGE: English / Arabic (MENA Oilfield Terms)]
+[AUTHORITY: American Petroleum Institute — Drilling Equipment & Operations]
+
+================================================================================
+  STRUCTURED INSPECTION KNOWLEDGE FILE — AI INSPECTION ASSISTANT USE
+  For use by field inspectors, rig site engineers, and drilling supervisors.
+  All numeric criteria are per API RP 7G-2, 2nd Edition tables and clauses.
+================================================================================
+
+---
+
+CLAUSE 01 — SCOPE AND APPLICABILITY
+[API RP 7G-2 Clause 1.1 / 1.2]
+
+This recommended practice (ممارسة موصى بها) covers the inspection and classification of used drill stem elements (عناصر عمود الحفر المستخدمة) including drill pipe body (جسم ماسورة الحفر), tool joints (وصلات الأداة / مفاصل الحفر), heavy weight drill pipe (HWDP / ماسورة ثقيلة), drill collars (أثقال الحفر), and all bottom hole assembly (BHA / تجميع قاع البئر) components. The standard applies to all grades of drill pipe — E75, X95, G105, S135 — and all standard connection sizes used in rotary drilling operations (عمليات الحفر الدوار). Inspection per this RP is mandatory before running recertified pipe (ماسورة معاد تصنيفها) in any drilling program and is required by most national oil companies in Egypt, Libya, Saudi Arabia, and the broader MENA region. All inspection methods (visual, dimensional, electromagnetic, ultrasonic, and magnetic particle) referenced in this standard must be performed by qualified inspectors who meet the competency requirements of API RP 7G-2 Annex A.
+
+SCOPE OF ELEMENTS COVERED:
+  - Drill pipe body (جسم ماسورة الحفر): All sizes 2-3/8" to 6-5/8" OD
+  - Tool joints (مفاصل الأداة): Pin and Box, all connection types
+  - Heavy Weight Drill Pipe (HWDP): Including center upset and weld area
+  - Drill Collars (أثقال الحفر / كولارات): Slick and spiral
+  - BHA Components: Stabilizers, crossovers, subs, MWD/LWD housings
+  - Kellys and saver subs (حافظات التلف)
+
+ACCEPTANCE: Element is within declared scope and material traceability is confirmed.
+REJECTION: Any element whose grade, OD, or connection type cannot be positively identified — do NOT classify or run.
+
+---
+
+CLAUSE 02 — INSPECTION CLASSIFICATION CATEGORIES
+[API RP 7G-2 Clause 4.1, Table 4.1]
+
+API RP 7G-2 defines three service classifications (تصنيفات الخدمة) for used drill stem elements based on remaining wall thickness, OD condition, and thread integrity. These are NOT interchangeable with manufacturing grades — they describe the condition of used pipe after field service (خدمة ميدانية). Category 1 (Premium / درجة ممتازة) represents the highest serviceable condition and is suitable for high-tension, high-torque, or directional drilling applications. Category 2 (Class 2 / الفئة الثانية) represents acceptable but reduced-capacity pipe suitable for less demanding applications. Category 3 (Class 3 / الفئة الثالثة) is fit for limited service only — typically as casing, junk, or scrap — and must NOT be run in normal rotary drilling.
+
+CATEGORY DEFINITIONS:
+  - CATEGORY 1 (PREMIUM): Min wall ≥ 80% of nominal; OD within Premium limits; threads in full-form gauge.
+  - CATEGORY 2 (CLASS 2): Min wall ≥ 70% of nominal; OD within Class 2 limits; threads acceptable with minor wear.
+  - CATEGORY 3 (CLASS 3): Min wall ≥ 55% of nominal; OD within Class 3 limits; restricted service ONLY.
+  - SCRAP / REJECT: Below Class 3 limits, or any zero-tolerance defect present.
+
+ACCEPTANCE: Element is correctly classified and color-coded per Table 4.1 before transport to rig.
+REJECTION: Any element run without valid classification marking — immediate pull and inspect.
+
+---
+
+CLAUSE 03 — VISUAL INSPECTION (VI) — MANDATORY ALL CATEGORIES
+[API RP 7G-2 Clause 5.1, 5.2, 5.3]
+
+Visual inspection (الفحص البصري) is the FIRST and MANDATORY step for all drill stem elements regardless of the subsequent NDT methods to be performed. The full external surface of the pipe body (جسم الماسورة), tool joint OD (القطر الخارجي للمفصل), and both pin (دبوس) and box (صندوق) thread areas must be visually examined under adequate lighting (minimum 500 lux at the inspection surface). Remove all mud, grease, scale, and coating before inspection — no dirty pipe shall be accepted for dimensional or NDT evaluation. The inspector (الفاحص) must use a 10X magnifying loupe for thread examination and a flashlight or UV lamp where appropriate for surface crack detection (كشف التشقق السطحي). Any visual indication that cannot be resolved by cleaning and re-examination must be referred to further NDT before the element is accepted.
+
+ACCEPTANCE: Surface clean and free from open cracks, deep cuts, gouges >1/16" (1.6 mm) deep, or mechanical damage affecting structural integrity.
+REJECTION TRIGGERS (ZERO TOLERANCE):
+  - Open longitudinal or transverse cracks anywhere on pipe body or tool joint
+  - Visible wash-out (حفر / انجراف) channels on pipe body
+  - Bent or bowed pipe — any visible curvature detectable by rolling on flat surface
+  - Thread crests with complete rollover or missing flanks
+
+---
+
+CLAUSE 04 — ELECTROMAGNETIC INSPECTION (EMI / FEMC) — DRILL PIPE BODY
+[API RP 7G-2 Clause 6.1, 6.2, 6.3]
+
+Electromagnetic inspection (الفحص الكهرومغناطيسي) — also known as Full-length Electromagnetic Inspection (FEMI) or Flux-leakage EMI — is required for drill pipe body inspection in all pipe destined for Category 1 or Category 2 classification. The EMI tool (أداة الفحص الكهرومغناطيسي) detects transverse and longitudinal defects, wall loss zones, and pitting by measuring magnetic flux leakage from the pipe wall as it passes through a magnetizing coil and sensor array at controlled speed (typically 1–3 ft/sec). Coverage must include 100% of the pipe body from upset-to-upset, with the tool capable of detecting defects equivalent to or greater than 5% wall thickness loss for Category 1 and 10% wall thickness loss for Category 2 pipe. All EMI equipment must be calibrated daily using an API-approved reference standard (standard notch depths of 5%, 10%, and 20% of nominal wall) traceable to NIST or equivalent. The EMI pass is NOT a substitute for UT wall thickness survey — both are required for full Category 1 certification.
+
+ACCEPTANCE:
+  - No signal response exceeding the calibrated 5% wall loss threshold (Category 1).
+  - No signal response exceeding the calibrated 10% wall loss threshold (Category 2).
+  - Calibration verified before and after each inspection run.
+
+REJECTION:
+  - Any signal indicating ≥ 5% wall loss in a Category 1 pipe — demote or scrap.
+  - Calibration drift > 10% of reference signal — re-inspect full string.
+  - Any unresolvable signal in the slip/upset zone — mandatory UT follow-up.
+
+---
+
+CLAUSE 05 — ULTRASONIC INSPECTION (UT) — DRILL PIPE BODY WALL THICKNESS SURVEY
+[API RP 7G-2 Clause 6.4, 6.5, Table 6.1]
+
+Ultrasonic thickness testing (اختبار السماكة بالموجات فوق الصوتية) of the drill pipe body is performed using contact pulse-echo UT equipment operating at a minimum frequency of 2.25 MHz with straight-beam transducers calibrated to the nominal pipe wall thickness. The UT survey provides actual remaining wall measurements (قياسات السماكة المتبقية) at the critical zones: both slip areas (مناطق الإسفين / الزلاجة), both upset areas (مناطق التوسع), and a minimum of four equally-spaced axial positions along the pipe body. At each measurement location, readings must be taken at 0°, 90°, 180°, and 270° around the pipe circumference — minimum 4 readings per station. The thinnest reading recorded at any location is the governing wall thickness for classification purposes. All UT instruments must be calibrated using a step-wedge calibration block of the same nominal material (steel, same OD group) per API RP 7G-2 Annex B requirements.
+
+ACCEPTANCE CRITERIA (Per Table 6.1):
+  - CATEGORY 1 (PREMIUM): Minimum remaining wall ≥ 80% of nominal wall thickness (t_nominal).
+  - CATEGORY 2 (CLASS 2): Minimum remaining wall ≥ 70% of nominal wall thickness.
+  - CATEGORY 3 (CLASS 3): Minimum remaining wall ≥ 55% of nominal wall thickness.
+  - Example — 5" OD, 19.50 lb/ft (nominal wall 0.362"): Premium min = 0.290"; Class 2 min = 0.253"; Class 3 min = 0.199".
+
+REJECTION:
+  - Any reading < 55% of nominal wall — SCRAP, do not classify.
+  - Any isolated reading showing step-change loss > 20% of adjacent readings — suspect washout or corrosion pocket, immediate reject pending investigation.
+  - UT gel/coupling loss confirmed by low amplitude — re-read, no estimation allowed.
+
+---
+
+CLAUSE 06 — TOOL JOINT OD MEASUREMENT — ACCEPTANCE TABLE PER CATEGORY
+[API RP 7G-2 Clause 7.1, Table 7.1, Table 7.2]
+
+Tool joint outside diameter (القطر الخارجي لمفصل الأداة) is measured using a calibrated outside diameter caliper (vernier or digital) or a ring gauge at the mid-point of the tool joint OD sealing area — measured at 0° and 90° to detect out-of-round (تفاوت الاستدارة). The minimum acceptable OD directly governs make-up torque capacity and tong die grip area (منطقة قبضة ملقط الدوران); undersize tool joints lose torque capacity, increase risk of back-off (فك غير مقصود), and may fail under combined torsion and bending loads. OD measurements must be taken after cleaning the tool joint surface free of all hardbanding buildup that exceeds flush-with-OD level. All measurements are in inches to two decimal places — field calipers must have resolution of 0.01" minimum.
+
+ACCEPTANCE LIMITS (Per API RP 7G-2 Table 7.1 — representative values for common sizes):
+
+  PIN OD (Box OD governs for wear):
+  ┌──────────────────┬───────────┬───────────┬───────────┐
+  │ Connection Size  │ New OD"   │ Premium"  │ Class 2"  │
+  ├──────────────────┼───────────┼───────────┼───────────┤
+  │ NC38 (3-1/2" DP) │  4.750    │  4.500    │  4.250    │
+  │ NC46 (4" DP)     │  6.250    │  5.938    │  5.625    │
+  │ NC50 (4-1/2" DP) │  6.625    │  6.313    │  6.000    │
+  │ 5" FH (5" DP)    │  7.000    │  6.625    │  6.250    │
+  │ NC56 (5-1/2" DP) │  7.250    │  6.875    │  6.500    │
+  └──────────────────┴───────────┴───────────┴───────────┘
+
+ACCEPTANCE: OD at or above the applicable Category minimum.
+REJECTION:
+  - OD below Premium minimum → demote to Class 2 or Class 3 as measured.
+  - OD below Class 3 minimum (typically new OD minus 0.750" for most sizes) → SCRAP.
+  - Out-of-round > 0.030" (0°/90° difference) → REJECT regardless of average OD.
+
+---
+
+CLAUSE 07 — TOOL JOINT BOX ID MEASUREMENT — MINIMUM BORE REQUIREMENTS
+[API RP 7G-2 Clause 7.2, Table 7.3]
+
+The tool joint box internal diameter (القطر الداخلي لصندوق المفصل / فوهة الصندوق) must be measured to verify the box bore has not been excessively eroded by drill string rotation, circulation wash, or repeated make-up with undersized pins. Measurement is taken using an inside caliper or bore gauge at the connection bore entrance (top of box shoulder area) and at mid-length of the box bore. A worn or oversize box bore reduces the pin-to-box interference fit during make-up (اللحم / ربط الاتصال), resulting in reduced torque capacity and increased fatigue risk. For connections with a bored-back box (صندوق مثقوب للخلف), the bore-back diameter must be verified to not encroach on the connection pressure seal area. The measurement must be taken with the threads clean and the bore free of damage, mud, or scale.
+
+ACCEPTANCE (Representative — Per API RP 7G-2 Table 7.3):
+  - NC50 Box bore (basic): Maximum allowable bore = 3.000" (76.2 mm)
+  - NC46 Box bore: Maximum allowable bore = 2.750" (69.9 mm)
+  - NC38 Box bore: Maximum allowable bore = 2.500" (63.5 mm)
+  - 5" FH Box bore: Maximum allowable bore = 3.000" (76.2 mm)
+  - General rule: Box ID must NOT exceed basic pin diameter + 0.060" (1.52 mm)
+
+REJECTION:
+  - Box bore > maximum tabulated value → SCRAP — connection integrity compromised.
+  - Box bore showing stepped erosion (grooves or channels) → REJECT — fatigue stress riser.
+  - Box bore out-of-round > 0.030" → REJECT.
+
+---
+
+CLAUSE 08 — TOOL JOINT TONG SPACE — MINIMUM REQUIREMENTS
+[API RP 7G-2 Clause 7.3, Table 7.4]
+
+Tong space (مسافة الملقط / مساحة الكماشة) is the unobstructed cylindrical OD surface on both the pin and box tool joint that the rig tongs (ملاقط الحفر) must grip to make up or break out the connection. Inadequate tong space forces tong dies (مسامير الملقط) to ride onto the hardbanding, bevel, or thread area — increasing the risk of slip, connection damage, and personnel injury. Tong space is measured as the axial length of clear, smooth, cylindrical surface available at the tool joint OD. Both pin tong space (مساحة ملقط الدبوس) and box tong space (مساحة ملقط الصندوق) must meet minimums independently. Tong space measurements are taken with a rule or digital caliper and confirmed by visual inspection for any obstruction (hardbanding buildup, mechanical damage, raised beads).
+
+ACCEPTANCE (Per API RP 7G-2 Table 7.4 — minimum values):
+  - Pin tong space: ≥ 12 inches (304.8 mm) for most 4-1/2" to 6-5/8" connections.
+  - Box tong space: ≥ 8 inches (203.2 mm) for most 4-1/2" to 6-5/8" connections.
+  - Smaller connections (< 4" DP): Pin ≥ 10", Box ≥ 6".
+  - No protrusion, weld bead, or hardbanding allowed within the tong space zone.
+
+REJECTION:
+  - Tong space below minimum → REJECT for field service; may be reworked if OD allows.
+  - Hardbanding buildup above flush within tong space zone → REJECT.
+  - Mechanical damage (dents, rolled shoulders) in tong space area → REJECT.
+
+---
+
+CLAUSE 09 — THREAD INSPECTION — VISUAL AND GAUGE REQUIREMENTS
+[API RP 7G-2 Clause 8.1, 8.2, 8.3 — NC and API Regular Connections]
+
+Thread inspection (فحص الخيوط / فحص السن) must include both visual examination and gauge verification for all connections intended for Category 1 or Category 2 classification. Visual thread examination uses a 10X magnifier and adequate lighting to detect galling (تلف الخيوط بالاحتكاك), corrosion pitting (تنقر التآكل), cracks, torn flanks, and eroded crests on all thread forms — NC, API Regular, API Full Hole, H90, and proprietary threads where applicable. Thread gauging (قياس الخيوط بالعيارات) uses API-specified thread plug and ring gauges to verify lead (خطوة الخيط), taper (مخروطية), and height compliance. Gauge calibration must be verified before start of inspection shift using a master gauge or setting ring traceable to API. All connection types must be identified before gauging — do NOT apply NC gauges to API Regular connections or vice versa.
+
+VISUAL ACCEPTANCE:
+  - Thread flanks smooth, no galling score deeper than 1/32" (0.8 mm).
+  - Corrosion pitting: Maximum 3 pits per thread, no pit > 1/16" (1.6 mm) diameter, no interconnected pits.
+  - Crest condition: See Clause 10 for specific criteria.
+
+GAUGE ACCEPTANCE:
+  - Pin lead gauge: Thread lead within ± 0.0006" per inch of engaged thread length.
+  - Ring gauge (box): Ring must enter to hand-tight engagement (HTE) within + 1.5 turns / − 0 turns of the gauge reference face.
+  - Plug gauge (pin): Must not enter beyond − 1.5 turns from reference face.
+
+REJECTION:
+  - Any thread crack visible under 10X — ZERO TOLERANCE, SCRAP.
+  - Galling covering more than 3 consecutive thread flanks → REJECT.
+  - Lead error exceeding ± 0.0006"/inch over the thread length → REJECT — risk of make-up shoulder not seating.
+  - Gauge engagement outside allowable turns → REJECT.
+
+---
+
+CLAUSE 10 — THREAD FORM: BEVEL, BLACK CRESTS, AND LEAD ERROR CRITERIA
+[API RP 7G-2 Clause 8.4, 8.5, 8.6]
+
+Thread form inspection (فحص شكل الخيط) evaluates the three critical geometric elements of any rotary shouldered connection: (1) the pin nose bevel (حافة الدبوس المشطوفة), (2) crest condition including "black crests" (قمم الخيط السوداء / غير المكملة), and (3) thread lead (خطوة الخيط). The pin nose bevel must be intact and free of damage — a damaged bevel acts as a stress concentration point and can prevent proper stabbing engagement (الإدخال الصحيح للدبوس في الصندوق) causing shouldering damage. Black crests refer to uncut or partially formed thread crests that appear as dark, shiny flat tops visible under magnification — they indicate the thread has been cut below API specified height and the remaining crest is beyond the cutting tool reach. Lead error (خطأ الخطوة) — the cumulative variation in thread pitch — causes uneven load distribution across engaged threads and is a primary contributor to connection fatigue failure (فشل التعب).
+
+BEVEL ACCEPTANCE:
+  - Pin nose bevel: Smooth 60° chamfer, free of mechanical damage, chips, or cracks.
+  - Bevel width: No more than 1/32" (0.8 mm) metal missing from bevel edge.
+
+BLACK CREST ACCEPTANCE:
+  - 1–2 black crests on pin: ACCEPTABLE for Class 2.
+  - 0 black crests on pin or box: Required for Premium (Category 1).
+  - > 3 black crests anywhere: REJECT — connection is under-cut.
+
+LEAD ERROR ACCEPTANCE:
+  - Cumulative lead error ≤ 0.006" over the full connection thread length (per API RP 7G-2 Table 8.2).
+
+REJECTION:
+  - > 3 black crests on any connection — REJECT.
+  - Pin nose bevel chipped, cracked, or missing → REJECT.
+  - Lead error > 0.006" cumulative → REJECT — do not recut without dimensional verification.
+
+---
+
+CLAUSE 11 — SLIP AND UPSET AREA INSPECTION — UT MANDATORY
+[API RP 7G-2 Clause 9.1, 9.2, 9.3]
+
+The slip area (منطقة الأسافين / منطقة الإسفين) and the internal upset (IU) / external upset (EU) transition zones (مناطق انتقال التوسع) are the highest-fatigue-risk locations on any drill pipe joint (مفصل ماسورة الحفر). These zones experience repeated bending stress, slip die loading (حمل شرائح الإسفين), and stress concentration from geometry changes — making them the most common initiation sites for transverse fatigue cracks (شقوق التعب المستعرضة). Ultrasonic inspection (UT) of the slip/upset area is MANDATORY for all Category 1 pipe and strongly recommended for Category 2 — this cannot be satisfied by EMI alone. UT coverage must include: (a) full 360° circumferential scan of both slip areas, (b) the IU/EU transition (radius zone), and (c) the weld zone if HWDP. Any indication in the slip area requires immediate rejection — no repair, no reclassification.
+
+ACCEPTANCE:
+  - UT wall thickness in slip area ≥ Category minimum (80% / 70% / 55% of nominal).
+  - No step-change readings or laminar indications.
+  - Surface visually clean of die cut marks deeper than 0.031" (0.79 mm).
+
+REJECTION — ZERO TOLERANCE:
+  - Any transverse crack indication in slip area → SCRAP immediately.
+  - Slip cut groove > 1/32" (0.79 mm) depth and > 1/4" (6.4 mm) length → REJECT.
+  - UT response indicating wall < Category minimum in slip zone → REJECT, cannot reclassify.
+  - Multiple die marks forming a continuous notch → REJECT — fatigue initiator.
+
+---
+
+CLAUSE 12 — HARDBANDING INSPECTION — HS VS NHB ACCEPTANCE CRITERIA
+[API RP 7G-2 Clause 10.1, 10.2, 10.3]
+
+Hardbanding (الطلاء الصلب / التصليب السطحي) applied to tool joint OD surfaces must be inspected for condition, width, height, and casing-friendly (CF) compliance before the joint is classified. Two hardbanding types are referenced in practice: Hardbanding Supplied (HS) — any applied hardbanding meeting wear-resistance standards — and No Hardbanding (NHB) — bare tool joint OD. When casing-friendly hardbanding is specified by the drilling program (برنامج الحفر), the applied material must be verified as approved by the field operator (شركة النفط / المشغل). Hardbanding must be examined visually (and by MT when cracking is suspected) for transverse cracks (شقوق مستعرضة), delamination (انفصال الطبقة), and incomplete coverage. Buildup above flush OD greater than 1/16" (1.6 mm) is NOT acceptable in tong space areas.
+
+ACCEPTANCE:
+  - Hardbanding width: Minimum 2.0" (50.8 mm) covered at box OD wear surface.
+  - Hardbanding height (above flush): 0.000" to + 0.063" (1.6 mm) above tool joint OD.
+  - Casing-friendly material: Confirmed from manufacturer's approval list held on site.
+  - Transverse cracks in hardbanding: ZERO allowed if crack extends into base metal.
+
+REJECTION:
+  - Any crack in hardbanding extending into the tool joint base metal → REJECT — remove hardbanding and MT the base metal before any rework.
+  - Hardbanding buildup > 0.063" above flush → REJECT until redressed.
+  - Delamination of hardbanding (hollow sound on hammer tap) → REJECT — must be removed and re-applied.
+  - Hardbanding covering the thread bevel or entering tong space → REJECT.
+
+---
+
+CLAUSE 13 — DRILL PIPE BODY OD — MINIMUM OD PER CATEGORY
+[API RP 7G-2 Clause 11.1, Table 11.1]
+
+Drill pipe body outside diameter (القطر الخارجي لجسم ماسورة الحفر) is measured at the mid-body and at minimum two other locations to establish the wear profile of the pipe. Body OD wear (تآكل قطر الجسم) reduces the pipe cross-sectional area, directly reducing tensile, torsional, and bending capacity — and in a directional well (بئر انحرافية), a worn pipe body also reduces annular hydraulics and increases differential sticking risk. OD is measured using a calibrated outside micrometer or vernier caliper. The governing reading is the minimum OD from any measurement location along the body. API RP 7G-2 Table 11.1 provides the minimum OD limits for each pipe size, weight, and grade across the three Categories — do not interpolate between sizes.
+
+ACCEPTANCE (Representative — 5" OD, 19.50 lb/ft, S135):
+  - New nominal OD: 5.000"
+  - CATEGORY 1 (PREMIUM): Min OD ≥ 4.778" (nominal − 0.222", ~95.6% of new)
+  - CATEGORY 2 (CLASS 2): Min OD ≥ 4.408" (nominal − 0.592", ~88.2% of new)
+  - CATEGORY 3 (CLASS 3): Min OD ≥ 4.408" same table lower limit
+
+  For 4-1/2" OD, 16.60 lb/ft:
+  - CATEGORY 1: Min OD ≥ 4.290"
+  - CATEGORY 2: Min OD ≥ 3.960"
+
+REJECTION:
+  - OD below Category 3 minimum → SCRAP.
+  - Oval/elliptical wear (OD varies > 0.030" at same cross-section) → REJECT regardless of average.
+  - Mechanical gouges reducing local OD by > 0.100" below Category minimum → REJECT.
+
+---
+
+CLAUSE 14 — MINIMUM WALL THICKNESS CRITERIA
+[API RP 7G-2 Clause 11.2, Table 11.2 — Premium 80%, Class 2 70%, Class 3 55%]
+
+Minimum remaining wall thickness (الحد الأدنى لسماكة الجدار المتبقية) is the single most important dimensional acceptance criterion for drill pipe body classification. This value is expressed as a percentage of the nominal wall thickness (السماكة الاسمية) from the original API Spec 5DP pipe specification. The three Category thresholds are: Premium (Category 1) = 80% minimum; Class 2 (Category 2) = 70% minimum; Class 3 (Category 3) = 55% minimum. Below 55%, the pipe is SCRAP regardless of all other conditions. These thresholds apply to the minimum single-point UT reading — NOT to an average. If ANY single UT reading at any point on the pipe body, slip area, or upset zone falls below the applicable threshold, the entire joint is classified at or below that threshold.
+
+CALCULATION METHOD:
+  - t_remaining (%) = (measured wall thickness / nominal wall thickness) × 100
+  - Nominal wall is taken from API Spec 5DP for the exact size/weight combination.
+  - Example: 5" OD, 19.50 lb/ft → nominal wall = 0.362"
+      → Premium min = 0.362 × 0.80 = 0.290"
+      → Class 2 min = 0.362 × 0.70 = 0.253"
+      → Class 3 min = 0.362 × 0.55 = 0.199"
+
+ACCEPTANCE:
+  - CATEGORY 1: t_min ≥ 80% nominal → stamp PREMIUM.
+  - CATEGORY 2: t_min 70%–79.9% nominal → stamp CLASS 2.
+  - CATEGORY 3: t_min 55%–69.9% nominal → stamp CLASS 3 (restricted service).
+
+REJECTION:
+  - t_min < 55% of nominal → SCRAP. No exceptions.
+  - Measurement uncertainty: If UT reading falls within 2% of a threshold boundary → take additional readings; governing value is the minimum confirmed reading.
+
+---
+
+CLAUSE 15 — DRIFT OF DRILL PIPE BODY (INTERNAL DIAMETER CHECK)
+[API RP 7G-2 Clause 11.3, Table 11.3]
+
+Drift testing (اختبار المرور / اختبار الانزلاق) confirms that the internal diameter (القطر الداخلي / التجويف الداخلي) of the drill pipe body is sufficient to pass the API drift mandrel (مرسلة المرور) without restriction. This ensures that survey tools (أدوات المسح), fishing tools (أدوات الصيد), MWD/LWD collars, and circulation equipment can be deployed through the string without getting stuck on a collapsed or damaged section. Drift mandrels (أسطوانات المرور) are rigid steel cylinders of specified OD and length — for each pipe size and weight, the mandrel OD is defined in API Spec 5DP and referenced in API RP 7G-2 Table 11.3. Drift is performed by passing the mandrel through the full pipe bore under its own weight — do NOT use hammers or winches to force the mandrel through. Any joint failing drift must be rejected regardless of wall or OD condition.
+
+DRIFT MANDREL OD (per API Spec 5DP — representative):
+  - 5" OD, 19.50 lb/ft: Drift mandrel OD = 4.276"
+  - 4-1/2" OD, 16.60 lb/ft: Drift mandrel OD = 3.826"
+  - 3-1/2" OD, 13.30 lb/ft: Drift mandrel OD = 2.867"
+  - 6-5/8" OD, 25.20 lb/ft: Drift mandrel OD = 5.965"
+
+ACCEPTANCE: Mandrel passes full bore length under gravity without obstruction.
+REJECTION — ZERO TOLERANCE:
+  - Any mandrel stop or restriction anywhere in the bore → REJECT full joint.
+  - Corroded/pitted bore reducing ID detectable by mandrel hang-up → REJECT.
+  - Mechanical collapse or dent restricting bore → REJECT, do not attempt to re-round.
+
+---
+
+CLAUSE 16 — FATIGUE CRACKS — ZERO TOLERANCE POLICY
+[API RP 7G-2 Clause 12.1, 12.2]
+
+Fatigue cracks (شقوق التعب / الإجهاد) are the most critical and dangerous defect type in a used drill stem. Unlike manufacturing defects, fatigue cracks develop progressively during in-service rotation under alternating bending and torsional loads — especially in doglegs (انحناءات البئر), key-seat zones (مناطق مفتاح المقعد), and slip areas. Any crack — regardless of its orientation (transverse, longitudinal, or helical), length, depth, or location — constitutes an absolute rejection. There is no minimum acceptable crack size, no allowable crack depth, and no condition under which a cracked drill stem element may be returned to service or reclassified. Cracks are detected by a combination of visual inspection, MPI (Magnetic Particle Inspection), EMI, and UT — and all four methods complement each other; absence of indication in one method does NOT clear the pipe if another method shows a signal.
+
+DETECTION METHODS:
+  - MPI (Wet Fluorescent MT under UV): Most sensitive for surface/near-surface cracks.
+  - EMI: Detects transverse cracks in pipe body; less sensitive to longitudinal cracks.
+  - UT Shear Wave: Detects sub-surface transverse cracks in upset and slip areas.
+  - Visual: Detects open cracks after surface cleaning.
+
+ACCEPTANCE: Zero cracks — no indication of any type from any method.
+REJECTION — ABSOLUTE ZERO TOLERANCE:
+  - Any crack confirmed by ANY inspection method → SCRAP — no rework, no recut, no reuse.
+  - Any crack-like linear MPI indication ≥ 1/16" (1.6 mm) in any direction → treat as crack until proven otherwise by cross-method verification → REJECT if not cleared.
+  - Inspector disagreement between methods → more sensitive method governs → REJECT.
+
+---
+
+CLAUSE 17 — CORROSION PITTING — DEPTH AND WIDTH REJECTION CRITERIA
+[API RP 7G-2 Clause 12.3, 12.4, Table 12.1]
+
+Corrosion pitting (تنقر التآكل / الحفر الكيميائية) on the drill pipe body and tool joint surfaces results from exposure to corrosive fluids (hydrogen sulfide — H₂S (كبريتيد الهيدروجين), CO₂ (ثاني أكسيد الكربون), oxygen, and acid), contaminated drilling mud (طين الحفر الملوث), and inadequate corrosion inhibitor programs. Pitting reduces wall thickness locally and — critically — acts as a stress concentration site that initiates fatigue cracking at loads far below the pipe's nominal rating. Pit depth (عمق الحفرة) is the governing rejection criterion and is measured using a calibrated pit depth gauge (مقياس عمق الحفرة) or a pointed dial depth gauge after cleaning the pit with a wire brush. Any pit that visually appears to have a shiny, hardened base requires MPI and UT before acceptance.
+
+ACCEPTANCE:
+  - Isolated pits on pipe body: Depth ≤ 12.5% of nominal wall, Width ≤ 3/8" (9.5 mm), Separated by > 2" (50.8 mm).
+  - Tool joint OD pitting: Depth ≤ 1/16" (1.6 mm), no interconnected pits.
+  - Maximum 3 acceptable pits per 12-inch (305 mm) length of pipe body.
+
+REJECTION:
+  - Any pit with depth > 12.5% of nominal wall → REJECT full joint.
+  - Interconnected pits forming a channel or groove → REJECT.
+  - Pitting in the thread root area — any depth → REJECT.
+  - Pitting in the slip area — any depth > 1/32" (0.8 mm) → REJECT.
+  - Dense pitting field covering > 4 sq in (25.8 cm²) on any 12" body length → REJECT.
+
+---
+
+CLAUSE 18 — WASHOUTS — IDENTIFICATION AND MANDATORY REJECTION
+[API RP 7G-2 Clause 12.5]
+
+A washout (حفر انجرافي / ثقب التآكل بالتدفق) is a through-wall or near-through-wall opening in the drill pipe body, tool joint, or connection caused by high-velocity drilling fluid (طين الحفر عالي السرعة) erosion through a pinhole, crack, or manufacturing defect. Washouts are typically identified by a sudden drop in standpipe pressure (هبوط ضغط الخط الرئيسي) at the rig floor, often accompanied by loss of returns (فقدان العودة) or reduced flow — but the first sign may only be seen at post-run inspection. During inspection, washout channels appear as elongated, smooth-walled grooves or holes with erosion rounding — distinguishable from mechanical gouges by their smooth interior surface and radially symmetric erosion pattern. Any suspected washout must be confirmed by passing a sharpened probe through the suspected area — any through-wall penetration is immediate rejection.
+
+IDENTIFICATION FEATURES:
+  - Smooth, rounded interior with funnel or channel shape.
+  - No sharp edges (distinguishes from mechanical damage).
+  - Residual scale, black iron oxide coating inside the channel.
+  - Sometimes surrounded by external corrosion zone.
+
+ACCEPTANCE: NO washouts of any size are acceptable. This is a ZERO TOLERANCE defect.
+REJECTION — ABSOLUTE ZERO TOLERANCE:
+  - Any through-wall penetration anywhere on the element → SCRAP immediately.
+  - Any groove or channel where a 0.050" (1.27 mm) diameter probe can be inserted to a depth > 50% of wall → treat as near-washout → REJECT, UT confirm, SCRAP.
+  - Suspected washout not confirmed → hold element pending further UT/EMI → do NOT run.
+
+---
+
+CLAUSE 19 — DRILL COLLAR INSPECTION — OD WEAR, FISHING NECK, ELEVATOR GROOVE
+[API RP 7G-2 Clause 13.1, 13.2, 13.3, Table 13.1]
+
+Drill collar inspection (فحص أثقال الحفر) covers the full collar body OD for wear, the fishing neck (رقبة الصيد / عنق الصيد) dimensions, the elevator groove (حفرة الرافعة / أخدود الرافعة), and both box and pin connections. The collar body (جسم ثقل الحفر) is typically 8-12" OD with minimal wall — wear beyond acceptance limits compromises bending stiffness and WOB transfer efficiency. The fishing neck must maintain its OD within the acceptable range for standard overshots and spear tools — a worn fishing neck cannot be caught by standard fishing tools and requires special fishing equipment (معدات صيد خاصة), increasing fishing risk and cost in a stuck pipe situation. The elevator groove (خدش الرافعة) must be free from cracks, notches, and damage that could cause the elevator to slip and drop the collar.
+
+ACCEPTANCE (Per API RP 7G-2 Table 13.1 — representative values):
+  - Body OD wear: Maximum allowable wear = 0.500" below new nominal OD for collars > 7".
+  - Fishing neck OD: Must be within ± 0.032" of the nominal fishing neck OD for standard overshot engagement.
+  - Elevator groove depth: 0.093"–0.125" (2.36–3.18 mm) — verify with gauge.
+  - Elevator groove width: Per API Spec 7-1 for the collar size — typically 0.625" (15.9 mm).
+  - Spiral groove drill collars: Spiral depth must not be reduced by > 1/3 of original depth.
+
+REJECTION:
+  - Body OD wear > 0.500" below nominal (collars > 7" OD) → REJECT for drilling service.
+  - Fishing neck OD outside ± 0.032" tolerance → REJECT — fishing risk unacceptable.
+  - Elevator groove shows transverse crack → ZERO TOLERANCE → SCRAP.
+  - Elevator groove depth < 0.080" (2.03 mm) → REJECT — elevator will not seat.
+  - Stress relief groove absent or damaged on pin → REJECT per API Spec 7-1.
+
+---
+
+CLAUSE 20 — HWDP INSPECTION — WELD AREA UT AND CENTER UPSET MINIMUM OD
+[API RP 7G-2 Clause 14.1, 14.2, 14.3]
+
+Heavy Weight Drill Pipe (HWDP / ماسورة الحفر الثقيلة) inspection addresses three unique structural zones not present in standard drill pipe: (1) the center upset (التوسع المركزي / الكولار المركزي), which provides the additional weight and acts as a wear protector; (2) the weld zone (منطقة اللحام) connecting the upset to the pipe body at each end; and (3) the transition from tool joint to pipe body at the internal/external upsets. The weld zone in HWDP is the most fatigue-sensitive location because the weld heat-affected zone (HAZ / منطقة التأثر الحراري للحام) has reduced ductility and modified microstructure compared to the base metal. Mandatory UT shear-wave inspection of the weld zone at both ends is required for Category 1 classification. The center upset OD is measured at its thickest point and compared to the applicable minimum for the HWDP size.
+
+ACCEPTANCE:
+  - Center upset OD minimum: Must be ≥ 1.000" (25.4 mm) greater than pipe body OD for standard HWDP (e.g., 5" HWDP: center OD ≥ 6.000").
+  - Weld zone UT: No reflectors exceeding 20% of the full-screen-height (FSH) reference response.
+  - Weld face: No cracks, undercut > 1/32" (0.8 mm), or incomplete fusion visible.
+  - Pipe body wall thickness (HWDP): Same thresholds as standard DP — 80%/70%/55%.
+
+REJECTION:
+  - Any crack indication in weld zone by UT or MPI → ZERO TOLERANCE → SCRAP.
+  - Center upset OD < minimum → REJECT — inadequate wear protection and WOB transfer.
+  - Weld undercut > 1/16" (1.6 mm) depth → REJECT.
+  - HAZ hardness (if tested) > 350 HV10 → REJECT — H₂S embrittlement risk.
+  - Weld area showing external erosion channels → REJECT — suspected partial washout.
+
+---
+
+CLAUSE 21 — MPI OF TOOL JOINTS — WET FLUORESCENT MT, COVERAGE AREA
+[API RP 7G-2 Clause 15.1, 15.2, 15.3]
+
+Magnetic Particle Inspection (MPI / فحص الجسيمات المغناطيسية) of tool joints is performed using the wet fluorescent magnetic particle method (طريقة الجسيمات المغناطيسية الرطبة المضيئة) under ultraviolet (UV-A) black light (ضوء الأشعة فوق البنفسجية) to detect surface and near-surface cracks in the tool joint pin and box. MPI coverage must include: full 360° of the pin tool joint body OD, pin nose face, shoulder face, and full thread flank area accessible from the pin end; full 360° of box OD, shoulder face, and box bore; and the box bore thread flanks using an internal magnetization technique or flexible coil. The wet fluorescent bath concentration must be maintained between 0.1–0.4 mL per 100 mL (per ASTM E709 / API RP 7G-2 Annex C requirements) and verified with a centrifuge tube before each shift. UV lamp intensity must be ≥ 1000 μW/cm² at the inspection surface and confirmed with a calibrated UV radiometer.
+
+ACCEPTANCE:
+  - No linear MPI indications ≥ 1/16" (1.6 mm) in any direction.
+  - Rounded indications (porosity-type): Maximum 3 per 6" area, no single indication > 1/8" (3.2 mm) diameter.
+  - UV lamp intensity: ≥ 1000 μW/cm² at inspection surface — verified and logged.
+  - Bath concentration: 0.1–0.4 mL/100 mL — verified and logged per shift.
+
+REJECTION — ZERO TOLERANCE:
+  - Any linear MPI indication ≥ 1/16" (1.6 mm) in thread area → SCRAP.
+  - Any transverse linear indication anywhere on pin or box → SCRAP — do not attempt recut.
+  - Any indication in the shoulder face area → REJECT pending further UT.
+  - Equipment not calibrated or UV intensity < 1000 μW/cm² → stop inspection, recalibrate, re-inspect all pipe in that batch.
+
+---
+
+CLAUSE 22 — STABBING DAMAGE — CRUSHED THREAD, GALL DAMAGE CRITERIA
+[API RP 7G-2 Clause 8.7, 8.8]
+
+Stabbing damage (تلف الطعن / تلف الإدخال) occurs when the pin connection (دبوس الاتصال) is improperly stabbed into the box — either off-center, at angle, or under rotary motion before proper thread engagement — resulting in crushed thread crests (قمم خيط مسحوقة), galled flanks (انزلاق ودمار الخيط), and torn thread form. On a drill floor, stabbing damage is most common during tripping in (إدخال سلسلة الحفر) under time pressure or with inadequate roughneck control. Galling (الاحتكاك الشديد / التلحيم البارد) is a form of adhesive wear where the thread metal transfers from one surface to another under high local contact stress — it appears as a rough, torn, or dragged metal surface that cannot be mistaken for corrosion or erosion. Galled threads cannot be reliably gauged and must be rejected.
+
+ACCEPTANCE:
+  - Minor crest damage (single flattened crest, < 1/4 of thread length): ACCEPTABLE for Class 2 if adjacent threads are full-form and gauge passes.
+  - Light galling covering < 2 thread flanks and < 3/8" (9.5 mm) length: Conditional — re-dress with thread file and re-examine; if form restored, may accept for Class 2.
+
+REJECTION:
+  - Crushed (collapsed) thread crest on > 2 consecutive threads → REJECT.
+  - Galling covering > 3 thread flanks or > 3/4" (19.1 mm) in any direction → REJECT.
+  - Any thread where metal has transferred visibly onto the adjacent flank → REJECT — torn metal is a fatigue initiator.
+  - Stabbing damage on pin nose bevel (crushed bevel edge) → REJECT — will not make-up correctly.
+  - Any stabbing-damaged thread that fails gauge test → REJECT — no gauge exemption.
+
+---
+
+CLAUSE 23 — FINAL MARKING AND COLOR CODING — FIELD INTERPRETATION
+[API RP 7G-2 Clause 16.1, 16.2, Table 16.1]
+
+After classification, every drill stem element (عنصر عمود الحفر) must be permanently marked and color-banded so the classification is visible and unambiguous at the rig floor (أرضية الحفر / شبة الحفر) without requiring access to the inspection certificate. Color bands (أشرطة ملونة) are applied to the tool joint OD or pipe body using paint or colored bands of 2" (50.8 mm) minimum width. The marking must include: element classification category, inspector company identification, inspection date (month/year), and job or certificate number. The color code system is standardized across the industry (adopted by IADC, DS-1, and API RP 7G-2) and MUST NOT be substituted with non-standard colors or custom schemes without written operator approval. Marking permanence is required — tape-only marking is NOT acceptable as the final field marking.
+
+STANDARD COLOR CODE (Per API RP 7G-2 Table 16.1):
+  ┌──────────────────────────────────┬───────────────────────────────────────┐
+  │ Color Band                       │ Classification / Meaning              │
+  ├──────────────────────────────────┼───────────────────────────────────────┤
+  │ WHITE (أبيض)                     │ Category 1 — PREMIUM                  │
+  │ YELLOW (أصفر)                    │ Category 2 — CLASS 2                  │
+  │ ORANGE (برتقالي)                 │ Category 3 — CLASS 3 (restricted)     │
+  │ RED (أحمر)                       │ REJECT / SCRAP — do not run           │
+  │ BLUE (أزرق) — where used         │ Inspect/Hold — pending re-inspection  │
+  └──────────────────────────────────┴───────────────────────────────────────┘
+
+ADDITIONAL MARKINGS:
+  - Stencil on tool joint: Pipe grade, OD, weight, connection, inspection company, date.
+  - New hardbanding: Mark with "HB" or "CF-HB" (casing-friendly) on joint.
+  - Rejected joints: Mark RED band PLUS stamp "REJECT" with die stamp on tool joint face.
+
+ACCEPTANCE: Full color band + stencil marking present and legible before loading for rig.
+REJECTION:
+  - Any element without legible color band → Hold — do NOT run until marked.
+  - Mismatched marking (yellow band but Premium certificate) → Hold, re-inspect.
+  - Red-banded element loaded on rig floor → stop operation, remove immediately.
+
+---
+
+CLAUSE 24 — INSPECTION REPORT REQUIREMENTS — MINIMUM DATA PER CERTIFICATE
+[API RP 7G-2 Clause 17.1, 17.2, Annex D]
+
+The inspection certificate (شهادة الفحص / تقرير الفحص) is the legal and technical record (السجل الفني والقانوني) of the inspection performed, and must be retained by both the inspection company and the operator (المشغل / شركة النفط) for the service life of the element plus a minimum of 3 years after the element is scrapped or retired. Certificates must be signed and stamped by a qualified Level II or Level III inspector per the applicable NDT qualification standard (ASNT, PCN, or CSWIP as recognized in the jurisdiction). Every certificate must be traceable to the specific joints inspected by joint serial number (رقم التسلسلي للمفصل), heat number, or unique die-stamp marking — "batch" certificates covering multiple joints without individual joint traceability are NOT acceptable under API RP 7G-2 Annex D. Digital certificates are acceptable when the electronic system provides audit trail, tamper-evidence, and authorized signatory controls.
+
+MINIMUM REQUIRED DATA ON EVERY INSPECTION CERTIFICATE:
+  1. Client / Operator name and rig/location identifier.
+  2. Inspection company name, address, and certification body approval reference.
+  3. Inspector name, qualification level, and certificate number.
+  4. Date of inspection (each individual inspection date if multi-day job).
+  5. Standard applied: API RP 7G-2, 2nd Edition.
+  6. Inspection methods performed (VI, UT, EMI, MPI, dimensional — all listed).
+  7. Equipment identification and calibration reference for each instrument used.
+  8. Joint identification: OD, weight, grade, connection, serial/heat number per joint.
+  9. Measured values: Min wall%, min OD, tool joint OD, tong space — per joint.
+  10. Classification result per joint: Premium / Class 2 / Class 3 / Reject.
+  11. Reject reason for any rejected joint — specific defect type and location.
+  12. Color band applied — confirmed by inspector signature.
+  13. Calibration records: Date, instrument serial, calibration reference standard.
+  14. Inspector signature, stamp, and date.
+
+ACCEPTANCE: Certificate complete with all 14 data elements present, signed, and stamped.
+REJECTION:
+  - Missing joint-level traceability (serial/heat number) → certificate INVALID — re-inspect.
+  - Inspector qualification expired at time of inspection → certificate INVALID.
+  - Calibration records absent or showing out-of-tolerance equipment → results INVALID, re-inspect.
+  - Any alteration to a certificate without authorized counter-signature → REJECT — treat as fraudulent document.
+
+---
+
+================================================================================
+  SUMMARY — ZERO TOLERANCE DEFECTS (AUTOMATIC SCRAP / REJECT)
+  Per API RP 7G-2, 2nd Edition — No Exceptions in Any Category
+================================================================================
+
+  ZT-01: Any crack (fatigue, stress corrosion, mechanical) anywhere on any element.
+  ZT-02: Any washout (through-wall or near-through penetration).
+  ZT-03: Wall thickness < 55% of nominal (below Class 3 threshold).
+  ZT-04: Failed drift mandrel (bore restriction).
+  ZT-05: Any MPI linear indication ≥ 1/16" (1.6 mm) in thread or shoulder area.
+  ZT-06: Galling covering > 3 thread flanks on any connection.
+  ZT-07: Elevator groove crack on drill collar.
+  ZT-08: Weld zone crack in HWDP.
+  ZT-09: Missing or fraudulent inspection certificate.
+  ZT-10: Red color band — element must not be run under any operational pressure.
+
+================================================================================
+  END OF KNOWLEDGE FILE — API RP 7G-2 DRILL STEM INSPECTION
+  Total Clauses: 24 | Standard: API RP 7G-2, 2nd Edition
+  Document prepared for AI Inspection Assistant — MENA Region Operations
+================================================================================

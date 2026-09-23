@@ -1,0 +1,156 @@
+[STANDARD: API 570]
+[TITLE: Piping Inspection Code: In-service Inspection, Rating, Repair, and Alteration of Piping Systems]
+[EDITION: 4th Edition]
+
+[CLAUSE: 1.1 — Scope]
+API 570 covers inspection, rating, repair, and alteration procedures for metallic piping systems that have been placed in service. It applies to: process piping, utility piping, and certain other piping covered by ASME B31.3. It does NOT apply to: new construction (covered by ASME B31.3), buried piping (except as noted), instrument tubing, or boiler external piping. It is intended for use by the petroleum refining and chemical process industries.
+---
+
+[CLAUSE: 2.1 — Piping Inspection Classes]
+ALL PROCESS PIPING SHALL BE CLASSIFIED into one of the following inspection classes based on the consequence of failure:
+
+CLASS 1 — HIGHEST CONSEQUENCE:
+Piping systems where a leak could cause: immediate danger to personnel, fire or explosion hazard, or significant environmental damage. Examples: hydrogen service, HF acid, Class 4 fluids per ASME B31.3 (highly toxic), high-pressure steam, flammable liquids above autoignition temperature, piping in high-vibration or fatigue service.
+INSPECTION INTERVAL: Maximum 5 years for thickness measurement. Maximum 5 years for external visual.
+
+CLASS 2 — HIGH CONSEQUENCE (MOST COMMON):
+The normal classification for most process piping. Includes: hydrocarbons that do not fall into Class 1, steam above 50 psig, process water and cooling water that could cause environmental damage.
+INSPECTION INTERVAL: Maximum 10 years for thickness measurement. Maximum 5 years for external visual.
+
+CLASS 3 — LOWER CONSEQUENCE:
+Piping systems where a small leak would not immediately endanger personnel and could be controlled. Examples: flammable services below 10 psig and below 120°F (49°C), steam below 50 psig, water services.
+INSPECTION INTERVAL: Maximum 10 years for thickness measurement. Maximum 10 years for external visual.
+
+ACCEPTANCE: Piping classified per above and inspection performed within applicable intervals.
+REJECTION: Piping without a current inspection classification. Inspection intervals exceeded without documented engineering extension.
+---
+
+[CLAUSE: 5.1 — General Inspection Practices]
+EXTERNAL VISUAL INSPECTION:
+The piping inspector shall perform external visual inspection of piping at appropriate intervals. External visual inspection shall include: check for leaks, check corrosion (external), insulation condition, support condition, settlement, vibration, damage from adjacent equipment, and paint/coating condition.
+MINIMUM INSPECTION SCOPE:
+- All flanged and threaded connections: check for leaks and corrosion
+- Pipe supports and hangers: check for missing, damaged, or corroded supports
+- Expansion joints and bellows: check for bellows damage and drain condition
+- Valves: check packing glands for leaks, check operator condition
+- Small-bore connections and vents/drains: check for vibration damage, corrosion
+ACCEPTANCE: No active leaks. All supports intact. No severe external corrosion. All small-bore connections visually sound.
+REJECTION: Any active leak regardless of size. Missing critical pipe support. Severe external corrosion (visibly compromised wall). Vibrating small-bore connection without engineer assessment.
+---
+
+[CLAUSE: 5.2 — Internal Inspection and Thickness Measurement]
+CORROSION RATE CALCULATION:
+The corrosion rate (CR) shall be calculated from thickness measurements:
+Long-term CR = (Initial thickness − Current thickness) ÷ Years in service
+Short-term CR = (Previous thickness − Current thickness) ÷ Years since previous measurement
+USE THE HIGHER OF THE TWO corrosion rates for remaining life calculation.
+
+REMAINING LIFE CALCULATION:
+Remaining life (years) = (Current thickness − Minimum required thickness) ÷ Corrosion rate
+
+NEXT INSPECTION DUE:
+Next inspection interval = Remaining life ÷ 2 (half-life rule)
+But not to exceed the maximum interval for the pipe class (5 or 10 years).
+ACCEPTANCE: Remaining life > 2× next planned inspection interval.
+REJECTION: Remaining life < 2× next planned inspection interval — reduce interval or repair. Actual thickness less than minimum required thickness — immediate repair or retirement required.
+
+MINIMUM REQUIRED THICKNESS:
+For pressure piping per ASME B31.3: t_min = (P × D) ÷ (2 × (S × E + P × Y))
+Where: P = design pressure, D = outside diameter, S = allowable stress, E = quality factor, Y = coefficient from Table 304.1.1.
+ACCEPTANCE: Actual measured thickness ≥ t_min at all measurement points.
+REJECTION: Any measured thickness < t_min — retire or repair segment immediately.
+---
+
+[CLAUSE: 5.3 — Inspection of Specific Components]
+ELBOWS AND BENDS (highest wear areas):
+Take minimum 4 thickness readings on each elbow: intrados (inside of curve — highest erosion), extrados (outside), and two sides. Document all four.
+ACCEPTANCE: All 4 readings ≥ t_min.
+REJECTION: Any reading < t_min. Any reading showing corrosion rate exceeding that of adjacent straight pipe by >2× without engineering assessment.
+
+REDUCERS AND BRANCH CONNECTIONS:
+These are transition areas with stress concentrations. Inspect for: corrosion at transition welds, cracking at crotch area of branch connections.
+MT or PT on branch connection welds at each detailed inspection.
+ACCEPTANCE: No cracks at branch crotch. Thickness ≥ t_min at transition.
+REJECTION: Any crack at branch connection weld. Thickness < t_min. Evidence of vibration cracking (often seen as circumferential crack at branch-to-run weld).
+
+FLANGED JOINTS:
+Inspect bolt condition: corrosion, missing nuts, incorrect bolt material for service. Check flange face condition when joint is opened for any reason.
+ACCEPTANCE: All bolts present, correct material, no through-corrosion. Flange face: no pitting deeper than 1.5 mm (1/16 in) in gasket seating area.
+REJECTION: Missing bolts. Bolts with through-thread corrosion. Flange face pitting >1.5 mm in gasket area. Incorrect bolt material for service temperature or fluid.
+
+DEADLEGS (Sections with No Flow):
+Deadlegs accumulate corrosive products and corrode from the inside at much higher rates than active piping. ALL deadlegs shall be identified and placed on an increased inspection frequency — minimum every 3 years regardless of pipe class.
+ACCEPTANCE: All deadlegs identified, documented, and on increased inspection schedule.
+REJECTION: Unidentified deadlegs. Deadleg on same inspection frequency as active piping without engineering justification.
+---
+
+[CLAUSE: 5.4 — CUI — Corrosion Under Insulation]
+CUI is one of the most common failure mechanisms in process piping. Inspection shall address CUI for insulated piping in the following temperature ranges:
+CARBON STEEL: -4°C to 149°C (25°F to 300°F) — prime CUI range. Moisture condenses and traps under insulation causing accelerated corrosion.
+STAINLESS STEEL AND CRAs: -4°C to 149°C (25°F to 300°F) — Chloride stress corrosion cracking (CSCC) risk.
+INSPECTION METHOD FOR CUI: Remove insulation for visual and thickness measurement, OR use radiographic profile RT or neutron backscatter to inspect without insulation removal.
+
+CUI INSPECTION PRIORITY AREAS:
+- Pipe at grade level (ground contact or near-grade, moisture ingress)
+- Pipe near steam tracing (temperature cycling causes moisture)
+- Pipe at supports (insulation often damaged, water traps here)
+- Low points in insulated pipe runs
+- Any pipe with damaged, missing, or discolored insulation jacket
+ACCEPTANCE: UT thickness ≥ t_min after CUI removal. No active corrosion at inspection points.
+REJECTION: Corrosion found at any CUI inspection point — expand inspection to additional locations. Thickness < t_min at any CUI location — immediate repair. Insulation jacketing with water staining that has not been investigated.
+---
+
+[CLAUSE: 6.1 — Injection Point Inspection]
+Injection points (chemical injection, water injection, steam injection into process piping) are HIGH PRIORITY locations because:
+- Turbulent mixing causes high local erosion/corrosion
+- Concentration effects at the injection nozzle tip cause accelerated attack
+- Deadleg-type corrosion in the injection line itself
+INJECTION POINT INSPECTION REQUIREMENTS:
+- The zone of inspection extends from 12 inches (300 mm) upstream to the first change of direction (elbow) downstream of the injection point
+- Inspect this zone with increased frequency: minimum every 3 years
+- Take minimum 8 thickness readings in the zone: at injection point, 2 inches downstream, 4 inches downstream, at elbow intrados and extrados, and 12 inches upstream
+ACCEPTANCE: All thickness readings ≥ t_min. No concentration of corrosion at injection nozzle tip.
+REJECTION: Any reading < t_min in injection zone. CR in injection zone >3× CR of rest of line — increase frequency immediately.
+---
+
+[CLAUSE: 7.1 — Repairs and Alterations — General]
+Repairs shall be performed in accordance with the original construction code (ASME B31.3) or an approved alternative repair procedure. All repairs require:
+- Authorization from the piping engineer before work commences
+- A repair procedure (WPS if welding involved)
+- Inspection during and after repair
+- Pressure test if required by repair type
+- Documentation in the piping record
+
+TEMPORARY REPAIRS:
+Temporary repairs (clamps, leak boxes, encapsulation) may be used when permanent repair cannot be immediately performed. Temporary repairs require:
+- Engineering approval
+- Maximum duration documented (typically ≤1 year)
+- Tracked on repair register for follow-up
+ACCEPTANCE: Temporary repair approved, documented, and on tracking register with defined retirement date.
+REJECTION: Temporary repair without engineering approval. Temporary repair exceeding defined duration without re-approval.
+---
+
+[CLAUSE: 7.2 — Welded Repairs]
+Welded repairs to in-service piping shall use:
+- Qualified WPS per ASME IX
+- Qualified welders per ASME IX
+- Preheat per original code or qualified procedure
+- PWHT if required by original code or wall thickness
+- NDE per API 570 Table 9.1:
+  - Class 1 piping: 100% RT or UT of repair welds
+  - Class 2 piping: minimum 10% RT or UT of repair welds
+  - Class 3 piping: visual examination of repair welds
+- Pressure test per API 570 Section 9:
+  - Hydrostatic test preferred: 1.5× MAWP
+  - Pneumatic permitted with engineer approval: 1.1× MAWP
+ACCEPTANCE: WPS qualified, welder qualified, NDE per class, pressure test passes.
+REJECTION: Repair weld without qualified WPS or welder. NDE not performed per class requirement. Pressure test not performed when required.
+---
+
+[CLAUSE: 8.1 — MAWP Rerating]
+When actual piping condition (wall loss, damage) requires reducing the Maximum Allowable Working Pressure (MAWP), the new MAWP shall be calculated using the actual minimum measured thickness:
+MAWP_new = (2 × t_actual × S × E) ÷ (D − 2 × Y × t_actual)
+New MAWP shall be documented in the piping record and all pressure relief devices adjusted or replaced accordingly.
+ACCEPTANCE: Rerating calculation documented, new MAWP established and recorded, relief devices adjusted.
+REJECTION: Piping operated above its calculated MAWP based on actual wall thickness. Rerating without updating relief device settings.
+---

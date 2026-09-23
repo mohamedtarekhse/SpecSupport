@@ -1,0 +1,854 @@
+[STANDARD: AWS B1.11]
+[TITLE: Guide for the Visual Examination of Welds]
+[EDITION: 2000 (R2015)]
+[ARTICLE: Full Scope — Visual Weld Examination Guide]
+
+================================================================================
+GENERATED: 2026-09-23 | REGION: Egypt / MENA Oilfield Operations
+AUTHORITY: American Welding Society (AWS)
+COMPANION STANDARDS: AWS D1.1, AWS D1.6, ASME B31.3, API 1104
+LANGUAGE: English with Arabic oilfield terms (Egyptian/MENA usage)
+================================================================================
+
+--------------------------------------------------------------------------------
+CLAUSE 1 — SCOPE AND PURPOSE OF AWS B1.11 VISUAL EXAMINATION
+[Section: AWS B1.11 Clause 1.1 – 1.3]
+--------------------------------------------------------------------------------
+
+AWS B1.11 establishes the requirements, procedures, and guidance for performing
+visual examination (VT) (الفحص البصري) of welds in metallic structures and
+pressure-containing components. The standard applies to all weld types including
+fillet welds (لحام الزاوية), groove welds (لحام الأخدود), and plug/slot welds
+produced by any fusion welding process. Visual examination is the primary and
+most widely used nondestructive examination (NDE) (الفحص غير التدميري) method in
+welding quality assurance programs; it is the only method that can be applied at
+all three stages — before, during, and after welding. AWS B1.11 does not
+establish acceptance criteria independently; it is used in conjunction with the
+applicable construction standard (e.g., AWS D1.1 for structural steel, API 1104
+for pipelines) which governs the final acceptance/rejection decision.
+
+ACCEPTANCE:
+- VT program is documented and references both AWS B1.11 (procedure) and the
+  governing construction standard (acceptance criteria) — both documents must
+  be identified on the Inspection and Test Plan (ITP) (خطة الفحص والاختبار).
+- VT is performed at minimum at three stages: pre-weld, in-process, and
+  post-weld — all three stages must be recorded.
+
+REJECTION:
+- Any VT program that substitutes AWS B1.11 as the acceptance standard without
+  referencing the applicable construction code is non-conforming.
+- Post-weld VT performed without documented pre-weld and in-process records is
+  incomplete and the weld status must be placed on hold (تعليق) pending
+  review.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 2 — INSPECTOR QUALIFICATION REQUIREMENTS FOR VISUAL EXAMINATION
+[Section: AWS B1.11 Clause 4.1 – 4.3]
+--------------------------------------------------------------------------------
+
+AWS B1.11 Clause 4.1 requires that visual examination be performed only by
+qualified and certified personnel who have demonstrated competency in weld
+evaluation. Accepted qualification credentials include: AWS Certified Welding
+Inspector (CWI) (مفتش اللحام المعتمد من AWS), CSWIP 3.1 Welding Inspector
+(TWI-UK certification), ASNT Level II VT (الفحص البصري – المستوى الثاني),
+or personnel qualified to the requirements of the applicable construction
+standard. In the MENA oilfield (عمليات النفط والغاز — منطقة الشرق الأوسط
+وشمال أفريقيا), client companies (e.g., EGPC, ENI, BP Egypt) typically require
+CWI or CSWIP 3.1 as the minimum for structural and pressure piping VT. Senior
+inspectors may hold CWI Senior Welding Inspector (SCWI) for supervisory roles.
+All certifications must be current and valid at the time of inspection — an
+expired certificate is not acceptable under any circumstances.
+
+ACCEPTANCE:
+- Inspector holds valid (unexpired) CWI, CSWIP 3.1, or ASNT Level II VT
+  certification — certificate expiry date must be ≥ the date of inspection.
+- CWI certification cycle: 9-year recertification; CSWIP 3.1: 5-year renewal.
+- Inspector experience: minimum 2 years working experience in welding inspection
+  for pressure or structural applications, documented in resume/CV on file.
+
+REJECTION:
+- Inspector certification expired prior to date of weld inspection — all VT
+  results are invalid and inspection must be repeated by a qualified inspector.
+- Inspector holding only ASNT Level I VT performing final acceptance VT without
+  Level II supervision — non-conformance (عدم المطابقة).
+- Inspector with no documented formal qualification performing VT on
+  safety-critical welds — automatic stop-work, escalate to QA Manager.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 3 — EYE VISION REQUIREMENTS FOR VT INSPECTORS
+[Section: AWS B1.11 Clause 4.2]
+--------------------------------------------------------------------------------
+
+AWS B1.11 Clause 4.2 mandates that all inspectors performing visual examination
+demonstrate adequate near visual acuity (حدة الرؤية القريبة) before conducting
+weld inspections. The standard minimum requirement is the ability to read Jaeger
+Number 2 (J2) type or equivalent at a distance of not less than 12 inches
+(300 mm) with or without corrective lenses (نظارات طبية). Color perception
+(تمييز الألوان) testing is required when the inspector must distinguish color
+contrast during VT — a standard Ishihara color plate test or equivalent must be
+passed. Vision testing must be performed annually (كل سنة) and documented; test
+records must be retained in the inspector's personnel qualification file. An
+inspector who cannot demonstrate J2 near vision at 12 inches must not perform
+visual examination of welds, regardless of other qualifications held.
+
+ACCEPTANCE:
+- Near vision: reads Jaeger J2 or equivalent at ≥ 12 inches (300 mm) — with
+  or without corrective lenses, annually verified and documented.
+- Color vision: passes Ishihara 14-plate minimum test OR equivalent color
+  perception test — no more than 2 plate misidentifications permitted.
+- Vision test record on file and current (test date within 12 months of
+  inspection date).
+
+REJECTION:
+- Inspector cannot read Jaeger J2 at 12 inches — disqualified from VT until
+  vision is corrected and re-tested.
+- No annual vision test record available — inspector is not cleared for duty;
+  inspection results are suspect and must be verified.
+- Inspector with documented color blindness (عمى الألوان) performing unaided
+  color-contrast dependent VT — non-conforming; must be paired with a
+  color-sighted supervisor or use alternative contrast methods.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 4 — LIGHTING REQUIREMENTS FOR VISUAL EXAMINATION
+[Section: AWS B1.11 Clause 5.1 – 5.2]
+--------------------------------------------------------------------------------
+
+AWS B1.11 Clause 5.1 specifies that the examination surface (سطح الفحص) must
+be adequately illuminated to permit detection of discontinuities. The minimum
+required illuminance (شدة الإضاءة) on the examination surface is 1,000 lux
+(100 foot-candles) for direct VT as recommended by AWS B1.11 and affirmed by
+ASME V Article 9; a practical minimum of 500 lux (50 foot-candles) is the
+absolute floor below which VT must not proceed. In oilfield field conditions
+(conditions الحقل), natural daylight supplemented by portable LED inspection
+lamps (مصباح فحص LED محمول) is acceptable provided illuminance is verified with
+a calibrated lux meter (جهاز قياس الإضاءة) before starting work. Reflective
+glare and shadowing must be controlled — the light source must be positioned to
+maximize surface relief and discontinuity detection, not to create blind spots.
+Lux meter calibration must be current (within 12 months) and recorded on the
+inspection report.
+
+ACCEPTANCE:
+- Illuminance at examination surface ≥ 1,000 lux (100 fc) — preferred and
+  target value for all VT.
+- Minimum permissible illuminance: 500 lux (50 fc) — only acceptable in
+  areas where achieving 1,000 lux is physically impractical (e.g., confined
+  space, deep pipe ID access).
+- Lux meter reading recorded at start and end of each inspection shift on the
+  VT report.
+
+REJECTION:
+- Illuminance measured < 500 lux (< 50 fc) — VT must stop immediately;
+  additional lighting must be provided before inspection continues.
+- Lux meter used is uncalibrated or calibration expired — readings are invalid;
+  inspection is on hold until a calibrated instrument is used.
+- Inspection performed in direct sunlight causing specular glare with no
+  shielding — light conditions are non-compliant; reposition or shield the
+  light source.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 5 — VIEWING ANGLE AND DISTANCE REQUIREMENTS
+[Section: AWS B1.11 Clause 5.3 – 5.4]
+--------------------------------------------------------------------------------
+
+AWS B1.11 Clause 5.3 defines the geometric conditions under which direct visual
+examination is valid. The inspector's eye must be positioned within 24 inches
+(610 mm) of the examination surface (مسافة الفحص) and at an angle of not less
+than 30 degrees from the surface plane (زاوية الفحص). Angles below 30 degrees
+create severe foreshortening (تشوه المنظور) which prevents reliable detection of
+surface discontinuities, particularly planar flaws such as cracks and lack of
+fusion. Where direct access is not possible (e.g., pipe ID root surface, back
+side of weld), remote visual examination using mirrors (مرايا الفحص), borescopes
+(منظار الثقوب), or video-assisted equipment may be used, provided the resolution
+is equivalent to direct VT at the specified distance and angle. The use of
+optical aids (magnifying glass 2×–4×, borescope) is permitted and encouraged
+when finer evaluation of detected indications is required.
+
+ACCEPTANCE:
+- Viewing distance: inspector's eye ≤ 24 inches (610 mm) from the examination
+  surface.
+- Viewing angle: ≥ 30 degrees from the surface plane (i.e., ≥ 30° from
+  tangent to the surface at the point of examination).
+- Remote VT optical aids: image resolution equivalent to or better than 20/20
+  vision at 24 inches — verified by standard resolution test chart.
+
+REJECTION:
+- Inspector viewing weld surface at < 30 degrees from the surface plane — the
+  examination is invalid for that surface area; must be repeated at correct
+  angle.
+- Viewing distance > 24 inches without supplemental optical aids — examination
+  is non-compliant; inspector must reposition.
+- Remote VT equipment used without documented resolution qualification —
+  examination results cannot be accepted.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 6 — SURFACE CLEANING REQUIREMENTS BEFORE VT
+[Section: AWS B1.11 Clause 6.1 – 6.2]
+--------------------------------------------------------------------------------
+
+AWS B1.11 Clause 6.1 requires that the weld and adjacent base metal surface be
+cleaned of all materials that could mask or obscure surface discontinuities prior
+to visual examination. Slag (خبث اللحام), weld spatter (رذاذ اللحام), heavy
+scale (قشرة الأكسيد), paint, grease, and dirt must be removed from the weld bead
+and a minimum of 1 inch (25 mm) on each side of the weld toes (أطراف اللحام).
+Cleaning methods include wire brushing (فرشاة سلكية), chipping (إزالة الخبث),
+grinding (جلخ), and solvent wiping — but must not mask underlying defects or
+damage the weld surface. Flame cleaning is prohibited where it could alter the
+heat input to the heat-affected zone (منطقة التأثر الحراري). After cleaning,
+the surface must be visually dry and free of cleaning agent residues before VT
+commences. In the field on pipelines and structural steel, the inspection team
+must verify cleaning quality before the inspector is called to the weld.
+
+ACCEPTANCE:
+- Weld surface and ≥ 1 inch (25 mm) each side of weld toes: free of slag,
+  spatter, heavy scale, grease, paint, and debris.
+- Surface is dry and free of cleaning agent residue.
+- Weld bead color: light gray or metallic — indicating proper interpass
+  cleaning; no heavy black oxide layer remaining.
+
+REJECTION:
+- Any slag islands (جزر الخبث) remaining on weld surface — cleaning is
+  incomplete; VT must not proceed until slag is fully removed.
+- Spatter accumulation within 1 inch of weld toes not removed — rejects
+  cleaning QC; spatter must be removed.
+- Surface wet with water, solvent, or coating material — VT on hold; surface
+  must dry completely before examination begins.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 7 — PRE-WELD VISUAL EXAMINATION — FIT-UP INSPECTION
+[Section: AWS B1.11 Clause 7.1 – 7.5]
+--------------------------------------------------------------------------------
+
+AWS B1.11 Clause 7.1 establishes that pre-weld visual examination is mandatory
+and must be completed and documented before any welding commences. The pre-weld
+VT (الفحص البصري قبل اللحام) covers joint fit-up geometry including: root
+opening / root gap (فتحة الجذر), root face / land (وجه الجذر), groove angle /
+bevel angle (زاوية الشطب), and high-low misalignment (سوء المحاذاة — هاي-لو).
+Additionally, base metal condition must be checked for laminations, gouges, and
+pre-existing cracks at the bevel faces. Tack welds (لحامات التثبيت) must be
+inspected for cracks, porosity, and adequate size; defective tack welds must be
+removed entirely, not just ground flush. Measuring tools for pre-weld VT include:
+root gap gauge (مقياس فتحة الجذر), hi-lo gauge (مقياس الهاي-لو), protractor
+(منقلة الزاوية), and straight edge.
+
+ACCEPTANCE (per AWS D1.1 Table 6.1 — referenced by B1.11 for structural):
+- Root gap (butt weld, SMAW/FCAW): 1/16 inch to 3/16 inch (1.6 – 4.8 mm).
+- Root face (land): 0 – 1/8 inch (0 – 3.2 mm) per WPS (وثيقة مواصفة إجراء
+  اللحام).
+- Groove angle: per WPS ± 5 degrees — typical 60° ± 5°.
+- Hi-lo (linear misalignment): ≤ 1/16 inch (1.6 mm) for t ≤ 3/4 inch;
+  ≤ 10% of t or 1/8 inch (3.2 mm) max for t > 3/4 inch.
+- Tack welds: no cracks, no visible porosity — cracked tacks must be removed.
+
+REJECTION:
+- Root gap < 1/16 inch (1.6 mm) — risk of incomplete root fusion; must be
+  re-fit.
+- Root gap > 3/16 inch (4.8 mm) without engineer-approved backing or weld
+  procedure revision — reject fit-up.
+- Hi-lo > 1/8 inch (3.2 mm) on t > 3/4 inch or > 1/16 inch on t ≤ 3/4 inch
+  — reject fit-up; realign before welding.
+- Any crack detected on tack weld or bevel face — tack must be removed; base
+  metal crack must be reported and evaluated per engineering hold (توقف
+  هندسي).
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 8 — IN-PROCESS VISUAL EXAMINATION — ROOT PASS AND INTERPASS
+[Section: AWS B1.11 Clause 7.6 – 7.8]
+--------------------------------------------------------------------------------
+
+AWS B1.11 Clause 7.6 mandates in-process visual examination at defined
+inspection hold points (نقاط التوقف للفحص) during welding. The most critical
+in-process VT is inspection of the root pass (تمريرة الجذر) before any
+subsequent fill passes are deposited; once the root is buried, surface VT of the
+root is impossible and RT/UT would be required to detect root defects. Each
+interpass (التمريرة البينية) must be visually checked and cleaned before the next
+pass is deposited — slag inclusions trapped between passes will create embedded
+defects. The inspector must verify that the welder is following the qualified WPS
+for preheat temperature (درجة حرارة ما قبل اللحام), interpass temperature
+(درجة حرارة ما بين التمريرات), and electrode/wire specification. Any cold lap
+(تداخل بارد), undercut (قطع أسفل اللحام), or cracks found in-process must be
+corrected before the next pass is deposited.
+
+ACCEPTANCE:
+- Root pass: full penetration on pipe OD side — visible root bead with no
+  burn-through > 1/4 inch (6 mm) in any direction; root concavity ≤ 1/32
+  inch (0.8 mm) for pipe welds.
+- Each interpass: free of slag, cracks, and cold lap before next pass; surface
+  is bright metallic after brushing.
+- Interpass temperature: ≤ maximum specified in WPS (typically 300°C / 572°F
+  for carbon steel); measured with contact pyrometer (ميزان الحرارة التلامسي)
+  or temp-stick.
+
+REJECTION:
+- Root pass with burn-through > 1/4 inch (6 mm) long — stop welding; repair
+  required before fill passes.
+- Cold lap (تداخل بارد) visible on any interpass surface — no fill pass until
+  cold lap is ground out and re-inspected.
+- Crack detected on any interpass — stop welding immediately; evaluate extent
+  and perform weld repair (إصلاح اللحام); re-inspect repaired area.
+- Interpass temperature exceeding WPS maximum — stop welding; allow cooling;
+  document deviation; evaluate for heat input effect.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 9 — POST-WELD VISUAL EXAMINATION — FINAL WELD PROFILE INSPECTION
+[Section: AWS B1.11 Clause 7.9 – 7.11]
+--------------------------------------------------------------------------------
+
+AWS B1.11 Clause 7.9 defines the requirements for post-weld visual examination
+(الفحص البصري بعد اللحام) which is the final gate before a weld is released for
+service, painting, or further NDE (PT, MT, UT, RT). Post-weld VT must be
+performed after all welding, including repairs, is complete and after the weld
+has cooled to ambient temperature (unless the construction code permits hot
+inspection, which must be documented). The inspector examines the full weld
+length for profile conformance, surface discontinuities, dimensional compliance,
+and weld identification marks. Post-weld VT must cover both weld faces and both
+toe lines (حد الاندماج مع المعدن الأساسي) — inspecting only the weld crown
+face and ignoring the weld toes is a common field error. All final VT results
+must be recorded on a formal VT examination report with weld ID, inspector name,
+date, and disposition (قبول / رفض).
+
+ACCEPTANCE:
+- Weld completely cooled to ambient before VT commences (unless hot VT is WPS/
+  code-approved and documented).
+- Full weld length examined on all accessible surfaces — 100% length coverage
+  documented on report.
+- All weld identification (joint number, weld number, welder ID stamp) legible
+  on the joint.
+
+REJECTION:
+- VT performed on hot weld (> 50°C above ambient) without code authorization —
+  results invalid; must be repeated after cooling.
+- Less than 100% weld length coverage documented — incomplete VT; extend
+  examination to full length.
+- Missing welder identification stamp — non-conformance; weld traceability is
+  compromised; NCR (تقرير عدم المطابقة) to be raised.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 10 — WELD DIMENSIONS: SIZE, WIDTH, AND REINFORCEMENT LIMITS
+[Section: AWS B1.11 Clause 8.1 – 8.4]
+--------------------------------------------------------------------------------
+
+AWS B1.11 Clause 8.1 requires that weld dimensions be verified as conforming to
+the design drawing (رسم التصميم) and WPS requirements. For fillet welds
+(لحام الزاوية), the leg size (طول الساق) and effective throat (الحلق الفعلي)
+must meet minimum drawing requirements. For groove welds (لحام الأخدود),
+reinforcement height (ارتفاع التدعيم) on both crown and root sides must be
+within permitted limits — excessive reinforcement creates a stress concentration
+that reduces fatigue life. Weld width (عرض اللحام) must be sufficient to achieve
+full penetration without excessive heat input; narrow welds in wide grooves
+indicate insufficient weave or travel speed errors. Dimensional measurement tools:
+fillet weld gauge (مقياس لحام الزاوية / Hi-Lo gauge), weld reinforcement gauge
+(مقياس التدعيم), and vernier caliper (فرجار ورنييه).
+
+ACCEPTANCE (per AWS D1.1 Clause 5.24):
+- Groove weld crown reinforcement: ≤ 1/8 inch (3.2 mm) for t ≤ 1/4 inch;
+  ≤ 3/16 inch (4.8 mm) for t > 1/4 inch.
+- Fillet weld leg: ≥ required leg size per drawing; undersize ≤ 1/16 inch
+  (1.6 mm) under specified size permitted for ≤ 10% of weld length.
+- Weld width: consistent along length — no abrupt width variations > 25% of
+  nominal width.
+
+REJECTION:
+- Crown reinforcement > 3/16 inch (4.8 mm) — excess reinforcement; grind flush
+  or to code limit; re-inspect.
+- Fillet weld leg undersize > 1/16 inch (1.6 mm) for > 10% of weld length —
+  reject; add weld pass to restore size.
+- Root reinforcement (pipe internal bead) < 0 mm (flush or concave) or
+  > 3.2 mm (1/8 inch) — reject; evaluate for repair.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 11 — SURFACE CRACKS — ZERO TOLERANCE RULE
+[Section: AWS B1.11 Clause 8.5; AWS D1.1 Clause 6.9.1]
+--------------------------------------------------------------------------------
+
+AWS B1.11 Clause 8.5, in conjunction with all referenced construction standards,
+establishes absolute zero tolerance for surface cracks (شقوق السطح) in structural
+and pressure-retaining welds. A crack (شق / صدع) is a planar discontinuity
+characterized by a sharp tip and high aspect ratio (length >> width) — this
+geometry creates severe stress intensification that can cause brittle fracture
+without warning. Cracks may appear as: weld metal cracks (hot cracks/
+solidification cracks), heat-affected zone (HAZ) cracks (cold cracks /
+hydrogen-induced cracking — تشقق بسبب الهيدروجين), underbead cracks, crater
+cracks (شقوق الحفرة الختامية), and toe cracks. Any linear indication detected
+during VT that cannot be proven to be benign (e.g., a scrape mark or tool
+mark) must be treated as a crack until proven otherwise by PT or MT. There is
+no minimum crack length for rejection — even a hairline crack (0.1 mm length)
+is cause for rejection.
+
+ACCEPTANCE:
+- No cracks of any type, orientation, or length are acceptable — zero
+  tolerance applies to all weld zones: weld metal, fusion line, HAZ, and
+  adjacent base metal within 1 inch (25 mm) of weld toe.
+- Visual indication that appears crack-like but is confirmed as a tool mark /
+  scratch by PT or MT with no bleed-out — may be accepted with documentation.
+
+REJECTION:
+- Any crack detected on weld surface, at weld toe, at crater, or in HAZ —
+  immediate rejection; stop further fabrication on that joint; raise NCR.
+- Crater crack (شق حفرة الختام) at weld stop position — reject; grind out
+  crater and re-weld with proper run-out technique.
+- Any linear indication > 1 mm length that cannot be confirmed as a non-crack
+  by supplemental NDE (PT/MT) — must be treated as crack; reject pending NDE
+  disposition.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 12 — POROSITY — VISUAL LIMITS (SIZE, FREQUENCY, GROUPING)
+[Section: AWS B1.11 Clause 8.6; AWS D1.1 Table 6.1]
+--------------------------------------------------------------------------------
+
+AWS B1.11 Clause 8.6 addresses surface-breaking porosity (المسامية السطحية) —
+gas pockets that are visible on the weld surface as round or elongated pits.
+Surface porosity is the visible portion of what may be a more extensive internal
+porosity network; therefore, its discovery during VT must trigger a root-cause
+analysis of shielding gas, electrode condition, and joint cleanliness. For
+structural steel welds per AWS D1.1, visible surface porosity is limited by
+diameter and cluster rules. In oilfield pipeline applications per API 1104
+Section 9.3.2, the rules are even stricter due to the cyclic loading and
+internal pressure service. Porosity in the crater (مسامية حفرة الختام) is
+particularly dangerous as it often indicates gas entrapment at the weld stop —
+always inspect weld starts and stops carefully.
+
+ACCEPTANCE (per AWS D1.1 Clause 6.9.3 for structural):
+- Individual pore diameter: ≤ 3/32 inch (2.4 mm).
+- Sum of visible pore diameters in any linear inch of weld: ≤ 3/8 inch
+  (9.5 mm).
+- Cluster porosity: no cluster larger than 1 inch (25 mm) diameter; clusters
+  separated by ≥ 6 inches (150 mm).
+- Frequency: ≤ 6 individual pores per linear foot (300 mm) of weld.
+
+REJECTION:
+- Any individual pore > 3/32 inch (2.4 mm) diameter — reject; grind and
+  repair.
+- Sum of pore diameters > 3/8 inch (9.5 mm) in any 1-inch weld length — reject.
+- Crater pipe (أنبوب الحفرة): elongated shrinkage cavity at weld stop — reject;
+  grind out and re-weld.
+- Any surface porosity on pipe butt welds per API 1104: individual pore >
+  1/8 inch (3.2 mm) OR more than 5 pores in any 12-inch (300 mm) weld
+  length — reject.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 13 — UNDERCUT — DEPTH LIMITS PER STRUCTURAL APPLICATION
+[Section: AWS B1.11 Clause 8.7; AWS D1.1 Clause 6.9.4]
+--------------------------------------------------------------------------------
+
+Undercut (القطع الأسفلي / القطع تحت اللحام) is a groove melted into the base
+metal adjacent to the weld toe (حافة اللحام) that is not refilled by weld metal,
+leaving a sharp notch at the toe. Undercut is caused by excessive welding current,
+incorrect electrode angle, excessive travel speed, or poor weaving technique. It
+is one of the most dangerous surface discontinuities because the sharp notch at
+the toe acts as a stress concentration site for fatigue cracking — particularly
+critical in cyclic loading environments such as offshore structures, rotating
+equipment skids, and pressure vessels in pulsating service. Undercut depth must
+be measured with a calibrated depth gauge (مقياس العمق المعايَر) — visual
+estimation alone is not acceptable for borderline cases. Both weld toes (inner
+toe and outer toe on fillet welds; crown toe and root toe on groove welds) must
+be checked.
+
+ACCEPTANCE (per AWS D1.1 Clause 6.9.4):
+- Primary structural members in tension (under tensile load): undercut depth
+  ≤ 0.010 inch (0.25 mm) maximum.
+- Secondary structural members and compression members: undercut depth ≤ 1/32
+  inch (0.8 mm) maximum, provided length ≤ 2 inches (50 mm) in any 12-inch
+  (300 mm) weld length.
+- Pipeline welds per API 1104 Clause 9.3.9: undercut depth ≤ 1/32 inch
+  (0.8 mm) and length ≤ 1 inch (25 mm) total in any 12-inch (300 mm).
+
+REJECTION:
+- Undercut depth > 0.010 inch (0.25 mm) on tension members — reject; repair
+  by welding (deposit additional weld metal to fill the undercut groove).
+- Undercut depth > 1/32 inch (0.8 mm) on any member — reject.
+- Undercut running continuously along full weld toe for > 10% of weld length
+  on any member — reject regardless of depth; indicates systemic welding
+  technique problem; WPS or welder technique review required.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 14 — OVERLAP (COLD LAP) — REJECTION CRITERIA
+[Section: AWS B1.11 Clause 8.8]
+--------------------------------------------------------------------------------
+
+Overlap, also called cold lap (تداخل بارد) or rollover, is a protrusion of weld
+metal beyond the weld toe that has not fused with the base metal — the molten
+weld pool has rolled over without creating metallurgical bond to the adjacent
+surface. Overlap creates a mechanical notch identical in stress-concentration
+effect to undercut; additionally, the gap beneath the overlapping metal traps
+moisture and corrosive media in oilfield service, creating a crevice corrosion
+(تآكل الشقوق) site. Overlap is common in fillet welds made with high heat input
+and slow travel speed — the pool "laps" over onto the base metal plate. On
+horizontal fillet welds, the lower toe is particularly prone to overlap.
+AWS B1.11 Clause 8.8 specifies that overlap is unacceptable in any amount —
+zero tolerance — because the unfused interface beneath the rolled metal
+constitutes a planar crack-like defect.
+
+ACCEPTANCE:
+- Zero overlap (تداخل صفري) on all weld toes — no protrusion of weld metal
+  over the base metal surface without fusion.
+- Weld toe must blend smoothly into the base metal with a concave or flush
+  profile — no distinct "lip" or roll visible.
+
+REJECTION:
+- Any visible overlap at any weld toe, regardless of length or amount —
+  immediate rejection; zero tolerance.
+- Method of repair: grind out the overlap and re-inspect by VT; if underlying
+  lack of fusion (قصور في الاندماج) is suspected, supplement with PT or MT.
+- Repeated overlap on same welder's joints — welder technique review required;
+  consider requalification test.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 15 — ARC STRIKES — IDENTIFICATION AND DISPOSITION
+[Section: AWS B1.11 Clause 8.9; AWS D1.1 Clause 5.29]
+--------------------------------------------------------------------------------
+
+Arc strikes (ضربات القوس الكهربائي) are localized areas of base metal that have
+been melted or thermally affected by inadvertent arc contact outside the intended
+weld joint. They are caused by accidental touching of the live electrode to the
+base metal surface, by careless electrode positioning, or by poor work clamp
+placement causing stray arcing. Arc strikes create small hardened zones
+(مناطق مُقسّاة صغيرة) through rapid heating and quenching, which are
+susceptible to hydrogen cracking (تشقق هيدروجيني) in hardenable steels and
+fatigue cracking in all steels. In oilfield and pressure equipment fabrication,
+arc strikes on pressure-retaining components (مكونات تحتفظ بالضغط) are
+especially critical and may be mandatory rejection with engineering review.
+AWS D1.1 Clause 5.29 prohibits arc strikes outside the weld area.
+
+ACCEPTANCE:
+- Zero arc strikes acceptable on pressure-retaining components, structural
+  tension members, and any high-strength steel (SMYS > 65 ksi / 448 MPa).
+- On non-critical secondary members only: engineer may accept a ground-flush
+  arc strike with subsequent MT/PT to confirm no cracking — must be
+  documented with NCR and engineering sign-off.
+
+REJECTION:
+- Any arc strike detected on pressure piping, vessels, or structural tension
+  members — reject; NCR required; engineering disposition mandatory.
+- Arc strike on high-strength steel or CRA (Corrosion Resistant Alloy) —
+  reject; risk of HAZ cracking; grind to clean metal and perform MT or PT;
+  if crack confirmed, full excavation and repair.
+- Multiple arc strikes indicating poor workmanship control — stop fabrication;
+  worker counseling and Foreman notification required.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 16 — WELD SPATTER — WHEN IS IT REJECTABLE
+[Section: AWS B1.11 Clause 8.10]
+--------------------------------------------------------------------------------
+
+Weld spatter (رذاذ اللحام) consists of metal droplets expelled from the weld
+pool during welding that adhere to the base metal or weld surface outside the
+weld bead. Spatter is inherent to certain processes (SMAW, FCAW, MIG short-
+circuit) and is controlled — not eliminated — by proper parameter selection,
+electrode condition, and shielding gas mixture. Spatter is generally considered
+a cosmetic defect; however, in oilfield service it becomes rejectable in specific
+circumstances: where it prevents proper NDE (covering areas to be PT/MT tested),
+where it constitutes an arc strike risk (unfused spatter balls with HAZ beneath),
+where painting systems require a clean surface (NACE/SSPC standards), or where
+spatter accumulation could trap corrosion media in service. Per AWS B1.11
+Clause 8.10, spatter must be removed before VT, PT, and MT are performed.
+
+ACCEPTANCE:
+- Isolated spatter particles that are easily brushed off and leave no arc-
+  strike HAZ beneath — acceptable on non-critical secondary members if cleaned
+  before NDE.
+- Spatter density: ≤ 2 particles per cm² on any surface requiring paint
+  coating per NACE/SSPC SP-6 (commercial blast) standards.
+- No spatter within the weld bead area (weld crown surface) — spatter on crown
+  may mask surface cracks.
+
+REJECTION:
+- Spatter that constitutes a de facto arc strike (ball > 2 mm diameter with
+  visible HAZ discoloration beneath) — reject; treat as arc strike per
+  Clause 15.
+- Spatter on surfaces to be PT/MT tested that cannot be removed without
+  damaging the substrate — surface preparation is non-compliant; clean before
+  NDE proceeds.
+- Heavy spatter fields (> 10 particles per cm²) on pressure equipment
+  external surfaces — reject surface condition; power tool clean per SSPC-SP3
+  minimum before painting.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 17 — ROOT CONCAVITY vs. BURN-THROUGH CRITERIA
+[Section: AWS B1.11 Clause 8.11; API 1104 Clause 9.3.6 / 9.3.7]
+--------------------------------------------------------------------------------
+
+Root concavity (تقعر الجذر) — also called suck-back or internal undercut — is a
+condition where the root bead surface is recessed below the adjacent inside pipe
+or plate surface, forming a concave profile. Burn-through (الاحتراق الكامل) is a
+more severe condition where the root bead has collapsed entirely, leaving a hole
+or a very thin, porous membrane with no structural integrity. Root concavity is
+evaluated by examining the pipe internal root bead (تمريرة الجذر الداخلية)
+directly (for bore access possible) or indirectly by RT film density, or UT
+TOFD. Burn-through is visible as a dark spot on RT or as a physical hole.
+AWS B1.11 requires that root conditions be assessed by the most reliable
+available method — for pipeline field welds where bore access is impractical,
+RT is the primary method; VT is used on accessible root surfaces of vessels and
+large-bore fittings.
+
+ACCEPTANCE (per API 1104 Clause 9.3.6):
+- Root concavity: permitted if the resulting weld thickness (net section) is
+  ≥ nominal pipe wall thickness — i.e., concavity depth ≤ weld reinforcement
+  height on OD side (net: no thinner than base metal).
+- Root concavity maximum depth (accessible surface, AWS D1.1 groove welds):
+  ≤ 1/32 inch (0.8 mm).
+- Root bead width visible on ID: minimum equal to root opening + 2 × 1/16
+  inch (1.6 mm) each side — confirming side-wall fusion.
+
+REJECTION:
+- Root concavity that reduces net weld section below base metal wall thickness
+  — reject; repair by back-weld from ID or temper-bead from OD per approved
+  WPS.
+- Any burn-through (visible hole or membrane < 0.5 mm thick) — reject; full
+  excavation and repair required; do not fill over burn-through without
+  proper ground-out.
+- Root concavity > 1/32 inch (0.8 mm) depth on groove welds where ID surface
+  is accessible — reject; back-weld repair.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 18 — FILLET WELD THROAT vs. LEG INSPECTION — MEASURING TOOLS
+[Section: AWS B1.11 Clause 8.12 – 8.13]
+--------------------------------------------------------------------------------
+
+For fillet welds (لحام الزاوية), AWS B1.11 Clause 8.12 requires dimensional
+verification of both the leg size (طول الساق) and — for design purposes — the
+effective throat (الحلق الفعلي). The leg size is the distance from the root of
+the joint to the weld toe, measured along each fusion face; both legs (vertical
+and horizontal legs on a T-joint) must be checked. The theoretical throat is
+0.707 × leg size for an equal-leg fillet weld; the effective (actual) throat is
+less if the weld is concave. Convex fillet welds may appear oversized but if
+their concavity is excessive (i.e., the throat is reduced despite larger legs),
+they are deficient in structural strength. The standard tool for fillet weld
+measurement is the fillet weld gauge set (طقم مقياس لحام الزاوية) — typically
+the bridge cam gauge or the AWS fillet gauge; vernier calipers are used for
+precise measurement in borderline cases.
+
+ACCEPTANCE:
+- Fillet leg size: ≥ required size per drawing (e.g., 8 mm, 10 mm, 12 mm).
+- Undersize tolerance: ≤ 1/16 inch (1.6 mm) under specified leg for ≤ 10%
+  of weld length (AWS D1.1 Clause 6.9.2.1).
+- Effective throat: ≥ 0.707 × minimum specified leg size — confirmed by
+  fillet gauge measurement on the flat face of the weld.
+- Fillet gauge reading: use bridge cam gauge in "minimum" position — if gauge
+  rides on the crown of a convex fillet, the actual leg may be acceptable;
+  verify by measuring each leg independently with the straight-edge arm.
+
+REJECTION:
+- Leg size < specified – 1/16 inch (1.6 mm) for > 10% of weld length —
+  reject; add weld pass; re-inspect.
+- Effective throat < 0.707 × specified minimum leg — reject; excessive
+  concavity reduces throat below structural requirement.
+- Unequal legs where the smaller leg is undersized beyond tolerance — reject;
+  applies to T-joints where the vertical member leg must meet minimum
+  independently.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 19 — WELD PROFILE — CONVEXITY AND CONCAVITY LIMITS
+[Section: AWS B1.11 Clause 8.14; AWS D1.1 Clause 5.24]
+--------------------------------------------------------------------------------
+
+AWS B1.11 Clause 8.14 addresses the overall weld bead profile (مظهر ومقطع
+اللحام) requirements for both fillet and groove welds. Excessive convexity
+(تحدب مفرط) of fillet welds stores residual stress at the toes and creates a
+stress-riser geometry that promotes toe cracking under fatigue loading. Excessive
+concavity (تقعر مفرط) of fillet welds reduces the effective throat below the
+required value, directly compromising joint strength. For groove welds, the
+crown profile must be slightly convex (reinforcement) but not excessively so —
+a high crown acts as a notch at the weld toes. The profile must be smooth and
+consistent along the weld length — abrupt humps (تقوسات مفاجئة), valleys, and
+irregular surface patterns indicate parameter inconsistency and must be
+investigated. Profile is assessed visually with the naked eye first; borderline
+cases are measured with a weld reinforcement gauge or bridge cam gauge.
+
+ACCEPTANCE (per AWS D1.1 Clause 5.24):
+- Fillet weld convexity: ≤ 1/16 inch + 0.10 × weld size (leg) or maximum
+  1/8 inch (3.2 mm), whichever is less.
+  Example: 10 mm leg → max convexity = 1 + 1.0 = 2.0 mm (use 3.2 mm cap).
+- Groove weld crown reinforcement (convexity): ≤ 3/16 inch (4.8 mm) for any
+  joint thickness; must not be abrupt or peaked.
+- Fillet weld concavity: weld toes must be at or above the theoretical throat
+  plane; no negative throat permitted.
+- Groove weld surface: smooth and regular; no abrupt surface irregularities
+  > 1/16 inch (1.6 mm) in 1 inch (25 mm) measured length.
+
+REJECTION:
+- Fillet convexity > 1/8 inch (3.2 mm) — reject; grind to profile within
+  limits; re-inspect.
+- Fillet concavity resulting in throat < 0.707 × minimum leg — reject; add
+  weld metal; re-inspect.
+- Groove weld crown reinforcement > 3/16 inch (4.8 mm) or peaked / sharp
+  crown profile — reject; grind to profile; re-inspect.
+- Irregular profile with surface valleys (dips) exposing possible incomplete
+  fill — reject; additional fill pass required; re-inspect.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 20 — VT OF HEAT-AFFECTED ZONE (HAZ) — WHAT TO LOOK FOR
+[Section: AWS B1.11 Clause 8.15]
+--------------------------------------------------------------------------------
+
+The heat-affected zone (منطقة التأثر الحراري — HAZ) is the base metal region
+immediately adjacent to the weld fusion boundary that has been thermally altered
+by the welding heat without melting. AWS B1.11 Clause 8.15 requires that VT
+extend beyond the weld bead to include HAZ inspection — minimum 1 inch (25 mm)
+each side of the weld toes. Critical HAZ discontinuities detectable by VT
+include: HAZ cracks (especially cold / hydrogen cracks in high-strength or
+high-carbon equivalent steels), lamellar tearing (تشقق الصفائح) on thick plates
+with through-thickness stress, base metal laminations exposed at the HAZ, and
+HAZ corrosion pitting (تآكل HAZ) in completed welds being inspected during
+in-service inspection. The HAZ on carbon steel is visually identifiable by a
+distinct blue/golden heat tint band (discoloration) adjacent to the weld bead
+— inspect this entire band systematically. In sour service (H₂S environment —
+بيئة كبريتيد الهيدروجين), HAZ cracking (Sulfide Stress Cracking — SSC) must be
+specifically investigated.
+
+ACCEPTANCE:
+- HAZ surface: free of cracks, tears, pitting, and linear indications within
+  1 inch (25 mm) of each weld toe.
+- No lamellar tearing visible as stepped, staircase-pattern separation in
+  plate through-thickness direction — particularly check corner joints and
+  T-joints on thick plate (t > 25 mm).
+- HAZ discoloration (heat tint): acceptable if confined to within 1 inch of
+  weld toe; extensive discoloration > 3 inches suggests excessive heat input —
+  document and review against WPS.
+
+REJECTION:
+- Any crack in HAZ — zero tolerance; immediate rejection; MT or PT required
+  to define extent; NCR and engineering hold.
+- Lamellar tearing detected in HAZ or base metal within 3 inches of weld —
+  reject; engineering evaluation required; UT through-thickness testing
+  (lamination scan) must be performed.
+- HAZ pitting or crevice corrosion detected on in-service weld inspection —
+  reject for continued service; engineering fitness-for-service (FFS)
+  assessment required per API 579.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 21 — DISTORTION AND WARPING ASSESSMENT — DIMENSIONAL DEVIATION
+[Section: AWS B1.11 Clause 9.1 – 9.3]
+--------------------------------------------------------------------------------
+
+AWS B1.11 Clause 9.1 requires that post-weld dimensional conformance
+(المطابقة الأبعادية بعد اللحام) be verified as part of the VT scope, because
+welding-induced distortion (تشوه اللحام) and warping (الالتواء) can render a
+structurally sound weld unacceptable for its intended fit and function. Distortion
+types include: angular distortion (تشوه زاوي) of T-joints and butt welds,
+longitudinal shrinkage (الانكماش الطولي) causing bowing, transverse shrinkage
+(الانكماش العرضي) reducing joint width, and rotational distortion. The inspector
+uses straight edges (مسطرة مستقيمة), levels (ميزان الاستواء), feeler gauges,
+and dimensional survey measurements to quantify distortion. Acceptance limits
+for distortion are set by the engineering drawing dimensional tolerances, the
+applicable construction code, or the fabrication specification — AWS B1.11
+does not itself set universal distortion limits; the drawing governs.
+
+ACCEPTANCE:
+- All fabricated dimensions within drawing tolerances — typically ±3 mm for
+  structural steel fabrication per AWS D1.1 and ±1.5 mm for pressure piping
+  spools per ASME B31.3.
+- Angular distortion of T-joints: ≤ 1 degree from perpendicular (90°) unless
+  drawing specifies tighter tolerance.
+- Straightness of beams/girders: ≤ L/1000 (L = member length) bow or sweep
+  — verify with taut string line or laser level.
+- Pipe spool alignment (flange face squareness): ≤ 1.5 mm across flange
+  diameter for all spool sizes.
+
+REJECTION:
+- Any dimension outside drawing tolerance — reject fabrication; issue NCR;
+  evaluate for cold correction (ضبط بارد), heat straightening (تقويم حراري),
+  or rework.
+- Angular distortion > 1 degree on structural T-joints without drawing
+  allowance — reject; heat straightening or cut-and-refit required.
+- Pipe spool flange face squareness > 1.5 mm — reject; spool is
+  non-conforming; rework required; retest after rework.
+- Distortion that prevents mating of adjacent components at next assembly
+  stage — immediate hold; engineering disposition.
+
+---
+
+--------------------------------------------------------------------------------
+CLAUSE 22 — DOCUMENTATION — MINIMUM CONTENT OF VT REPORT
+[Section: AWS B1.11 Clause 10.1 – 10.5]
+--------------------------------------------------------------------------------
+
+AWS B1.11 Clause 10.1 through 10.5 establishes the minimum documentation
+requirements for a visual examination report (تقرير الفحص البصري). A VT report
+is the legal record of the examination and must be sufficient to: identify the
+weld uniquely, establish the qualifications of the examiner, record the
+conditions of examination, document all findings (accept and reject), and provide
+traceability for quality system audits. Incomplete VT reports are a major
+nonconformance finding in ISO 3834, API Q1, and ASME Section III / Section VIII
+quality audits. In the Egypt/MENA oilfield environment, VT reports must be
+retained for the duration of the facility design life plus 7 years (per Egyptian
+Oil Ministry quality regulations for safety-critical pressure equipment), or as
+specified by the COMPANY quality plan. Electronic records are acceptable if
+tamper-proof and backed up.
+
+ACCEPTANCE — Minimum required data fields on every VT report:
+1. Project name, contract number, and work order number
+2. Weld identification number (رقم وصلة اللحام) — unique per joint
+3. Weld joint type (butt, fillet, T-joint, corner) and process (SMAW, FCAW, TIG)
+4. Base material specification and thickness
+5. Inspector name, certification type, certificate number, and expiry date
+6. Vision test date and result (J2 at 12 inches — Pass)
+7. Date and time of examination
+8. Stage of VT (pre-weld / in-process / post-weld)
+9. Lighting conditions (lux meter reading and meter serial number / cal date)
+10. Viewing distance and angle used
+11. Surface condition at time of examination (cleaned / as-welded)
+12. Each discontinuity found: type, location (from datum), length/depth
+13. Disposition: ACCEPT (مقبول) / REJECT (مرفوض) / REPAIR REQUIRED (يحتاج إصلاح)
+14. Reference code and clause for each acceptance/rejection decision
+15. Inspector signature and date
+16. QA/QC supervisor countersignature for rejected welds
+
+REJECTION — Report is non-conforming (يُعاد تحريره) if:
+- Inspector certification number or expiry date is missing — report invalid.
+- Weld ID is not unique or is missing — report is untraceably vague; NCR.
+- Disposition (Accept/Reject) is not stated — incomplete; report on hold.
+- Inspector signature is absent — report has no legal standing; invalid.
+- Lighting or vision test data absent — examination conditions unverified;
+  inspection results suspect; must repeat or obtain documented justification.
+
+---
+
+================================================================================
+END OF AWS B1.11 KNOWLEDGE FILE
+================================================================================
+TOTAL CLAUSES: 22
+CLAUSE COVERAGE: Pre-Weld / In-Process / Post-Weld / Dimensional / Documentation
+GENERATED FOR: AI-Powered Inspection Assistant — MENA Oilfield Operations
+AUTHORITY: AWS B1.11:2000 (R2015), AWS D1.1:2020, API 1104:2021, ASME V
+NEXT REVIEW: 2027-09-23
+================================================================================

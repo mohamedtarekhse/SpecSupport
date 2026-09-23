@@ -1,0 +1,754 @@
+[STANDARD: API RP 2X]
+[TITLE: Recommended Practice for Ultrasonic and Magnetic Examination of Offshore Structural Fabrication]
+[EDITION: 4th Edition]
+[ARTICLE: Offshore Structural UT and MT — Full Coverage]
+[GENERATED: 2026-09-23]
+[AUTHORITY: American Petroleum Institute — API RP 2X, 4th Edition]
+[SCOPE REGION: Global Offshore / MENA / Egypt Mediterranean & Red Sea Operations]
+
+================================================================================
+IMPORTANT FIELD NOTE (ملاحظة ميدانية):
+This file is formatted for use by AI-powered inspection assistants and senior
+NDT technicians operating on offshore jacket structures, topsides, nodes, and
+tubular connections. All acceptance/rejection values are sourced from API RP 2X
+4th Edition and cross-referenced with AWS D1.1 Structural Welding Code — Steel
+where explicitly stated in the standard. No interpretation beyond published
+criteria is applied. Personnel must verify edition applicability prior to use.
+================================================================================
+
+---
+
+CLAUSE 1 — SCOPE OF API RP 2X
+[Section: API RP 2X, Section 1 — Scope]
+
+API RP 2X establishes minimum requirements for ultrasonic examination (UT) and
+magnetic particle examination (MT) of welds and base metal in offshore structural
+fabrication (التفتيش على اللحامات والهياكل البحرية). The standard applies to
+primary structural components including jacket legs (أرجل الجاكيت), horizontal
+and diagonal braces (الدعامات الأفقية والقطرية), deck framing members (أعضاء
+تأطير السطح), nodal connections (وصلات العقد), and tubular joint welds (لحامات
+الوصلات الأنبوبية) in both T, Y, and K configurations. API RP 2X covers both
+pre-weld base metal examination for laminations and post-weld UT of completed
+joint welds. The standard is mandatory for all API RP 2A-WSD and API RP 2A-LRFD
+governed structures where structural integrity of nodal connections is critical to
+platform life. Examination shall be applied to all full-penetration groove welds
+in primary structural members and all partial-penetration welds where specified
+by engineering design documents (وثائق التصميم الهندسي). Secondary structural
+welds are examined per project-specific inspection and test plans (ITP) referenced
+against this standard.
+
+ACCEPTANCE: UT and MT performed on all primary structural welds per scope in
+Section 1. Coverage of 100% of weld volume required for full-penetration joints.
+
+REJECTION: Any primary weld excluded from UT/MT scope without documented
+engineering justification is non-conforming. Coverage below 100% for
+full-penetration joints is rejectable unless geometric inaccessibility is
+documented and alternative method approved by Owner.
+
+---
+
+CLAUSE 2 — PERSONNEL QUALIFICATION REQUIREMENTS
+[Section: API RP 2X, Section 5 — Qualification of UT Technicians]
+
+API RP 2X mandates a minimum of Level II qualification (مستوى ثانٍ) for all
+personnel performing and evaluating UT examinations on offshore structural welds.
+Level I technicians (مستوى أول) may perform scanning operations ONLY under the
+direct supervision of a certified Level II or Level III, and may NOT make
+accept/reject evaluations independently. Level II technicians must be qualified
+specifically in the shear-wave angle-beam techniques applicable to tubular and
+plate weld geometries (تقنيات الموجة القاطعة الزاوية للأنبوب والصفيحة). Qualification
+may be achieved through the API 2X written and practical examination process or
+through an employer-based program that meets the requirements of ASNT SNT-TC-1A
+or ASNT CP-189, subject to the Owner's written approval. For nodal weld UT on
+complex geometry (T, Y, K, X joints), the Level II technician must have
+documented experience on minimum 3 similar joint configurations (وثائق تجربة
+مثبتة) as part of their qualification record. Level III oversight (إشراف مستوى
+ثالث) is required for procedure approval, technique qualification, and resolution
+of borderline indications.
+
+ACCEPTANCE: Level II minimum, certified per API 2X Section 5 or approved ASNT
+program. Experience documented on minimum 3 offshore tubular joint configurations
+for nodal work. Level III on-site or available for consultation within 24 hours.
+
+REJECTION: Level I personnel making accept/reject decisions without Level II
+direct supervision. Any technician without documented experience in angle-beam
+shear-wave UT on tubular geometry performing nodal weld examination. Expired
+certification (>3 years without renewal) is rejectable.
+
+---
+
+CLAUSE 3 — WRITTEN UT PROCEDURE REQUIREMENTS
+[Section: API RP 2X, Section 6 — Written Procedure Requirements]
+
+A written UT examination procedure (الإجراء الكتابي المعتمد للفحص بالموجات فوق
+الصوتية) shall be prepared and qualified prior to commencement of production
+examination. The procedure shall be reviewed and approved by a Level III UT
+technician and accepted by the Owner's authorized inspection representative. The
+written procedure must address, at minimum: material type and thickness range,
+weld joint configuration and access, transducer frequency and size, scanning
+index point verification, beam angles to be used, calibration block type and
+method, DAC construction method, scanning pattern and direction, recording
+threshold, and accept/reject criteria referencing the applicable API 2X table.
+Procedure qualification (تأهيل الإجراء) shall be demonstrated on a mockup or
+qualification block representative of the production weld geometry and thickness
+range within ±25% of nominal. Any change to equipment make/model, frequency,
+beam angle, or couplant type outside the qualified range constitutes a
+procedure revision requiring re-qualification and Owner approval before use.
+All procedures shall be uniquely numbered and revision-controlled per the
+fabricator's document control system.
+
+ACCEPTANCE: Written procedure approved by Level III, accepted by Owner
+representative. Qualified on representative mockup within ±25% of production
+thickness. All 12 minimum elements addressed in the procedure document.
+
+REJECTION: Examination commenced without approved written procedure. Procedure
+applied outside its qualified thickness range without documented justification.
+Procedure changes made in field without Level III review and Owner acceptance.
+
+---
+
+CLAUSE 4 — EQUIPMENT FREQUENCY SELECTION
+[Section: API RP 2X, Section 7 — Equipment and Transducers]
+
+Transducer frequency selection (اختيار تردد المحول الكهرضغطي) for offshore
+structural steel examination shall be based on material thickness, grain structure,
+and weld geometry. For structural plate welds (لحامات الصفائح الهيكلية) with
+thickness from 6 mm to 25 mm, a frequency of 5 MHz is generally recommended to
+maximize near-surface resolution and sensitivity to fine planar defects. For
+plate thicknesses from 25 mm to 75 mm, frequencies of 2.25 MHz or 4 MHz shall be
+used to balance penetration with resolution. For thicknesses exceeding 75 mm,
+such as chord walls in large-diameter jacket legs (جدران وتر أرجل الجاكيت),
+2.25 MHz or 1 MHz transducers may be required to achieve adequate sound
+penetration, subject to demonstrated DAC construction at full skip depth. Dual-
+element (pitch-catch) transducers (المحولات الثنائية) shall be used for near-
+surface lamination detection at frequencies of 4–5 MHz. Single-element contact
+transducers with piezoelectric crystals of 10 mm x 10 mm to 25 mm x 25 mm face
+size are standard for structural weld scanning. Phased array (المصفوفة المتدرجة)
+and TOFD systems may be used as supplements where approved by the written
+procedure and Owner, but shall not replace the calibrated contact UT baseline
+unless fully documented and validated per API 2X Annex requirements.
+
+ACCEPTANCE: 5 MHz for 6–25 mm plate. 2.25 or 4 MHz for 25–75 mm. 1 or 2.25 MHz
+for >75 mm. Crystal face within 10–25 mm square or equivalent area. DAC
+demonstrable at full examination depth with selected frequency.
+
+REJECTION: Use of 10 MHz or higher on sections >25 mm thick (signal dropout risk).
+Frequency change from procedure-qualified value without Level III authorization.
+Any transducer with cracked, delaminated, or abraded face. Uncalibrated
+frequency.
+
+---
+
+CLAUSE 5 — SURFACE PREPARATION FOR UT ACCESS
+[Section: API RP 2X, Section 8 — Surface Preparation]
+
+Surface preparation (تجهيز السطح) for contact UT on offshore structural welds
+shall ensure that the examination surface allows full acoustic coupling between
+transducer and base metal without signal loss due to surface irregularity, weld
+spatter, rust, or mill scale. The weld crown (قمة اللحام) shall be dressed flush
+with the base metal surface using angle grinding (جلخ زاوية) to within ±0.5 mm
+of flush when weld cap geometry prevents proper transducer placement or blocks
+the required beam paths. Surface roughness (خشونة السطح) shall not exceed
+Ra 6.3 µm (250 µin) on the scanning surface within the full one-skip-distance
+zone on each side of the weld. For tubular welds with convex geometry (الهندسة
+المحدبة), the OD scanning surface shall be dressed to accommodate flat transducer
+contact over a minimum of 50% of the transducer face. Weld backing bars (قضبان
+الدعم الخلفي) and run-on/run-off tabs shall be removed and the area ground smooth
+prior to UT where access is required. Couplant (مادة التوصيل الصوتي) shall be
+glycerin, cellulose gel, or equivalent water-soluble paste; water alone is
+acceptable only on vertical or overhead surfaces where gel is impractical.
+Application of protective coatings, paint, or primer over the scan path prior to
+UT completion is prohibited.
+
+ACCEPTANCE: Weld crown dressed to within ±0.5 mm flush. Scanning surface
+Ra ≤ 6.3 µm. Transducer face contact ≥50% on tubular OD. Approved couplant
+applied uniformly. Backing bars removed from all UT access zones.
+
+REJECTION: Weld cap protruding >0.5 mm beyond flush in transducer travel zone.
+Loose mill scale, heavy rust, or weld spatter under scan path. Paint or primer
+applied before UT complete. Any surface condition causing >6 dB scan-to-scan
+amplitude variation during transfer loss verification.
+
+---
+
+CLAUSE 6 — CALIBRATION BLOCKS AND REFERENCE REFLECTORS
+[Section: API RP 2X, Section 9 — Calibration]
+
+Calibration (المعايرة) for angle-beam shear-wave UT on offshore structural welds
+shall use reference blocks (كتل المرجعية) fabricated from steel with acoustic
+velocity within ±0.005 in/µs of the production material, with hardness ≤ HRC 25
+to prevent material property mismatch. Side-drilled holes (SDH — الثقوب المحفورة
+جانبياً) are the primary reference reflectors for DAC construction in structural
+weld UT per API RP 2X; SDH diameter shall be 1/16 inch (1.6 mm) for examination
+of weld cross-sections less than or equal to 1 inch (25.4 mm) thick, and 3/32
+inch (2.4 mm) for thicknesses from 1 inch to 2 inches (25.4–50.8 mm). Flat-
+bottom holes (FBH — الثقوب ذات القاع المسطح) are used as alternative reference
+reflectors for normal-beam (0°) longitudinal wave calibration on base metal
+lamination checks, with FBH diameter equal to the greater of 3/16 inch (4.8 mm)
+or as specified by the project specification. IIW Type 1 (V1) blocks (كتلة IIW
+النوع الأول) are used for beam angle verification, index point determination, and
+velocity measurement before each examination session. ROMPAS or equivalent
+distance-amplitude correction (DAC) blocks shall be fabricated for each thickness
+range examined, with the SDH at minimum three depth positions: ¼T, ½T, and ¾T of
+the section under examination. Calibration shall be performed at ambient
+temperature; if steel surface temperature during production examination deviates
+by more than ±25°F (±14°C) from calibration temperature, re-calibration is
+required.
+
+ACCEPTANCE: IIW block used for angle/index verification each session. SDH
+diameter 1.6 mm for T ≤ 25.4 mm, 2.4 mm for 25.4–50.8 mm. DAC block covers
+¼T, ½T, ¾T depth positions. Calibration within ±25°F of production surface
+temperature. Material acoustic velocity match within ±0.005 in/µs.
+
+REJECTION: Use of incorrect SDH diameter for the thickness range. DAC block
+material acoustic velocity outside tolerance. Calibration verification skipped
+at session start or after instrument change. Any instrument setting altered
+after calibration without documented re-verification.
+
+---
+
+CLAUSE 7 — DAC CONSTRUCTION FOR STRUCTURAL STEEL
+[Section: API RP 2X, Section 10 — Distance-Amplitude Correction (DAC)]
+
+Distance-amplitude correction curves (منحنيات تصحيح البُعد والسعة — DAC) shall
+be constructed for each angle-beam transducer, frequency, and thickness range used
+in production examination of offshore structural welds. DAC shall be constructed
+using a minimum of three points obtained from the SDH at ¼T, ½T, and ¾T of the
+applicable reference block thickness. These three peak amplitudes are connected by
+a smooth curve to form the primary DAC reference level (100% DAC). The DAC curve
+and all examination gains shall be set such that the maximum SDH signal from the
+reference block is at 80% of full screen height (FSH) when used as the primary
+reference sensitivity, consistent with the AWS D1.1 amplitude evaluation method
+referenced in API 2X Appendix for plate butt weld comparison. All recording
+thresholds and accept/reject decisions are expressed as a percentage of the DAC
+amplitude at the applicable metal path. For computerized UT instruments with
+digital DAC storage, the DAC display shall be validated against the analog
+peak-hold trace on the reference block before each production session. Software-
+applied DAC curves are acceptable when the instrument is demonstrated to correlate
+with manual DAC within ±2 dB across the full depth range. Transfer correction
+(تصحيح النقل) between reference block and production weld surface shall be
+measured and recorded at the start of each weld examined; a transfer loss >6 dB
+shall be investigated before proceeding.
+
+ACCEPTANCE: Three-point DAC minimum (¼T, ½T, ¾T). Primary reference set to
+80% FSH from SDH. Digital DAC validated within ±2 dB of manual. Transfer
+correction measured each weld. Transfer correction ≤6 dB applied as gain
+compensation.
+
+REJECTION: DAC constructed from fewer than three depth points. Primary
+reference amplitude above 100% FSH or below 60% FSH (out-of-scale or under-
+sensitive). Transfer correction >6 dB applied without investigation of cause.
+DAC not re-established after transducer replacement or instrument re-boot during
+session.
+
+---
+
+CLAUSE 8 — SCANNING PATTERNS FOR PLATE BUTT WELDS
+[Section: API RP 2X, Section 11 — Scanning Patterns — Plate Butt Welds]
+
+Angle-beam UT scanning (نمط المسح بالموجة الزاوية) for full-penetration plate butt
+welds (لحامات الربط المستعرضة في الصفائح) on offshore structures shall be
+performed from both sides of the weld centerline (خط المركز) using a minimum of
+two refracted shear-wave angles: 45° and 60° (or 45° and 70°) to ensure complete
+volumetric coverage of all weld fusion zones and heat-affected zones (HAZ). Each
+scan shall progress longitudinally along the weld with transducer oscillation
+(تأرجح المحول) of ±10° about the primary scan direction at a maximum scan index
+increment of 10 mm (3/8 inch) between parallel scan passes. The transducer shall
+not be advanced faster than 6 inches (150 mm) per second during active scanning
+to ensure adequate dwell time for indication detection. Transverse scanning
+(المسح العرضي — parallel to the weld axis direction) shall also be performed for
+detection of transverse cracks (الشقوق العرضية) in all full-penetration butt
+welds; this scan is performed with the transducer beam directed toward the weld
+centerline at the selected refracted angle while traversing along the weld cap.
+For plate thicknesses ≥50 mm, an additional near-surface scan using a 70° angle
+or TOFD shall be included to compensate for dead zone limitations near the weld
+root and crown. All scanning shall be performed with a calibrated couplant
+continuity monitoring method (visual or audible) to prevent loss of coupling
+during examination.
+
+ACCEPTANCE: Minimum 45° + 60° or 45° + 70° angle coverage from both sides of
+weld. Scan increment ≤10 mm (3/8 in). Scan speed ≤150 mm/s. Transducer
+oscillation ±10°. Transverse scan performed on all full-penetration butt welds.
+Near-surface supplement for T ≥50 mm.
+
+REJECTION: Single-angle scan only without documented justification. Scan
+increment >10 mm between passes. Scan speed exceeding 150 mm/s without automatic
+encoding to compensate. Transverse scanning omitted on full-penetration welds.
+
+---
+
+CLAUSE 9 — SCANNING PATTERNS FOR T-JOINT AND K-JOINT TUBULAR WELDS
+[Section: API RP 2X, Section 12 — Scanning Patterns — Tubular Connections]
+
+T-joint and K-joint tubular weld UT (فحص لحامات الوصلات الأنبوبية على شكل T
+وK) requires adapted scanning techniques due to the curved geometry of the brace
+(الدعامة) outer surface and the variable weld bevel orientation relative to the
+chord (الوتر). For T-joints, angle-beam scanning shall be performed from the brace
+OD at minimum two angles (45° and 60°) scanning toward the chord wall fusion
+zone, scanning parallel to the weld seam circumferentially. The transducer shall
+be repositioned at circumferential intervals not exceeding 25 mm to maintain full
+volume coverage around the full 360° weld circumference. For K-joints (الوصلات
+على شكل K), the scan must account for the acute-angle heel (الكعب — compression
+side) where weld access is geometrically restricted; a specialized probe shoe
+(حذاء المحول المتخصص) contoured to the brace OD shall be fabricated and
+demonstrated to achieve >70% transducer face contact before use. The chord wall
+scan (المسح من جانب الوتر) shall be performed where brace OD access is restricted,
+using normal beam for lamination verification and angle-beam for weld cross-section
+coverage. For brace-to-chord intersections where full UT is geometrically
+impossible, the inaccessible zone shall be documented, agreed with Owner, and
+supplemented by RT or TOFD where practicable. All tubular weld scans shall be
+indexed and mapped relative to clock positions (0° to 360° in 30° increments).
+
+ACCEPTANCE: Both 45° and 60° angles used from brace OD. Circumferential
+intervals ≤25 mm. Contoured shoe giving ≥70% face contact. 360° circumferential
+map indexed at 30° clock positions. Chord-side scan performed where brace OD
+blocked.
+
+REJECTION: Single-angle scan only. Circumferential interval >25 mm. Flat
+transducer on curved brace OD without contact verification. Any weld zone
+excluded without Owner-approved documented justification and alternative
+examination plan.
+
+---
+
+CLAUSE 10 — NODE WELD UT TECHNIQUE — SPECIAL GEOMETRY CONSIDERATIONS
+[Section: API RP 2X, Section 13 — Node and Multiplanar Connection UT]
+
+Node welds (لحامات العقد) on offshore jacket structures represent the most
+geometrically complex UT challenge in structural fabrication inspection. Nodes are
+multi-plane connections where multiple braces intersect a common chord, producing
+compound curvature surfaces (أسطح ذات انحناء مركب), variable weld bevel
+orientations, and restricted access zones at brace-brace intersections. Before UT
+commences on any node configuration, a weld access mapping exercise (تمرين رسم
+إمكانية الوصول) shall be completed by the Level II technician, identifying all
+fully accessible, partially accessible, and inaccessible weld zones. Specialized
+contoured transducer shoes shall be fabricated and qualified for each chord OD
+diameter and brace OD diameter pair present in the node, demonstrating acoustic
+coupling on the actual fabricated geometry prior to production scanning. Sound
+path and beam geometry modeling (محاكاة مسار الصوت والشعاع) is recommended for
+all node connections with brace OD-to-chord OD ratio (β ratio) greater than 0.6,
+to identify dead zones and multi-path reflection artifacts. Scanning on node welds
+shall cover the full accessible weld volume using a minimum of three transducer
+angles (45°, 60°, and 70° or TOFD) circumferentially. Any zone where calculated
+beam coverage is less than 80% of the weld cross-section volume shall be
+documented as a geometric shadow zone and an alternative supplementary technique
+approved before sign-off. Node weld inspection records shall include a to-scale
+weld map identifying each zone's examination method, coverage percentage, and
+indication locations.
+
+ACCEPTANCE: Access mapping completed before UT. Contoured shoes qualified on
+actual fabricated geometry. Three angles minimum (45°, 60°, 70°) on all node
+welds. Coverage ≥80% weld volume across all accessible zones. Weld map with
+examination method documented per zone.
+
+REJECTION: Standard flat probe used without contact verification on node curved
+surface. Coverage <80% without Owner approval of alternative. Node UT signed off
+without zone-by-zone weld map. β > 0.6 node examined without beam path modeling.
+
+---
+
+CLAUSE 11 — RECORDING THRESHOLD
+[Section: API RP 2X, Section 14 — Recording of Indications]
+
+The recording threshold (عتبة التسجيل) for UT indications (مؤشرات الفحص فوق
+الصوتي) in offshore structural welds shall be 50% of the DAC amplitude (50%
+DAC) at the applicable metal path depth. Any indication producing a reflected
+signal amplitude equal to or exceeding 50% DAC must be recorded in the
+examination record with the following minimum data: weld identification number,
+position along weld (clock position for tubulars, distance from reference datum
+for plate welds), depth of indication below scanning surface, indication length
+(using the 6 dB drop method), beam angle used, scan direction (from which side
+of weld), and peak amplitude expressed as a percentage of DAC. Indications
+between 50% and 100% DAC (below the rejection threshold) must still be
+characterized and reported as recordable indications (مؤشرات واجبة التسجيل) in
+the final examination report and reviewed by the Level III before final
+disposition. The 6 dB drop method (طريقة الانخفاض 6 ديسيبل) shall be used to
+measure indication length for all indications at or above 50% DAC. Maximum
+scanning sensitivity shall be maintained at +6 dB above primary DAC sensitivity
+during scanning to ensure that indications at or near the recording threshold
+are not missed due to scan angle variability.
+
+ACCEPTANCE: All indications ≥50% DAC recorded. 6 dB drop length measurement
+applied. All required data fields documented per record. Scanning gain set at
++6 dB above reference during scanning sweep. Level III reviews all sub-rejection
+recordable indications.
+
+REJECTION: Indications ≥50% DAC not recorded. Length measurement by method other
+than 6 dB drop without written justification and Level III approval. Scanning
+performed at reference sensitivity without the required +6 dB scanning gain
+supplement. Incomplete indication record (missing depth, angle, or position data).
+
+---
+
+CLAUSE 12 — ACCEPTANCE CRITERIA — AMPLITUDE-BASED ACCEPT/REJECT
+[Section: API RP 2X, Section 15 — Acceptance Criteria (Table 15.1)]
+
+Acceptance criteria (معايير القبول) for UT of offshore structural welds per
+API RP 2X Table 15.1 are based on a combination of indication amplitude relative
+to DAC and indication length. For indications with amplitude LESS THAN 100% DAC
+(below DAC level), acceptance is based on the measured indication length relative
+to weld thickness (T): indications with amplitude between 50% and 100% DAC and
+length ≤ 2/3 of the weld section thickness (T) are ACCEPTABLE without repair for
+any weld thickness. For indications with amplitude AT OR ABOVE 100% DAC
+(at or exceeding DAC reference): ALL such indications are REJECTABLE regardless
+of length, except where the indication is characterized by Level III as a
+geometric reflector (false call) with documented evidence. For weld thickness
+T ≤ 3/4 inch (19 mm): indications at ≥100% DAC are REJECTED regardless of length.
+For T > 3/4 inch (19 mm): indications at ≥100% DAC are REJECTED regardless of
+length. Indication length for accept/reject evaluation is determined by 6 dB drop
+from peak. The following AWS D1.1 Table 6.2 Class D criteria comparison applies
+where referenced in API 2X Appendix C: an indication is rejectable if amplitude
+exceeds DAC AND length exceeds allowable per the applicable D1.1 class table for
+the weld category. Owner-defined fitness-for-service (FFS) criteria per API 579
+may be substituted for API 2X Table 15.1 only with documented Owner and Level III
+engineering approval.
+
+ACCEPTANCE: Amplitude <100% DAC AND length ≤ 2/3 T: ACCEPT. Amplitude <50% DAC:
+ACCEPT (below recording threshold, no action required). Geometric reflector
+confirmed by Level III with documented evidence: ACCEPT with record.
+
+REJECTION: Amplitude ≥100% DAC at any depth or length: REJECT — immediate repair
+required (إصلاح فوري مطلوب). Amplitude between 50–100% DAC AND length > 2/3 T:
+REJECT. Any indication within 1 inch (25 mm) of a free edge at ≥50% DAC in a
+fatigue-critical joint: REJECT per engineering review.
+
+---
+
+CLAUSE 13 — LAMINATION TESTING OF BASE METAL BEFORE WELDING
+[Section: API RP 2X, Section 16 — Base Metal Lamination Examination]
+
+Base metal lamination testing (فحص طبقي للمعدن الأساسي — فحص التصفح) shall be
+performed on all structural plate and tubular base material in the weld zone and
+heat-affected zone (HAZ) prior to welding. This applies specifically to chord
+plates of jacket legs, deck plate girders, and brace wall material in the weld
+preparation zone (منطقة تحضير اللحام). Normal-beam (0°) longitudinal wave UT
+using a 4–5 MHz contact transducer shall be performed in a grid pattern across
+the full width of the weld preparation — a minimum of 25 mm on either side of
+the weld bevel edge — at grid spacing not exceeding 50 mm × 50 mm. Calibration
+for lamination scanning shall use the FBH reference block for distance setting
+and the back-wall echo of the plate as the primary reference amplitude. A
+complete back-wall echo loss (فقدان صدى الجدار الخلفي — total lamination)
+constitutes an immediate recordable and rejectable condition. Partial back-wall
+echo reduction of ≥6 dB from the nominal plate back-wall amplitude constitutes
+a recordable laminar indication requiring mapping and disposition prior to
+welding. Base metal lamination results shall be documented on a scaled plate
+map showing all laminar indication locations, depths, and lateral extents as
+measured by the 6 dB drop or edge-of-indication technique.
+
+ACCEPTANCE: Grid scan at ≤50 mm × 50 mm spacing in weld zone. Back-wall echo
+reduction <6 dB from nominal: ACCEPT (no lamination affecting weld quality).
+Isolated laminations >25 mm from weld fusion line: ACCEPT with record.
+Laminations fully outside the weld HAZ (>25 mm clear): ACCEPT.
+
+REJECTION: Complete back-wall echo loss at any point in the weld preparation
+zone: REJECT — material disposition required before welding. Reduction ≥6 dB
+over an area ≥25 mm in any dimension within the weld zone: REJECT. Lamination
+extending to a plate edge (exposed edge delamination) in a load-bearing joint:
+REJECT unconditionally.
+
+---
+
+CLAUSE 14 — MAGNETIC PARTICLE EXAMINATION (MT) REQUIREMENTS FOR OFFSHORE WELDS
+[Section: API RP 2X, Section 17 — Magnetic Particle Examination]
+
+Magnetic particle examination (فحص الجسيمات المغناطيسية) shall be performed on
+all accessible surfaces of primary structural welds and heat-affected zones on
+offshore structures per API RP 2X Section 17. MT is mandatory for: all full-
+penetration tubular joint welds (T, Y, K, X) after final post-weld grinding and
+before coating; all plate butt welds in primary deck plate and jacket frame members;
+and all repair welds after completion of repair excavation and re-welding. Both
+pre-weld (PWMT — فحص ما قبل اللحام) and post-weld (SWMT — فحص ما بعد اللحام)
+MT may be required by the engineering inspection and test plan; pre-weld MT is
+performed on the prepared bevel surfaces to detect laminar and linear defects
+that would be entrapped if welding proceeds. Post-weld MT shall be performed after
+post-weld heat treatment (PWHT) where specified, never before. The magnetizing
+technique shall be selected based on the orientation of potential defects: yoke
+technique (طريقة النير) for surface and near-surface indications with yoke leg
+spacing 75–200 mm; prod technique (طريقة الأقطاب) for large flat surfaces with
+prod spacing 75–200 mm. Two magnetization directions at approximately 90° to each
+other shall be applied at each test location to ensure detection of all defect
+orientations. Prod technique is prohibited on austenitic stainless components or
+where arc strikes from prod contact are unacceptable per the Owner's specification.
+
+ACCEPTANCE: MT performed post-welding and post-grinding on all primary tubular
+and butt welds. Two magnetization directions at ≥90° apart at each location.
+Yoke leg spacing 75–200 mm. Prod spacing 75–200 mm. Pre-weld MT on bevel where
+specified in ITP. Post-PWHT timing observed.
+
+REJECTION: MT performed before post-weld grinding is complete. Single
+magnetization direction only. Yoke or prod spacing outside 75–200 mm range.
+Prod technique on stainless or where arc burns are unacceptable. MT performed
+before PWHT where PWHT is specified.
+
+---
+
+CLAUSE 15 — WET FLUORESCENT MT (WFMT) FOR OFFSHORE NODES
+[Section: API RP 2X, Section 18 — Wet Fluorescent Magnetic Particle Technique]
+
+Wet fluorescent magnetic particle examination (الفحص بالجسيمات المغناطيسية
+المتألقة الرطبة — WFMT) shall be used in preference to dry or wet visible
+particle techniques on all node welds (لحامات العقد) and all tubular joint
+welds where service criticality is classified as primary structural (primary
+cyclic fatigue-loaded connections) by the structural engineer. WFMT provides
+superior sensitivity for fine, tight surface-breaking cracks in the HAZ of
+high-restraint offshore nodal welds compared to visible MT methods. Fluorescent
+particle concentration shall be between 0.1 mL and 0.4 mL settled particles
+per 100 mL of vehicle (bath concentration — تركيز المحلول) as measured by pear-
+shaped centrifuge tube, checked at the start of each examination session. Black
+light (UV-A lamp — مصباح الأشعة فوق البنفسجية) intensity at the examination
+surface shall be ≥1000 µW/cm² measured with a calibrated UV meter. White light
+at the examination surface shall be ≤2 foot-candles (≤21.5 lux) to prevent
+washing out fluorescent indication visibility. All inspectors performing WFMT
+shall allow a minimum dark adaptation period of 1 minute before beginning
+examination under UV light. Yoke (AC) technique is preferred for WFMT on node
+welds; prod technique is prohibited on node outer surfaces due to the risk of
+arc burns in fatigue-critical zones. Examination coverage shall be 100% of the
+weld cap surface and minimum 25 mm into adjacent base metal on each side.
+
+ACCEPTANCE: Fluorescent bath concentration 0.1–0.4 mL/100 mL. UV intensity
+≥1000 µW/cm² at examination surface. Ambient white light ≤2 foot-candles
+(≤21.5 lux). Dark adaptation ≥1 minute before UV examination. AC yoke for
+node WFMT. 100% weld cap + 25 mm HAZ coverage each side.
+
+REJECTION: Bath concentration outside 0.1–0.4 mL/100 mL range. UV intensity
+<1000 µW/cm². Ambient white light >2 foot-candles during WFMT. Prod technique
+on node surface. WFMT performed without calibrated UV meter measurement before
+session. Dark adaptation time not observed.
+
+---
+
+CLAUSE 16 — MT ACCEPTANCE CRITERIA — LINEAR VS. NON-LINEAR INDICATIONS
+[Section: API RP 2X, Section 19 — MT Acceptance Criteria]
+
+MT acceptance criteria (معايير القبول للفحص بالالتهاب المغناطيسي) for offshore
+structural welds are based on indication morphology (linear vs. rounded/non-linear)
+and indication length. A linear indication (مؤشر خطي) is defined as any MT
+indication with a length-to-width ratio greater than 3:1; linear indications
+are treated as cracks, cold laps, or fusion defects until proven otherwise by
+further investigation. A non-linear (rounded) indication (مؤشر دائري / غير خطي)
+is any indication with a length-to-width ratio ≤ 3:1. All linear indications
+regardless of length detected in any primary structural weld or HAZ are REJECTED.
+Non-linear indications: individual rounded indications with maximum dimension
+≤2 mm (5/64 inch) in any direction are acceptable without repair (ACCEPT).
+Non-linear indications >2 mm but ≤5 mm in maximum dimension are recordable and
+subject to Level III disposition; accept/reject decision is based on location
+(surface vs. sub-surface), proximity to weld toe (critical fatigue zone), and
+indication density. For node welds and tubular T, Y, K joints specifically:
+indications of any type within 3 mm of the weld toe or cap-to-plate interface
+are treated as REJECTION candidates pending Level III engineering review. Aligned
+non-linear indications (aggregate length of aligned indications in a line):
+if three or more non-linear indications are aligned within a zone of 50 mm in
+length, the aggregate is evaluated as a linear indication and rejected.
+
+ACCEPTANCE: Non-linear indication maximum dimension ≤2 mm: ACCEPT.
+No linear indications present. Three or fewer non-linear indications in any
+50 mm zone, non-aligned: ACCEPT with record if each ≤2 mm.
+
+REJECTION: Any linear indication (L/W > 3:1) regardless of length: REJECT
+immediately — excavation and repair required (حفر وإصلاح فوري). Non-linear
+indication >5 mm: REJECT. Three or more aligned non-linear indications in
+50 mm zone: REJECT (treated as linear). Any indication within 3 mm of weld
+toe in tubular primary joint: REJECT pending Level III engineering review.
+
+---
+
+CLAUSE 17 — UT TECHNICIAN QUALIFICATION — API 2X CERTIFICATION VS. ASNT
+[Section: API RP 2X, Section 5.3 — Certification Pathways]
+
+API RP 2X provides two recognized qualification and certification pathways for
+UT technicians performing offshore structural examination. The primary pathway
+is the API 2X examination program (برنامج اختبار API 2X) consisting of a written
+examination and a practical performance demonstration administered by a third-party
+body accredited by the Owner or certifying authority. The secondary pathway
+accepts technicians certified under ASNT SNT-TC-1A or ASNT CP-189 (Level II or
+Level III) provided the employer Written Practice covers the specific techniques,
+frequencies, and joint geometries applicable to offshore structural fabrication
+and the technician has documented hours in offshore UT techniques. Mutual
+recognition of CSWIP 3.4 (PCN Level 2 UT — Structural Welds) or EN ISO 9712
+Level 2 certifications may be accepted by the Owner as equivalent, subject to
+Owner's written confirmation before examination commencement. Recertification
+cycle (دورة إعادة التصنيف) for API 2X qualified technicians is every 3 years, with
+annual vision verification (near vision Jaeger J-2 or equivalent, and color
+distinction). Vision examination records must be current (within 12 months) at
+the time of examination. A technician whose certification has lapsed for >6 months
+must re-sit both written and practical examinations in full before reinstatement.
+
+ACCEPTANCE: API 2X direct certification OR ASNT SNT-TC-1A/CP-189 Level II with
+Owner-accepted Written Practice covering offshore structural techniques. Annual
+vision check current. Certification valid (within 3-year cycle). CSWIP 3.4 or
+EN ISO 9712 Level 2 accepted with Owner written approval.
+
+REJECTION: Certification lapsed >3 years without renewal examination. Vision
+examination expired >12 months. Technician using certification from unrelated
+NDT sector (e.g., aerospace UT only) without demonstrated structural weld
+offshore experience. ASNT certification without Written Practice covering offshore
+structural geometry and techniques.
+
+---
+
+CLAUSE 18 — WRITTEN EXAMINATION AND PRACTICAL TEST REQUIREMENTS
+[Section: API RP 2X, Section 5.4 — Examination Requirements]
+
+The API RP 2X Level II qualification examination (اختبار التأهيل للمستوى الثاني)
+consists of two components: a written examination (الاختبار الكتابي) and a
+practical performance test (الاختبار العملي الميداني). The written examination
+covers: UT theory and principles (مبادئ الموجات فوق الصوتية), equipment
+calibration procedures, DAC construction and use, scanning patterns for plate and
+tubular geometry, recording and acceptance criteria per API RP 2X, weld defect
+recognition and characterization, and MT principles and acceptance criteria.
+The passing score for the written examination is 70% minimum overall with no
+single subject area falling below 50% correct answers. The practical test requires
+the candidate to: calibrate the UT instrument using a provided reference block
+for the applicable weld thickness range; perform a complete scan of a test plate
+or tubular weld specimen containing natural or machined defects; correctly identify
+and record all seeded defects at or above the specified recording threshold; and
+correctly accept or reject all indications per API 2X Table 15.1. The practical
+test is evaluated by a Level III examiner (محكّم المستوى الثالث) and must achieve
+≥70% correct identification of seeded indications and 100% detection of any
+indication with amplitude ≥100% DAC. A candidate who fails either the written or
+practical component may re-attempt once after a minimum 30-day waiting period with
+documented remedial training (تدريب تعويضي موثق).
+
+ACCEPTANCE: Written examination ≥70% overall, ≥50% per subject. Practical test:
+≥70% correct indication identification AND 100% detection of all indications
+≥100% DAC. Level III examiner administers and witnesses practical test.
+Documented remedial training before re-attempt.
+
+REJECTION: Written score <70% overall OR any subject <50%: FAIL — 30-day waiting
+period required. Practical test: missed any indication ≥100% DAC: FAIL
+unconditionally regardless of overall practical score. More than two total
+examination attempts without Level III documented remedial program review: REJECT
+— referred to certifying authority for case review.
+
+---
+
+CLAUSE 19 — RE-EXAMINATION AFTER REPAIR WELDING
+[Section: API RP 2X, Section 20 — Re-examination After Repair]
+
+All repair welds (لحامات الإصلاح) made on offshore structural members following
+rejection of original UT or MT examination must be re-examined by the full
+applicable NDT procedure after repair completion and any required post-weld heat
+treatment. Re-examination scope shall cover the full original examination area
+plus a minimum extension of 50 mm beyond each end of the recorded indication
+location to ensure that the defect has been fully removed and that no adjacent
+indications were introduced by the repair welding process. Before the repair
+weld UT/MT is performed, a pre-repair UT scan shall document the defect
+removal: for volumetric defects, the excavation cavity shall be UT scanned to
+confirm no residual defect metal remains; for surface defects removed by grinding,
+WFMT shall confirm complete removal before re-welding commences. The repair weld
+procedure (WPS for repair — إجراء لحام الإصلاح) must be separately qualified or
+the production WPS demonstrated to be applicable to the repair configuration;
+blind-side repairs and back-gouge repairs have separate qualification requirements.
+Second repair attempts (second excavation of the same location — الحفر الثاني في
+نفس الموقع) require documented Owner engineering authorization. Third and
+subsequent repair attempts at the same location require Owner engineering Director
+approval and a formal root-cause analysis of the original weld quality failure.
+
+ACCEPTANCE: Re-examination covers original area + 50 mm extension each end.
+Pre-repair cavity scan confirms defect removal. WFMT confirms clean surface
+before re-weld. Re-examination to full procedure per applicable API 2X clause.
+First repair re-exam authorized by QC department.
+
+REJECTION: Re-examination scope limited to exact indication length only without
+50 mm extension: NON-CONFORMING. Repair weld examined before PWHT where PWHT
+is required by WPS. Third+ repair attempted without Owner engineering Director
+written authorization. Any repair re-examination performed by a lower Level
+technician than who performed the original examination.
+
+---
+
+CLAUSE 20 — DOCUMENTATION AND FINAL UT/MT WELD MAPPING
+[Section: API RP 2X, Section 21 — Documentation Requirements]
+
+Final documentation (التوثيق النهائي) of all UT and MT examinations on offshore
+structural fabrication shall constitute a complete and traceable inspection
+record (سجل الفحص الكامل والمتتبع) that supports the structural integrity basis
+for the offshore unit over its design life. Each weld examined shall have a
+completed examination report form containing: weld ID, structure member
+designation, weld type and joint configuration, material specification and
+heat number, weld thickness, welding procedure reference (WPS number),
+inspection and test plan reference, NDT procedure number and revision,
+equipment serial numbers and calibration certificate references, transducer
+serial numbers and frequency, calibration block ID, all indication records
+per Clause 11 (recording threshold), final accept/reject disposition, technician
+name and certification number, Level III reviewer signature, examination date,
+and any repair weld references. A scaled weld map (خريطة اللحام المقياسية)
+shall be produced for each complete node or tubular assembly showing weld seam
+locations, NDT method applied zone by zone, all recorded indications (location
+and amplitude), repairs, and final status. The final documentation package shall
+be compiled into a dossier (ملف التفتيش) for each structural assembly and
+submitted to the Owner's authorized representative for final review and acceptance
+before the assembly is released for load-out. All records shall be retained for
+the full design life of the structure plus a minimum of 5 years (or as specified
+by Owner, whichever is longer), in both hardcopy and electronic format. Electronic
+records shall be stored in a document management system (DMS — نظام إدارة
+الوثائق) with access controls, audit trail, and backup to prevent loss.
+
+ACCEPTANCE: Complete examination report per all required fields above. Scaled
+weld map for each node and tubular assembly. Final dossier accepted by Owner's
+authorized representative in writing. Records retained for design life + 5 years
+minimum in both hardcopy and electronic formats with DMS backup.
+
+REJECTION: Examination report with missing mandatory fields (weld ID, tech cert
+number, equipment serial, calibration ref, disposition): NON-CONFORMING — record
+not valid for release. Weld released for load-out without Owner written acceptance
+of documentation package. Records stored only in hardcopy without electronic
+backup. Electronic files stored without access control or audit trail in a
+DMS-equivalent system.
+
+---
+
+================================================================================
+SUPPLEMENTARY REFERENCE TABLE — API RP 2X KEY NUMERIC LIMITS SUMMARY
+================================================================================
+
+| Parameter                             | Value / Limit                       |
+|---------------------------------------|-------------------------------------|
+| Min UT Level for Accept/Reject        | Level II                            |
+| Recertification cycle                 | Every 3 years                       |
+| Vision check frequency                | Annual (within 12 months)           |
+| Near vision standard                  | Jaeger J-2 or equivalent            |
+| Written exam pass mark                | 70% overall / 50% per subject       |
+| Practical test — indication ID        | ≥70% correct                        |
+| Practical test — ≥100% DAC detect     | 100% (zero miss allowed)            |
+| SDH diameter (T ≤ 25.4 mm)           | 1.6 mm (1/16 inch)                  |
+| SDH diameter (T 25.4–50.8 mm)        | 2.4 mm (3/32 inch)                  |
+| DAC depth points minimum              | 3 (at ¼T, ½T, ¾T)                  |
+| Primary DAC reference amplitude       | 80% FSH                             |
+| Scanning gain above reference         | +6 dB above reference DAC           |
+| Recording threshold                   | 50% DAC                             |
+| Rejection threshold — amplitude       | 100% DAC (any length)               |
+| Accept threshold — 50–100% DAC       | Length ≤ 2/3 T                      |
+| Scan increment — plate butt weld      | ≤10 mm (3/8 inch)                   |
+| Max scan speed                        | 150 mm/s (6 in/s)                   |
+| Transducer oscillation                | ±10° about scan direction           |
+| Tubular circ. scan interval           | ≤25 mm                              |
+| Contoured shoe min contact            | ≥70% transducer face                |
+| Node coverage minimum                 | ≥80% weld volume per zone           |
+| Transfer correction investigate       | >6 dB transfer loss                 |
+| Surface roughness (scan path)         | Ra ≤ 6.3 µm (250 µin)              |
+| Weld crown flush tolerance            | ±0.5 mm                             |
+| Lamination grid spacing               | ≤50 mm × 50 mm                      |
+| Lamination back-wall reduction limit  | ≥6 dB = Recordable/Reject in weld   |
+| MT yoke leg spacing                   | 75–200 mm                           |
+| MT prod spacing                       | 75–200 mm                           |
+| WFMT bath concentration               | 0.1–0.4 mL/100 mL                   |
+| WFMT UV intensity minimum             | ≥1000 µW/cm²                        |
+| WFMT ambient white light max          | ≤2 foot-candles (≤21.5 lux)        |
+| WFMT dark adaptation time             | ≥1 minute                           |
+| MT linear indication limit            | ANY = REJECT (zero tolerance)       |
+| MT non-linear accept limit            | ≤2 mm max dimension                 |
+| MT aligned non-linear zone            | ≥3 aligned in 50 mm = REJECT        |
+| Weld toe exclusion zone (MT)          | 3 mm from toe in primary joints     |
+| Re-exam extension beyond indication   | +50 mm each end                     |
+| Record retention minimum              | Design life + 5 years               |
+| Calibration temp tolerance            | ±25°F (±14°C) from production       |
+| Frequency range (6–25 mm)             | 5 MHz                               |
+| Frequency range (25–75 mm)            | 2.25 or 4 MHz                       |
+| Frequency range (>75 mm)              | 1 or 2.25 MHz                       |
+
+================================================================================
+END OF API RP 2X KNOWLEDGE FILE
+Generated for AI Inspection Assistant — Field Use
+Classification: Technical Reference — Controlled
+================================================================================

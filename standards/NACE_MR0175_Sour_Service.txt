@@ -1,0 +1,129 @@
+[STANDARD: NACE MR0175 / ISO 15156]
+[TITLE: Petroleum and Natural Gas Industries — Materials for Use in H2S-Containing Environments in Oil and Gas Production]
+[PARTS: Part 1 (General Principles), Part 2 (Carbon and Low Alloy Steels), Part 3 (CRAs and Other Alloys)]
+
+[CLAUSE: Part 1 — 3.1 — Sour Service Definition]
+SOUR SERVICE is defined as any environment containing H2S (hydrogen sulfide) that meets or exceeds the threshold conditions where H2S can cause sulfide stress cracking (SSC), hydrogen-induced cracking (HIC), or stress-oriented hydrogen-induced cracking (SOHIC) in susceptible materials.
+
+THRESHOLD CONDITIONS (Part 1 — Annex A):
+H2S partial pressure ≥ 0.0003 MPa absolute (0.05 psi absolute, 0.3 mbar) in any gas phase.
+If liquid phase present: H2S partial pressure threshold still applies to the co-existing gas phase.
+AQUEOUS SYSTEMS: If liquid water is present AND the gas phase H2S partial pressure meets the threshold, the system is sour service.
+ACCEPTANCE: Sour service correctly identified and appropriate materials selected.
+REJECTION: Equipment in sour service using non-qualified materials. Ignoring H2S partial pressure calculation and assuming non-sour.
+---
+
+[CLAUSE: Part 1 — 4.1 — General Principles for Material Selection]
+Materials for sour service shall be selected to resist:
+SSC — Sulfide Stress Cracking: primarily affects high-strength steels and hard welds. Mechanism: H2S causes hydrogen absorption, leading to cracking under tensile stress. Most common in cold service (below 65°C/150°F).
+HIC — Hydrogen-Induced Cracking: hydrogen collects at inclusions in steel, forms blisters and internal cracks. NOT stress-dependent — can occur without applied load. Worst in high H2S partial pressure.
+SOHIC — Stress Oriented HIC: array of HIC cracks linked by SSC cracks. Occurs at stress concentrations (welds, notches).
+
+MATERIAL QUALIFICATION:
+Materials shall be qualified by one of:
+a) Listed in NACE MR0175 / ISO 15156 tables as pre-qualified for sour service
+b) Tested per the standard's test methods and documented in a qualification test report
+ACCEPTANCE: Materials used in sour service are either pre-qualified by the standard's tables or have documented qualification test reports.
+REJECTION: Using materials assumed to be acceptable without verification against standard tables or test reports.
+---
+
+[CLAUSE: Part 2 — 7.1 — Carbon and Low Alloy Steel Requirements (The 22 HRC Rule)]
+HARDNESS LIMITS FOR SOUR SERVICE — CARBON AND LOW ALLOY STEELS:
+This is the most widely referenced requirement in NACE MR0175:
+
+MAXIMUM HARDNESS:
+- Base metal: ≤ 22 HRC (Rockwell C) = 237 HB (Brinell) = 250 HV10 (Vickers) at any location
+- Weld metal: ≤ 22 HRC at any location in the weld deposit
+- Heat-affected zone (HAZ): ≤ 22 HRC at any location
+- This limit applies across the ENTIRE cross-section, not just the surface
+
+HARDNESS TESTING REQUIREMENTS:
+- Production hardness testing is required — hardness values from mill certificates alone are not sufficient
+- Test method: Rockwell C (HRC), Brinell (HB), or Vickers (HV) per applicable ASTM standard
+- Convert between scales using ASTM E140
+- For welds: hardness survey per weld cross-section (minimum: 3 indentations weld metal, 3 in each HAZ, 3 in each base metal)
+
+WHY 22 HRC: Above this hardness, steels become susceptible to SSC in H2S environments. This is an empirical threshold established by extensive field and laboratory experience.
+ACCEPTANCE: All hardness measurements ≤ 22 HRC (or equivalent) at all locations.
+REJECTION: Any single hardness measurement >22 HRC in any part of any pressure-containing or pressure-controlling component in sour service. Any weld hardness survey showing >22 HRC in weld, HAZ, or base metal.
+---
+
+[CLAUSE: Part 2 — 7.2 — Carbon Steel Pipe and Plate for Sour Service]
+PLATE AND PIPE:
+Must be manufactured by killed steel practice (aluminum-killed, fine-grain). Steel cleanliness requirements to resist HIC:
+- Sulfur content: ≤ 0.003% (mass fraction) for HIC-resistant steel
+- Phosphorus content: ≤ 0.020% (mass fraction)
+- Carbon Equivalent (CEIIW): ≤ 0.43 for pipes/plates
+
+HIC TESTING:
+For HIC-resistant steel: Test per NACE TM0284. Criteria:
+- Crack Length Ratio (CLR): ≤ 15%
+- Crack Thickness Ratio (CTR): ≤ 5%
+- Crack Sensitivity Ratio (CSR): ≤ 2%
+ACCEPTANCE: Chemistry within limits. HIC test passes all three criteria.
+REJECTION: Steel with sulfur >0.003% or phosphorus >0.020% used in sour service without HIC testing and qualification. HIC test CLR >15%, CTR >5%, or CSR >2%.
+---
+
+[CLAUSE: Part 2 — 8.1 — Welding Requirements for Sour Service]
+SOUR SERVICE WELD REQUIREMENTS:
+1. WPS shall be qualified specifically for sour service — the WPS shall include a requirement to verify hardness of the completed weld.
+2. PWHT: Post-weld heat treatment is recommended and often required for:
+   - Carbon steel with CEIIW >0.35 or wall thickness >19mm
+   - Any alloy steel in sour service
+   - Any weld where HAZ hardness exceeds 22 HRC without PWHT
+3. Filler metals: Select filler metals that deposit weld metal with ≤22 HRC hardness in the as-welded condition. Pre-qualification of filler metals by hardness testing on a representative coupon.
+4. Hardness verification: Every production weld or batch of production welds (per qualified procedure) shall have hardness survey performed.
+
+PREHEAT FOR SOUR SERVICE WELDS:
+Higher than standard minimum preheat recommended to ensure slow cooling and avoid hard HAZ:
+- Carbon steel <12mm: minimum 10°C (50°F) preheat
+- Carbon steel 12–25mm: minimum 93°C (200°F) preheat
+- Carbon steel >25mm: minimum 121°C (250°F) preheat
+ACCEPTANCE: PWHT performed where required. Hardness survey of all production welds ≤22 HRC. Preheat per above.
+REJECTION: Any weld hardness >22 HRC without PWHT. Skipping hardness survey. PWHT skipped on thick or high-CE material. Filler metal not pre-qualified for hardness.
+---
+
+[CLAUSE: Part 2 — Table A.2 — Pre-Qualified Carbon Steel Requirements Summary]
+PIPE AND TUBULAR PRODUCTS pre-qualified for sour service (selected requirements):
+- API 5L Grade B, X42, X52, X60, X65 (seamless or welded per specific chemistry requirements)
+- API 5CT grades for casing and tubing (specific grades only)
+- Carbon steel castings: maximum hardness 22 HRC
+- Carbon steel forgings: maximum hardness 22 HRC
+All pre-qualified materials: maximum 22 HRC, sulfur ≤0.003%, fine-grain killed steel.
+
+MATERIALS REQUIRING ADDITIONAL QUALIFICATION (NOT pre-qualified, test required):
+- High-strength steels above X65
+- CrMo alloy steels (must test per NACE TM0177)
+- Any material that has been cold-worked (cold-worked materials can have locally elevated hardness)
+ACCEPTANCE: Material is in the pre-qualified list at the correct grade with all chemistry requirements met.
+REJECTION: High-strength steel above X65 used in sour service without documented qualification tests. Cold-worked material in sour service without hardness verification at all cold-worked areas.
+---
+
+[CLAUSE: Part 2 — 9.1 — SSC Testing for Non-Listed Materials]
+Materials not pre-qualified must be tested per NACE TM0177:
+METHOD A: Tensile test in H2S environment
+METHOD B: Bent beam test
+METHOD C: C-ring test
+METHOD D: Double cantilever beam fracture mechanics test
+
+ACCEPTANCE CRITERIA FOR METHOD A (most common):
+Test specimen loaded at 80% of specified minimum yield strength (SMYS). Exposed to H2S test solution per TM0177 for 720 hours. No fracture = pass.
+ACCEPTANCE: No fracture in 720 hours at 80% SMYS.
+REJECTION: Any fracture before 720 hours. Test specimen hardness >22 HRC before test (invalid test — material already failed the hardness criterion).
+---
+
+[CLAUSE: Part 3 — 7.1 — Austenitic Stainless Steels in Sour Service]
+CHLORIDE STRESS CORROSION CRACKING (CSCC) RISK:
+Austenitic stainless steels (304, 316, 321, 347) are resistant to SSC but are susceptible to chloride-induced stress corrosion cracking in hot environments with chlorides present.
+TEMPERATURE THRESHOLD: Austenitic SS should not be used in environments containing both H2S and chlorides above:
+- 60°C (140°F) for 316L in moderate chloride
+- Above these temperatures without specific qualification testing
+
+DUPLEX STAINLESS STEEL (22Cr, 25Cr):
+Can be used in sour service with restrictions:
+- Maximum H2S partial pressure limits per standard tables
+- Maximum temperature limits per alloy
+- Must be tested if conditions exceed table limits
+ACCEPTANCE: Austenitic SS within temperature and chloride limits. Duplex SS within H2S partial pressure and temperature limits.
+REJECTION: 316L used above 60°C in H2S + chloride environment without engineering qualification. Duplex SS in sour service above tabled H2S limits without qualification testing.
+---

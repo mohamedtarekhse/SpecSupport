@@ -1,0 +1,151 @@
+[STANDARD: API 510]
+[TITLE: Pressure Vessel Inspection Code: In-service Inspection, Rating, Repair, and Alteration]
+[EDITION: 10th Edition]
+
+[CLAUSE: 1.1 — Scope]
+API 510 covers the inspection, rating, repair, and alteration of pressure vessels that have been placed in service and are subject to the jurisdiction of ASME Boiler and Pressure Vessel Code (primarily Section VIII Div 1 and Div 2). It applies to: process pressure vessels in petroleum refining and chemical service. Does NOT apply to: pressure vessels still under new construction (use ASME VIII), fired pressure vessels (boilers), nuclear vessels.
+---
+
+[CLAUSE: 4.1 — Inspection Intervals]
+EXTERNAL INSPECTION:
+Maximum interval = 5 years for all pressure vessels.
+External inspection includes: visual check of external surfaces, insulation condition (for CUI risk), foundation and support condition, safety device condition (PRV, rupture disc), nozzle and flange condition, ladder/platform condition, and nameplate legibility.
+ACCEPTANCE: External inspection completed within 5-year maximum interval.
+REJECTION: External inspection overdue. PRV condition not verified.
+
+INTERNAL INSPECTION (OR EQUIVALENT EXTERNAL):
+Maximum interval = lesser of: (a) 10 years, or (b) half the remaining corrosion life of the vessel.
+Internal inspection may be substituted by: On-stream inspection using RBI (Risk-Based Inspection) methodology per API 580/581 — allows extension up to maximum 20 years with documented risk analysis.
+ACCEPTANCE: Internal inspection within interval. On-stream inspection program documented and implemented.
+REJECTION: Internal inspection overdue. On-stream substitution used without documented RBI analysis.
+
+PRESSURE RELIEF VALVES:
+Test and inspection interval per API 576:
+- Typical clean service: maximum 10 years
+- Dirty or corrosive service: maximum 5 years
+- First installation: test within 5 years
+ACCEPTANCE: PRV tested within applicable interval. Pop-off pressure verified within ±3% of set pressure.
+REJECTION: PRV not tested within interval. PRV failing pop-off pressure test — replace immediately. PRV with visible corrosion or damage on body or nozzle.
+---
+
+[CLAUSE: 5.1 — Internal Inspection Requirements]
+During internal inspection the inspector shall examine:
+SHELL AND HEADS:
+- Corrosion (general and pitting) — measure minimum wall thickness
+- Hydrogen blistering and HIC (hydrogen-induced cracking) — common in sour crude service
+- Stress corrosion cracking — look for branching cracks especially in welds and HAZ
+- Deformation or bulging (indicates overpressure or creep)
+- Weld condition: cracks, undercut, corrosion at welds
+ACCEPTANCE: Wall thickness ≥ t_min. No cracks. No blistering or HIC. No visible deformation.
+REJECTION: Wall thickness < t_min — retire or repair. Any crack in shell or welds. Any bulge or deformation — immediate engineering assessment. HIC or blistering detected — UT mapping required before return to service.
+
+NOZZLES AND MANWAYS:
+- Check reinforcement pad condition
+- Measure nozzle neck thickness
+- Check nozzle-to-shell weld (common crack initiation point)
+- MT or PT on nozzle welds at each internal inspection
+ACCEPTANCE: Nozzle thickness ≥ minimum. No MT/PT indications on nozzle welds.
+REJECTION: Nozzle thickness below minimum. Any MT/PT indication at nozzle-to-shell weld. Reinforcement pad with cracked attachment weld.
+
+INTERNALS (Trays, Baffles, Demister Pads):
+- Check tray levelness (off-level trays affect process performance and can vibrate)
+- Check tray support rings for corrosion
+- Check bolted connections on internals
+- Check demister pad for plugging or damage
+ACCEPTANCE: Trays level within specification. Support rings not corroded to <50% original section. All bolts present.
+REJECTION: Tray off-level beyond specification. Support ring corrosion >50% section loss. Missing internal bolts (risk of loose parts in process).
+---
+
+[CLAUSE: 5.2 — Corrosion Rate and Remaining Life]
+Same methodology as API 570 — use higher of long-term or short-term corrosion rate:
+Long-term CR = (Original thickness − Current thickness) ÷ Years since new
+Short-term CR = (Previous reading − Current reading) ÷ Years since previous
+
+REMAINING LIFE = (Actual thickness − Minimum required thickness) ÷ Corrosion rate
+
+NEXT INSPECTION DUE = Lesser of: Remaining life ÷ 2, OR maximum interval for vessel class.
+
+RETIREMENT THICKNESS (t_min) for cylindrical shells:
+t_min = (P × R) ÷ (S × E − 0.6 × P)
+Where: P = MAWP, R = inside radius, S = allowable stress at design temperature, E = joint efficiency.
+ACCEPTANCE: Actual thickness > t_min. Remaining life > 2× next inspection interval.
+REJECTION: Actual thickness ≤ t_min — RETIRE OR REPAIR BEFORE RETURNING TO SERVICE. Remaining life < 2× inspection interval — reduce interval.
+---
+
+[CLAUSE: 5.3 — Weld Inspection During Internal Inspection]
+All accessible weld seams (longitudinal, circumferential, nozzle) shall be visually examined during internal inspection.
+NDE REQUIREMENTS DURING INTERNAL INSPECTION:
+- Any area where corrosion is found adjacent to a weld: MT or PT of weld
+- Any area where cracks are suspected: MT or PT minimum, UT for subsurface
+- Shell welds in hydrogen service: UT scan for HIC regardless of visual
+- High-temperature service (>370°C/700°F): UT check for creep at circumferential seams
+ACCEPTANCE: Welds free of cracks, significant undercut (>0.8mm), and porosity clusters. NDE clear of relevant indications.
+REJECTION: Any crack in any weld. Undercut >0.8mm. Porosity cluster or HIC detected — UT mapping required before return to service.
+---
+
+[CLAUSE: 6.1 — Risk-Based Inspection (RBI) Methodology Overview]
+RBI methodology (per API 580/581) allows:
+- Prioritization of inspection resources based on risk (probability of failure × consequence of failure)
+- Extension of internal inspection intervals beyond the standard 10-year maximum (up to 20 years maximum for vessels in low-risk service)
+- Reduction of inspection extent on low-risk vessels with increase on high-risk
+
+RBI MINIMUM REQUIREMENTS TO QUALIFY:
+1. Risk analysis completed per API 580 methodology
+2. Risk analysis reviewed and approved by an authorized pressure vessel inspector (API 510) and an engineer
+3. Risk analysis updated when: operating conditions change, damage found at inspection, or every 5 years maximum
+4. Documentation maintained
+ACCEPTANCE: RBI analysis complete, documented, approved, and current (≤5 years old). Inspection performed per RBI plan findings.
+REJECTION: Extension of inspection interval beyond 10 years without documented RBI analysis. RBI analysis older than 5 years without update. RBI analysis not reviewed by qualified inspector and engineer.
+---
+
+[CLAUSE: 7.1 — Repairs — Authorization and Requirements]
+All repairs to pressure vessels shall be authorized by an Authorized Pressure Vessel Inspector (API 510 certified) before work commences.
+REPAIR TYPES AND REQUIREMENTS:
+
+LIKE-FOR-LIKE REPAIRS (same material, same geometry, same process):
+- Qualified WPS per ASME IX
+- Qualified welder per ASME IX
+- NDE per original code (ASME VIII)
+- PWHT if required by original code
+- Hydrostatic test at 1.3× MAWP (ASME VIII Div 1 standard)
+- R-stamp (National Board) on repair record (where required by jurisdiction)
+
+ALTERATIONS (change to design pressure, temperature, nozzle location, or material):
+- Engineering design per ASME VIII
+- Owner's engineer approval
+- Authorized Inspector approval
+- All of the above repair requirements
+- Updated nameplate (re-stamp)
+ACCEPTANCE: All requirements met. Documentation in vessel record (vessel file).
+REJECTION: Repair without Authorized Inspector approval. Repair without WPS or qualified welder. PWHT omitted when required by code. No hydrostatic test after repair. R-stamp missing where required by jurisdiction.
+---
+
+[CLAUSE: 7.3 — Temporary Repairs]
+Temporary repairs (welded patches, bolted clamps) may be used when:
+- The owner determines a temporary repair is necessary to maintain production while permanent repair is planned
+- Engineering analysis confirms temporary repair is safe for intended duration
+- Duration is defined and documented (maximum 1 year for welded temporary repairs unless re-evaluated)
+
+TEMPORARY REPAIR REQUIREMENTS:
+- Engineering analysis and approval
+- Monitoring during service (external UT or visual at defined intervals)
+- Permanent repair planned and tracked
+ACCEPTANCE: Engineering analysis on file. Duration defined. Monitoring in place. Permanent repair planned.
+REJECTION: Temporary repair without engineering analysis. Temporary repair exceeding approved duration without re-evaluation.
+---
+
+[CLAUSE: 8.1 — Pressure Relief Device Inspection and Testing]
+PRESSURE RELIEF VALVES (PRV):
+Visual inspection: Check for corrosion, process material discharge at outlet (indicates PRV has lifted), physical damage, correct tag (setpressure matches vessel MAWP or lower), discharge to safe location.
+Operational test (bench test or in-situ test):
+- Set pressure tolerance: ±3% of nameplate set pressure for spring-loaded PRVs.
+- Reseat pressure: PRV shall reseat within 10% blow-down (difference between opening and closing pressure).
+ACCEPTANCE: Pop-off within ±3% of set pressure. Reseats within 10% blowdown. Zero leakage at 90% of set pressure on soft-seat valves.
+REJECTION: Pop-off pressure outside ±3% — recalibrate or replace. PRV that does not reseat (stuck open). PRV leaking at 90% of set pressure. PRV with corroded or damaged body. PRV with wrong set pressure tag.
+
+RUPTURE DISCS:
+Inspect at each internal inspection: check disc condition, holder condition, and pressure/temperature rating matches vessel.
+Replace rupture disc: if holder shows corrosion, if disc has been exposed to a pressure excursion event, or at manufacturer's recommended interval.
+ACCEPTANCE: Disc intact. Rating matches vessel requirement. Holder free of corrosion.
+REJECTION: Disc with any perforation, deformation, or corrosion. Disc pressure rating different from vessel requirement. Disc past manufacturer's replacement interval.
+---

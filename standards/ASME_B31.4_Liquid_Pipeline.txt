@@ -1,0 +1,768 @@
+[STANDARD: ASME B31.4]
+[TITLE: Pipeline Transportation Systems for Liquids and Slurries]
+[EDITION: 2022]
+[ARTICLE: Full Scope — Liquid Pipeline Inspection and Testing]
+
+================================================================================
+GENERATED: 2026-09-23 | LANGUAGE: English / Arabic (MENA Oilfield Terms)
+AUTHORITY: ASME B31.4-2022, Pipeline Transportation Systems for Liquids and Slurries
+USE: AI-Assisted Inspection Support | Field Engineering Reference
+================================================================================
+
+---
+
+CLAUSE REF: B31.4 § 400.1 — SCOPE OF APPLICATION (نطاق التطبيق)
+
+This code covers design, materials, fabrication, installation, inspection, testing, operation,
+and maintenance of piping systems used to transport liquids — including crude oil (خام البترول),
+petroleum products (منتجات بترولية), liquid CO2, anhydrous ammonia, and liquid slurries
+(سوائل عالقة) between production facilities, tank farms, refineries, marine terminals, and
+delivery points. The code applies to all pressure-containing components within the pipeline
+system boundary, including pipe, fittings, valves, flanges, and appurtenances.
+B31.4 does NOT cover gas pipelines — those fall under B31.8; and does NOT cover pressure
+vessels governed by ASME Section VIII. Offshore liquid pipelines may use B31.4 or
+B31.8S as applicable; the code boundary ends at the first block valve of a platform or
+facility. The inspector (المفتش) must confirm the applicable code scope before beginning
+any examination, as acceptance criteria differ fundamentally from B31.3 process piping.
+
+ACCEPTANCE: System fluid confirmed as liquid, CO2 (liquid phase), slurry, or anhydrous
+ammonia. Operating pressure and temperature within published design envelope.
+Pipeline geometry (buried/aboveground) documented in the engineering data sheet (ورقة
+البيانات الهندسية).
+
+REJECTION: Application of B31.4 criteria to a gas pipeline, or use of B31.3 weld
+acceptance on a liquid trunk line — non-conformance (عدم مطابقة) to be raised immediately.
+Any pipeline system transporting fluids outside scope without written engineering deviation.
+
+---
+
+CLAUSE REF: B31.4 § 400.2 — DESIGN INTENT AND MAOP DEFINITION
+(الحد الأقصى لضغط التشغيل المسموح به)
+
+MAOP (Maximum Allowable Operating Pressure — أقصى ضغط تشغيل مسموح) is the maximum
+internal pressure at which a pipeline or pipeline segment may be continuously operated,
+as established by the design calculations, material properties, location class, and
+hydrostatic test pressure. MAOP is established for each segment individually and must
+account for the highest elevation point (lowest pressure) and lowest elevation point
+(highest static head). The pipeline operator must document the MAOP for every segment
+in the pipeline operations manual (دليل التشغيل) and post it at block valve stations.
+MAOP may never be exceeded during normal operations, pigging (تشغيل الخنزير),
+or pressure surge events without a surge analysis and written authorization.
+All operating pressure gauges (مقاييس الضغط) must be calibrated within 6 months and must
+display MAOP as a marked reference line or tagged value.
+
+ACCEPTANCE: Recorded operating pressure ≤ MAOP at all times. MAOP documented in
+engineering file with traceability to design calculation and hydrostatic test. Gauge
+calibration current (within 6 months).
+
+REJECTION: Any recorded operating pressure exceeding MAOP, even momentarily, without
+a documented surge analysis. MAOP not traceable to design calculation or hydrostatic
+test record. Operating gauges uncalibrated or untagged.
+
+---
+
+CLAUSE REF: B31.4 § 401.2.2 — MAOP DESIGN FORMULA (معادلة الضغط التصميمي)
+
+The fundamental hoop stress formula for determining internal design pressure is:
+    P = (2 × S × t) / D × F × E × T
+Where:
+  P = Internal design pressure (psi or MPa) (ضغط التصميم الداخلي)
+  S = Specified Minimum Yield Strength — SMYS (أدنى قوة خضوع محددة) in psi or MPa
+  t = Nominal wall thickness (السُّمك الاسمي للجدار) in inches or mm
+  D = Outside diameter of pipe (القطر الخارجي للأنبوب) in inches or mm
+  F = Design factor (معامل التصميم) based on location class — see § 401.2.2 Table
+  E = Longitudinal joint factor (معامل الوصلة الطولية) — 1.0 for seamless and SAW
+  T = Temperature derating factor — 1.0 for temperatures ≤ 250°F (121°C)
+
+The inspector must verify that each term used in the pressure rating calculation is
+supported by mill certificates (شهادات المصنع) and the pipeline design basis document.
+Any substitution of a lower-grade pipe requires full recalculation of MAOP for the segment.
+Never allow field personnel to operate above a pressure that exceeds the calculated P for
+the installed pipe grade, wall thickness, and location class design factor F.
+
+ACCEPTANCE: Calculated P ≥ MAOP for the segment. All variables (S, t, D, F, E, T)
+confirmed from certified mill test reports (MTRs) and design document. E = 1.0 for
+seamless (مسلوب) or SAW pipe; E = 0.80 for furnace butt weld pipe.
+
+REJECTION: Operating MAOP exceeds calculated P. Mill certificate (شهادة المطحنة) not
+available for installed pipe — SMYS cannot be assumed. Temperature derating factor
+not applied when operating above 250°F. Longitudinal joint factor not verified for
+electric resistance welded (ERW — ملحوم بالمقاومة الكهربائية) seam pipe.
+
+---
+
+CLAUSE REF: B31.4 § 401.2.2 TABLE — LOCATION CLASS AND DESIGN FACTOR F
+(فئة الموقع ومعامل التصميم)
+
+B31.4 does not divide pipelines into multiple location classes the same way B31.8 does
+for gas — for liquid pipelines the standard design factor F is 0.72 for all buried
+cross-country liquid pipelines not otherwise restricted. However, the design factor
+must be reduced to F = 0.60 for pipe installed within highway or railroad crossings
+(تقاطعات الطرق والسكك الحديدية), navigable water crossings (عبور المجاري المائية), and
+within compressor or pump station boundaries. Where a pipeline traverses an area of
+high consequence (HCA — منطقة ذات عواقب وخيمة) such as populated areas, F shall not
+exceed 0.50 unless a higher factor is justified by integrity assessment and approved
+by the operator's integrity management program. The inspector must confirm the location
+class and F used in the design basis document against the actual field routing survey.
+Any routing change that places a segment in a more sensitive area must trigger a
+re-evaluation of the applicable design factor before commissioning.
+
+ACCEPTANCE: F = 0.72 for standard buried cross-country liquid pipeline.
+F = 0.60 at road/rail/water crossings and within pump station limits.
+F ≤ 0.50 in documented HCA zones with integrity program authorization.
+
+REJECTION: F = 0.72 applied at a highway crossing or navigable water crossing — REJECT.
+F not reduced when routing change places pipeline in a more sensitive zone — REJECT.
+Design factor not documented in engineering file — pipeline must not be commissioned.
+
+---
+
+CLAUSE REF: B31.4 § 401.2.1 — MINIMUM WALL THICKNESS FORMULA
+(الحد الأدنى لسُمك الجدار)
+
+The minimum required wall thickness (t_min) for straight pipe under internal pressure is
+derived by rearranging the MAOP formula:
+    t_min = (P × D) / (2 × S × F × E × T)
+After calculating t_min, a manufacturing tolerance (تفاوت التصنيع) of −12.5% on wall
+thickness must be added to arrive at the nominal ordered thickness (السُّمك الاسمي
+للطلب). Therefore: t_nominal ≥ t_min / (1 − 0.125) = t_min / 0.875.
+The inspector must verify mill-supplied wall thickness readings from ultrasonic
+measurements (UT — قياسات الموجات فوق الصوتية) or from mill hydrostatic test records.
+If in-service corrosion has reduced wall thickness below t_min at any point, the segment
+must be evaluated using the applicable fitness-for-service (FFS — الصلاحية للخدمة)
+methodology before continued operation. A corrosion allowance is not built into B31.4
+formulas — it must be added separately by the operator's design specification.
+
+ACCEPTANCE: Measured wall thickness ≥ t_min calculated for the governing MAOP, pipe OD,
+SMYS, and F. Mill tolerance not to reduce any point below 87.5% of nominal wall.
+Minimum ordered nominal wall ≥ t_min / 0.875.
+
+REJECTION: Any measured wall thickness (field UT reading) < t_min — segment must be
+de-rated or repaired before return to service. Mill cert showing wall thickness below
+87.5% of nominal — pipe rejected and segregated. Corrosion-reduced wall at or below
+t_min without FFS evaluation — immediate shutdown trigger.
+
+---
+
+CLAUSE REF: B31.4 § 406.2 — FIELD BENDS — MINIMUM BENDING RADIUS
+(أنصاف أقطار الانحناء في الحقل)
+
+Cold field bends (الانحناءات الميدانية الباردة) are permitted on liquid pipelines provided
+the bending radius and out-of-roundness after bending remain within code limits.
+The minimum bending radius shall not be less than 18 pipe diameters (18D) for pipe
+wall thicknesses ≤ 0.375 in (9.5 mm), and not less than 21D for wall thicknesses
+> 0.375 in (9.5 mm), unless a lesser radius is qualified by a written bending procedure
+that includes inspection of the bend for cracks (تشققات), wrinkles (تجاعيد), and
+out-of-roundness. Out-of-roundness (تغيير الشكل الدائري) at any cross-section of the
+bend must not exceed 2.5% of the nominal pipe OD — measured as:
+    % OOR = (D_max − D_min) / D_nominal × 100
+The inspector must measure OOR with a pi-tape or inside diameter template (قالب القطر
+الداخلي) at the mid-point and both tangent points of each field bend. Any visible wrinkle
+on the intrados (الجانب الداخلي) of the bend is cause for rejection regardless of OOR value.
+
+ACCEPTANCE: Bending radius ≥ 18D for t ≤ 0.375 in; ≥ 21D for t > 0.375 in.
+Out-of-roundness ≤ 2.5% OD after bending. No visible wrinkles on intrados.
+Bend free of cracks confirmed by visual and magnetic particle (MPI — الجسيمات المغناطيسية)
+or dye penetrant (PT — الاختبار بالصبغة النافذة) examination.
+
+REJECTION: Bending radius < 18D (light wall) or < 21D (heavy wall) without qualified
+procedure — REJECT bend, excavate and replace. OOR > 2.5% — reject bend, assess
+for buckling risk. Any visible wrinkle on intrados — mandatory rejection and replacement.
+Cracks detected by MPI or PT — bend rejected and cut out.
+
+---
+
+CLAUSE REF: B31.4 § 434.1 — BUTT WELD JOINT REQUIREMENTS (متطلبات اللحام بالربط الكامل)
+
+All butt welds (لحامات الربط الكامل) on liquid pipeline mainline (الخط الرئيسي) shall be
+full-penetration groove welds (لحامات كاملة النفاذ) made in accordance with a qualified
+Welding Procedure Specification (WPS — مواصفة إجراء اللحام) and by welders holding
+current Procedure Qualification Records (PQR) and Welder Performance Qualifications
+(WPQ — توصيف مؤهلات اللحام). End preparation (إعداد الطرف) shall be as specified in the
+WPS — typically 30° ± 5° bevel with a root face of 1/16 ± 1/32 in (1.6 ± 0.8 mm).
+Pipe ends must be cleaned (تنظيف الأطراف) of mill scale, rust, moisture, and oil to a
+minimum of 1 inch (25 mm) back from the weld bevel before welding commences.
+External lineup clamps (مشابك المحاذاة الخارجية) shall not be released until a minimum
+of the first two passes (root and hot pass — طبقة الجذر والطبقة الحارة) are complete.
+High-low misalignment (عدم المحاذاة العالي المنخفض) at the joint shall not exceed 1/8 in
+(3.2 mm) before welding, measured on the outside diameter.
+
+ACCEPTANCE: Full-penetration butt weld made per qualified WPS. End preparation as per
+WPS ± stated tolerances. High-low misalignment ≤ 1/8 in (3.2 mm). External lineup
+clamp not removed before root + hot pass complete. Pipe ends clean ≥ 1 in (25 mm)
+from bevel. Preheat applied per WPS (minimum temperature verified by contact
+thermometer or temperature-indicating crayons — أقلام قياس الحرارة).
+
+REJECTION: Butt weld made without qualified WPS or by unqualified welder — REJECT weld,
+cut out. High-low > 3.2 mm before welding — re-align before proceeding.
+Lineup clamp removed before root + hot pass — weld must be cut out and re-welded.
+Preheat not applied when required by WPS — weld rejected and re-made.
+
+---
+
+CLAUSE REF: B31.4 APPENDIX B — WELD ACCEPTANCE CRITERIA (RT/UT)
+(معايير قبول اللحامات — الأشعة والموجات فوق الصوتية)
+
+B31.4 Appendix B establishes the mandatory acceptance/rejection criteria for radiographic
+(RT — الأشعة السينية) and ultrasonic (UT — الموجات فوق الصوتية) examination of pipeline
+girth welds (اللحامات الدائرية). These criteria are more stringent than B31.3 for some
+defect types due to fatigue and cyclic pressure loading on liquid pipelines.
+Radiographic film (فيلم الأشعة السينية) or digital detector must be evaluated by a
+Level II or III RT interpreter qualified to SNT-TC-1A or equivalent.
+Ultrasonic examination must use a qualified procedure with demonstrated capability on
+representative test blocks; automated UT (AUT) is permitted and preferred for
+mechanized welding. The following are the primary RT/UT acceptance criteria per
+Appendix B — each defect type is treated separately.
+
+INCOMPLETE FUSION (اندماج ناقص) / INCOMPLETE PENETRATION (نفاذ ناقص):
+ACCEPTANCE: None permitted regardless of length. Zero tolerance.
+REJECTION: Any indication of incomplete fusion or incomplete penetration — REJECT weld.
+
+POROSITY (مسامية):
+ACCEPTANCE: Individual pore ≤ 3/32 in (2.4 mm) diameter. Cluster porosity ≤ 1/2 in
+(12.7 mm) in any 12 in (300 mm) weld length. Total porosity area ≤ 2% of weld image
+area in any 6 in (150 mm) length of radiograph.
+REJECTION: Any pore > 3/32 in (2.4 mm). Cluster porosity > 12.7 mm aggregate extent.
+Total pore area > 2% in any 6 in (150 mm) length.
+
+SLAG INCLUSIONS / ELONGATED INDICATIONS (إدراجات الخبث):
+ACCEPTANCE: Individual slag length ≤ 2 in (50 mm) in any 12 in (300 mm) weld length.
+Width ≤ 1/16 in (1.6 mm). Aggregate slag ≤ 2 in (50 mm) in any 12 in weld length.
+REJECTION: Individual slag > 50 mm length or > 1.6 mm width. Aggregate slag > 50 mm
+in any 12 in length.
+
+CRACKS (تشققات): ACCEPTANCE: None — zero tolerance regardless of length, orientation,
+or location. REJECTION: Any crack indication confirmed by RT or UT — mandatory cut-out.
+
+UNDERCUTTING (الحفر الجانبي):
+ACCEPTANCE: Maximum depth 1/32 in (0.8 mm). Length unlimited if within depth limit.
+REJECTION: Undercut depth > 0.8 mm at any location on girth weld — weld must be
+repaired by grinding and re-welding or by deposition of additional weld passes.
+
+---
+
+CLAUSE REF: B31.4 § 434.8 — WELDING PROCEDURE AND WELDER QUALIFICATION
+(التأهيل الإجرائي للحام وتأهيل اللحام)
+
+All welding on B31.4 liquid pipeline systems shall be performed to a WPS qualified in
+accordance with ASME Section IX (الجزء التاسع من ASME) or API 1104, as specified by the
+operator's engineering standard. Qualification of the WPS requires a Procedure
+Qualification Record (PQR — سجل تأهيل الإجراء) supported by mechanical test results
+including tensile (شد), guided bend (ثني موجه), and nick break (كسر النيك) tests.
+Welder qualification (تأهيل اللحام) must be documented per the same standard and must
+include the process (SMAW, GTAW, SAW, GMAW), position, pipe OD group, and wall
+thickness group. Welder qualification expires if the welder has not welded with the
+qualified process for more than 6 months — or if specific cause for questioning
+competency arises (e.g., failure of a production weld on RT). The inspector must
+check the welder's stamp (ختم اللحام) or ID number on the weld map (خريطة اللحامات)
+and cross-reference against the qualification log before allowing any welder to
+proceed on mainline tie-in welds (لحامات الربط).
+
+ACCEPTANCE: Valid WPS and PQR on file covering process, position, pipe OD, and wall
+thickness. Welder's WPQ current (welded within 6 months on qualified process).
+Welder ID traceable on weld log to specific joint. Preheat, interpass temperature,
+and PWHT (if required by WPS) verified and recorded.
+
+REJECTION: WPS not qualified or PQR missing mechanical test data — no welding
+permitted. Welder qualification expired (>6 months without qualified process use) —
+welder must re-qualify before working on mainline. Welder ID not recorded on weld
+log — weld must be treated as unqualified and subjected to 100% RT/UT.
+
+---
+
+CLAUSE REF: B31.4 § 437 — BRANCH CONNECTION REQUIREMENTS (متطلبات توصيلات التفريع)
+
+Branch connections (توصيلات التفريع) on liquid pipelines must be designed and fabricated
+to maintain the pressure integrity of the header pipe (أنبوب الرأسي الرئيسي) without
+exceeding the allowable hoop stress. Unreinforced fabricated tees (تيهات غير معززة)
+are permitted only where the calculated area replacement (مساحة الاستبدال) requirements
+of B31.4 § 437 are satisfied — i.e., the metal removed from the header must be
+replaced by reinforcing pad (لوحة التعزيز), the branch wall, or branch fitting excess metal.
+Hot tapping (الحفر الساخن) on in-service pressurized pipelines is permitted subject to
+a written hot tap procedure approved by the operator, pressure and temperature within
+the fitting manufacturer's rating, and the absence of flammable vapor accumulation.
+Hot tap fittings (تركيبات الحفر الساخن) must be full-encirclement type when installed on
+a pipe with wall loss > 10% of nominal. Branch-to-header weld must achieve full
+penetration and be examined by RT or UT to the same acceptance criteria as mainline
+girth welds. Set-on (وضع على) branch connections are not permitted on pipelines
+operating above 20% SMYS hoop stress — use integrally reinforced fittings.
+
+ACCEPTANCE: Area replacement calculation satisfied per § 437 for all unreinforced
+fabricated branches. Hot tap procedure written, approved, and fitting rated for
+operating conditions. Full-penetration weld on branch-to-header confirmed by RT/UT.
+Reinforcing pad vent hole (فتحة تنفيس لوحة التعزيز) provided and tested with soap
+solution at 15 psi (103 kPa) after welding to confirm pad seal.
+
+REJECTION: Area replacement not satisfied for fabricated branch — REJECT, redesign with
+rated tee fitting. Hot tap attempted without written procedure — stop work immediately.
+Reinforcing pad installed without vent hole — reject until drilled and tested.
+Set-on branch on pipe with hoop stress > 20% SMYS — reject and replace with
+integrally reinforced fitting.
+
+---
+
+CLAUSE REF: B31.4 § 437.4 — HYDROSTATIC TEST PRESSURE REQUIREMENT
+(متطلبات اختبار الضغط الهيدروستاتيكي)
+
+Before placing a new or relocated pipeline segment into liquid service, a hydrostatic
+pressure test (اختبار الضغط الهيدروستاتيكي) must be conducted using water (ماء) as the
+test medium unless water is not available or would create a hazard, in which case
+another incompressible liquid approved by the operator may be substituted.
+The minimum hydrostatic test pressure at any point along the segment shall be not less
+than 1.25 × MAOP for buried pipelines and 1.10 × MAOP for aboveground pipelines
+(خطوط فوق السطح). The test pressure must be maintained at the lowest elevation of the
+test segment — static head contribution at higher elevation points must be calculated
+and subtracted to ensure the highest elevation does not see excessive pressure.
+Test pressure must be measured with calibrated gauges (دقة المقياس المعايَر) at the
+inlet and at the highest elevation point of the test section. All air (هواء) must be
+vented from high points (نقاط التهوية) before pressurizing to test pressure to avoid
+a pneumatic component in what is intended as a hydrostatic test.
+
+ACCEPTANCE: Test pressure ≥ 1.25 × MAOP for buried pipe; ≥ 1.10 × MAOP for
+aboveground pipe — measured at the low-elevation end of the test section.
+Test medium: water or approved incompressible liquid. Calibrated gauges at inlet
+and high point. All high-point vents opened until water flows, then closed before
+pressuring to test level.
+
+REJECTION: Test pressure < 1.25 × MAOP for buried segment — test invalid, must be
+repeated. Air pocket not vented before pressurization — pneumatic energy hazard,
+depressurize and vent before re-testing. Test gauge calibration expired — test
+data invalid, must be repeated with calibrated equipment.
+
+---
+
+CLAUSE REF: B31.4 § 437.4.1 — HYDROSTATIC TEST HOLD TIME (وقت الإمساك بالضغط)
+
+For buried liquid pipelines (الأنابيب المدفونة), the minimum hold time (وقت الإمساك)
+at the required test pressure is 4 hours continuous. During this hold period, no
+make-up water or pressure may be added — if pressure cannot be maintained without
+pumping, a leak exists. For aboveground piping systems (المنظومة فوق الأرض) within
+a liquid pipeline facility, the hold time may be reduced to 1 hour provided all welds
+and connections are visually inspected during the hold period.
+The inspector must record pressure and temperature readings (قراءات الضغط والحرارة)
+at a minimum of every 30 minutes during the hold period on the test data sheet
+(ورقة بيانات الاختبار). Temperature correction (تصحيح درجة الحرارة) must be applied
+if ambient temperature changes by more than 5°F (2.8°C) during the test, using the
+gas laws or the operator's approved correction formula to distinguish a thermal
+pressure variation from a true leak. The test record must be signed by the inspector,
+witnessed by the operator's representative (ممثل المشغل), and filed as a permanent
+engineering record.
+
+ACCEPTANCE: Hold time ≥ 4 hours for buried pipeline; ≥ 1 hour for aboveground facility
+piping. Pressure records taken every ≤ 30 minutes with timestamps. No pressure drop
+unexplained by temperature variation. Temperature recorded every 30 minutes at a
+minimum of two points along the test section.
+
+REJECTION: Hold time < 4 hours for buried pipeline — test invalid, repeat from initial
+pressurization. Any unexplained pressure drop during hold period — test FAILS,
+depressurize, locate and repair leak, re-test. Temperature correction not documented
+when ambient change > 5°F — test record incomplete, subject to re-test requirement.
+
+---
+
+CLAUSE REF: B31.4 § 437.4.3 — TEST PRESSURE UPPER LIMIT — 90% SMYS
+(الحد الأقصى لضغط الاختبار — 90% من أدنى قوة الخضوع)
+
+While the minimum hydrostatic test pressure is 1.25 × MAOP, the code also imposes a
+ceiling: the test pressure must not cause the hoop stress in the pipe wall to exceed
+90% of SMYS (أدنى قوة الخضوع المحددة) at any point along the test segment.
+This upper limit protects the pipe from yielding (الخضوع البلاستيكي) during the test,
+which would permanently deform the pipe wall and reduce the load-carrying capacity of
+the cross-section. At the lowest elevation (highest pressure) point of the test segment,
+the inspector must calculate the resulting hoop stress using:
+    σ_h = (P_test × D) / (2 × t)
+and confirm that σ_h ≤ 0.90 × SMYS.
+If the test segment has elevation differences that cause the test pressure at the low
+point to exceed the 90% SMYS limit, the test section must be split into shorter segments
+(تقسيم قطاع الاختبار) so each can be tested within these bounds. Document the break
+points and the maximum allowable test pressure for each sub-segment in the test plan.
+
+ACCEPTANCE: Hoop stress at lowest elevation ≤ 90% SMYS (calculated from P_test, D, t).
+Test pressure at high-elevation end ≥ 1.25 × MAOP.
+Both conditions satisfied simultaneously — test plan valid.
+
+REJECTION: Test pressure at low-elevation point causes hoop stress > 90% SMYS —
+reduce test pressure, split segment, or recalculate. Segment tested as a single section
+when elevation difference causes one end to violate upper or lower limit — test
+plan invalid. SMYS used in calculation not verified by mill certificate — use only
+certified MTR values.
+
+---
+
+CLAUSE REF: B31.4 § 437.5 — PNEUMATIC TEST — CONDITIONS AND LIMITS
+(الاختبار الهوائي — الشروط والحدود)
+
+A pneumatic test (اختبار هوائي) using compressed gas (gas, nitrogen — نيتروجين, or air)
+may only be used as an alternative to hydrostatic testing when the operator can
+demonstrate that water would create a hazardous condition (e.g., process contamination,
+freeze potential, or structural overload from water weight), or when the pipeline is not
+capable of being adequately drained after a hydrostatic test. Pneumatic testing is
+inherently more dangerous than hydrostatic testing because compressed gas stores far
+more energy — the test must be conducted with all personnel and equipment cleared from
+the immediate test zone (منطقة الاختبار) during initial pressurization steps.
+The maximum pneumatic test pressure shall not exceed 1.1 × MAOP — this is lower than
+the hydrostatic minimum of 1.25 × MAOP specifically because of the energy stored in
+compressed gas. A preliminary leak test (اختبار تسرب أولي) at 25 psig (172 kPa) must
+be conducted first using a soap solution (محلول الصابون) to check all joints and
+connections before pressurizing to the full pneumatic test pressure.
+
+ACCEPTANCE: Pneumatic test only used with documented justification approved by the
+operator. Maximum test pressure ≤ 1.1 × MAOP. Preliminary soap-bubble leak test
+at 25 psig (172 kPa) completed and passed. Personnel safety exclusion zone established
+and enforced during pressurization. Test medium: dry nitrogen (preferred), instrument
+air (هواء الأدوات), or natural gas with ignition source controls documented.
+
+REJECTION: Pneumatic test used without documented justification — invalid test, must
+repeat with hydrostatic test. Test pressure > 1.1 × MAOP for pneumatic test —
+immediate depressurization required. Preliminary 25 psig soap test not performed —
+test invalid. Personnel inside exclusion zone during pressurization — stop work,
+safety violation.
+
+---
+
+CLAUSE REF: B31.4 § 437.4.2 — LEAK TEST ACCEPTANCE (قبول اختبار التسرب)
+
+The hydrostatic or pneumatic test passes only when there is no pressure drop throughout
+the full hold period that cannot be fully accounted for by measured temperature change.
+The inspector must record the initial stabilized pressure (الضغط المستقر الابتدائي)
+after the thermal stabilization period — typically 1 hour after reaching test pressure
+before the official hold period begins — and compare against the final pressure at end
+of hold. Any pressure drop observed must be investigated: first apply temperature
+correction, then if unexplained pressure drop remains, the test is a FAILURE.
+All visible joints, welds, fittings, and mechanical connections within the test boundary
+must be walked and visually inspected during hydrostatic hold for seepage, weeping,
+or active leaks. A calibrated chart recorder (مسجل المخططات المعايَر) or data logger
+is preferred over manual readings for buried pipeline tests to provide a continuous
+pressure-time trace (منحنى الضغط-الزمن) as a permanent record.
+
+ACCEPTANCE: Zero unexplained pressure drop over the full hold period (4 hours buried,
+1 hour aboveground). All temperature-corrected pressure readings within ±0.1 bar
+(1.45 psi) variation attributable solely to measured temperature change.
+No visible leak at any joint or fitting during walk inspection.
+Chart recorder or data logger trace filed as permanent test record.
+
+REJECTION: Any unexplained pressure drop — test FAILS regardless of drop magnitude.
+Visible seepage or weeping at any joint, weld, or fitting — test FAILS, repair and
+retest. Test record based on manual readings only without timestamps — record
+deemed incomplete for regulatory filing. Chart recorder not calibrated — data
+not acceptable; test must be repeated with calibrated equipment.
+
+---
+
+CLAUSE REF: B31.4 § 461 — CATHODIC PROTECTION REQUIREMENTS
+(متطلبات الحماية الكاثودية)
+
+All buried or submerged metallic liquid pipeline components must be provided with
+cathodic protection (CP — الحماية الكاثودية) in accordance with B31.4 § 461 and the
+requirements of the applicable regulatory body (NACE SP0169 / ISO 15589-1 are
+the industry reference standards). CP must be installed and operating before the
+pipeline is placed in service, or within 1 year of installation of bare or poorly
+coated pipe. The most common CP criterion for steel pipelines is the −850 mV
+polarized potential (الجهد المستقطب) measured against a copper/copper sulfate reference
+electrode (Cu/CuSO₄ — مرجع النحاس/كبريتات النحاس), measured with the protective
+current applied (ON potential). Where sulfate-reducing bacteria (SRB — البكتيريا
+المختزلة للكبريتات) are present in the soil, a more negative criterion of −950 mV
+(Cu/CuSO₄) is required. Pipe-to-soil potential measurements (قياسات جهد الأنبوب
+إلى التربة) must be taken at intervals not exceeding 1 mile (1.6 km) along the pipeline
+or at every test station (محطة الاختبار), whichever is more frequent.
+
+ACCEPTANCE: Pipe-to-soil ON potential ≤ −850 mV (Cu/CuSO₄) at all measurement points.
+Instantaneous-off (IR-free) potential ≤ −850 mV (Cu/CuSO₄) preferred for accurate
+assessment. In SRB environments: ON potential ≤ −950 mV. Measurement interval ≤ 1 mile
+(1.6 km). Annual survey (مسح سنوي) completed and documented. Rectifier (معدل التيار)
+output recorded at each survey — current output and voltage documented.
+
+REJECTION: Pipe-to-soil ON potential more positive than −850 mV at any test station —
+CP system deficient, immediate rectifier adjustment or additional anode output required.
+Annual survey not conducted — regulatory non-compliance. Any section of buried pipeline
+without CP system or with CP disabled for > 30 days without documented engineering
+exemption — high priority corrosion risk, inspect immediately.
+
+---
+
+CLAUSE REF: B31.4 § 462 — PRE-COMMISSIONING — CLEANING AND GAUGING
+(تنظيف وقياس ما قبل التشغيل)
+
+Before a new pipeline segment is filled with product and placed in service, the line
+must be mechanically cleaned and gauged to confirm clear bore (تأكيد الفتحة النظيفة)
+and absence of dents, buckles, or construction debris (حطام البناء) within the pipe bore.
+Cleaning is achieved by running a series of foam pigs (خنازير إسفنجية), brush pigs
+(خنازير فرشاة), and gauge pigs (خنازير القياس) through the line using water, air,
+or nitrogen as the driving medium. The gauge pig carries a gauge plate (لوح القياس)
+sized to 95% of the nominal inside diameter (ID — القطر الداخلي الاسمي) of the pipe —
+if the gauge plate returns deformed (مشوه), a dent or obstruction reduces the bore
+below 95% ID and must be located and remediated before commissioning.
+Pig runs must be documented on a pig run log (سجل تشغيل الخنزير) that records
+launch time, arrival time, and condition of pig and gauge plate on recovery.
+Cleaning runs continue until the return medium (ماء التنظيف العائد) is visually clean.
+
+ACCEPTANCE: Gauge plate recovered undamaged — bore ≥ 95% nominal ID confirmed.
+Cleaning runs continued until return medium visually free of debris, scale, and mill
+varnish. Pig run log completed with timestamps, pig type, driving medium, and
+gauge plate condition for each run.
+
+REJECTION: Gauge plate returned deformed or with indentations — bore obstruction
+< 95% ID detected; excavate, locate obstruction, repair, and re-run gauge pig.
+Pig not recovered at receiving end — pig stuck in line; locate and retrieve before
+commissioning. Return medium still carrying debris after 5 cleaning pig runs —
+investigate internal contamination, increase run frequency or change pig type.
+
+---
+
+CLAUSE REF: B31.4 § 461.1 — IN-SERVICE INSPECTION — ILI / SMART PIG INTERVALS
+(الفترات الزمنية للتفتيش الداخلي — الخنزير الذكي)
+
+B31.4 requires operators to establish and implement an Integrity Management Program
+(IMP — برنامج إدارة النزاهة) that includes regular In-Line Inspection (ILI — التفتيش
+الداخلي) using smart pig tools (أدوات الخنزير الذكي) for piggable pipelines in High
+Consequence Areas (HCA — مناطق العواقب الوخيمة). ILI tools include Magnetic Flux
+Leakage (MFL — تسرب التدفق المغناطيسي) for metal loss detection, Ultrasonic Testing
+(UT — الموجات فوق الصوتية) tools for wall thickness measurement, caliper/geometry tools
+(أدوات مقياس الشكل الهندسي) for dent and deformation detection, and Elastic Wave tools
+for stress corrosion cracking (SCC — التشقق بالتآكل الإجهادي) assessment.
+ILI re-assessment intervals must be determined by the operator's IMP based on the
+predicted corrosion growth rate and time to reach 80% wall loss (الحد الأقصى لفقدان
+الجدار). Typical industry practice (ASME B31.8S-based method applied to liquid lines):
+maximum interval 5 years for high-consequence corrosion threats; up to 10 years
+where corrosion growth rate is demonstrated to be ≤ 0.004 in/yr (0.1 mm/yr).
+
+ACCEPTANCE: ILI tool selected is appropriate for identified threat (MFL for metal loss,
+caliper for geometry). ILI run completed within required re-assessment interval.
+Tool performance specification: probability of detection (POD) ≥ 90% for defects
+at 10% wall loss or greater; sizing accuracy ±10% wt for depth, ±6 in (152 mm) for
+length. Post-ILI analysis report issued within 120 days of pig pull.
+
+REJECTION: ILI re-assessment interval exceeded without documented engineering justification
+and pressure de-rating — operator in non-compliance with IMP. ILI tool not appropriate
+for threat type — data invalid for integrity assessment. ILI report not issued within
+180 days — regulatory violation in most jurisdictions. Non-piggable pipeline in an
+HCA without an approved alternative assessment method — immediate integrity concern.
+
+---
+
+CLAUSE REF: B31.4 § 461.3 — CORROSION MONITORING AND REMAINING LIFE ASSESSMENT
+(مراقبة التآكل وتقييم العمر المتبقي)
+
+In-service corrosion (التآكل أثناء الخدمة) is managed through a combination of ILI data,
+direct examination (DE — الفحص المباشر), external corrosion direct assessment (ECDA —
+تقييم التآكل الخارجي المباشر), internal corrosion direct assessment (ICDA — تقييم
+التآكل الداخلي المباشر), and corrosion monitoring programs (برامج مراقبة التآكل).
+Wall loss at any reported ILI feature must be assessed using a validated metal loss
+assessment method — ASME B31G, Modified B31G, or RSTRENG — to determine whether
+the feature is acceptable for continued operation at MAOP (مقبول للتشغيل المستمر).
+Remaining strength factor (RSF — معامل المقاومة المتبقية) must be ≥ 1.0 for the feature
+to be acceptable without pressure de-rating. Predicted time to failure (TTF — الوقت
+حتى الفشل) must be calculated using the measured or assumed corrosion growth rate,
+and the re-assessment interval set so that the next ILI or direct examination occurs
+before 80% of wall loss threshold is reached. Corrosion inhibitor injection (حقن
+مثبط التآكل) effectiveness must be documented by quarterly coupon weight loss measurements.
+
+ACCEPTANCE: RSF ≥ 1.0 per ASME B31G or RSTRENG for all reported ILI metal loss features.
+Wall loss ≤ 80% wt (maximum acceptable depth for MAOP assessment).
+Corrosion coupon loss rate ≤ 0.1 mm/yr (4 mpy) confirming inhibitor effectiveness.
+Re-assessment interval set before 80% wall loss threshold is predicted to be reached.
+
+REJECTION: RSF < 1.0 for any ILI feature at MAOP — immediate pressure de-rating to
+safe operating pressure or repair before return to MAOP. Wall loss > 80% wt at any
+measured location — mandatory immediate repair or cut-out. Corrosion coupon loss rate
+> 0.5 mm/yr (20 mpy) — inhibitor program review and upgrade required immediately.
+No TTF calculation or re-assessment interval documented — IMP non-compliance.
+
+---
+
+CLAUSE REF: B31.4 § 451.6 — REPAIR CRITERIA — DENTS AND CORROSION DEFECTS
+(معايير الإصلاح — الحفر والعيوب التآكلية)
+
+B31.4 § 451.6 defines the conditions under which a dent (حفرة — انبعاج), gouge
+(خدش عميق), or corrosion defect (عيب تآكلي) requires immediate repair or removal
+from service. A plain dent (حفرة بسيطة — no metal loss or stress concentration) is
+acceptable in liquid service if its depth does not exceed 6% of the pipe OD — measured
+as the gap between the lowest point of the dent and the original pipe contour.
+However, ANY dent that contains a stress concentrator — a scratch, gouge, arc burn
+(حرق القوس), or weld — regardless of depth, is subject to immediate rejection because
+of fatigue crack initiation risk under cyclic pressure loading. Corrosion pitting (نقر
+التآكل) or grooving assessed by ILI or direct examination is evaluated by B31G or
+RSTRENG — if remaining strength factor RSF < 1.0 for MAOP, repair is mandatory.
+Smooth dents on seams, girth welds, or at branch connections are automatically rejected
+regardless of depth because of the stress concentration presented by the weld.
+
+ACCEPTANCE: Plain dent (no metal loss, no stress concentrator, not on seam/girth weld)
+depth ≤ 6% OD. Corrosion defect: RSF ≥ 1.0 at MAOP per B31G/RSTRENG.
+Wall loss ≤ 80% wt at deepest measured point. Dent located not on or within 2D of
+a girth weld or seam weld.
+
+REJECTION: Plain dent depth > 6% OD — immediate repair. Any dent with associated gouge,
+scratch, arc burn, or weld — REJECT regardless of depth; cut out or sleeve repair.
+Dent at or within 2D of a girth weld or seam weld — REJECT regardless of depth.
+Corrosion defect with RSF < 1.0 at MAOP — de-rate pressure or repair before
+next ILI interval. Wall loss > 80% wt at any point — cut-out and replace.
+
+---
+
+CLAUSE REF: B31.4 § 451.6.2 — SLEEVE REPAIR REQUIREMENTS
+(متطلبات إصلاح الكمّ — الغلاف المحيطي الكامل)
+
+A full-encirclement steel sleeve (كمّ فولاذي محيطي كامل) is the preferred permanent
+repair method for corrosion defects, dents with stress concentrators, and cracks on
+in-service liquid pipelines where cut-out and replacement is not practical.
+Type A sleeve (Pressure Sleeve — كمّ الضغط) is a full-encirclement split sleeve welded
+with longitudinal seam welds only — no fillet welds to the carrier pipe (الأنبوب الحامل).
+Type A is used for corrosion defects only, where the carrier pipe is not leaking.
+Type B sleeve (Structural/Pressure-Containing Sleeve — كمّ هيكلي) is welded to the
+carrier pipe with circumferential fillet welds at both ends — this sleeve carries
+pressure and provides structural support; it is used for leaking defects, cracks,
+and dents with stress concentrators. The annular space (الفجوة الحلقية) between sleeve
+and carrier pipe for Type A must be filled with epoxy filler (راتنج إيبوكسي) or grout
+to prevent moisture entrapment. Sleeve minimum length must extend 2 inches (50 mm)
+beyond each end of the defect, and sleeve wall thickness must be ≥ carrier pipe
+nominal wall thickness.
+
+ACCEPTANCE: Full-encirclement sleeve used (no clock-spring or partial-wrap for primary
+pressure repair on liquid pipelines). Sleeve length ≥ defect length + 4 in (100 mm)
+total overhang (2 in each side). Sleeve wall thickness ≥ carrier pipe nominal wt.
+Type A: longitudinal seam welds only, annular space filled with epoxy filler.
+Type B: circumferential fillet welds at both ends to carrier pipe, full penetration.
+Sleeve weld examined by MT (MPI) or PT 100% after welding and before burial.
+
+REJECTION: Partial-wrap (non-full-encirclement) repair used as pressure-containing repair
+on liquid mainline — reject, require full-encirclement. Sleeve length insufficient
+(< 2 in overhang at each end) — reject, extend sleeve or install longer sleeve.
+Sleeve wall thickness < carrier pipe nominal wt — reject, replace with correct wall.
+Type B fillet welds not achieving full fusion at carrier pipe — reject, re-weld.
+No MT/PT examination of sleeve welds before burial — require excavation and examination.
+
+---
+
+CLAUSE REF: B31.4 § 434.7 — NON-DESTRUCTIVE EXAMINATION — EXTENT AND METHODS
+(الفحص غير المتلف — الحجم والطرق)
+
+B31.4 requires radiographic (RT) or ultrasonic (UT) examination of a minimum percentage
+of girth welds on new pipeline construction, with the percentage determined by the
+design factor F and the construction environment.
+For pipelines designed with F = 0.72 (standard cross-country): minimum 10% of girth
+welds by RT or UT — selected to include the first weld made by each welder, tie-in
+welds (لحامات الربط), and welds in road/water crossings.
+For pipelines designed with F = 0.60 (crossings, HCA): 100% RT or UT of all girth
+welds within the crossing or HCA limits. All tie-in welds (cold tie-ins — الربط البارد)
+and welds on risers (ارتفاعات الأنابيب) at pump stations and terminal facilities are
+100% RT or UT regardless of location class. When RT is used, minimum single-wall
+single-image (SWSI — صورة أحادية جدار واحد) technique; double-wall technique permitted
+only for pipe OD ≤ 3.5 in (89 mm). RT sensitivity must be verified by image quality
+indicator (IQI — مؤشر جودة الصورة) — wire IQI or hole IQI as specified in the WPS.
+
+ACCEPTANCE: Examination percentage met per design factor: ≥ 10% for F = 0.72;
+100% for F = 0.60 zones and all crossings, HCA, tie-ins, and riser welds.
+RT technique verified by IQI — 2-2T sensitivity achieved (wire IQI) or equivalent
+hole IQI. UT procedure qualified per ASME Section V Article 4 or API 1104 Appendix A.
+
+REJECTION: Required examination percentage not met — pipeline cannot be commissioned
+until deficiency corrected. RT films without IQI image or IQI sensitivity not achieved —
+film(s) invalid, re-expose. UT operator performing examination without demonstrated
+procedure qualification — examination invalid, repeat by qualified operator.
+Any weld at crossing or HCA not 100% examined — stop commissioning, examine and
+clear before burial of crossing.
+
+---
+
+CLAUSE REF: B31.4 § 451.4 — PIPELINE OPERATIONS — PRESSURE CONTROL AND OVERPRESSURE
+PROTECTION (التحكم في الضغط والحماية من الضغط الزائد)
+
+Liquid pipeline systems must be equipped with pressure control and relief devices
+(أجهزة التحكم في الضغط والتخفيف) to prevent exceeding MAOP during normal operations
+and anticipated surge events (أحداث التموج). Pressure relief valves (صمامات التخفيف)
+or pressure control valves (صمامات التحكم بالضغط) must be set to activate before the
+operating pressure reaches MAOP. Relief valve set pressure must not exceed MAOP.
+Relief valves shall be tested annually (سنويًا) by the operator and calibrated to
+confirm set point accuracy within ±2% of the set pressure. Pressure surge analysis
+(تحليل ضربة الكبش — water hammer analysis) must be performed for all systems where
+rapid valve closure or pump trip can generate transient overpressure. Surge pressure
+(ضغط التموج) must not cause instantaneous hoop stress to exceed 110% SMYS at any
+point — if it does, surge suppression systems (systems of surge relief valves, surge
+tanks — صهاريج التموج) must be installed.
+
+ACCEPTANCE: Relief valve set point ≤ MAOP. Annual test of relief valves with set point
+verified within ±2% of MAOP. Surge analysis completed and surge pressure limited
+to ≤ 110% SMYS instantaneous hoop stress. Relief valve flow capacity adequate to
+prevent MAOP exceedance under maximum anticipated pump output.
+
+REJECTION: Relief valve set above MAOP — immediate recalibration required before
+restart. Relief valve annual test overdue — system non-compliant, test immediately.
+Surge analysis not performed — operator cannot confirm system integrity during
+transient events. Surge pressure exceeding 110% SMYS without suppression system
+installed — immediate engineering review and corrective action.
+
+---
+
+CLAUSE REF: B31.4 § 461.4 — PIPELINE COATINGS AND CORROSION CONTROL
+(طلاءات الأنابيب والسيطرة على التآكل)
+
+External corrosion of buried liquid pipelines is prevented by the combination of a
+protective coating (طلاء واقي) and cathodic protection — the two work together and
+neither alone is sufficient per B31.4 philosophy. Coating selection, application, and
+inspection must follow the operator's specification and the applicable industry standard
+(NACE SP0169, SP0188, or ISO 21809). Coating types commonly used on liquid pipelines
+include Fusion Bonded Epoxy (FBE — الإيبوكسي المصهور), three-layer polyethylene (3LPE —
+البولي إيثيلين ثلاثي الطبقات), coal tar epoxy (قطران الفحم الإيبوكسي), and field-applied
+tape coatings for girth weld areas (مناطق اللحام الدائري). Holiday detection (كشف
+الثقوب الصغيرة في الطلاء) must be performed on all coated pipe joints before lowering
+into the trench using a DC spark holiday detector (كاشف التشويش — جهاز كشف الثقوب)
+set to 100 V per mil (3937 V/mm) of coating thickness for FBE, or as specified for
+other coating types. Girth weld coating must be applied and holiday-tested before
+backfill (الردم). Any holiday or coating damage must be repaired before backfill.
+
+ACCEPTANCE: Coating type and thickness conform to operator specification and applicable
+standard. Holiday detection performed 100% on all joints — no holidays permitted in
+final inspection. DC holiday detector voltage calibrated and set per coating type.
+Girth weld field joint coating applied, cured per manufacturer's spec, and holiday-tested.
+Backfill material ≤ 1/2 in (12.7 mm) particle size for 6 in (150 mm) below and above
+the pipe to prevent mechanical coating damage during backfill operations.
+
+REJECTION: Holidays detected and not repaired before lowering — reject and repair.
+Holiday detector voltage incorrect for coating type — re-inspect entire coated string
+with correct voltage. Field joint coating not applied before backfill — excavate,
+apply, test, and then backfill. Backfill material containing rocks > 12.7 mm in pipe
+zone — remove and replace with specified bedding material.
+
+---
+
+CLAUSE REF: B31.4 § 430 — RECORDS AND DOCUMENTATION — AS-BUILT REQUIREMENTS
+(السجلات والتوثيق — متطلبات الرسومات التنفيذية)
+
+B31.4 § 430 requires the pipeline operator to maintain a complete set of records for
+the life of the pipeline (طوال عمر الأنبوب). As-built drawings (الرسومات التنفيذية)
+must accurately show pipeline route (مسار خط الأنابيب), depth of cover (عمق الغطاء)
+at all road, water, and obstacle crossings, wall thickness and grade for each pipe
+segment, valve locations (مواقع الصمامات), and cathodic protection system components.
+The pipeline materials record must include mill test reports (شهادات المختبر) for all
+pipe, fittings, and valves showing material grade, heat number (رقم الصهر), and
+mechanical properties. Hydrostatic test records (سجلات اختبار الضغط) must be retained
+permanently — they are the legal basis for MAOP establishment. Weld inspection records
+(سجلات فحص اللحامات) including all RT films or digital UT data must be retained
+for the life of the pipeline. ILI reports and corrosion assessment records must be
+retained for a minimum of 10 years or until superseded by a subsequent ILI run,
+whichever is longer.
+
+ACCEPTANCE: As-built drawings updated within 90 days of construction completion and
+filed in the operator's document control system (نظام التحكم في الوثائق). MTRs
+available for all installed materials traceable to heat number. Hydrostatic test records
+retained permanently. RT films or UT digital records retained for pipeline life. ILI
+reports retained ≥ 10 years. Records available for regulatory inspection (تفتيش تنظيمي)
+on request within 5 business days.
+
+REJECTION: As-built drawings not updated or not traceable to installed configuration —
+non-conformance requiring immediate correction. MTRs missing for installed pipe or
+fittings — material SMYS cannot be verified; MAOP must be assumed based on lowest
+published SMYS or pipe de-rated. Hydrostatic test records missing — MAOP cannot be
+established from test; segment must be re-tested before continued operation at
+current MAOP. ILI reports not retained per minimum period — regulatory non-compliance.
+
+---
+
+================================================================================
+END OF ASME B31.4 — PIPELINE TRANSPORTATION SYSTEMS FOR LIQUIDS AND SLURRIES
+KNOWLEDGE FILE | TOTAL CLAUSES: 22 | EDITION: 2022
+PREPARED FOR: AI-Powered Inspection Assistant — SpecSupport Platform
+DISCLAIMER: This document is a structured engineering knowledge reference.
+All field decisions must be verified against the original ASME B31.4-2022 code text
+and applicable regulatory requirements for the jurisdiction and operating company.
+================================================================================
