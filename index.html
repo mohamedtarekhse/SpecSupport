@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspecta | AI Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:wght@300;400&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Claude-inspired Dark Palette */
+            --bg-color: #21201D;
+            --text-main: #ECECE3;
+            --text-muted: #9C9A93;
+            --border-color: #3C3A35;
+            --input-bg: #2E2D2A;
+            --input-hover: #36342F;
+            --accent-color: #D97757; /* Soft terracotta */
+            --max-width: 800px;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        body.rtl {
+            font-family: 'Tajawal', sans-serif;
+            direction: rtl;
+        }
+
+        /* Top Header */
+        header {
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+
+        .logo-container svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--accent-color);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .model-badge {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: none;
+        }
+
+        button {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid transparent;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        button:hover {
+            color: var(--text-main);
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* Main App Area */
+        #app-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            width: 100%;
+        }
+
+        /* Initial Centered State */
+        #greeting-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: var(--max-width);
+            padding: 0 20px;
+            transition: opacity 0.3s ease;
+        }
+
+        #greeting-area h1 {
+            font-family: 'Merriweather', serif;
+            font-weight: 300;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            color: var(--text-main);
+            text-align: center;
+        }
+        body.rtl #greeting-area h1 { font-family: 'Tajawal', sans-serif; }
+
+        /* Chat Window */
+        #chat-window {
+            display: none;
+            flex: 1;
+            width: 100%;
+            max-width: var(--max-width);
+            overflow-y: auto;
+            padding: 20px 20px 100px 20px;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .message-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .message.user .message-icon {
+            background: var(--input-bg);
+            color: var(--text-main);
+            font-size: 0.8rem;
+        }
+
+        .message.ai .message-icon {
+            background: var(--accent-color);
+        }
+        .message.ai .message-icon svg {
+            width: 16px; height: 16px; fill: #fff;
+        }
+
+        .message-content {
+            flex: 1;
+            font-size: 1rem;
+        }
+
+        .message.ai .message-content {
+            font-family: 'Merriweather', serif; /* Claude uses serif for AI reading */
+        }
+        body.rtl .message.ai .message-content { font-family: 'Tajawal', sans-serif; }
+
+        /* Sources */
+        .sources {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            border-left: 2px solid var(--border-color);
+            padding-left: 12px;
+        }
+        body.rtl .sources { border-left: none; border-right: 2px solid var(--border-color); padding-left: 0; padding-right: 12px; }
+        
+        .sources summary { cursor: pointer; }
+        .sources ul { margin: 8px 0 0 0; padding-left: 16px; }
+        body.rtl .sources ul { padding-left: 0; padding-right: 16px; }
+
+        /* Input Area */
+        #input-container {
+            width: 100%;
+            max-width: var(--max-width);
+            padding: 0 20px 30px 20px;
+            box-sizing: border-box;
+            position: absolute;
+            bottom: 0;
+            transition: all 0.3s ease;
+        }
+
+        /* When in greeting state, input is in the middle */
+        .state-greeting #input-container {
+            position: relative;
+            bottom: auto;
+            padding: 0;
+        }
+
+        .input-box {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            display: flex;
+            align-items: flex-end;
+            padding: 10px 16px;
+            transition: border-color 0.2s, background 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .input-box:focus-within {
+            border-color: #5A5750;
+            background: var(--input-hover);
+        }
+
+        .input-box textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 1rem;
+            font-family: inherit;
+            resize: none;
+            padding: 8px 0;
+            margin: 0 10px;
+            min-height: 24px;
+            max-height: 150px;
+            outline: none;
+            line-height: 1.5;
+        }
+
+        .input-box textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+            margin-bottom: 4px;
+        }
+
+        .action-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-main);
+        }
+
+        .action-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .action-btn.recording {
+            color: var(--accent-color);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Chips */
+        .chips-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .chip {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        .chip:hover {
+            border-color: var(--text-muted);
+            color: var(--text-main);
+        }
+
+        .chip.active {
+            background: var(--text-main);
+            color: var(--bg-color);
+            border-color: var(--text-main);
+        }
+
+        /* Loading */
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 4px;
+            padding: 10px 0;
+            color: var(--text-muted);
+        }
+        .dot {
+            width: 5px; height: 5px; background: currentColor; border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 100% { opacity: 0.3; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-3px); }
+        }
+
+        /* Admin Panel */
+        #admin-panel {
+            display: none;
+            position: absolute;
+            top: 70px; right: 20px;
+            background: var(--input-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--accent-color);
+            z-index: 100;
+            width: 320px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        #admin-panel h3 { margin-top: 0; font-size: 1.1rem; }
+        .admin-input {
+            width: 100%; margin-bottom: 15px; padding: 10px;
+            background: var(--bg-color); color: var(--text-main);
+            border: 1px solid var(--border-color); border-radius: 4px;
+            box-sizing: border-box; font-family: inherit;
+        }
+
+        /* Modals & Banners */
+        #upgrade-msg {
+            display: none;
+            background: #4A3A36;
+            color: var(--text-main);
+            text-align: center;
+            padding: 12px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        #earn-btn {
+            background: var(--accent-color);
+            color: #fff;
+            border-radius: 4px;
+            padding: 4px 10px;
+            margin-left: 10px;
+            font-weight: 500;
+        }
+
+        #quiz-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(33,32,29,0.9);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .quiz-content {
+            background: var(--bg-color);
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .quiz-question textarea {
+            width: 100%; height: 60px;
+            background: var(--input-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 8px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        #submit-quiz-btn {
+            background: var(--accent-color);
+            color: #fff;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-top: 20px;
+        }
+
+        .speak-btn {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+    </style>
+</head>
+<body class="state-greeting">
+
+    <div id="upgrade-msg">
+        <span>You have reached your daily limit (10 questions).</span>
+        <button id="earn-btn">Answer 20 questions to unlock 50 more!</button>
+    </div>
+
+    <header>
+        <div class="logo-container">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+            <span id="app-title">Inspecta</span>
+        </div>
+        <div class="header-actions">
+            <span class="model-badge" id="model-indicator">Model</span>
+            <button id="lang-toggle">عربي</button>
+        </div>
+    </header>
+
+    <!-- Admin Panel -->
+    <div id="admin-panel">
+        <h3>Admin Settings</h3>
+        <label style="font-size:0.85rem; color:var(--text-muted);">Admin Token</label>
+        <input type="password" id="admin-token" class="admin-input" placeholder="Your secret token">
+        
+        <div style="border-top:1px solid var(--border-color); margin:15px 0; padding-top:15px;">
+            <label style="font-size:0.85rem; color:var(--text-muted); font-weight:bold;">Global AI Configuration</label>
+            <input type="password" id="config-apikey" class="admin-input" style="margin-top:5px;" placeholder="OpenRouter API Key">
+            <input type="text" id="config-model" class="admin-input" placeholder="Model (e.g. qwen/qwen3.8-27b:free)">
+            <button id="save-config-btn" style="width:100%; background:var(--input-bg); border:1px solid var(--border-color); color:#fff; padding:8px; border-radius:4px; cursor:pointer;">Save API Settings</button>
+        </div>
+
+        <div style="border-top:1px solid var(--border-color); padding-top:15px;">
+            <label style="font-size:0.85rem; color:var(--text-muted); font-weight:bold;">Add Glossary Rule</label>
+            <input type="text" id="rule-keyword" class="admin-input" style="margin-top:5px;" placeholder="Trigger (e.g., Radiography)">
+            <textarea id="rule-instruction" class="admin-input" rows="2" placeholder="Always check film density..."></textarea>
+            <button id="save-rule-btn" style="width:100%; background:var(--accent-color); color:#fff; padding:10px; border-radius:4px; border:none; cursor:pointer;">Inject Rule</button>
+        </div>
+    </div>
+
+    <div id="app-container">
+        
+        <!-- Empty State -->
+        <div id="greeting-area">
+            <h1 id="greeting-text">Good morning.<br>What standard can I help you check?</h1>
+            
+            <div id="input-container">
+                <div class="input-box">
+                    <button class="action-btn" id="mic-btn" title="Voice Input">
+                        <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+                    </button>
+                    
+                    <textarea id="user-input" rows="1" placeholder="Message Inspecta..."></textarea>
+                    
+                    <button class="action-btn" id="send-btn" title="Send">
+                        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+                
+                <div class="chips-container" id="standards-filter">
+                    <!-- Chips populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat State -->
+        <div id="chat-window">
+            <div class="typing-indicator" id="typing-indicator">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Quiz Modal -->
+    <div id="quiz-modal">
+        <div class="quiz-content">
+            <h2>Expert Knowledge Quiz</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Answer these questions to prove your expertise and help improve the AI. Pass to unlock 50 more questions!</p>
+            
+            <div style="margin-bottom: 25px; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg);">
+                <label style="display:block; margin-bottom:5px; font-size: 0.9rem;">Your Name (Optional - For Attribution)</label>
+                <input type="text" id="expert-name" placeholder="Eng. Ahmed" style="width:100%; margin-bottom:15px; padding:10px; border-radius:6px; border:1px solid var(--border-color); background:transparent; color:#fff; font-family:inherit; box-sizing:border-box;">
+                
+                <label style="display:block; margin-bottom:5px; font-size: 0.9rem;">LinkedIn URL (Optional - For Free Consulting Leads)</label>
+                <input type="text" id="expert-linkedin" placeholder="https://linkedin.com/in/..." style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border-color); background:transparent; color:#fff; font-family:inherit; box-sizing:border-box;">
+            </div>
+            
+            <div id="quiz-questions-container"></div>
+            <button id="submit-quiz-btn">Submit Answers</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // ⚙️  CONFIGURATION — Edit this before going live
+        // Replace the PRODUCTION_URL with your actual Cloudflare Worker URL
+        // Example: 'https://inspection-api.john123.workers.dev'
+        // Leave empty string '' if frontend and worker are on the same domain
+        // ============================================================
+        const PRODUCTION_URL = 'https://inspection-api.mohamedtarekhse.workers.dev'; // ✅ Deployed Worker URL
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:8787'
+            : PRODUCTION_URL;
+
+        // Session ID
+        let sessionId = localStorage.getItem('inspect_session_id');
+        if (!sessionId) {
+            sessionId = crypto.randomUUID();
+            localStorage.setItem('inspect_session_id', sessionId);
+        }
+
+        // State
+        let currentLang = 'en';
+        let currentStandard = 'ALL';
+        let hasStartedChat = false;
+        const standards = ['ALL', 'API 6A', 'API 570', 'API 510', 'AWS D1.1', 'ASME VIII', 'ASME B31.3', 'ASME IX', 'ASME V'];
+
+        // DOM
+        const body = document.body;
+        const appTitle = document.getElementById('app-title');
+        const greetingText = document.getElementById('greeting-text');
+        const langToggle = document.getElementById('lang-toggle');
+        const standardsFilter = document.getElementById('standards-filter');
+        const chatWindow = document.getElementById('chat-window');
+        const greetingArea = document.getElementById('greeting-area');
+        const inputContainer = document.getElementById('input-container');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const micBtn = document.getElementById('mic-btn');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const modelIndicator = document.getElementById('model-indicator');
+        const upgradeMsg = document.getElementById('upgrade-msg');
+
+        // Textarea auto-resize
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // Initialize Standards Chips
+        function renderChips() {
+            standardsFilter.innerHTML = '';
+            standards.forEach(std => {
+                const chip = document.createElement('div');
+                chip.className = `chip ${std === currentStandard ? 'active' : ''}`;
+                chip.textContent = std;
+                chip.onclick = () => {
+                    currentStandard = std;
+                    renderChips();
+                };
+                standardsFilter.appendChild(chip);
+            });
+        }
+        renderChips();
+
+        // Language Toggle
+        function setLanguage(lang) {
+            currentLang = lang;
+            if (lang === 'ar') {
+                body.classList.add('rtl');
+                greetingText.innerHTML = 'صباح الخير.<br>عن أي معيار تبحث اليوم؟';
+                langToggle.textContent = 'English';
+                userInput.placeholder = 'اسأل إنسبيكتا...';
+            } else {
+                body.classList.remove('rtl');
+                greetingText.innerHTML = 'Good morning.<br>What standard can I help you check?';
+                langToggle.textContent = 'عربي';
+                userInput.placeholder = 'Message Inspecta...';
+            }
+        }
+        langToggle.onclick = () => setLanguage(currentLang === 'en' ? 'ar' : 'en');
+
+        // Check Usage Limit
+        async function checkUsage() {
+            try {
+                const res = await fetch(`${API_BASE}/api/usage/check`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ session_id: sessionId })
+                });
+                const data = await res.json();
+                if (!data.can_ask) {
+                    upgradeMsg.style.display = 'block';
+                    userInput.disabled = true;
+                    return false;
+                }
+                return true;
+            } catch (e) {
+                return true; 
+            }
+        }
+        checkUsage();
+
+        // Add Message to UI
+        function addMessage(text, type, sources = null) {
+            if (!hasStartedChat) {
+                hasStartedChat = true;
+                body.classList.remove('state-greeting');
+                greetingArea.style.display = 'none';
+                document.getElementById('app-container').appendChild(inputContainer);
+                chatWindow.style.display = 'block';
+                standardsFilter.style.display = 'none'; // Hide chips in chat mode to save space
+            }
+
+            const div = document.createElement('div');
+            div.className = `message ${type}`;
+            
+            const icon = document.createElement('div');
+            icon.className = 'message-icon';
+            if (type === 'user') {
+                icon.textContent = 'U';
+            } else {
+                icon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>';
+            }
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.textContent = text;
+
+            if (sources && sources.length > 0) {
+                const sourcesDiv = document.createElement('div');
+                sourcesDiv.className = 'sources';
+                const details = document.createElement('details');
+                const summary = document.createElement('summary');
+                summary.textContent = currentLang === 'ar' ? 'المصادر' : 'Sources';
+                const ul = document.createElement('ul');
+                sources.forEach(src => {
+                    const li = document.createElement('li');
+                    li.textContent = `[${src.standard}] ${src.clause}`;
+                    ul.appendChild(li);
+                });
+                details.appendChild(summary);
+                details.appendChild(ul);
+                sourcesDiv.appendChild(details);
+                content.appendChild(sourcesDiv);
+            }
+            
+            if (type === 'ai') {
+                const speakBtn = document.createElement('button');
+                speakBtn.className = 'speak-btn action-btn';
+                speakBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>';
+                speakBtn.onclick = () => {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = currentLang === 'ar' ? 'ar-EG' : 'en-US';
+                    window.speechSynthesis.speak(utterance);
+                };
+                content.appendChild(speakBtn);
+            }
+
+            div.appendChild(icon);
+            div.appendChild(content);
+
+            chatWindow.insertBefore(div, typingIndicator);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        // Send Message
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+            
+            const canAsk = await checkUsage();
+            if (!canAsk) return;
+
+            addMessage(text, 'user');
+            userInput.value = '';
+            userInput.style.height = 'auto'; // reset height
+            typingIndicator.style.display = 'flex';
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/ask`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: text,
+                        language: currentLang,
+                        session_id: sessionId,
+                        standard_filter: currentStandard
+                    })
+                });
+
+                typingIndicator.style.display = 'none';
+                if (res.status === 429) return checkUsage();
+
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                addMessage(data.answer, 'ai', data.sources);
+                modelIndicator.textContent = data.model_used;
+                modelIndicator.style.display = 'block';
+
+            } catch (err) {
+                typingIndicator.style.display = 'none';
+                addMessage(currentLang === 'ar' ? 'حدث خطأ.' : 'Error occurred.', 'ai');
+            }
+        }
+
+        sendBtn.onclick = sendMessage;
+        userInput.onkeypress = (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        };
+
+        // Voice Input
+        let isRecording = false;
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+
+            recognition.onstart = () => { isRecording = true; micBtn.classList.add('recording'); };
+            recognition.onend = () => { stopRecording(); if (userInput.value.trim()) sendMessage(); };
+            recognition.onresult = (event) => {
+                let text = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    text += event.results[i][0].transcript;
+                }
+                userInput.value = text;
+            };
+        } else {
+            micBtn.style.display = 'none';
+        }
+
+        function stopRecording() {
+            if (recognition && isRecording) recognition.stop();
+            isRecording = false;
+            micBtn.classList.remove('recording');
+        }
+
+        micBtn.onclick = () => {
+            if (isRecording) stopRecording();
+            else if (recognition) {
+                recognition.lang = currentLang === 'ar' ? 'ar-EG' : 'en-US';
+                userInput.value = '';
+                recognition.start();
+            }
+        };
+
+        // Admin Panel Logic
+        const adminPanel = document.getElementById('admin-panel');
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('admin') || window.location.pathname.includes('/admin')) {
+            adminPanel.style.display = 'block';
+            const savedToken = localStorage.getItem('admin_token');
+            if (savedToken) {
+                document.getElementById('admin-token').value = savedToken;
+                fetch(`${API_BASE}/api/admin/config`, { headers: { 'Authorization': `Bearer ${savedToken}` } })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.config) {
+                        document.getElementById('config-apikey').value = d.config.openrouter_api_key || '';
+                        document.getElementById('config-model').value = d.config.openrouter_model || '';
+                    }
+                }).catch(e => console.error("Error fetching config:", e));
+            }
+        }
+
+        document.getElementById('save-config-btn').onclick = async () => {
+            const token = document.getElementById('admin-token').value;
+            const key = document.getElementById('config-apikey').value;
+            const mod = document.getElementById('config-model').value;
+            if (!token) return alert("Please enter your Admin Token.");
+            
+            document.getElementById('save-config-btn').textContent = "Saving...";
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/config`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ openrouter_api_key: key, openrouter_model: mod })
+                });
+                if (res.ok) {
+                    alert("Global API Configuration saved successfully!");
+                    localStorage.setItem('admin_token', token);
+                } else {
+                    alert("Failed to save. Check token.");
+                }
+            } catch(e) { 
+                alert("Error connecting to server."); 
+            }
+            document.getElementById('save-config-btn').textContent = "Save API Settings";
+        };
+
+        document.getElementById('save-rule-btn').onclick = async () => {
+            const token = document.getElementById('admin-token').value;
+            const keyword = document.getElementById('rule-keyword').value;
+            const instruction = document.getElementById('rule-instruction').value;
+            
+            if (!token || !keyword || !instruction) return alert("Fill all rule fields");
+            
+            document.getElementById('save-rule-btn').textContent = "Saving...";
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/rules`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ keyword, instruction })
+                });
+                if (res.ok) {
+                    alert("Rule successfully injected into AI Brain!");
+                    localStorage.setItem('admin_token', token);
+                    document.getElementById('rule-keyword').value = '';
+                    document.getElementById('rule-instruction').value = '';
+                } else {
+                    alert("Failed to save rule. Check token.");
+                }
+            } catch (e) {
+                alert("Error connecting to server.");
+            }
+            document.getElementById('save-rule-btn').textContent = "Inject Rule";
+        };
+
+        // Crowdsourcing Quiz Logic
+        const earnBtn = document.getElementById('earn-btn');
+        const quizModal = document.getElementById('quiz-modal');
+        const quizContainer = document.getElementById('quiz-questions-container');
+        const submitQuizBtn = document.getElementById('submit-quiz-btn');
+
+        earnBtn.onclick = async () => {
+            try {
+                const res = await fetch(`${API_BASE}/api/earn/questions`);
+                const data = await res.json();
+                if (data.questions && data.questions.length > 0) {
+                    quizContainer.innerHTML = '';
+                    data.questions.forEach((q, idx) => {
+                        const div = document.createElement('div');
+                        div.className = 'quiz-question';
+                        div.innerHTML = `
+                            <p style="font-weight:500; font-size:0.95rem; margin-bottom:5px;">Q${idx + 1}: ${q.question_text}</p>
+                            <textarea data-id="${q.id}" placeholder="Your expert answer..."></textarea>
+                        `;
+                        quizContainer.appendChild(div);
+                    });
+                    quizModal.style.display = 'block';
+                } else alert("No questions available.");
+            } catch (e) { console.error(e); }
+        };
+
+        submitQuizBtn.onclick = async () => {
+            const textareas = quizContainer.querySelectorAll('textarea');
+            const answers = [];
+            let allFilled = true;
+            textareas.forEach(ta => {
+                const val = ta.value.trim();
+                if (!val) allFilled = false;
+                answers.push({ question_id: parseInt(ta.getAttribute('data-id')), user_answer: val });
+            });
+
+            if (!allFilled) return alert("Please answer all questions.");
+            submitQuizBtn.textContent = "Verifying...";
+            submitQuizBtn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/earn/submit`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        session_id: sessionId, 
+                        answers,
+                        expert_name: document.getElementById('expert-name').value,
+                        expert_linkedin: document.getElementById('expert-linkedin').value
+                    })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert("Verification passed! You now have 50 queries.");
+                    quizModal.style.display = 'none';
+                    upgradeMsg.style.display = 'none';
+                    userInput.disabled = false;
+                } else {
+                    alert("Verification failed: " + (data.reason || "Incorrect answers."));
+                }
+            } catch (e) { alert("Error submitting."); }
+            
+            submitQuizBtn.textContent = "Submit Answers";
+            submitQuizBtn.disabled = false;
+        };
+
+    </script>
+</body>
+</html>

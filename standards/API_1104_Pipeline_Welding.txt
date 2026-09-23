@@ -1,0 +1,99 @@
+[STANDARD: API 1104]
+[TITLE: Welding of Pipelines and Related Facilities]
+[ARTICLE: Section 9 — Acceptance Standards for Radiographic Testing]
+
+[CLAUSE: 9.1 — Incomplete Penetration (IP)]
+Incomplete penetration is a condition where the weld metal does not extend through the joint thickness.
+ACCEPTANCE: Individual length ≤25 mm (1 in) in any 300 mm (12 in) of weld. Aggregate length ≤25 mm (1 in) in any 300 mm (12 in) of weld.
+REJECTION: Individual length >25 mm (1 in) in any 300 mm (12 in). Aggregate >25 mm in any 300 mm. Any IP in welds subjected to cyclic or fatigue loading unless addressed by engineering assessment.
+---
+
+[CLAUSE: 9.2 — Incomplete Fusion (IF) and Cold Lap]
+Incomplete fusion is failure of the weld metal to fuse completely with the base metal or the preceding weld bead. Cold lap is a specific type where weld metal rolls over the base metal without fusing.
+ACCEPTANCE: Individual length ≤25 mm (1 in) in any 300 mm (12 in) of weld. Aggregate ≤25 mm (1 in) in any 300 mm (12 in).
+REJECTION: Individual indication >25 mm. Aggregate >25 mm in 300 mm. Any cold lap visible on radiograph regardless of length.
+---
+
+[CLAUSE: 9.3 — Internal Concavity (Suck Back / Burn Through)]
+Internal concavity is a condition where the root bead is pulled into the joint during welding, creating a concave inner surface.
+ACCEPTANCE: Radiographic density of concavity does not exceed density of thinner adjacent pipe. Total length of concavity in any weld shall not exceed 25 mm (1 in).
+REJECTION: Density of concavity exceeds adjacent base metal (indicates hole / burn through). Length >25 mm in any single weld. Any burn-through (void) in the root pass.
+---
+
+[CLAUSE: 9.4 — Porosity — Scattered Porosity]
+Scattered porosity is distributed throughout the weld metal.
+ACCEPTANCE: Scattered porosity image shall not exceed: aggregate area of pores equal to 1/4 of the weld width × longest pore string. For welds ≤ 12.7 mm (1/2 in) wall: maximum individual pore 1.6 mm (1/16 in). Aggregate area ≤ 150 mm² (1/4 in²) in any 625 mm² (1 in²) area. No individual pore > 3.2 mm (1/8 in) diameter.
+REJECTION: Individual pore >3.2 mm. Aggregate area exceeding limits. Any cluster of pores in one area exceeding density limits.
+---
+
+[CLAUSE: 9.5 — Porosity — Cluster Porosity]
+Cluster porosity is a localized group of pores.
+ACCEPTANCE: Maximum aggregate dimension of cluster ≤12.7 mm (1/2 in). Individual cluster separated from nearest adjacent porosity by ≥150 mm (6 in). No cluster in the root pass area.
+REJECTION: Cluster dimension >12.7 mm. Clusters closer than 150 mm. Any cluster porosity in root pass.
+---
+
+[CLAUSE: 9.6 — Porosity — Hollow Bead Porosity]
+Hollow bead is elongated porosity aligned with the weld axis, occurring primarily in the root bead of pipeline welds made by cellulosic electrodes.
+ACCEPTANCE: Individual indication ≤ 25 mm (1 in) length. Aggregate ≤ 25 mm (1 in) in any 300 mm (12 in) of weld. Minimum separation between indications: 50 mm (2 in) measured at outer edges.
+REJECTION: Individual >25 mm. Aggregate >25 mm per 300 mm. Spacing <50 mm between adjacent hollow bead indications.
+---
+
+[CLAUSE: 9.7 — Slag Inclusions (SI)]
+Slag inclusions are non-metallic solid material entrapped in the weld metal or between the weld and base metal.
+ACCEPTANCE (Individual): Length ≤ 50 mm (2 in) in any 300 mm (12 in) of weld.
+ACCEPTANCE (Aggregate): Total length ≤ 50 mm (2 in) in any 300 mm (12 in).
+Elongated slag: width ≤ 3.2 mm (1/8 in) and length ≤ weld length or 50 mm (2 in) max.
+REJECTION: Width >3.2 mm. Length >50 mm individually or aggregate >50 mm per 300 mm. Any slag in root pass exceeding root pass width.
+---
+
+[CLAUSE: 9.8 — Cracks]
+Any crack in the weld metal, fusion line, or heat-affected zone is cause for rejection. No size or length limitation — any crack is rejectable.
+ACCEPTANCE: None. Zero tolerance.
+REJECTION: Any crack of any length, in any location: weld metal, fusion line, HAZ, crater, transverse, longitudinal. No exceptions without engineering assessment and company authorization.
+---
+
+[CLAUSE: 9.9 — Undercutting (External — Visible on Surface)]
+Undercut is a groove melted into the base metal adjacent to the weld toe and left unfilled by weld metal.
+ACCEPTANCE: Maximum depth: 0.8 mm (1/32 in) on the outside surface. Maximum depth: 0.4 mm (1/64 in) in areas of high stress (bends, crossings, areas specified by engineer). Maximum aggregate length: 50 mm (2 in) in any 300 mm (12 in) of weld, and maximum 1/6 of total weld length.
+REJECTION: Depth >0.8 mm on outside. Depth >0.4 mm in high stress areas. Length exceeding limits. Any undercut on root bead ID surface visible by internal visual or borescope.
+---
+
+[CLAUSE: 9.10 — Burn Through]
+Burn through is a void through the pipe wall created by excessive heat during welding, typically in the root pass.
+ACCEPTANCE: None. Zero tolerance for burn through.
+REJECTION: Any void (hole) through the pipe wall. Any area where radiograph indicates full penetration through the pipe wall from weld heat.
+---
+
+[CLAUSE: Section 6.2 — Welder Qualification Test — Procedure]
+Each welder shall be qualified before performing production welding. Qualification tests:
+1. Butt weld test — two pipe sections welded per the procedure being qualified.
+2. Position: 2G+5G (combined) qualifies all positions. 6G qualifies all positions.
+3. Destructive tests: nick-break test specimens and root bend / face bend specimens.
+4. For automatic and semi-automatic welding: radiographic examination in lieu of destructive tests is permitted.
+Qualification is process and position specific.
+ACCEPTANCE: Nick-break: exposed surface must show complete fusion, no slag >3.2mm (1/8 in), no gas pockets >1.6mm (1/16 in) per unit area. Bend test: no cracks >3.2mm (1/8 in) in any direction.
+REJECTION: Nick-break with incomplete fusion, slag >3.2mm, pores >1.6mm. Bend specimen with crack >3.2mm after bend.
+---
+
+[CLAUSE: 6.3 — Welder Qualification Expiry]
+A welder's qualification remains in effect unless: the welder has not welded with the process for a period exceeding 6 months, OR there is a specific reason to question the welder's ability. Qualification expires on first of: 6 months without welding with that process, or upon a failed production weld RT that is attributable to welder skill.
+ACCEPTANCE: Welder has production welding records showing process use within 6 months. Records of continuity maintained.
+REJECTION: Welder without 6-month continuity records. Welder qualification lapsed. No documentation available at work site.
+---
+
+[CLAUSE: Section 8 — Radiographic Testing Requirements]
+All radiographic examination shall be performed by qualified Level II or III RT personnel per ASNT SNT-TC-1A. Radiographic technique: The sensitivity of the radiograph shall be demonstrated by an image quality indicator (IQI — wire type per ASTM E747 or hole type per ASTM E1025) visible on the radiograph. Minimum required sensitivity: 2% of weld thickness (wire diameter or hole diameter). All radiographs shall be retained for the life of the pipeline.
+ACCEPTANCE: IQI sensitivity achieved (2%). All required penetrameters visible. Density within 1.8 to 4.0 for X-ray, 2.0 to 4.0 for gamma. Welder ID and weld number marked on each film.
+REJECTION: IQI not visible. Density outside range. No welder/weld identification on film. RT performed by unqualified personnel.
+---
+
+[CLAUSE: Section 11 — Weld Repair Procedures]
+Repairs shall be made only with company approval. The following apply:
+1. Defects may be removed by grinding or chipping and the excavation examined by MT or PT to confirm complete removal.
+2. Repair welding shall use a qualified WPS.
+3. The repaired area shall be re-examined by the same method as originally specified.
+4. Maximum two repair attempts permitted at any single location. Third repair not permitted without engineering review.
+5. Cracks: any weld containing a crack shall be cut out and removed — repair of cracks in production welds is NOT permitted without specific engineering approval.
+ACCEPTANCE: Repair approved, performed by qualified welder, re-examined and passes.
+REJECTION: Repair of cracked weld without engineering approval. Third repair at same location. Re-examination of repair by lesser method than original. Repair not using qualified WPS.
+---

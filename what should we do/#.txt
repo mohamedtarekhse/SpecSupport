@@ -1,0 +1,6 @@
+What should you do for this project?
+For an inspection app, do not try to train a new LLM from scratch. Instead, combine these three techniques:
+
+Use a highly technical base model: Models built for coding and math (like Qwen 2.5 Coder or Nemotron) are naturally better at strictly following rule-based logic (like acceptance/rejection criteria) than conversational models.
+Add a Glossary / System Prompt Injection: Before the AI answers, silently inject a glossary into its instructions. For example: "Note: In this context, 'indications' refers to NDT flaws. 'Relevant indication' means a flaw exceeding standard thresholds." This instantly teaches the AI the jargon for that specific chat session.
+RAG with Metadata (What we built): By strictly linking the text to standard_code and clause, we force the AI to only look at related text, physically preventing it from mixing up API 1104 welding criteria with ASME B31.3 piping criteria.

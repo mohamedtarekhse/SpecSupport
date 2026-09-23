@@ -1,0 +1,115 @@
+[STANDARD: AWS D1.1]
+[TITLE: Structural Welding Code — Steel]
+[ARTICLE: Clause 6 — Inspection]
+
+[CLAUSE: 6.1 — Inspection of Materials and Equipment]
+Before welding begins, the inspector shall verify: base metal meets specification, electrode and filler metals are correct type and size per WPS, preheat temperature meets requirements, joint fit-up and dimensions are within tolerance, welding equipment is in proper working condition, and welder is qualified for the work assigned. Documentation of qualifications shall be available at the work site.
+ACCEPTANCE: All pre-weld items verified and documented.
+REJECTION: Work commenced without verification of any required pre-weld item.
+---
+
+[CLAUSE: 6.5 — Inspection of Welds — Visual]
+Visual examination of welds shall be conducted on all welds. The inspector shall have access to all welds for examination. If visual examination reveals an unacceptable weld, the condition shall be corrected and the weld re-examined. Visual inspection shall be performed with minimum light intensity of 1000 lux (100 fc) on the examination surface. The inspector's eye shall be within 24 inches (600 mm) and at minimum 30° angle to surface examined.
+ACCEPTANCE: Light ≥1000 lux, eye within 600mm, angle ≥30°.
+REJECTION: Examination with inadequate lighting, excessive distance, or angle too low.
+---
+
+[CLAUSE: Table 6.1 (A) — Visual Acceptance Criteria for Statically Loaded Structures]
+The following are the acceptance criteria for visual inspection of welds in statically loaded structures per AWS D1.1:
+
+CRACKS:
+ACCEPTANCE: None permitted.
+REJECTION: Any crack of any size, at any location, in the weld metal or heat-affected zone (HAZ). Crater cracks are also rejectable.
+
+WELD PROFILE — FACE REINFORCEMENT:
+ACCEPTANCE: Convex profile permitted. Maximum reinforcement: for groove welds, not to exceed 1/8 inch (3 mm) for butt joints in material up to 1 inch thick, and 3/16 inch (5 mm) for material over 1 inch thick. For T-joints and corner joints, weld face shall be flush or convex.
+REJECTION: Reinforcement exceeding limits. Weld profile concave below base metal surface (underfill) unless permitted by detail.
+
+UNDERCUT:
+ACCEPTANCE: Undercut shall not exceed 1/32 inch (0.8 mm) for welds parallel to primary stress and 1/16 inch (1.6 mm) for welds transverse to primary stress for base metal thicknesses 1 inch and under. For thicker materials, maximum undercut is 1/16 inch (1.6 mm).
+REJECTION: Undercut exceeding acceptance limits. Undercut that reduces section below design minimum.
+
+POROSITY:
+ACCEPTANCE: For statically loaded: pipe porosity — not to exceed 3/8 inch (10 mm) in any linear inch of weld and not to exceed 3/4 inch (19 mm) in any 12-inch (305 mm) length. For welds exposed to corrosive environment, visible porosity is not acceptable.
+REJECTION: Any porosity exceeding the frequency limits. Any porosity in corrosive service welds.
+
+INCOMPLETE FUSION:
+ACCEPTANCE: None permitted in welds required to be complete joint penetration (CJP). Not evaluated by visual for partial penetration (PJP) unless visible at surface.
+REJECTION: Any visible incomplete fusion at weld surface.
+
+INCOMPLETE JOINT PENETRATION:
+ACCEPTANCE: Not permitted in CJP groove welds. For PJP groove welds: effective throat shall meet design minimum.
+REJECTION: Any CJP groove weld with visible incomplete penetration. PJP weld with throat less than design minimum.
+
+WELD SIZE (FILLET WELDS):
+ACCEPTANCE: Actual fillet weld size (measured with gauge) shall be equal to or greater than the specified size. Continuous undersize permitted: undersize not exceeding 1/16 inch (1.6 mm) for not more than 10% of the weld length; isolated undersize (not exceeding 3/16 inch/5 mm from end of weld) may be disregarded.
+REJECTION: Fillet weld size consistently below specified. Undersize exceeding 1/16 inch (1.6 mm) for more than 10% of weld length.
+
+WELD LENGTH:
+ACCEPTANCE: Actual weld length shall equal or exceed specified weld length.
+REJECTION: Weld length less than specified.
+
+OVERLAP:
+ACCEPTANCE: None permitted. Overlap occurs when weld metal flows beyond the weld toe onto the base metal surface without fusing.
+REJECTION: Any visible overlap at weld toes.
+
+SURFACE SLAG INCLUSION:
+ACCEPTANCE: No continuous slag on surface. Intermittent slag not exceeding 1/8 inch (3 mm) in width for any length acceptable for statically loaded.
+REJECTION: Continuous surface slag. Slag width exceeding 1/8 inch.
+
+WELD CRATERS:
+ACCEPTANCE: Craters shall be filled to the full cross-section of the weld, except for ends of intermittent fillet welds outside their effective length.
+REJECTION: Unfilled craters. Crater cracks.
+---
+
+[CLAUSE: Table 6.1 (B) — Visual Acceptance Criteria for Cyclically (Fatigue) Loaded Structures]
+For cyclically loaded structures, the criteria are more stringent:
+
+CRACKS: None permitted. Same as static.
+
+UNDERCUT:
+ACCEPTANCE: For tension members — undercut not permitted greater than 0.01 inch (0.25 mm) for any length. For compression members — 1/32 inch (0.8 mm).
+REJECTION: Any undercut in tension members exceeding 0.25 mm. Any undercut in compression members exceeding 0.8 mm.
+
+POROSITY:
+ACCEPTANCE: Not to exceed 3/8 inch (10 mm) in any linear inch or 3/4 inch (19 mm) in any 12-inch (305 mm) length. For tension members: no single pore greater than 3/32 inch (2.4 mm) diameter.
+REJECTION: Frequency or size exceeding limits. Individual pore in tension member exceeding 2.4 mm.
+
+WELD PROFILE: More stringent transition requirements to minimize stress risers.
+ACCEPTANCE: Smooth transition from weld to base metal. Maximum convexity limits apply.
+REJECTION: Abrupt transitions, excessive convexity, any concavity.
+---
+
+[CLAUSE: 6.9 — Weld Quality — Slag Inclusions (RT/UT)]
+For radiographic and ultrasonic inspection acceptance criteria of slag inclusions in structural welds, refer to Annex B (RT) and Annex C (UT) of AWS D1.1.
+Visual criterion: No continuous surface slag. Intermittent surface slag width ≤1/8 inch (3 mm).
+---
+
+[CLAUSE: 6.12 — Weld Repairs]
+Unacceptable welds shall be repaired by one of these methods:
+1. Remove defective portion and reweld — must meet original requirements.
+2. Addition of weld metal to correct undersize.
+3. Correction of incorrect profile by grinding (to correct excessive reinforcement) or welding (to correct undersize).
+Repairs shall be performed with same or equivalent WPS as original weld. The repaired area shall be re-examined by the same inspection method that revealed the original defect.
+ACCEPTANCE: Repair completed per approved method. Re-examination passes.
+REJECTION: Repair performed without re-examination. Repair using different WPS without engineering approval.
+---
+
+[CLAUSE: 6.14 — Inspector Qualification]
+Visual Welding Inspector (VWI): Any person who reviews and accepts weld quality by visual examination shall, at minimum, demonstrate visual acuity per Jaeger J2 at 12 inches (with or without correction), and shall have demonstrated knowledge of AWS D1.1 weld acceptance criteria.
+Certified Welding Inspector (CWI): Certification per AWS QC1 — Standard for AWS Certification of Welding Inspectors — highly recommended for structural weld inspection.
+ACCEPTANCE: Inspector meets minimum qualification per contract or code requirement.
+REJECTION: Unqualified person performing acceptance inspection.
+---
+
+[CLAUSE: 6.26 — Radiographic Testing — Acceptance Criteria (Summary Reference)]
+For detailed RT acceptance criteria, see AWS D1.1 Annex B. Summary:
+CRACKS: None.
+INCOMPLETE FUSION: None.
+INCOMPLETE PENETRATION in CJP: None.
+POROSITY (PIPING POROSITY): Not to exceed 1/4 inch (6 mm) in 12 inches, and not more than 1/2 inch (12 mm) aggregate.
+SLAG INCLUSION: Length ≤ 2/3 T for individual; total ≤ T in 12T of weld. (T = base metal thickness)
+UNDERCUT: ≤1/32 inch (0.8 mm) on RT film.
+ACCEPTANCE: All categories within limits.
+REJECTION: Any crack, any lack of fusion, CP exceeding limits, slag or undercut exceeding limits.
+---

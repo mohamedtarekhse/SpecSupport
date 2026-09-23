@@ -1,0 +1,116 @@
+[STANDARD: ASNT SNT-TC-1A]
+[TITLE: Personnel Qualification and Certification in Nondestructive Testing]
+[ARTICLE: Recommended Practice for NDT Personnel Qualification]
+
+[CLAUSE: 6.1 — NDT Levels of Qualification]
+NDT personnel shall be qualified to one of three levels:
+
+LEVEL I:
+A Level I individual shall be qualified to perform specific calibrations, specific NDT, and specific evaluations for acceptance or rejection determinations according to written instructions, and to record results. The Level I shall receive the necessary instruction or supervision from a certified Level II or Level III individual.
+SCOPE: Cannot independently accept or reject — must operate under written procedure and supervision.
+
+LEVEL II:
+A Level II individual shall be qualified to set up and calibrate equipment, conduct tests, interpret and evaluate results with respect to applicable codes, standards, and specifications. A Level II shall be capable of organizing and reporting the results of NDT. A Level II may train and supervise Level I personnel.
+SCOPE: Can independently accept or reject per written standard. Can write procedures when authorized by Level III.
+
+LEVEL III:
+A Level III individual shall be capable of establishing techniques, interpreting codes and standards, designing and directing NDT programs. A Level III shall be capable of training and examining Level I and II personnel for qualification. Only Level III may establish and approve written procedures.
+SCOPE: Full authority over NDT program. Establishes procedures, certifies personnel.
+ACCEPTANCE: Personnel working at the level they are certified for.
+REJECTION: Level I independently accepting/rejecting without written instruction. Level II establishing procedures not authorized by Level III. Level III certification lapsed.
+---
+
+[CLAUSE: 8.1 — Education and Experience Requirements]
+Minimum experience for initial qualification (classroom training hours + hands-on field experience):
+
+METHOD: VT (Visual Testing)
+- Level I: 8 hours training, 0 months experience
+- Level II: 16 hours training, 3 months Level I experience
+- Level III: 40 hours training, 12 months Level II experience
+
+METHOD: MT (Magnetic Particle)
+- Level I: 8 hours training, 1 month experience
+- Level II: 16 hours training, 3 months Level I experience
+- Level III: 40 hours training, 18 months (12 Level I + 6 Level II)
+
+METHOD: PT (Liquid Penetrant)
+- Level I: 8 hours training, 1 month experience
+- Level II: 16 hours training, 3 months Level I experience
+- Level III: 40 hours training, 18 months
+
+METHOD: RT (Radiographic Testing)
+- Level I: 40 hours training, 3 months experience
+- Level II: 80 hours training, 6 months Level I experience
+- Level III: 120 hours training, 24 months
+
+METHOD: UT (Ultrasonic Testing)
+- Level I: 40 hours training, 3 months experience
+- Level II: 80 hours training, 6 months Level I experience
+- Level III: 120 hours training, 24 months
+ACCEPTANCE: Personnel meet or exceed minimum hours and months per method and level.
+REJECTION: Personnel certified without meeting minimum hours. Experience months shortchanged. Training hours not documented.
+---
+
+[CLAUSE: 9.1 — Written Examination Requirements]
+All NDT personnel shall pass written examinations:
+GENERAL EXAMINATION: Tests knowledge of the basic principles of the NDT method.
+SPECIFIC EXAMINATION: Tests knowledge of the specific equipment, procedures, and techniques to be used.
+PRACTICAL EXAMINATION: Demonstrates ability to operate equipment and produce results.
+
+PASSING GRADES:
+- General examination: minimum 70%
+- Specific examination: minimum 70%
+- Practical examination: minimum 70%
+- ALL THREE must be passed — a high score in one does not compensate for a failure in another.
+ACCEPTANCE: All three exam components passed at ≥70%.
+REJECTION: Any single exam component below 70%. Certification granted without all three components. Failed examination re-taken without waiting period (minimum employer-specified interval — typically 30 days).
+---
+
+[CLAUSE: 9.2 — Vision Examination]
+All NDT personnel shall annually demonstrate natural or corrected near-distance visual acuity. Minimum requirement: ability to read Jaeger Number 2 or equivalent type and size letter on a standard Jaeger test chart at not less than 30 cm (12 inches) in at least one eye, with or without corrective lenses.
+Additionally: color contrast differentiation (no color blindness that would affect ability to distinguish between test indications) — applicable to PT color contrast and some MT methods.
+ACCEPTANCE: Annual vision test on file. Passes Jaeger J2 at 30 cm.
+REJECTION: Personnel without current (within 12 months) vision test on record. Personnel failing vision test performing examination. Annual exam overdue.
+---
+
+[CLAUSE: 10.1 — Recertification Intervals]
+NDT certification issued under SNT-TC-1A shall be valid for:
+Level I and Level II: 3 years, renewable by examination (general and specific minimum) or by documented proof of continuous practice.
+Level III: 5 years, renewable by examination or documented evidence of continued active practice in the method.
+
+EARLY RECERTIFICATION TRIGGER: If there is a specific reason to question the ability of a certified individual, the employer may require re-examination at any time.
+ACCEPTANCE: Current certification within validity period. Recertification documented.
+REJECTION: Expired certification. Personnel performing NDT with expired certificate. No recertification records on file.
+---
+
+[CLAUSE: 11.1 — Employer Responsibility]
+The employer is responsible for:
+1. Establishing a Written Practice per SNT-TC-1A.
+2. Certifying all NDT personnel.
+3. Maintaining records of qualification: training, experience, examination results, vision tests, and certification dates.
+4. Records shall be retained for minimum: duration of employment + 1 year.
+5. Certifications are EMPLOYER SPECIFIC — a certification by Company A is not automatically valid at Company B. Company B must verify and accept or re-certify.
+ACCEPTANCE: Written Practice established. All personnel records maintained and current.
+REJECTION: No Written Practice. Accepting another employer's certification without review and acceptance. Records not maintained.
+---
+
+[STANDARD: ASME V]
+[ARTICLE: 9 — Visual Examination]
+
+[CLAUSE: T-920 — General Requirements for Visual Examination]
+Visual examination (VT) shall be performed using adequate illumination of the surface to be examined. The minimum light intensity shall be 1000 lux (100 fc) for direct visual examination. The examination shall be conducted so that the eye of the examiner is within 600 mm (24 inches) of the surface and at an angle of not less than 30° to the surface being examined.
+ACCEPTANCE: Light ≥1000 lux at surface. Eye within 600mm. Angle ≥30°.
+REJECTION: Examination in inadequate light. Examiner too far from surface. Glancing angle below 30°.
+---
+
+[CLAUSE: T-921 — Direct Visual Examination]
+Direct visual examination may usually be made when access is sufficient to place the eye within 600 mm (24 in) of the surface to be examined and at an angle not less than 30° to the surface. Mirrors may be used to improve angle of vision. Magnification up to 3× may be used to aid examination.
+ACCEPTANCE: Direct access available. Mirror or 3× magnification used where needed.
+REJECTION: Examination from excessive distance. No access for minimum 30° angle without mirror assistance.
+---
+
+[CLAUSE: T-922 — Remote Visual Examination]
+Remote visual examination (RVT) may be substituted for direct examination when direct examination is not possible. Equipment for RVT includes: borescopes, fiber optics, cameras. The resolution of the remote examination system shall be demonstrated prior to use to show it is equivalent to direct visual for the discontinuities of concern.
+ACCEPTANCE: RVT system resolution demonstrated equivalent to direct VT for required detection.
+REJECTION: Using low-resolution cameras without demonstration of capability. Accessing impossible joints by RVT without system qualification.
+---

@@ -1,0 +1,429 @@
+import { Hono } from 'hono'
+
+const app = new Hono()
+
+// Robust CORS — handles preflight OPTIONS for all routes
+app.use('*', async (c, next) => {
+  // Always set CORS headers
+  c.header('Access-Control-Allow-Origin', '*')
+  c.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Title, HTTP-Referer, X-Model')
+  c.header('Access-Control-Max-Age', '600')
+
+  // Immediately respond to preflight
+  if (c.req.method === 'OPTIONS') {
+    return c.text('', 204)
+  }
+
+  return next()
+})
+
+app.get('/api/health', (c) => {
+  return c.json({ status: 'ok', model: c.env.OPENROUTER_MODEL || 'qwen/qwen3.8-27b:free' })
+})
+
+app.post('/api/usage/check', async (c) => {
+  try {
+    const { session_id } = await c.req.json()
+    if (!session_id) return c.json({ error: 'Missing session_id' }, 400)
+    
+    const today = new Date().toISOString().split('T')[0]
+    
+    const usageRes = await c.env.DB.prepare(
+      `SELECT count(*) as count FROM usage_log WHERE session_id = ? AND date = ?`
+    ).bind(session_id, today).first()
+    
+    const count = usageRes ? usageRes.count : 0
+    
+    const subRes = await c.env.DB.prepare(
+      `SELECT daily_limit FROM user_subscriptions WHERE session_id = ?`
+    ).bind(session_id).first()
+    
+    const limit = subRes ? subRes.daily_limit : 10
+    
+    return c.json({
+      questions_today: count,
+      limit: limit,
+      can_ask: count < limit
+    })
+  } catch (e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+app.get('/api/earn/questions', async (c) => {
+  try {
+    // Fetch 5 gold standard and 15 regular active questions
+    const gold = await c.env.DB.prepare(
+      `SELECT id, question_text, is_gold_standard FROM crowdsource_questions WHERE is_gold_standard = 1 AND is_active = 1 ORDER BY RANDOM() LIMIT 5`
+    ).all()
+    
+    const regular = await c.env.DB.prepare(
+      `SELECT id, question_text, is_gold_standard FROM crowdsource_questions WHERE is_gold_standard = 0 AND is_active = 1 ORDER BY RANDOM() LIMIT 15`
+    ).all()
+    
+    const questions = [...(gold.results || []), ...(regular.results || [])]
+    // Shuffle them so gold standards aren't all at the beginning
+    questions.sort(() => Math.random() - 0.5)
+    
+    return c.json({ questions })
+  } catch (e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+app.post('/api/earn/submit', async (c) => {
+  try {
+    const { session_id, answers, expert_name, expert_linkedin } = await c.req.json()
+    if (!session_id || !answers || !Array.isArray(answers)) {
+      return c.json({ error: 'Invalid input' }, 400)
+    }
+
+    // 1. Validate Gold Standard answers
+    const goldIds = answers.map(a => a.question_id)
+    const placeholders = goldIds.map(() => '?').join(',')
+    
+    if (goldIds.length === 0) return c.json({ error: 'No answers' }, 400)
+
+    const questions = await c.env.DB.prepare(
+      `SELECT id, is_gold_standard, gold_answer_keywords FROM crowdsource_questions WHERE id IN (${placeholders})`
+    ).bind(...goldIds).all()
+
+    let passedGold = true
+    let goldCount = 0
+
+    for (const ans of answers) {
+      const q = questions.results.find(x => x.id === ans.question_id)
+      if (q && q.is_gold_standard) {
+        goldCount++
+        const keywords = q.gold_answer_keywords.toLowerCase().split(',').map(k => k.trim())
+        const userAns = ans.user_answer.toLowerCase()
+        const hasKeyword = keywords.some(k => userAns.includes(k))
+        if (!hasKeyword) {
+          passedGold = false
+        }
+      }
+    }
+
+    if (!passedGold || goldCount === 0) {
+      // Failed gold standard. Don't increase quota, reject answers.
+      return c.json({ success: false, reason: 'Failed expert verification' })
+    }
+
+    // 2. Save pending answers
+    const stmt = c.env.DB.prepare(
+      `INSERT INTO crowdsource_answers (question_id, session_id, user_answer, status) VALUES (?, ?, ?, 'pending')`
+    )
+    const batch = answers.map(a => stmt.bind(a.question_id, session_id, a.user_answer))
+    await c.env.DB.batch(batch)
+
+    // 3. Upgrade quota and save expert info
+    await c.env.DB.prepare(
+      `INSERT INTO user_subscriptions (session_id, daily_limit, expert_name, expert_linkedin) VALUES (?, 50, ?, ?)
+       ON CONFLICT(session_id) DO UPDATE SET daily_limit = 50, expert_name = ?, expert_linkedin = ?, updated_at = CURRENT_TIMESTAMP`
+    ).bind(session_id, expert_name || null, expert_linkedin || null, expert_name || null, expert_linkedin || null).run()
+
+    return c.json({ success: true, new_limit: 50 })
+  } catch (e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+app.post('/api/admin/ingest', async (c) => {
+  const token = c.req.header('Authorization')
+  if (!token || token !== `Bearer ${c.env.ADMIN_TOKEN}`) {
+    return c.json({ error: 'Unauthorized' }, 401)
+  }
+
+  try {
+    const chunk = await c.req.json()
+    const { standard_code, standard_name, section, clause, content } = chunk
+    
+    // Create embedding
+    const aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: content })
+    const embedding = JSON.stringify(aiResp.data[0])
+    
+    await c.env.DB.prepare(
+      `INSERT INTO standards_chunks (standard_code, standard_name, section, clause, content, embedding)
+       VALUES (?, ?, ?, ?, ?, ?)`
+    ).bind(standard_code, standard_name, section, clause, content, embedding).run()
+    
+    return c.json({ success: true })
+  } catch (e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+app.post('/api/admin/rules', async (c) => {
+  const token = c.req.header('Authorization')
+  if (!token || token !== `Bearer ${c.env.ADMIN_TOKEN}`) {
+    return c.json({ error: 'Unauthorized' }, 401)
+  }
+
+  try {
+    const { keyword, instruction } = await c.req.json()
+    if (!keyword || !instruction) return c.json({ error: 'Missing fields' }, 400)
+    
+    await c.env.DB.prepare(
+      `INSERT INTO ndt_rules (keyword, instruction) VALUES (?, ?)`
+    ).bind(keyword, instruction).run()
+    
+    return c.json({ success: true })
+  } catch (e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+app.get('/api/admin/config', async (c) => {
+  const token = c.req.header('Authorization')
+  if (!token || token !== `Bearer ${c.env.ADMIN_TOKEN}`) return c.json({ error: 'Unauthorized' }, 401)
+  try {
+    const res = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
+    let config = {}
+    if (res.results) {
+      res.results.forEach(row => config[row.key] = row.value)
+    }
+    return c.json({ config })
+  } catch (e) { return c.json({ error: e.message }, 500) }
+})
+
+app.post('/api/admin/config', async (c) => {
+  const token = c.req.header('Authorization')
+  if (!token || token !== `Bearer ${c.env.ADMIN_TOKEN}`) return c.json({ error: 'Unauthorized' }, 401)
+  try {
+    const { openrouter_api_key, openrouter_model } = await c.req.json()
+    
+    if (openrouter_api_key !== undefined) {
+      await c.env.DB.prepare(`INSERT INTO system_config (key, value) VALUES ('openrouter_api_key', ?) ON CONFLICT(key) DO UPDATE SET value = ?`).bind(openrouter_api_key, openrouter_api_key).run()
+    }
+    if (openrouter_model !== undefined) {
+      await c.env.DB.prepare(`INSERT INTO system_config (key, value) VALUES ('openrouter_model', ?) ON CONFLICT(key) DO UPDATE SET value = ?`).bind(openrouter_model, openrouter_model).run()
+    }
+    return c.json({ success: true })
+  } catch (e) { return c.json({ error: e.message }, 500) }
+})
+
+// Cosine similarity
+function cosineSimilarity(vecA, vecB) {
+  let dotProduct = 0; let normA = 0; let normB = 0;
+  for (let i = 0; i < vecA.length; i++) {
+    dotProduct += vecA[i] * vecB[i]; normA += vecA[i] * vecA[i]; normB += vecB[i] * vecB[i];
+  }
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB))
+}
+
+const fallbackModels = [
+  'qwen/qwen-2.5-72b-instruct:free',
+  'qwen/qwen3-8b:free',
+  'nvidia/nemotron-3-ultra:free',
+  'google/gemini-2.5-pro:free'
+]
+
+async function askOpenRouter(c, messages, stream) {
+  // Fetch from DB first
+  const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
+  let dbConf = {}
+  if (confRes.results) {
+    confRes.results.forEach(r => dbConf[r.key] = r.value)
+  }
+
+  const apiKey = dbConf['openrouter_api_key'] || c.env.OPENROUTER_API_KEY
+  let primaryModel = dbConf['openrouter_model'] || c.env.OPENROUTER_MODEL || 'qwen/qwen3.8-27b:free'
+  
+  if (!apiKey) throw new Error('OpenRouter API Key is not configured in DB or Env')
+
+  let modelsToTry = [primaryModel, ...fallbackModels]
+  let lastError = null
+
+  for (const model of modelsToTry) {
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": c.env.ALLOWED_ORIGIN || '*',
+          "X-Title": "Inspecta"
+        },
+        body: JSON.stringify({ model: model, messages: messages, max_tokens: 1000, temperature: 0.1, stream: stream })
+      })
+      if (!response.ok) { lastError = await response.text(); continue; }
+      return { response, model }
+    } catch (e) { lastError = e.message }
+  }
+  throw new Error(`All models failed. Last error: ${lastError}`)
+}
+
+async function prepareContextAndMessages(c, question, language, session_id, standard_filter) {
+  // Usage check
+  const today = new Date().toISOString().split('T')[0]
+  const usageRes = await c.env.DB.prepare(
+    `SELECT count(*) as count FROM usage_log WHERE session_id = ? AND date = ?`
+  ).bind(session_id, today).first()
+  
+  const count = usageRes ? usageRes.count : 0
+  
+  const subRes = await c.env.DB.prepare(
+    `SELECT daily_limit FROM user_subscriptions WHERE session_id = ?`
+  ).bind(session_id).first()
+  
+  const limit = subRes ? subRes.daily_limit : 10
+  
+  if (count >= limit) {
+    throw new Error('RATE_LIMIT')
+  }
+
+  // Fetch active dynamic context rules
+  const rulesRes = await c.env.DB.prepare(`SELECT keyword, instruction FROM ndt_rules WHERE is_active = 1`).all()
+  let appliedRules = ""
+  if (rulesRes.results) {
+    const qLower = question.toLowerCase()
+    for (const rule of rulesRes.results) {
+      if (qLower.includes(rule.keyword.toLowerCase())) {
+        appliedRules += `- ${rule.instruction}\n`
+      }
+    }
+  }
+
+  // Embed question
+  const aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: question })
+  const questionEmbedding = aiResp.data[0]
+  
+  // Load chunks
+  let query = `SELECT standard_code, standard_name, clause, content, embedding FROM standards_chunks`
+  let params = []
+  
+  if (standard_filter && standard_filter !== 'ALL') {
+    query += ` WHERE standard_code = ?`
+    params.push(standard_filter)
+  }
+  
+  const { results } = await c.env.DB.prepare(query).bind(...params).all()
+  
+  // Compute similarities
+  let scoredChunks = (results || []).map(row => {
+    let emb = []
+    try { emb = JSON.parse(row.embedding) } catch(e){}
+    let score = emb.length > 0 ? cosineSimilarity(questionEmbedding, emb) : -1
+    return { ...row, score }
+  })
+  
+  scoredChunks.sort((a, b) => b.score - a.score)
+  const topChunks = scoredChunks.slice(0, 5)
+  
+  let contextText = ""
+  let sources = []
+  topChunks.forEach((chunk, idx) => {
+    contextText += `[Source ${idx+1}] Standard: ${chunk.standard_code} | Clause: ${chunk.clause}\n${chunk.content}\n\n`
+    sources.push({ standard: chunk.standard_code, clause: chunk.clause })
+  })
+
+  const rulesSection = appliedRules ? `\n[ADMIN OVERRIDE RULES - APPLY THESE EXACTLY]:\n${appliedRules}\n` : ""
+
+  const systemPrompt = `You are an expert oil and gas inspection engineer with deep knowledge of welding, NDT, and piping standards. 
+Answer ONLY from the provided standard clauses below. 
+Always cite: Standard name, clause number, and the exact acceptance or rejection criteria. 
+If the answer is not in the context, say: 'This specific clause is not in my loaded standards. Refer to [most likely standard].'
+Never guess. Never fabricate clause numbers.
+If question is in Arabic, answer in Arabic.
+If question is in English, answer in English.
+${rulesSection}
+CONTEXT SOURCES:
+${contextText}
+`
+
+  const messages = [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: question }
+  ]
+  
+  return { messages, sources, today }
+}
+
+app.post('/api/ask', async (c) => {
+  try {
+    const { question, language, session_id, standard_filter } = await c.req.json()
+    
+    if (!question || !session_id) return c.json({ error: 'Missing fields' }, 400)
+    
+    let contextData
+    try {
+      contextData = await prepareContextAndMessages(c, question, language, session_id, standard_filter)
+    } catch(e) {
+      if (e.message === 'RATE_LIMIT') return c.json({ error: 'Limit reached' }, 429)
+      throw e
+    }
+    
+    const { messages, sources, today } = contextData
+    const { response, model } = await askOpenRouter(c, messages, false)
+    
+    const json = await response.json()
+    const answer = json.choices[0].message.content
+    
+    // Log usage
+    await c.env.DB.prepare(
+      `INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`
+    ).bind(session_id, question, model, today).run()
+    
+    return c.json({ answer, sources, model_used: model })
+  } catch (e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+app.post('/api/ask/stream', async (c) => {
+  try {
+    const { question, language, session_id, standard_filter } = await c.req.json()
+    
+    if (!question || !session_id) return c.json({ error: 'Missing fields' }, 400)
+    
+    let contextData
+    try {
+      contextData = await prepareContextAndMessages(c, question, language, session_id, standard_filter)
+    } catch(e) {
+      if (e.message === 'RATE_LIMIT') return c.json({ error: 'Limit reached' }, 429)
+      throw e
+    }
+    
+    const { messages, sources, today } = contextData
+    const { response, model } = await askOpenRouter(c, messages, true)
+    
+    // We send sources and model as initial event then stream chunks
+    const stream = new ReadableStream({
+      async start(controller) {
+        // Send meta event
+        const meta = JSON.stringify({ sources, model_used: model })
+        controller.enqueue(new TextEncoder().encode(`event: meta\ndata: ${meta}\n\n`))
+        
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          
+          const chunk = decoder.decode(value, { stream: true })
+          controller.enqueue(new TextEncoder().encode(chunk))
+        }
+        controller.close()
+        
+        // Log usage
+        await c.env.DB.prepare(
+          `INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`
+        ).bind(session_id, question, model, today).run()
+      }
+    })
+    
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
+    })
+  } catch (e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+export default app

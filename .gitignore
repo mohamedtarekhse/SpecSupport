@@ -1,0 +1,18 @@
+# Secrets — never commit these
+.env
+.env.local
+
+# Node
+node_modules/
+worker/node_modules/
+
+# Wrangler local dev
+.wrangler/
+worker/.wrangler/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

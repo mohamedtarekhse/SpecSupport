@@ -1,0 +1,110 @@
+[STANDARD: API 6A]
+[TITLE: Specification for Wellhead and Christmas Tree Equipment]
+[ARTICLE: Section 5 — Design and Materials / Section 7 — Inspection and Testing]
+
+[CLAUSE: 5.3.1 — Sour Service Material Requirements]
+Equipment for sour service (H2S containing environments) shall meet the requirements of NACE MR0175 / ISO 15156. All pressure-containing and pressure-controlling parts for sour service shall have a maximum hardness of 22 HRC (Rockwell Hardness C scale) or equivalent (237 HB Brinell, 248 HV Vickers). This applies to: body, bonnets, end and outlet connections, stems, and all pressure-containing parts.
+ACCEPTANCE: Hardness ≤ 22 HRC (or ≤237 HB / ≤248 HV). Hardness test records available.
+REJECTION: Any pressure-containing part with hardness >22 HRC for sour service. Missing hardness test documentation. Using non-sour material in sour service without documented exception.
+---
+
+[CLAUSE: 5.3.2 — Material Traceability]
+All pressure-containing and pressure-controlling parts shall have full material traceability to material test reports (MTR). The MTR shall include: heat number, chemical analysis (actual), mechanical properties (actual tensile, yield, elongation, reduction of area), hardness results, heat treatment records, and NDE results. Traceability shall be maintained through all stages of manufacture.
+ACCEPTANCE: MTR available for each part. Heat number stamped or marked on part and traceable to MTR.
+REJECTION: Parts without MTR. Parts where marking has been removed. MTR with "estimated" or "typical" values rather than actual test results.
+---
+
+[CLAUSE: 6.3 — Welding Requirements]
+All welding of pressure-containing parts shall be performed per qualified WPS and qualified welders per ASME IX. For sour service: filler metals shall produce deposited weld metal hardness ≤ 22 HRC. Weld hardness survey required on all sour service pressure-containing weld joints: minimum 3 indentations in weld metal, 3 in HAZ each side, 3 in base metal each side.
+ACCEPTANCE: WPS qualified per ASME IX. Weld hardness survey ≤22 HRC all locations.
+REJECTION: Weld hardness >22 HRC at any measurement location for sour service. No hardness survey on sour service welds. Welding by unqualified welder or with unqualified WPS.
+---
+
+[CLAUSE: 7.3 — Pressure Testing Requirements]
+All pressure-containing equipment shall be hydrostatically tested. Test pressure:
+- Body test: 1.5 × rated working pressure (RWP) for 3 minutes minimum.
+- Seat test (valves): varies by valve type — per product specification level (PSL).
+- Shell test (gate valves): 1.5 × RWP.
+Test medium: water (fresh, inhibited, or test fluid compatible with materials). Test temperature: 10°C to 52°C (50°F to 125°F).
+ACCEPTANCE: No leakage, no sweating through walls, no visible deformation, no pressure drop during hold period.
+REJECTION: Any visible leak. Any pressure drop during hold period not attributable to temperature change. Test at wrong pressure (below 1.5 × RWP). Test hold time less than 3 minutes.
+---
+
+[CLAUSE: 7.4 — Visual and Dimensional Inspection]
+All equipment shall undergo visual inspection to verify: freedom from injurious surface defects, proper surface finish in sealing areas, dimensional conformance to drawing, correct markings (API monogram, RWP, material designation, bore size, end connections), and proper assembly. Seal areas (ring groove faces, BX and RX connections) shall be free of any tool marks, scratches, or pitting visible without magnification.
+ACCEPTANCE: All surfaces free of cracks, laps, seams. Seal grooves free of tool marks. Dimensions within drawing tolerances. Markings correct and legible.
+REJECTION: Any crack, lap, or seam on any surface. Any tool mark or scratch in ring groove or sealing face. Dimension out of tolerance. Incorrect or missing markings.
+---
+
+[CLAUSE: 7.5 — NDE Requirements by PSL]
+Product Specification Level (PSL) determines NDE requirements:
+PSL 1: Visual examination only of external surfaces.
+PSL 2: Visual + MT or PT on accessible surfaces of pressure-containing parts. RT or UT on critical weld areas.
+PSL 3: Visual + full MT or PT on all accessible surfaces + full volumetric (RT or UT) on all weld areas + hardness testing.
+PSL 4: Most stringent — all of PSL 3 + additional requirements for critical service.
+For sour service: minimum PSL 2, PSL 3 recommended.
+ACCEPTANCE: NDE performed per specified PSL. All indications evaluated and accepted per applicable standard.
+REJECTION: PSL 2 equipment without MT/PT. Any unresolved NDE indication. Wrong PSL specified for service conditions.
+---
+
+[STANDARD: API RP 4G]
+[TITLE: Inspection and Maintenance of Drilling and Well Servicing Structures]
+[ARTICLE: Section 4 — Inspection Classification and Frequency]
+
+[CLAUSE: 4.1 — Inspection Classes]
+All drilling structures (masts, derricks, substructures) shall be inspected and classified per the following condition ratings:
+
+CLASS 1 — NO REPAIRS REQUIRED: Structure is in like-new condition. No cracks, no significant corrosion, no deformation, paint in good condition, all structural members intact and undamaged. Full rated load capacity maintained.
+ACCEPTANCE: All members in Class 1 condition. Full rated capacity available.
+
+CLASS 2 — REPAIRS REQUIRED BEFORE FURTHER USE: Defects exist that do not preclude movement of the structure but shall be repaired before the structure is returned to service. Examples: minor cracks at welds, localized corrosion, bent bracing members with ≤ 5% cross-section loss, minor misalignment.
+ACCEPTANCE: Document all Class 2 items. Repair all before next operation.
+REJECTION: Operating structure with Class 2 items without completing repairs.
+
+CLASS 3 — MAJOR REPAIRS REQUIRED, STRUCTURE NOT TO BE MOVED OR USED: Defects are severe enough that the structure shall not be moved or used until major repairs are completed and re-inspected. Examples: cracks in primary load-carrying members, >10% cross-section loss due to corrosion, buckled primary members, failed welds in critical joints.
+REJECTION: Any use or movement of Class 3 structure before repairs completed and re-classified.
+
+CLASS 4 — RETIRED FROM SERVICE: Structure is beyond repair or repair is not economically justified. Shall be removed from service, cut up, or decommissioned. Cannot be re-rated or repaired to return to service.
+REJECTION: Any attempt to use a Class 4 structure.
+---
+
+[CLAUSE: 4.2 — Inspection Frequency]
+PRIOR TO EACH WELL (or minimum annually): Visual inspection — Class 1/2/3/4 classification.
+EVERY 3 TO 5 YEARS (or after any unusual load, impact, or incident): Detailed inspection including NDE (MT or PT) of all primary welds, bolted connections, pins, and load path members.
+AFTER ANY INCIDENT: Full detailed inspection before return to service — any dropped load, uncontrolled movement, collision, or near-miss that loaded the structure abnormally.
+ACCEPTANCE: Inspection performed on schedule with documentation.
+REJECTION: Structure placed in service without current inspection record. Inspection intervals exceeded.
+---
+
+[CLAUSE: 5.2 — Weld Inspection Requirements]
+All primary structural welds on masts and substructures shall be inspected:
+Visual: All accessible welds before NDE.
+MT or PT: All primary weld connections — crown blocks, travelling block connections, monkey board, mast base connections, substructure leg connections, and all load path welds.
+Acceptance for MT/PT on structural welds:
+- No cracks of any size or orientation
+- No incomplete fusion
+- No surface porosity exceeding 1/8 in (3mm) diameter
+- No undercut exceeding 1/32 in (0.8mm)
+- No weld reinforcement exceeding 3/16 in (5mm)
+ACCEPTANCE: All above criteria met on all primary welds.
+REJECTION: Any crack in primary weld. Any lack of fusion. Undercut >0.8mm. Unrepaired Class 2 or 3 weld indications.
+---
+
+[CLAUSE: 5.3 — Corrosion Assessment]
+Corrosion pitting on structural members shall be assessed:
+MINOR PITTING: Depth ≤ 5% of wall thickness. Classification: Class 1.
+MODERATE PITTING: Depth 5% to 15% of wall thickness. Classification: Class 2 — requires coating repair and monitoring.
+SEVERE PITTING: Depth >15% of wall thickness at any location, or cross-section loss >10%. Classification: Class 3 — requires repair or replacement before use.
+General corrosion causing >10% cross-section area loss anywhere in a primary member: Class 3.
+ACCEPTANCE: Pitting ≤5% depth. Cross-section loss ≤10%.
+REJECTION: Pitting >15% depth. Cross-section loss >10% without repair. Corrosion in primary members not measured or assessed.
+---
+
+[CLAUSE: 5.4 — Pin and Bore Inspection]
+All pins (crown block pin, travelling block pin, deadline anchor pin, drawworks pins) and their bores shall be inspected:
+Visual: Scoring, galling, pitting, bending.
+MT (preferred) or PT: All pins before re-installation. Any pin with visible crack — remove from service immediately.
+Dimensional: Measure pin diameter and bore — maximum clearance shall not exceed 1% of nominal pin diameter (or per manufacturer specification).
+ACCEPTANCE: No cracks on MT/PT. Clearance within 1% of nominal diameter. No scoring deeper than 0.5mm.
+REJECTION: Any crack indication on pin. Clearance >1% of nominal. Bent pin. Severely scored pin without engineering assessment.
+---

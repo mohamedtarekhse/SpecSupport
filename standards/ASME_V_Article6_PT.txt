@@ -1,0 +1,88 @@
+[STANDARD: ASME V]
+[TITLE: ASME Boiler and Pressure Vessel Code Section V - Nondestructive Examination]
+[ARTICLE: 6 - Liquid Penetrant Examination]
+
+[CLAUSE: T-620 — General Requirements]
+Liquid penetrant examination shall be performed in accordance with a written procedure. The procedure shall include: type of penetrant materials, cleaning method, dwell time, developer type, examination technique, lighting requirements, and acceptance criteria reference. All PT procedures must be demonstrated to be capable of detecting the required discontinuities before use.
+ACCEPTANCE: Procedure documented and demonstrated.
+REJECTION: Any use of PT without a written procedure.
+---
+
+[CLAUSE: T-621 — Surface Preparation]
+The surface to be examined and all adjacent areas within at least 1 inch (25 mm) shall be dry and free of all dirt, grease, lint, scale, welding flux, weld spatter, paint, oil, and other extraneous matter that could obscure surface openings or interfere with the examination. Surface preparation by grinding, machining, or other methods may be required where surface irregularities could mask indications. Final cleaning shall be performed with a cleaner/remover compatible with the penetrant system used.
+ACCEPTANCE: Surface clean, dry, free of contaminants, adjacent 25mm zone clean.
+REJECTION: Any visible contamination, grease, oil, scale, or weld spatter on examination surface.
+---
+
+[CLAUSE: T-622 — Examination Materials Qualification]
+Penetrant materials used on nickel-base alloys, austenitic stainless steel, or titanium shall be certified by the manufacturer to have a total halogen content not exceeding 1% by weight. Penetrant materials used on these materials shall also have a total sulfur content not exceeding 1% by weight. Material certifications shall be on file and available for review.
+ACCEPTANCE: Halogen ≤1%, Sulfur ≤1% for stainless, nickel alloys, titanium.
+REJECTION: Penetrant material exceeding halogen or sulfur limits on restricted materials. Uncertified materials.
+---
+
+[CLAUSE: T-622 — Temperature Limits]
+The temperature of the penetrant materials and the surface of the part to be processed shall not be below 40°F (5°C) nor above 125°F (52°C) throughout the examination. Local heating or cooling is permitted provided the part temperature remains within the 40°F to 125°F (5°C to 52°C) range during the examination. Where it is not practical to comply with these temperature requirements, other temperatures and times may be used provided the procedure is qualified per T-653.
+ACCEPTANCE: Surface and material temperature between 40°F (5°C) and 125°F (52°C).
+REJECTION: Temperature below 40°F (5°C) or above 125°F (52°C) without qualified alternative procedure.
+---
+
+[CLAUSE: T-630 — Penetrant Application]
+Penetrant shall be applied to the entire area being examined. All surfaces to be examined shall be covered uniformly with penetrant. Penetrant may be applied by any suitable means such as spraying, brushing, or immersion.
+ACCEPTANCE: Complete uniform coverage of examination area with penetrant.
+REJECTION: Areas missed, uneven application, penetrant pooling in recesses without coverage of target area.
+---
+
+[CLAUSE: T-632 — Penetrant Dwell Time]
+The minimum penetrant dwell time shall be as specified in Table T-632 or as qualified by demonstration. Typical minimum dwell times:
+- All materials / All form / Castings, welds: 5 minutes minimum
+- Wrought materials / Laps: 10 minutes minimum
+- All materials / Cold shuts, lack of fusion: 10 minutes minimum
+- All materials / Fatigue cracks: 10 minutes minimum
+Maximum dwell time shall not exceed the manufacturer's recommendation or that established by procedure.
+ACCEPTANCE: Dwell time ≥ minimum per Table T-632 and ≤ manufacturer maximum.
+REJECTION: Dwell time less than minimum. Penetrant allowed to dry on surface during dwell period.
+---
+
+[CLAUSE: T-640 — Excess Penetrant Removal]
+After the specified penetrant dwell time, excess penetrant shall be removed as follows:
+Water-washable (Type I): Rinse with water spray, pressure not exceeding 50 psi (345 kPa), water temperature not exceeding 110°F (43°C).
+Post-emulsifiable lipophilic (Type II): Apply emulsifier, emulsification time per procedure, then water rinse.
+Solvent-removable (Type III): Wipe with clean, dry lint-free cloth, then wipe with cloth dampened with solvent. Do NOT flush surface with solvent.
+ACCEPTANCE: Excess penetrant removed without over-washing. Background clean.
+REJECTION: Flooding surface with solvent remover. Over-washing (removing penetrant from discontinuities). Visible background penetrant masking indications.
+---
+
+[CLAUSE: T-641 — Drying After Excess Penetrant Removal]
+After excess water-washable or post-emulsifiable penetrant has been removed, the surface shall be dried by blotting with clean materials, or by using circulating air, or by exposure to air, or using a combination of these methods. The surface temperature shall not exceed 125°F (52°C). Time between penetrant removal and developer application per procedure.
+ACCEPTANCE: Surface fully dried before developer application. Temperature ≤125°F.
+REJECTION: Developer applied to wet surface. Drying temperature exceeding 125°F.
+---
+
+[CLAUSE: T-650 — Developer Application]
+Developer shall be applied as soon as possible after removal of excess penetrant and drying of the surface. The type of developer shall be as specified in the written procedure. Dry developer shall be applied by dusting, with powder gun, or by other means to produce a thin uniform coating over the entire area. Wet developer (aqueous or nonaqueous) shall be applied by spraying to produce a thin uniform coating. The minimum developer dwell time before interpretation is 10 minutes. Maximum developer dwell time shall not exceed the time qualified in the procedure.
+ACCEPTANCE: Thin uniform developer coat applied immediately after drying. Developer dwell ≥10 minutes before examination.
+REJECTION: Thick or uneven developer coat masking indications. Developer applied before surface is dry. Examination before 10-minute dwell.
+---
+
+[CLAUSE: T-660 — Interpretation and Examination]
+Final interpretation shall be made after allowing sufficient developer dwell time (minimum 10 minutes). Interpretation shall be performed in visible light with a minimum light intensity of 100 foot-candles (1076 lux) at the examination surface for color contrast penetrant. For fluorescent PT, examination shall be performed in a darkened area (ambient light ≤2 foot-candles/21.5 lux) using a UV-A black light of minimum 1000 μW/cm² at 15 inches from filter face.
+ACCEPTANCE:
+- Color contrast: Minimum 100 fc (1076 lux) visible light at surface.
+- Fluorescent: Maximum 2 fc (21.5 lux) ambient, minimum 1000 μW/cm² UV-A.
+REJECTION: Insufficient lighting. Examination before developer dwell minimum.
+---
+
+[CLAUSE: T-676 — Characterization of Indications]
+Indications shall be characterized as follows:
+RELEVANT INDICATION: A PT indication with major dimension greater than 1/16 inch (1.5 mm) caused by a surface-breaking discontinuity.
+NON-RELEVANT INDICATION: An indication that is determined to be caused by a condition or type of discontinuity that is not detrimental (e.g., mechanical marks). Must be verified.
+FALSE INDICATION: An indication that results from improper application of the method.
+ACCEPTANCE CRITERIA: Per the applicable construction code (ASME VIII, B31.3, AWS D1.1 etc.) — ASME V Article 6 establishes the method, not the acceptance criteria.
+REJECTION: Any relevant indication until evaluated against the applicable code acceptance criteria.
+---
+
+[CLAUSE: T-680 — Post-Examination Cleaning]
+After completion of PT examination and recording of results, the part shall be cleaned to remove developer residue and penetrant if required by the applicable construction code or material specification, or if the examiner determines it necessary for the intended service.
+ACCEPTANCE: Parts cleaned after examination per code requirement.
+REJECTION: Developer residue left on parts going into sour service or high-temperature service without cleaning.
+---

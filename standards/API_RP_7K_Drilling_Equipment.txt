@@ -1,0 +1,221 @@
+[STANDARD: API RP 7K]
+[TITLE: Drilling and Well Servicing Equipment — Recommended Practice for Inspection and Maintenance]
+[EDITION: 6th Edition]
+[NOTE: API RP 7K covers drilling equipment including drawworks, rotary tables, top drives, kelly and kelly equipment, and associated tools. It references and aligns with API Spec 7-1 and API RP 7G (now superseded by API RP 7G-2 for drill stem elements).]
+
+[CLAUSE: 1.1 — Scope]
+API RP 7K covers inspection and maintenance of:
+- Drawworks (drum, brake, clutch, catheads)
+- Rotary tables and master bushings
+- Kelly drives (square and hexagonal)
+- Kelly cocks (upper and lower)
+- Kelly savers
+- Top drives (power swivels)
+- Rotary hoses and standpipe
+- Rotary swivel (when not covered by API RP 8B)
+- Power tongs (for makeup and breakout)
+DOES NOT COVER: Drillpipe, drill collars, HWDP, and bottomhole assemblies — those are covered under API RP 7G-2 / DS-1.
+---
+
+[CLAUSE: 3.1 — Inspection Categories for Drilling Equipment]
+API RP 7K uses similar category system to API RP 8B:
+
+CATEGORY I — PERIODIC VISUAL:
+Performed by rig personnel at regular intervals (each tour, weekly, monthly per equipment). No disassembly. Covers: obvious damage, leaks, loose fasteners, correct assembly, safety device function.
+
+CATEGORY II — VISUAL AND NDE:
+Thorough cleaning + visual + NDE of high-stress and wear-critical areas. Some partial disassembly. Performed by qualified inspector. MT or PT of critical welds and components.
+
+CATEGORY III — DETAILED/OVERHAUL INSPECTION:
+Complete disassembly, inspection of all internal and external surfaces, dimensional checks, replacement of wear components and seals, reassembly, function test, and load test where applicable. Performed by manufacturer or authorized facility.
+
+CATEGORY IV — SPECIAL/POST-INCIDENT:
+All of Category III plus engineering assessment. Required after any incident, overload, or condition suggesting damage.
+---
+
+[CLAUSE: 4.1 — Drawworks Inspection Requirements]
+DRAWWORKS DRUM:
+Category I (Each Tour):
+- Check drum flanges for cracks (visual — flanges are high stress)
+- Check brake bands and brake lining thickness
+- Check crown-o-matic (anti-collision) system functional test
+- Check deadline anchor for proper wire rope termination
+- Check catheads for smooth operation
+- Check drum clutch engagement
+ACCEPTANCE: Crown-o-matic functional. Brake bands ≥50% lining thickness remaining. All flanges visually crack-free.
+REJECTION: Non-functional crown-o-matic — STOP DRILLING until repaired. Brake lining <50% remaining. Any visible crack in drum flange.
+
+Category II (Every 6 Months):
+- MT of drum flanges (full circumference)
+- MT of cathead shafts
+- Check wire rope drum grooves for wear (compare to new groove template)
+- Check all foundation bolts for torque
+- Check brake drum surface for scoring
+MT ACCEPTANCE FOR DRUM FLANGES: No indications of any length or orientation.
+REJECTION: Any MT indication on drum flange. Wire rope groove worn to point where rope contacts lands (between grooves). Brake drum scored >1mm depth.
+
+DEADLINE ANCHOR:
+Category I: Check termination (clamps or spelter socket) for wire rope slippage (check paint mark alignment), check anchor pin and locking device.
+Category II: MT of anchor body, anchor pin, and weld joints. Measure anchor bolt condition.
+ACCEPTANCE: Paint mark alignment unchanged (no slippage). All locking devices present. MT clear.
+REJECTION: Any evidence of wire rope slippage in anchor. Missing anchor locking pin. Any MT indication on anchor body.
+
+CROWN-O-MATIC / TRAVEL LIMIT SYSTEM:
+This device stops the traveling block before it contacts the crown. It is a life-safety device.
+FUNCTIONAL TEST: Required at every tour start (when driller changes). Test by slowly raising the traveling block to the trip point and verifying the drawworks stops and the brake sets automatically.
+ACCEPTANCE: System stops traveling block before physical crown contact. Test documented in driller's log.
+REJECTION: Any failure of functional test — drawworks must not be used for lifting until system is repaired and re-tested. System not tested per schedule.
+---
+
+[CLAUSE: 4.2 — Rotary Table Inspection]
+CATEGORY I (Each Tour):
+- Check master bushing fit in rotary table bowl (no excessive play)
+- Check rotary table lock (pin or dog) functional and engaged when not rotating
+- Check drive pins for damage
+- Check for unusual noise or vibration during rotation (bearing condition indicator)
+- Check rotary table lubrication level
+ACCEPTANCE: Bushing seated with no rocking. Lock functional. Drive pins intact. No abnormal noise.
+REJECTION: Master bushing rocking in bowl. Non-functional lock. Broken drive pin. Abnormal noise indicating bearing failure.
+
+CATEGORY II (Every 6 Months):
+- MT of master bushing body and drive slots
+- MT of kelly bushing drive pins
+- Check ring gear for broken teeth (access through inspection port)
+- Bearing clearance check per manufacturer specification
+DRIVE SLOT WEAR: Check master bushing drive slots — maximum wear (widening) = 5% of original slot width.
+ACCEPTANCE: No MT indications. Drive slots within 5% wear limit. No broken ring gear teeth. Bearing clearance within spec.
+REJECTION: Any MT indication on bushing or pins. Drive slot wear >5%. Any broken ring gear tooth.
+---
+
+[CLAUSE: 4.3 — Kelly and Kelly Cock Inspection]
+KELLY (Square or Hex Drive):
+Category I (Each Trip):
+- Visual check for straightness (bent kelly causes vibration and fatigue)
+- Check kelly drive bushing wear (compare kelly OD to bushing bore)
+- Check kelly saver sub threads (box and pin)
+- Check upper kelly cock for operation — must open and close freely
+- Check lower kelly cock for operation — must close when rotary pressure lost
+ACCEPTANCE: Kelly straight. Thread form clean and undamaged. Both cocks operable.
+REJECTION: Kelly visibly bent. Damaged threads. Upper cock that does not operate freely. Lower cock that does not close automatically when required.
+
+KELLY COCK (Safety Valves):
+The kelly cocks are critical well control devices — they must be able to close against wellbore pressure in an emergency.
+FUNCTIONAL TEST: Required every tour start. Test upper kelly cock: apply light torque to close — must close fully. Test lower kelly cock: same. Both must operate with the wrenches kept on the rig floor for that purpose.
+TEST PRESSURE: Every 6 months, pressure test both cocks to rated working pressure. No leakage acceptable.
+ACCEPTANCE: Both cocks open and close freely. Pressure test holds to rated WP with zero leakage.
+REJECTION: Any cock that is sticky, seized, or does not close fully. Pressure test leakage of any amount. Missing wrenches for kelly cocks on the rig floor — this is a violation.
+
+KELLY SAVER SUB:
+Category II (Every 3 Months):
+- MT of saver sub body and connections
+- Thread inspection: check for cracks at thread roots using magnifying glass or MT
+- Measure OD for tong marks that reduce wall thickness
+ACCEPTANCE: No MT indications. Thread roots clean and crack-free. OD tong damage <10% of wall thickness.
+REJECTION: Any MT indication on saver sub. Thread root cracks. Tong marks >10% wall depth (replace).
+---
+
+[CLAUSE: 4.4 — Top Drive Inspection Requirements]
+CATEGORY I (Each Tour):
+- Check for oil/grease leaks from gearbox or motor
+- Check torque wrench dies for wear and missing dies
+- Check link tilt (if fitted) for smooth operation
+- Check IBOP (Internal Blowout Preventer) — open/close function test every tour
+- Check thread compensator (if fitted) for correct tension
+- Check top drive dolly for proper engagement on mast track
+- Check all safety slings and retention devices
+IBOP FUNCTIONAL TEST: Required every tour. Must close and hold. Test documented in driller's log.
+ACCEPTANCE: No leaks. IBOP closes fully. Dies present and not worn. Dolly tracking properly.
+REJECTION: Any significant oil leak (not just seepage). IBOP that does not close fully — STOP until repaired. Missing or worn dies below 50% tooth height.
+
+CATEGORY II (Every 3 Months):
+- MT of main shaft
+- MT of upper and lower link ears
+- MT of save-all plate welds
+- Check main shaft bearing clearance (UT or measurement per manufacturer)
+- Check gearbox oil sample (ferrographic analysis for wear metals)
+CRITICAL AREA: Link ears — this is equivalent to elevator link ears — highest stress point.
+ACCEPTANCE: No MT indications on shaft or link ears. Bearing clearance within manufacturer limit. Gear oil sample within acceptable wear metal limits.
+REJECTION: Any MT indication on main shaft or link ears. Bearing clearance exceeding manufacturer maximum. Gear oil sample showing high iron or copper (bearing failure indicators).
+
+IBOP (INTERNAL BLOWOUT PREVENTER ON TOP DRIVE):
+Category II (Every 3 Months):
+- Pressure test to rated working pressure — zero leakage acceptable
+- MT of body
+- Check valve internals per manufacturer
+ACCEPTANCE: Pressure test holds to rated WP zero leakage. No MT indication on body.
+REJECTION: Any leakage at pressure test. Any MT indication on IBOP body.
+---
+
+[CLAUSE: 4.5 — Rotary Hose and Standpipe Inspection]
+ROTARY HOSE:
+Category I (Each Tour):
+- Visual check of full hose length for cuts, abrasions, bulges, or kinks
+- Check end connections for leaks
+- Check safety clamp (drop cable) integrity
+- Check hose rack or guide does not create tight bend radius
+MINIMUM BEND RADIUS: Manufacturer specification, typically 1.5 m (5 ft) minimum. Never allow kinking.
+ACCEPTANCE: No cuts, bulges, or kinks. No leaks at connections. Safety clamp intact.
+REJECTION: Any bulge in hose wall (internal layer failure — imminent burst risk). Any cut deeper than outer cover layer. Kink in hose. Missing or damaged safety clamp (this is a safety-critical device — loose hose kills people).
+
+ROTARY HOSE — PRESSURE TEST:
+Test every 12 months to 1.5× rated working pressure. Hold minimum 3 minutes. Zero leakage.
+ACCEPTANCE: Holds 1.5× RWP for 3 minutes, zero leakage.
+REJECTION: Any leakage at test pressure. Hose that has been in service >5 years without documented pressure test record.
+
+STANDPIPE:
+Category II (Every 12 Months):
+- UT thickness measurement at all bends and high-wear areas (minimum 6 points per bend)
+- Check all flanged connections for gasket condition and bolt torque
+- Check standpipe manifold valves for operation
+MINIMUM ALLOWABLE THICKNESS: Per manufacturer specification or 87.5% of nominal wall thickness (same as B31.3 piping minimum for mill tolerance).
+ACCEPTANCE: UT thickness ≥87.5% nominal wall at all measurement points. No flange leaks. All valves operable.
+REJECTION: UT thickness <87.5% nominal at any point. Any flange with visible leak or damaged gasket. Any valve that does not operate.
+---
+
+[CLAUSE: 5.1 — Power Tong Inspection]
+CATEGORY I (Each Use):
+- Check dies for wear and security (must be locked in die holder)
+- Check backup tong die condition
+- Check torque gauge calibration (calibration label must be current)
+- Check safety pin on tong (prevents tong spinning freely)
+- Check snubline attachment point for cracks or deformation
+ACCEPTANCE: Dies locked, ≥50% tooth height. Torque gauge calibrated. Safety pin present. Snubline attachment undamaged.
+REJECTION: Loose or missing dies. Worn dies <50% tooth height. Uncalibrated torque gauge. Missing safety pin. Cracked snubline attachment.
+
+CATEGORY II (Every 3 Months):
+- MT of tong body and jaw areas
+- MT of snubline attachment bracket
+- Check gear train condition (oil sample for wear metals)
+- Calibrate torque gauge against known standard
+ACCEPTANCE: No MT indications. Oil sample within limits. Torque gauge ±5% of standard.
+REJECTION: Any MT indication on jaw area. Torque gauge out of calibration by >5%. High wear metals in oil sample.
+---
+
+[CLAUSE: 6.1 — Removal from Service Criteria for Drilling Equipment]
+The following conditions require IMMEDIATE removal from service for any drilling equipment covered by API RP 7K:
+
+IMMEDIATE REMOVAL CONDITIONS:
+1. Any visible crack in any primary component.
+2. Any MT or PT linear indication.
+3. Any component subject to a known or suspected overload.
+4. IBOP or kelly cock that fails to close fully.
+5. Crown-O-Matic / travel limit system failure — drawworks not to be used for lifting.
+6. Rotary hose with any bulge in wall.
+7. Standpipe UT thickness below minimum wall.
+8. Any component with missing or damaged safety-critical devices (pins, latches, safety slings).
+9. Any component with illegible or missing load rating.
+
+ACCEPTANCE: None of above conditions present.
+REJECTION: Equipment with any above condition continues in service without Category IV inspection and engineering clearance.
+---
+
+[CLAUSE: 6.2 — Documentation and Records]
+All inspection records shall be maintained per the following:
+- Category I records: driller's log or equivalent — retained minimum 12 months.
+- Category II records: formal inspection report with inspector identification — retained minimum 5 years.
+- Category III records: full overhaul report — retained for life of equipment.
+- Category IV records: incident report, inspection findings, engineering disposition — retained for life of equipment plus 2 years.
+Records shall include: equipment serial number, date, inspector name and qualification, findings, classification, corrective actions taken, and next inspection due date.
+ACCEPTANCE: All records per above retention and content requirements.
+REJECTION: Missing records for any category inspection. Records without inspector qualification documented. No next inspection due date recorded.
+---

@@ -1,0 +1,257 @@
+[STANDARD: API RP 8B]
+[TITLE: Recommended Practice for Procedures for Inspections, Maintenance, Repair, and Remanufacture of Hoisting Equipment]
+[EDITION: 6th Edition]
+
+[CLAUSE: 1.1 — Scope and Applicability]
+This recommended practice covers the inspection, maintenance, repair, and remanufacture of hoisting equipment used in drilling and well servicing. Equipment covered includes:
+- Blocks (crown blocks, traveling blocks, hook blocks)
+- Hooks (drilling hooks, swivel hooks)
+- Swivels
+- Links and bails
+- Elevators (single joint, spider, power tong elevators)
+- Slips (rotary slips, power slips, casing slips)
+- Collars and subs (landing collars, lift subs, safety joints)
+- Drawworks (external inspection components)
+This RP does NOT cover the wire rope (covered by API RP 9B) or the drawworks internal gear/brake components (covered by manufacturer specifications).
+---
+
+[CLAUSE: 3.1 — Inspection Category Definitions]
+Four inspection categories establish what must be inspected and when:
+
+CATEGORY I — VISUAL INSPECTION:
+Examination of equipment for general condition, proper assembly, obvious damage, and lubrication. Performed by the operator or rig crew. No disassembly required. Includes: visual check of all accessible surfaces for cracks, deformation, leaks, missing components. Check of all safety devices and locking mechanisms.
+FREQUENCY: Prior to each use (operational check) and at each connection point before lifting.
+
+CATEGORY II — VISUAL PLUS NONDESTRUCTIVE EXAMINATION (NDE):
+Includes all of Category I PLUS: thorough cleaning of all accessible surfaces, close visual examination of all load-bearing areas, NDE (MT or PT) of highly stressed areas specified in this RP, dimensional checks of wear surfaces. Disassembly of quick-release connections and elevator latching mechanisms for internal inspection.
+FREQUENCY: Per Table 1 schedule or maximum 3 months of drilling service.
+
+CATEGORY III — DETAILED INSPECTION:
+Includes all of Category II PLUS: complete disassembly of the equipment, inspection of all internal surfaces, replacement of all seals and wear items, MT or PT of ALL load-bearing surfaces and welds (including internal surfaces), dimensional check of all critical dimensions, load test prior to return to service.
+FREQUENCY: Per Table 1 schedule or maximum 24 months of drilling service.
+
+CATEGORY IV — SPECIAL INSPECTION:
+Performed after any incident, overload, or condition that suggests the equipment may have been damaged or subjected to loads exceeding its rated capacity. Includes all of Category III PLUS engineering evaluation of any suspected overload condition.
+FREQUENCY: After any incident.
+---
+
+[CLAUSE: 4.1 — Inspection Frequency Table (Table 1)]
+EQUIPMENT: CROWN BLOCK
+- Category I: Each tour (each shift) — visual check by driller
+- Category II: Every 6 months of service
+- Category III: Every 5 years of service or per manufacturer recommendation
+- Category IV: After any sheave contact by traveling block, after wire rope change, after any impact
+
+EQUIPMENT: TRAVELING BLOCK
+- Category I: Each tour
+- Category II: Every 3 months of service
+- Category III: Every 2 years of service
+- Category IV: After any setdown on rig floor (impact), after any free-fall event
+
+EQUIPMENT: DRILLING HOOK
+- Category I: Each tour
+- Category II: Every 3 months of service
+- Category III: Every 2 years of service
+- Category IV: After any side loading event, after any reported crack or unusual noise
+
+EQUIPMENT: SWIVEL
+- Category I: Each tour (check for leaks, check bail)
+- Category II: Every 3 months
+- Category III: Every 2 years
+- Category IV: After any dropped swivel, after swivel hit rig floor
+
+EQUIPMENT: ELEVATORS (All types)
+- Category I: Prior to each pick-up — latch must be checked EVERY TIME
+- Category II: Every 3 months
+- Category III: Every 2 years
+- Category IV: After any dropped string event or suspected overload
+
+EQUIPMENT: LINKS AND BAILS
+- Category I: Each tour
+- Category II: Every 3 months
+- Category III: Every 2 years
+- Category IV: After any shock load
+
+EQUIPMENT: ROTARY SLIPS
+- Category I: Each connection (each time set in bowl)
+- Category II: Every 3 months
+- Category III: Every 2 years
+- Category IV: After any slip-and-fall of tubulars
+
+ACCEPTANCE: All equipment inspected per Category and frequency as above.
+REJECTION: Any equipment in service beyond its Category inspection interval without documented extension by qualified inspector. Any equipment without current Category I check.
+---
+
+[CLAUSE: 5.1 — Crown Block Inspection Requirements]
+CATEGORY I (Visual — Each Tour):
+- Check wire rope seating in all sheave grooves (no rope climbing out of groove)
+- Check sheave rotation (all sheaves rotating freely, no seized sheave)
+- Check crown saver (anti-collision device) is functional and set correctly
+- Check sheave guard integrity (all guards in place)
+- Visual check of sheave axle pins and locking devices
+- Lubrication check — grease fittings accessible and greased per schedule
+ACCEPTANCE: All sheaves free-spinning. Crown saver functional. All guards in place. All locking devices present.
+REJECTION: Any seized sheave. Missing guard. Non-functional crown saver. Missing locking pin or keeper.
+
+CATEGORY II (NDE — Every 6 Months):
+- Clean all surfaces
+- Visual inspection of all sheave grooves for wear (measure groove depth and radius with template)
+- MT of sheave axle at grease holes and at changes in section
+- MT of all weld joints on the crown frame
+- Check sheave axle-to-bore clearance
+Groove wear: Replace sheave when groove diameter exceeds wire rope diameter by >3% OR groove radius deviates >10% from nominal.
+Axle clearance: Maximum clearance = 0.25% of axle diameter.
+ACCEPTANCE: Groove within wear limits. MT clear of indications. Axle clearance within limit.
+REJECTION: Groove worn beyond limit. Any MT indication on axle or frame weld. Axle clearance >0.25%.
+---
+
+[CLAUSE: 5.2 — Traveling Block Inspection Requirements]
+CATEGORY I (Visual — Each Tour):
+- All sheaves spinning freely
+- Hook attached properly — latch (if equipped) engaged
+- Check for any oil leakage from sheave bearings
+- Check safety latch on hook block (if type used)
+- Bail seated correctly in hook
+ACCEPTANCE: Free rotation. No leaks. All latches functional.
+REJECTION: Seized sheave. Oil leak from bearing. Latch not engaging.
+
+CATEGORY II (NDE — Every 3 Months):
+- MT of traveling block body — side plates, cross members, and bail ears
+- MT of hook shank (where block and hook are integrated)
+- Measure sheave groove wear (same criteria as crown block)
+- Check side plate-to-side plate clearance (excessive clearance indicates wear)
+CRITICAL AREA FOR MT: Bail ears (bails attach here) — this is the highest stress point.
+ACCEPTANCE: No MT indications. Groove within wear limit. No visible deformation of side plates.
+REJECTION: Any MT indication on bail ears, body, or cross members. Groove worn beyond limit. Side plates visibly deformed or cracked.
+---
+
+[CLAUSE: 5.3 — Hook Inspection Requirements]
+CATEGORY I (Visual — Each Tour):
+- Latch functional: opens and closes smoothly, engages and holds under load
+- Spring tension adequate (latch closes automatically)
+- Safety latch (secondary) functional where fitted
+- Hook point: no cracks, no unusual wear
+- Swivel action smooth (hook should rotate freely for load positioning)
+- Check hook for any visible deformation or straightening
+CRITICAL POINT: A straightened hook (one that has been overloaded and opened) must be removed from service IMMEDIATELY. Do not attempt to reuse.
+ACCEPTANCE: Latch functional with positive engagement. Spring closure automatic. No deformation.
+REJECTION: Any latch that fails to engage. Missing spring. Any visible deformation. Swivel seized.
+
+CATEGORY II (NDE — Every 3 Months):
+MT of: hook shank at load ring groove, hook point (full circumference), latch pivot pin area, and all welded areas.
+CRITICAL: The hook shank at the load ring groove is the highest stress concentration — give extra attention here.
+ACCEPTANCE: No MT indications at any location.
+REJECTION: Any MT indication on shank, hook point, or any weld. Any indication at load ring groove regardless of size.
+
+CATEGORY III (Every 2 Years):
+Full disassembly. MT of all internal surfaces. Dimensional check of load ring groove diameter and depth. Load test to 100% of rated capacity after reassembly.
+ACCEPTANCE: All internal surfaces clear on MT. Groove dimensions within manufacturer tolerance. Load test passes (no permanent deformation).
+REJECTION: Any internal MT indication. Groove dimension out of tolerance. Permanent deformation after load test.
+---
+
+[CLAUSE: 5.4 — Swivel Inspection Requirements]
+CATEGORY I (Visual — Each Tour):
+- Check gooseneck connection (drilling hose connection) for leaks
+- Check bail for deformation or cracks
+- Check swivel rotation (should rotate freely with load)
+- Check packing condition (no excessive drilling fluid leak past main seal)
+- Lubrication check
+ACCEPTANCE: No leaks. Bail undamaged. Rotation free. Packing maintains adequate seal.
+REJECTION: Any bail crack or deformation. Gooseneck leak. Swivel that does not rotate freely under load.
+
+CATEGORY II (NDE — Every 3 Months):
+MT of swivel bail (full circumference, pay special attention to attachment welds and bend areas).
+Check bail dimensions — measure thickness at thinnest section. Compare to original dimension.
+BAIL WEAR LIMIT: Replace or condemn bail if thickness at any section reduces to <90% of original nominal dimension.
+ACCEPTANCE: No MT indications on bail. Bail thickness ≥90% of original.
+REJECTION: Any MT indication on bail or bail weld. Bail thickness <90% of original.
+---
+
+[CLAUSE: 5.5 — Elevator Inspection Requirements]
+ELEVATORS ARE THE MOST CRITICAL HOISTING COMPONENT — failure results in dropped string.
+
+CATEGORY I (Visual — EVERY SINGLE PICK-UP):
+Before every pick-up the operator SHALL:
+1. Open and close latch — latch must engage positively with audible click.
+2. Verify safety latch (secondary lock) is functional.
+3. Check elevator body for visible damage or cracks.
+4. Check elevator bore — no drilling fluid, no debris that would prevent full shoulder contact.
+5. Verify correct elevator size for pipe being run.
+ACCEPTANCE: Positive latch engagement. Safety latch functional. Bore clear. Correct size.
+REJECTION: Any latch that does not engage positively. Missing or non-functional safety latch. Wrong size elevator for pipe. Cracked body visible.
+
+CATEGORY II (NDE — Every 3 Months):
+MT of: body, latch pivot area, latch hook point, door/latch mating surfaces, link ears (bail attachment points), lower taper surface.
+Dimensional: Check latch engagement depth (minimum engagement depth per manufacturer specification).
+Taper surface: Check for wear — if bore diameter has increased >1% from nominal, the taper may not seat properly.
+ACCEPTANCE: No MT indications. Latch engagement depth within specification. Bore within 1% of nominal.
+REJECTION: Any MT indication. Latch engagement below minimum. Bore worn >1% of nominal.
+
+DROPPED STRING INVESTIGATION:
+After any dropped string or near-miss (elevator opened under load):
+- REMOVE ELEVATOR FROM SERVICE IMMEDIATELY.
+- Category IV inspection — complete disassembly, full MT including internal surfaces.
+- Engineering evaluation of whether elevator should be scrapped.
+- Root cause investigation before return to service.
+REJECTION: Return of elevator to service after dropped string without Category IV inspection and engineering clearance.
+---
+
+[CLAUSE: 5.6 — Links and Bails Inspection Requirements]
+CATEGORY I (Visual — Each Tour):
+- Check links for deformation, cracks, nicks
+- Check bail seats on hook and elevator for matching contact (no point contact)
+- Lubrication of bail pins where fitted
+ACCEPTANCE: No visible cracks. Full contact at bail seats. No nicks >2mm depth.
+REJECTION: Any crack. Point contact at bail seat (indicates mismatch or wear). Nick >2mm.
+
+CATEGORY II (NDE — Every 3 Months):
+MT of full link body (both sides). Pay attention to: inside of curve (tension side), any dents or mechanical damage areas.
+Dimensional: Measure link cross-section at thinnest point. Minimum dimension: ≥95% of original nominal.
+ACCEPTANCE: No MT indications. Cross-section ≥95% of nominal.
+REJECTION: Any MT indication. Cross-section <95% of nominal. Any nick or gouge >2mm deep not assessed for stress concentration.
+---
+
+[CLAUSE: 5.7 — Rotary Slips Inspection Requirements]
+CATEGORY I (Visual — Each Connection):
+- Check slip body for cracks (especially at die pockets)
+- Check dies: missing dies, cracked dies, worn dies (tooth height <50% of original)
+- Check die retainer springs functional
+- Check handles: not bent, not cracked
+- Check hinge pin and locking device
+ACCEPTANCE: All dies present and with ≥50% tooth height. No cracks. All handles straight. Hinge pin with locking device.
+REJECTION: Missing die. Any die with <50% tooth height. Visible crack in body. Missing or bent handle. Missing hinge pin locking device.
+
+CATEGORY II (NDE — Every 3 Months):
+MT of: slip body (full), die pocket areas (highest stress), hinge pin and hinge area.
+Die pocket inspection: look for cracks that propagate from die pocket corners (most common failure mode).
+ACCEPTANCE: No MT indications anywhere. All die pockets intact with no cracks.
+REJECTION: Any MT indication. Any crack propagating from die pocket corners — this is a condemnable condition.
+---
+
+[CLAUSE: 6.1 — Load Rating and Marking]
+All hoisting equipment shall be permanently marked with:
+- Manufacturer name or trademark
+- Serial number
+- Load rating (maximum rated load in kN or tons)
+- Date of manufacture or date of last Category III inspection
+ACCEPTANCE: All markings present and legible.
+REJECTION: Any equipment without legible load rating marking. Equipment with markings that show a rating different from the engineering document. Equipment with markings that have been altered.
+
+NEVER EXCEED THE RATED LOAD:
+Using equipment at loads exceeding the rated load — even momentarily — requires an immediate Category IV inspection before continued use.
+REJECTION: Any documented use of hoisting equipment at loads exceeding the nameplate rating without immediate Category IV inspection.
+---
+
+[CLAUSE: 7.1 — Rejection and Removal from Service Criteria]
+The following conditions require IMMEDIATE removal from service regardless of inspection interval:
+1. Any visible crack in any load-bearing member.
+2. Any MT or PT indication that is linear (any length).
+3. Any permanently deformed hook, link, bail, or elevator body.
+4. Any latch that does not engage positively (elevators, hooks).
+5. Any missing safety critical component (pins, locking devices, safety latches).
+6. Any equipment with illegible or missing load rating markings.
+7. Any equipment known to have been subjected to a load exceeding its rating.
+8. Any equipment that has been in a dropped load incident.
+ACCEPTANCE: None of the above conditions present.
+REJECTION: Any one of the above conditions — equipment removed from service immediately and tagged "OUT OF SERVICE — DO NOT USE" pending Category IV inspection.
+---

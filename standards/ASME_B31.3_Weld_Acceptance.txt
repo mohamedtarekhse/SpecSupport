@@ -1,0 +1,120 @@
+[STANDARD: ASME B31.3]
+[TITLE: Process Piping — ASME Code for Pressure Piping]
+[ARTICLE: Chapter VI — Inspection, Examination, and Testing]
+
+[CLAUSE: 341.1 — General Requirements for Examination]
+Examination of piping covered by this Code is the responsibility of the Manufacturer, Fabricator, or Erector. Examination includes visual examination, radiographic examination, ultrasonic examination, magnetic particle examination, liquid penetrant examination, and other methods specified. The Owner's Inspector shall have access to all phases of work and materials.
+ACCEPTANCE: Owner inspector has access to all work. All required examination completed and documented.
+REJECTION: Denial of access to Owner inspector. Examination not performed or documented.
+---
+
+[CLAUSE: 341.3 — Types of Examination Required by Fluid Service]
+Examination requirements depend on fluid service category:
+
+CATEGORY D SERVICE: Not exceeding 150 psi (1035 kPa), not exceeding 366°F (186°C), non-hazardous fluid. Requires visual examination only per 344.2.
+
+NORMAL FLUID SERVICE (most common): Requires 5% random radiographic examination of welds per 341.4.1.
+
+CATEGORY M SERVICE (highly hazardous): Requires 100% radiographic or ultrasonic examination of all butt welds.
+
+HIGH PRESSURE SERVICE: Requires 100% RT or UT per 342.
+
+SEVERE CYCLIC CONDITIONS: 100% RT or UT of all butt welds.
+ACCEPTANCE: Examination type and extent matches fluid service category.
+REJECTION: Reduced examination applied to service requiring higher level. Category M service without 100% examination.
+---
+
+[CLAUSE: 341.3.2 — Examination Requirements and Acceptance Criteria — Table Reference]
+TABLE 341.3.2 — ACCEPTANCE CRITERIA FOR WELDS
+The following acceptance criteria apply for each examination method:
+
+VISUAL EXAMINATION (ALL SERVICES):
+- Cracks: None permitted
+- Lack of fusion at surface: None permitted
+- Incomplete penetration: See 341.3.2 (b) — permitted for specific conditions only
+- Any other linear indication: None for Category M; others per engineering
+- Porosity: Must not exceed limits of applicable examination standard
+
+RANDOM RADIOGRAPHY (5% — Normal Service):
+Quality factor for weld joint = 0.80 if examined, 0.60 if not.
+
+100% RADIOGRAPHIC OR ULTRASONIC (Category M and Cyclic):
+- Cracks: None
+- Lack of fusion: None
+- Incomplete penetration (groove welds): None for Category M. For Normal: permitted if: depth ≤1/3 T and ≤1.5 mm (0.06 in), total length ≤38 mm (1.5 in) in any 150mm (6 in).
+- Slag/other inclusions: Individual length ≤25 mm (1 in), separated by ≥3× longer of adjacent indications, aggregate ≤8% of weld length.
+- Porosity (rounded): Maximum 6% of weld area on radiograph.
+ACCEPTANCE: All indications within above limits for applicable service.
+REJECTION: Any crack, any lack of fusion, incomplete penetration exceeding limits, slag or porosity exceeding limits.
+---
+
+[CLAUSE: 328.1 — General Welding Requirements]
+All welding shall be performed by qualified welders and welding operators using qualified welding procedures per ASME Section IX. The engineer shall specify the welding requirements including: filler metal, preheat, PWHT, and inspection. All WPS and PQR records shall be retained and available.
+ACCEPTANCE: All welders and WPS qualified per ASME IX. Records available.
+REJECTION: Welding by unqualified welder or using unqualified WPS.
+---
+
+[CLAUSE: 328.2 — Filler Metal]
+Filler metals and fluxes shall conform to the applicable SFA specifications in ASME Section II, Part C. Filler metal not included in ASME II Part C may be used if qualified by a procedure qualification test per ASME IX.
+ACCEPTANCE: Filler metal conforms to specified SFA classification and meets chemical/mechanical requirements.
+REJECTION: Wrong filler metal type. Unlabeled or unidentified filler metal used. Filler metal not matching WPS specification.
+---
+
+[CLAUSE: 328.3 — Preparation for Welding]
+Joint design shall be as specified in the engineering design. Weld joint surfaces shall be clean, smooth, free of fins, tears, cracks, and other defects that would prevent proper welding. Alignment: maximum offset (hi-lo) for butt welds shall not exceed 1.5 mm (1/16 in) for pipe wall thickness ≤20 mm. For pipe wall >20 mm: maximum offset is 1/8T or 3 mm whichever is less, maximum 5 mm absolute.
+ACCEPTANCE: Hi-lo ≤1.5 mm for T≤20mm. Hi-lo ≤lesser of T/8 or 3mm (max 5mm) for T>20mm.
+REJECTION: Any hi-lo (mismatch) exceeding above limits before tacking.
+---
+
+[CLAUSE: 328.4.1 — Preheat Requirements]
+Preheat shall be applied as required by the WPS and ASME Section IX. Minimum preheat temperatures for carbon steel per ASME B31.3 Appendix A (material tables). For P-1 materials (carbon steel): 10°C (50°F) minimum when base metal temperature is below 0°C. Higher preheat per wall thickness as specified in WPS. Preheat shall extend 75 mm (3 in) each side of weld joint and shall be uniform before welding commences.
+ACCEPTANCE: Preheat temperature ≥ WPS minimum, measured with calibrated contact thermometer or temperature sticks. Extends 75mm each side.
+REJECTION: Preheat temperature below WPS minimum. Preheat not measured before welding. Preheat zone less than 75mm each side.
+---
+
+[CLAUSE: 328.5.4 — Postweld Heat Treatment (PWHT)]
+PWHT shall be performed when required by: wall thickness (P-1 carbon steel: required when nominal thickness exceeds 19 mm/3/4 in, or when specified), or by material specification, or when code mandates. Temperature and time: for P-1 material — 595°C to 650°C (1100°F to 1200°F), minimum 1 hour per 25 mm (1 in) of thickness, minimum 15 minutes for any thickness. Temperature uniformity: ±14°C (±25°F) within heated band.
+ACCEPTANCE: PWHT temperature within 595-650°C. Hold time ≥1 hr/25mm (min 15 min). Recorded on chart recorder.
+REJECTION: PWHT temperature outside range. Hold time insufficient. No chart recorder record. PWHT skipped on weld requiring it.
+---
+
+[CLAUSE: 344.2 — Visual Examination Procedure]
+Visual examination shall include: verification of joint preparation (groove angle, root face, root opening), fit-up (alignment, tack welds), preheat temperature, inter-pass cleaning (slag removal complete, no oxidation), final weld profile (reinforcement, undercut, cracks, crater fill). Inspector access within 600 mm, angle ≥30°, minimum 1000 lux.
+ACCEPTANCE: All visual examination items verified and pass criteria of 341.3.2.
+REJECTION: Final weld with visible cracks, lack of fusion, excessive undercut, or open porosity.
+---
+
+[CLAUSE: 344.3 — Magnetic Particle Examination]
+MT shall be performed per ASME V Article 7 using technique and equipment qualified per procedure. Applicable to ferritic materials only. Minimum yoke lift: 4.5 kg (10 lb) AC. Examination in two directions. Acceptance: no relevant linear indications, no relevant rounded indications larger than 5 mm (3/16 in), no more than 4 relevant indications in any 38 mm × 150 mm (1.5 in × 6 in) area.
+ACCEPTANCE: No linear relevant indications. No rounded relevant indication >5mm. No more than 4 relevant in 38×150mm area.
+REJECTION: Any linear relevant indication. Rounded indication >5mm. More than 4 relevant indications in specified area.
+---
+
+[CLAUSE: 344.4 — Liquid Penetrant Examination]
+PT shall be performed per ASME V Article 6. Applicable to all materials (ferrous and nonferrous). Temperature of surface: 10°C to 52°C (50°F to 125°F). Acceptance: same as MT — no relevant linear indications, no rounded >5mm, no more than 4 in 38×150mm area.
+ACCEPTANCE: No linear relevant indications. No rounded relevant indication >5mm. No more than 4 in area.
+REJECTION: Any linear relevant indication. Rounded indication >5mm. More than 4 relevant in specified area.
+---
+
+[CLAUSE: 345 — Testing Requirements]
+HYDROSTATIC LEAK TEST (Preferred method):
+Test pressure: 1.5 × design pressure, but not less than pressure that produces hoop stress of 90% SMYS for pipe material at test temperature. Test fluid: water (preferred) at ≥16°C (60°F). Hold time: 10 minutes minimum. Inspection: examine all joints for leaks.
+ACCEPTANCE: No leaks at any joint, fitting, valve, or flange for minimum 10-minute hold at test pressure.
+REJECTION: Any visible leak. Pressure drop during hold period not attributable to temperature change.
+
+PNEUMATIC LEAK TEST (Alternative — when hydro not practical):
+Test pressure: 1.1 × design pressure. Requires Owner engineer approval. Soap bubble or equivalent leak detection on all joints.
+ACCEPTANCE: No leaks detected. No pressure drop during hold.
+REJECTION: Any bubble indication at any joint. Any unmeasured pressure drop.
+
+INITIAL SERVICE TEST:
+Applicable to Category D services only. Examine all joints during or immediately after pressurization to design pressure.
+ACCEPTANCE: No leaks at design conditions.
+REJECTION: Any visible leak.
+---
+
+[CLAUSE: 341.4 — Progressive Sampling for Random Examination]
+When random examination reveals a defect, two additional welds of the same type by the same welder shall be examined. If the additional welds are acceptable, the original defective weld shall be repaired and both re-examined. If either of the additional welds is defective, all welds of that type by that welder shall be examined.
+ACCEPTANCE: No additional defects in progressive sample.
+REJECTION: Defect in progressive sample → 100% examination of that welder's work required. Welder may be disqualified.
+---

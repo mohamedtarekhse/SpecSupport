@@ -1,0 +1,88 @@
+[STANDARD: ASME V]
+[TITLE: ASME Boiler and Pressure Vessel Code Section V - Nondestructive Examination]
+[ARTICLE: 7 - Magnetic Particle Examination]
+
+[CLAUSE: T-720 — General Requirements]
+Magnetic particle examination shall be performed in accordance with a written procedure. The procedure shall contain: magnetization technique, magnetizing current type and amperage, equipment type, particle type and color, examination coverage, direction of magnetization, and acceptance criteria reference code. Procedures shall be demonstrated to be capable of detecting required discontinuities before use.
+ACCEPTANCE: Written procedure established, demonstrated, and followed.
+REJECTION: Any MT performed without a written procedure.
+---
+
+[CLAUSE: T-721 — Surface Preparation]
+The surface to be examined shall be free of grease, oil, sand, loose scale, loose rust, lint, thick paint (above 0.003 inches/0.08mm), and other foreign materials that could interfere with the examination. Tight scale, thin coatings, and welded areas may remain, provided the coating thickness does not prevent detection of required indications. Weld spatter, weld slag, and rough weld surfaces shall be removed before MT examination.
+ACCEPTANCE: Surface clean, smooth, free of weld spatter and slag. Coatings ≤0.003 in (0.08 mm).
+REJECTION: Grease, oil, weld spatter, or thick paint present. Surface roughness that would prevent particle mobility.
+---
+
+[CLAUSE: T-730 — Magnetization Techniques]
+The following techniques may be used:
+1. PROD TECHNIQUE: Direct contact using portable prods. Prod spacing: 3 to 8 inches (75 to 200 mm). Minimum current: 100 amp/inch (4 amp/mm) prod spacing for dry particles; 90 amp/inch (3.5 amp/mm) for wet particles.
+2. YOK TECHNIQUE (AC Yoke): Capable of lifting minimum 10 lbs (4.5 kg). Prod spacing: 2 to 6 inches (50 to 150 mm).
+3. YOK TECHNIQUE (DC or Permanent Magnet Yoke): Capable of lifting minimum 40 lbs (18 kg).
+4. COIL TECHNIQUE: For longitudinal fields in long parts. Number of turns × amperage as specified.
+5. CENTRAL CONDUCTOR TECHNIQUE: For circular magnetization of hollow parts.
+ACCEPTANCE: Technique matches part geometry. Lift test passes for yoke. Amperage per procedure for prods.
+REJECTION: Wrong technique for geometry. Yoke failing lift test. Prod current outside specified range.
+---
+
+[CLAUSE: T-732 — Direction of Magnetization]
+Each area shall be examined in at least two separate magnetizations in approximately perpendicular directions. This ensures detection of discontinuities oriented in any direction. For prod technique: two shots at 90° to each other. For yoke: two placements at 90° to each other.
+ACCEPTANCE: Minimum two magnetizations at approximately 90° to each other covering entire area.
+REJECTION: Single direction magnetization only. Less than 90° between shots (unless qualified alternative procedure used).
+---
+
+[CLAUSE: T-741 — Dry Particle Technique]
+Dry particles shall be applied while the magnetizing current is on (continuous method) or immediately after (residual method — for permanent or DC). Particles shall be applied as a light dust cloud. Do not apply excessive amounts. Remove loosely held particles with a gentle air stream while current is still on. Examination: inspect surface immediately while current is on or shortly after (residual).
+ACCEPTANCE: Light uniform particle application. Gentle air stream to remove excess. Inspection during or immediately after magnetization.
+REJECTION: Excessive particle pile-up masking indications. Strong air blast removing relevant indications. Dry particles used on hot surfaces above 315°C (600°F) unless specifically approved.
+---
+
+[CLAUSE: T-742 — Wet Particle Technique]
+Wet particles (bath) shall be applied before and during magnetization. The bath concentration shall be maintained per manufacturer's specification. Fluorescent wet method: 0.1 to 0.4 mL per 100 mL of vehicle (ASTM D96 centrifuge tube). Visible wet method: 1.2 to 2.4 mL per 100 mL of vehicle. Bath concentration shall be checked at start of each shift using a centrifuge tube.
+ACCEPTANCE: Bath concentration within manufacturer limits and above specification minimums.
+REJECTION: Bath concentration outside specified range. Contaminated bath (oil, grease, other materials).
+---
+
+[CLAUSE: T-750 — Examination Coverage and Overlap]
+Each examination pass shall overlap the previous pass by a minimum of 10% of the magnetized area. For prod technique: each shot covers the band between prods plus overlap into adjacent band. For yoke: examine area between pole pieces, overlap each pass 10%.
+ACCEPTANCE: 10% minimum overlap between adjacent examination passes.
+REJECTION: Gaps in coverage. Less than 10% overlap.
+---
+
+[CLAUSE: T-760 — Interpretation and Lighting Requirements]
+Interpretation shall be performed:
+VISIBLE (COLOR CONTRAST) MT: Minimum white light intensity of 100 foot-candles (1076 lux) at examination surface. Sunlight may be used.
+FLUORESCENT MT: UV-A (black light) minimum 1000 μW/cm² at examination surface. Ambient visible light maximum 2 foot-candles (21.5 lux). Allow minimum 5 minutes dark adaptation before examination. Black light shall warm up minimum 5 minutes before use.
+ACCEPTANCE:
+- Visible MT: ≥100 fc visible light.
+- Fluorescent MT: ≥1000 μW/cm² UV-A, ≤2 fc ambient, 5 min dark adapt, 5 min lamp warm-up.
+REJECTION: Insufficient light of required type. Examining before dark adaptation period. Using UV lamp before 5-minute warm-up.
+---
+
+[CLAUSE: T-761 — Classification of Indications]
+RELEVANT INDICATION: Any indication with major dimension greater than 1/16 inch (1.5 mm) caused by a discontinuity.
+NON-RELEVANT INDICATION: Caused by a condition that is not a flaw (e.g., bi-metallic interface, change in section). Must be verified by examination.
+FALSE INDICATION: Caused by improper technique (leakage fields at threads, keyways, etc.).
+Any indication believed to be non-relevant shall be re-examined after surface conditioning to verify. All relevant indications shall be evaluated against the applicable code acceptance criteria.
+ACCEPTANCE: Indications classified and evaluated per applicable code.
+REJECTION: Any relevant indication awaiting evaluation. Non-relevant indications not verified.
+---
+
+[CLAUSE: T-762 — AC vs DC Selection]
+AC (ALTERNATING CURRENT): Best for surface discontinuities. Skin effect concentrates field at surface. Required for detection of surface cracks and laps.
+DC (DIRECT CURRENT): Best for subsurface discontinuities. Field penetrates deeper. Required where subsurface detection needed per code.
+ACCEPTANCE: Current type matches required detection depth per applicable code.
+REJECTION: Using AC only when code requires DC for subsurface detection.
+---
+
+[CLAUSE: T-780 — Post-Examination Demagnetization]
+Parts shall be demagnetized when residual magnetism could interfere with subsequent operations or service. The effectiveness of demagnetization shall be checked with a gaussmeter or field indicator. Acceptable residual field: generally ≤3 gauss (unless otherwise specified by engineering).
+ACCEPTANCE: Residual field ≤3 gauss (or per specification) after demagnetization where required.
+REJECTION: Parts with residual magnetism above limit entering machining, welding, or service where magnetism is detrimental, without demagnetization.
+---
+
+[CLAUSE: T-790 — Post-Examination Cleaning]
+After MT examination, particle residue shall be removed from the part surface. This is especially important for: parts going into service, machined surfaces, threaded connections, and parts entering sour/corrosive service.
+ACCEPTANCE: Parts cleaned of particle residue per code or engineering requirement.
+REJECTION: Fluorescent wet particle residue left on internal surfaces of pressure-containing parts without cleaning requirement verification.
+---

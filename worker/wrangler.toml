@@ -1,0 +1,15 @@
+name = "inspection-api"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+
+[vars]
+OPENROUTER_MODEL = "qwen/qwen3.8-27b:free"
+ALLOWED_ORIGIN = "*"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "inspection-db"
+database_id = "5e8696db-10ab-4eaf-92b0-de5f21a007f6" # NOTE: Change this before deploying to production!
+
+[ai]
+binding = "AI"
