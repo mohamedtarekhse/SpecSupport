@@ -203,6 +203,60 @@ app.post('/api/admin/config', async (c) => {
   } catch (e) { return c.json({ error: e.message }, 500) }
 })
 
+app.post('/api/admin/compare', async (c) => {
+  const token = c.req.header('Authorization')
+  if (!token || token !== `Bearer ${c.env.ADMIN_TOKEN}`) return c.json({ error: 'Unauthorized' }, 401)
+  
+  try {
+    const { question, standard_filter } = await c.req.json()
+    if (!question) return c.json({ error: 'Missing question' }, 400)
+
+    const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
+    let dbConf = {}
+    if (confRes.results) confRes.results.forEach(r => dbConf[r.key] = r.value)
+    
+    const apiKey = dbConf['openrouter_api_key'] || c.env.OPENROUTER_API_KEY
+    const primaryModel = dbConf['openrouter_model'] || c.env.OPENROUTER_MODEL || 'qwen/qwen3.8-27b:free'
+
+    if (!apiKey) return c.json({ error: 'No API key configured' }, 400)
+
+    const contextData = await prepareContextAndMessages(c, question, 'en', 'admin', standard_filter)
+    const { messages } = contextData
+
+    const modelsToTest = [...new Set([primaryModel, ...fallbackModels])]
+    
+    const promises = modelsToTest.map(async (model) => {
+      try {
+        const start = Date.now()
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": c.env.ALLOWED_ORIGIN || '*',
+            "X-Title": "Inspecta Admin"
+          },
+          body: JSON.stringify({ model: model, messages: messages, max_tokens: 1000, temperature: 0.1 })
+        })
+        const duration = Date.now() - start
+        if (!response.ok) {
+          const errText = await response.text()
+          return { model, error: errText, duration }
+        }
+        const json = await response.json()
+        return { model, answer: json.choices[0].message.content, duration }
+      } catch (e) {
+        return { model, error: e.message, duration: 0 }
+      }
+    })
+
+    const results = await Promise.all(promises)
+    return c.json({ results })
+  } catch (e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
 // Cosine similarity
 function cosineSimilarity(vecA, vecB) {
   let dotProduct = 0; let normA = 0; let normB = 0;
@@ -257,20 +311,22 @@ async function askOpenRouter(c, messages, stream) {
 async function prepareContextAndMessages(c, question, language, session_id, standard_filter) {
   // Usage check
   const today = new Date().toISOString().split('T')[0]
-  const usageRes = await c.env.DB.prepare(
-    `SELECT count(*) as count FROM usage_log WHERE session_id = ? AND date = ?`
-  ).bind(session_id, today).first()
-  
-  const count = usageRes ? usageRes.count : 0
-  
-  const subRes = await c.env.DB.prepare(
-    `SELECT daily_limit FROM user_subscriptions WHERE session_id = ?`
-  ).bind(session_id).first()
-  
-  const limit = subRes ? subRes.daily_limit : 10
-  
-  if (count >= limit) {
-    throw new Error('RATE_LIMIT')
+  if (session_id !== 'admin') {
+    const usageRes = await c.env.DB.prepare(
+      `SELECT count(*) as count FROM usage_log WHERE session_id = ? AND date = ?`
+    ).bind(session_id, today).first()
+    
+    const count = usageRes ? usageRes.count : 0
+    
+    const subRes = await c.env.DB.prepare(
+      `SELECT daily_limit FROM user_subscriptions WHERE session_id = ?`
+    ).bind(session_id).first()
+    
+    const limit = subRes ? subRes.daily_limit : 10
+    
+    if (count >= limit) {
+      throw new Error('RATE_LIMIT')
+    }
   }
 
   // Fetch active dynamic context rules
