@@ -39,7 +39,7 @@ app.post('/api/usage/check', async (c) => {
       `SELECT daily_limit FROM user_subscriptions WHERE session_id = ?`
     ).bind(session_id).first()
     
-    const limit = subRes ? subRes.daily_limit : 10
+    const limit = subRes ? subRes.daily_limit : 9999
     
     return c.json({
       questions_today: count,
@@ -323,7 +323,7 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
       `SELECT daily_limit FROM user_subscriptions WHERE session_id = ?`
     ).bind(session_id).first()
     
-    const limit = subRes ? subRes.daily_limit : 10
+    const limit = subRes ? subRes.daily_limit : 9999
     
     if (count >= limit) {
       throw new Error('RATE_LIMIT')
