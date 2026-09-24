@@ -1,73 +1,67 @@
 const fs = require('fs');
 const path = require('path');
 
-const API_URL = 'http://localhost:8787/api/admin/ingest'; // Change to production URL when needed
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'YOUR_SECRET_ADMIN_TOKEN'; // Set via env or edit here
-
+const API_URL = 'https://inspection-api.mohamedtarekhse.workers.dev/api/admin/ingest'; 
+const ADMIN_TOKEN = 'secret-admin-pass-2024'; 
 async function processFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8');
-  
   let currentStandard = '';
   let currentTitle = '';
   
-  const chunks = [];
-  
-  // A naive parser based on the requested format
-  // [STANDARD: API 6A]
-  // [TITLE: Specification for ...]
-  // [CLAUSE: 5.1.1]
-  // Content...
-  // ---
-  
+  // Extract Standard and Title from header
   const lines = content.split('\n');
-  let currentClause = '';
-  let currentContent = '';
-  
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (line.startsWith('[STANDARD:')) {
+  for (const line of lines) {
+    if (line.trim().startsWith('[STANDARD:')) {
       currentStandard = line.replace('[STANDARD:', '').replace(']', '').trim();
-    } else if (line.startsWith('[TITLE:')) {
+    } else if (line.trim().startsWith('[TITLE:')) {
       currentTitle = line.replace('[TITLE:', '').replace(']', '').trim();
-    } else if (line.startsWith('[CLAUSE:')) {
-      if (currentClause && currentContent) {
-        chunks.push({
-          standard_code: currentStandard,
-          standard_name: currentTitle,
-          section: 'General',
-          clause: currentClause,
-          content: currentContent.trim()
-        });
-      }
-      currentClause = line.replace('[CLAUSE:', '').replace(']', '').trim();
-      currentContent = '';
-    } else if (line === '---') {
-      if (currentClause && currentContent) {
-        chunks.push({
-          standard_code: currentStandard,
-          standard_name: currentTitle,
-          section: 'General',
-          clause: currentClause,
-          content: currentContent.trim()
-        });
-        currentClause = '';
-        currentContent = '';
-      }
-    } else {
-      if (currentClause) {
-        currentContent += line + '\n';
-      }
     }
   }
+
+  const chunks = [];
   
-  if (currentClause && currentContent) {
-     chunks.push({
-      standard_code: currentStandard,
-      standard_name: currentTitle,
-      section: 'General',
-      clause: currentClause,
-      content: currentContent.trim()
-    });
+  // Split the file into chunks by the '---' delimiter
+  const rawBlocks = content.split(/^-{3,}$/m);
+  
+  for (let block of rawBlocks) {
+    block = block.trim();
+    if (!block) continue;
+    
+    // Skip the header block if it contains [STANDARD:
+    if (block.includes('[STANDARD:')) continue;
+    
+    // The first non-empty line of the block is the clause title
+    const blockLines = block.split('\n');
+    let clauseTitle = '';
+    let contentBody = '';
+    
+    for (let i = 0; i < blockLines.length; i++) {
+      const line = blockLines[i].trim();
+      if (!line) continue;
+      
+      if (!clauseTitle) {
+        clauseTitle = line.replace(/^\[?CLAUSE:\s*/i, '').replace(/\]$/, '').trim();
+        // If the first line doesn't look like a title but just text, use a generic title
+        if (clauseTitle.length > 100) {
+           clauseTitle = "General Clause";
+           contentBody += line + '\n';
+        }
+      } else {
+        contentBody += blockLines[i] + '\n';
+      }
+    }
+    
+    contentBody = contentBody.trim();
+    
+    if (clauseTitle && contentBody) {
+      chunks.push({
+        standard_code: currentStandard || 'UNKNOWN',
+        standard_name: currentTitle || 'UNKNOWN',
+        section: 'General',
+        clause: clauseTitle,
+        content: contentBody
+      });
+    }
   }
 
   return chunks;
