@@ -1,0 +1,814 @@
+[STANDARD: API RP 4G]
+[TITLE: API RP 4G Extracted Data]
+
+(No output)
+
+(No output)
+
+---
+CLAUSE: 1 — Scope
+This section defines the purpose of the document, providing guidelines for inspection, maintenance, and repair of drilling and well servicing structures (masts/derricks, substructures) to maintain serviceability, supplemental to manufacturer instructions and API 54. It lists covered items and notes exclusions (crown block sheaves under API 8B, offshore derricks not covered for Category IV verification). Verification: Ensure that inspection activities follow this document as supplemental guidance.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 2 — Normative References
+This section lists indispensable referenced documents (API Spec 4F, ASNT SNT-C-TC-1A, AWS D1.1, ISO 9712) that must be applied; for dated references only the cited edition applies, for undated the latest edition including amendments. Verification: Confirm that the applicable editions of these standards are available and used.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 3 — Terms, Definitions, Acronyms, and Abbreviations
+This section provides definitions of key terms used throughout the document (e.g., certification, critical area, fish plate, inspection, maintenance, primary load, qualified person, serviceability, testing) and acronyms (ASNT, AWS, CWI, H2S, IPS, IWRC, MPI, NDT, OEM, PT, RT, SWL, UT). These definitions ensure consistent interpretation. Verification: Check that personnel understand and apply these definitions correctly.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 4.1 — Procedures
+This clause requires users/owners to establish written inspection, maintenance, and repair procedures for each equipment item, or to use manufacturer recommendations. Procedures may be triggered by time intervals, wear limits, non-performance, environment, experience, regulatory requirements, or damaging incidents. Verification: Review that written procedures exist and are linked to one or more of these triggers.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 4.2 — Personnel Qualifications
+This clause specifies that inspection, maintenance, and repair tasks must be performed by qualified individuals (defined by degree, certificate, experience). It includes specific requirements for welders (AWS D1.1 certification), Category II inspectors (experienced field superintendents), Category III inspectors (qualified person with knowledge of primary load path), and Category IV inspectors (Professional Engineer or OEM representative, plus NDT Level II and weld inspector qualifications). Verification: Verify credentials and experience of personnel performing each inspection category.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 4.3 — Training
+This clause emphasizes training of rig personnel, mechanics, welders, and inspectors to conduct visual inspections for Categories I-III, ensuring equipment operates as designed. Training programs help identify problems and maintain serviceability. Verification: Check training records and observe that personnel can perform required visual inspections.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 5.1 — General (Use and Maintenance)
+This clause describes maintenance actions (adjustments, cleaning, lubrication, replacement of expendable parts) and notes that complexity and safety risk should guide resource allocation. Manufacturers should define special tools, materials, measuring equipment, and personnel qualifications needed. Operators must be trained in erection/lowering operations. Verification: Verify that maintenance activities are performed per defined procedures and that appropriate resources are allocated.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 5.2 — Loading
+This clause states that safe operation depends on an adequate foundation; the design load for foundation includes structure weight, machinery, maximum hook/rotary load, external guywire forces, and maximum setback load. During erection/lowering using drawworks, the slowest practical line speed should be used; the weight indicator must stay within the nameplate hook load capacity; the mast base must be restrained against uplift if required. Verification: Confirm foundation design calculations and operational practices meet these load criteria.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+
+---
+CLAUSE: 5.3.1 — General Bolted Structure Requirements
+EXPLANATION: Each part of a bolted structure must carry its share of the load; omitted or improperly placed parts can cause failure. During erection, bolts should be left loose enough to allow proper fit of adjacent members without distortion and then locked in stress to ensure correct alignment and load distribution. After erection and periodically, bolts shall be checked for proper torque. Instructions for installing clamps, pins, and tie‑down bolts shall be developed by a qualified person using manufacturer guidelines. Clamp installation instructions must include pretension values and tolerances. Bolt tensioning shall be performed with calibrated tensioning methods. Bolt length shall be such that the end of the bolt is flush with or outside the nut face when installed. Responsibility for erection and bolt installation lies with those performing the work.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 5.3.2 — Bolt Pretensioning
+EXPLANATION: The turn‑of‑nut method is always acceptable for bolts not intended for reuse; reuse is permitted only if specified by the manufacturer or a Professional Engineer. Bolt tensioning must be achieved using calibrated tensioning methods. Tie‑down components expected to be tensioned multiple times shall be designed with a pretension not exceeding 50 % of the bolt material minimum ultimate strength times its nominal cross‑sectional area. Bolts specified for pretension greater than 50 % of the bolt material minimum ultimate strength shall be used only once.
+ACCEPTANCE: Pretension ≤ 50 % of bolt material minimum ultimate strength × nominal cross‑sectional area
+REJECTION: Pretension > 50 % of bolt material minimum ultimate strength × nominal cross‑sectional area
+---
+---
+CLAUSE: 5.4 — Racking Platforms
+EXPLANATION: A pipe‑racking support that prevents pipe from falling shall be provided in the mast/derrick. Racking fingers must be kept straight and secured with a safety device. The working platform shall be made of nonskid material and must not encroach on the travel path of the hook/block, swivel, top drive, or motion compensator; if nonskid material is not used, a nonskid coating may be applied. Fall protection shall be secured and available at all times. Platforms may be fabricated from special high‑strength steel, requiring equivalent metals for repairs.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 5.5 — Changes in Rig Location
+EXPLANATION: When a rig is moved to a new environment, a qualified person shall review the rig to confirm that all structures meet the required design criteria and structural safety level requirements for the new location.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 6.1 — General Inspection Objective and Routine Checks
+EXPLANATION: Inspections aim to detect defects such as cracks or mechanical damage that may indicate impending failure. Significant manufacturing defects must be repaired or replaced and reported to the manufacturer. Routine checks include: weld inspection for cracks; erecting mechanism deformation check; hydraulic circuit inspection and air bleeding per manufacturer instructions with adequate fluid and complete air removal; hydraulic cylinders, pipework, and hoses leak and seal/wear inspection; wire rope inspection for kinks, broken wires, or other damage, ensuring guylines are not fouled and lines remain in sheave grooves; load transfer mechanisms, guides, and scoping ram stabilizers checked for free operation, cleanliness, lubrication, proper positioning, and full engagement; unit leveling and foundation/support placement per manufacturer recommendations; crown sheave wear and lubrication check; bearing lubrication and condition check in sheaves, sprockets, pins, etc.; folding ladder position and free operation check; scheduled bolted connection tightness inspections during drilling/servicing.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 6.2 — Inspection Categories (I–IV)
+EXPLANATION: Category I: visual observation of the mast/derrick and substructure by rig personnel during operations for indications of inadequate performance. Category II: includes Category I plus a more thorough inspection of load‑bearing areas and sheaves for cracks, damage, corrosion, loose or missing components, and premature wear, performed during rig‑up operations. Category III: thorough visual inspection of all load‑bearing components and members, documented on Annex A–D checklists; includes observation of rig‑up/rig‑down for well servicing, truck or trailer‑mounted masts; results maintained in the permanent rig file. Category IV: includes Category III requirements plus: (a) critical joints subject to nondestructive examination; (b) equipment disassembled and cleaned to the extent necessary for NDT of all defined critical areas; (c) all welds (100 %) shall be visually examined; (d) welds in critical areas inspected by magnetic particle (MPI/MT), liquid penetrant (PT), radiographic (RT), or ultrasonic (UT) testing per AWS D1.1, with eddy current as an accepted alternative and MPI/PT used to evaluate eddy‑current indications; galvanized welds may require different techniques; cracks are generally identified through visual inspection on galvanized mast/derrick; (e) ultrasonic thickness test or other recognized method for internal corrosion on tubular primary load‑carrying members, with internal cameras on cable as an alternative. Mobile offshore drilling unit masts/substructures are exempt from Category IV; Category IV inspections are required for rigs disassembled for transport between locations (e.g., fixed platforms, tension‑leg platforms). Inspection results from Category III and IV shall be documented and maintained in the permanent rig file.
+ACCEPTANCE: 100 % of welds shall be visually examined
+REJECTION: <100 % of welds visually examined (any weld not visually examined)
+---
+---
+CLAUSE: 6.3 — Table I Row 1: Category I Frequency Daily Documentation Optional
+EXPLANATION: Category I inspections shall be performed daily. Documentation is optional.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 6.3 — Table I Row 2: Category II Frequency At Rig up Documentation Optional
+EXPLANATION: Category II inspections shall be performed at rig up. Documentation is optional.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 6.3 — Table I Row 3: Category III Frequency Every 730 operating days a Documentation Equipment File
+EXPLANATION: Category III inspections shall be performed every 730 operating days. Documentation shall be maintained in the equipment file.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 6.3 — Table I Row 4: Category IV Frequency Every 3650 operating days a Documentation Equipment File
+EXPLANATION: Category IV inspections shall be performed every 3650 operating days. Documentation shall be maintained in the equipment file.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 6.3 — Table I Footnote: Operating Day Definition
+EXPLANATION: One operating day equals 24 operating murs-.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 6.4 — Acceptance Criteria
+EXPLANATION: Acceptance criteria shall be established based on experience and manufacturer's recommendations. Equipment that does not meet the acceptance criteria shall not be accepted for operation.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 6.5 — Rejected Equipment
+EXPLANATION: Rejected equipment shall be marked and removed from service.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+
+---
+CLAUSE: 6.6 — Damage Classification
+Damage identified during inspection shall be classified as follows: X1‑damage requiring immediate attention; X2‑damage requiring attention at the time of the next rig move; X3‑damage requiring attention during the next maintenance; X4‑damage requiring attention prior to the next Category III inspection. This classification ensures timely remedial actions based on severity and operational impact. Verification is performed by visual inspection and measurement of observed damage against the defined categories.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 7 — Repair – General Recommendations
+Structural repair of drilling or well‑servicing structures must be carefully planned before work begins; the manufacturer or a qualified person (per 4.2.1) shall be consulted for approval of materials and methods, using accepted engineering practices to supervise repairs. Specific recommendations include: repairing or replacing damaged members per Table 2; using manufacturer‑approved welding procedures; attaching fixtures and accessories with suitable clamps or bolted foundations; not drilling, burning, or welding any member without prior approval; keeping girts, braces, and other load‑bearing members in place while the structure is under load; allowing field repair of all damage but performing major damage repairs in a shop‑like environment per OEM or equivalent specifications; and ensuring replacement materials, pins, and bolts meet OEM specifications or equivalents. These requirements ensure repairs restore structural integrity and safety while preventing inadvertent weakening of the structure. Verification consists of reviewing repair plans, approval records, welding procedure qualifications, and post‑repair inspections.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: Table 2-1 — Legs
+A bow in a leg member exceeding the allowable limit indicates excessive deformation that could compromise load capacity and stability; therefore legs must be inspected for bow and repaired or replaced if the bow exceeds the limit. Verification is performed by measuring the bow over a 10 ft (3 m) length.
+ACCEPTANCE: Bow less than 1/4 in. (6.4 mm) in 10 ft (3 m)
+REJECTION: 1/4 in. (6.4 mm) bow in 10 ft (3 m)
+---
+---
+CLAUSE: Table 2-1 — Braces
+Excessive bow in brace members reduces their ability to resist lateral loads and may lead to buckling; braces are checked for bow over a 10 ft (3 m) span and must be repaired or replaced when the bow exceeds the allowable limit.
+ACCEPTANCE: Bow less than 1/2 in. (12.7 mm) in 10 ft (3 m)
+REJECTION: 1/2 in. (12.7 mm) bow in 10 ft (3 m)
+---
+---
+CLAUSE: Table 2-1 — Overall alignment of structure
+The overall alignment of the structure must remain square within tolerance; excessive out‑of‑square indicates distortion that can affect load paths and erection. Verification is made by measuring deviation from square over the relevant dimension.
+ACCEPTANCE: Out‑of‑square less than 3/4 in. (19.1 mm)
+REJECTION: 3/4 in. (19.1 mm) out of square
+---
+---
+CLAUSE: Table 2-1 — Pin holes (LD.)
+Pin hole diameters that are undersized beyond the permitted tolerance can interfere with pin insertion, cause stress concentrations, and hinder proper assembly. Holes are measured and compared to the specified diameter.
+ACCEPTANCE: Pin hole diameter not under the specified diameter by more than 1/16 in. (1.6 mm)
+REJECTION: 1/16 in. (1.6 mm) under specified diameter
+---
+---
+CLAUSE: Table 2-1 — Corrosion
+Excessive material loss or build‑up on pins changes their effective diameter, affecting fit and load transfer. For pins smaller than 3 in. (76.2 mm), the pin diameter must not exceed the specified size by more than the stated tolerance.
+ACCEPTANCE: Pin diameter not over the specified diameter by more than 3/16 in. (4.8 mm) for pins <3 in. (76.2 mm)
+REJECTION: 3/16 in. (4.8 mm) over specified pin diameter (for pins less than 3 in. [76.2 mm] diameter)
+---
+---
+CLAUSE: Table 2-1 — Structural members and wire rope
+For pins 3 in. (76.2 mm) diameter or larger, excessive wear or corrosion that increases the pin diameter beyond the allowed tolerance can impair fit and increase stress. The pin diameter is checked against the specification.
+ACCEPTANCE: Pin diameter not over the specified diameter by more than 1/4 in. (6.4 mm) for pins ≥3 in. (76.2 mm)
+REJECTION: 1/4 in. (6.4 mm) over specified pin diameter (for pins 3 in. [76.2 mm] diameter or greater)
+---
+---
+CLAUSE: Table 2-1 — Connections and fittings
+A reduction in the cross‑sectional area of a connection or fitting beyond 10 % indicates significant material loss that weakens the joint. The area is measured and compared to the original design area.
+ACCEPTANCE: Cross‑sectional area reduction ≤10 %
+REJECTION: 10 % reduction in cross sectional area
+---
+---
+CLAUSE: Table 2-1 — Bolts, pins and safety keys
+A sharp kink or bend in a bolt, pin, or safety key creates a stress riser that can lead to premature fracture. These items are inspected visually for any localized deformation.
+ACCEPTANCE: No sharp kink or bend present
+REJECTION: Sharp kink or bend in a local area
+---
+---
+CLAUSE: Table 2-1 — Structural members
+Loose connections or fittings can allow unintended movement, load redistribution, and fatigue damage. Connections are checked for proper torque and fit.
+ACCEPTANCE: Connections and fittings are tight with no detectable looseness
+REJECTION: Loose connections or fittings
+---
+---
+CLAUSE: Table 2-1 — Sheaves, rollers, and bearings
+Missing components or assemblies in sheave, roller, or bearing assemblies prevent proper function and can cause wire‑rope damage or bearing failure. A complete inventory of parts is verified during inspection.
+ACCEPTANCE: All components and assemblies present
+REJECTION: Missing components or assemblies
+---
+---
+CLAUSE: Table 2-1 — Structural members
+The absence of any structural member compromises the load‑carrying capacity of the structure and must be addressed by repair or replacement. Inspection confirms that all designed members are in place.
+ACCEPTANCE: No missing members
+REJECTION: Missing members
+---
+---
+CLAUSE: Table 2-1 — Exposure to heat
+After exposure to elevated temperatures, sheaves, rollers, and bearings must turn freely, be free of cracks, and have groove dimensions within the manufacturer’s gage and depth limits. Excessive groove depth or out‑of‑gage grooves indicate heat‑induced distortion.
+ACCEPTANCE: Sheaves turn freely, no cracks detected, groove within gage, and groove depth not greater than allowed by sheave manufacturer
+REJECTION: Do not turn freely, have cracks detected, sheave groove out of gage, or groove depth greater than allowed by sheave manufacturer
+---
+---
+CLAUSE: Table 2-1 — Line cuts or abrasions from wire rope
+Exposure of wire rope to temperatures above the allowable limit can degrade its strength and increase susceptibility to cuts and abrasions. Temperature is measured with appropriate sensors or inferred from environmental conditions.
+ACCEPTANCE: Temperature ≤500 OF (260 oc)
+REJECTION: In excess of 500 OF (260 oc)
+---
+---
+CLAUSE: 7.2 — Corrosion
+Corrosion damage that reduces the cross‑sectional area of a structural member by more than 10 % (or the percentage tolerance specified by the manufacturer) should be considered for repair. After removing corrosion to sound metal by abrasive blasting or mechanical cleaning, the affected area may be repaired by welding fill‑and‑grind, fish‑plating, or member replacement, followed by recoating. This limit ensures that remaining metal retains sufficient strength to carry design loads. Verification involves measuring the remaining cross‑sectional area before and after cleaning.
+ACCEPTANCE: Cross‑sectional area reduction ≤10 % (or within manufacturer‑specified tolerance)
+REJECTION: >10 % reduction in cross‑sectional area
+---
+---
+CLAUSE: 7.3 — Fire and Heat Exposure
+Following exposure to temperatures exceeding 500 °F (260 °C), the affected areas of the structure must be inspected for distortion. If the temperature exceeds the critical temperature of the steel grade, a qualified person must perform further examination of the affected area. This requirement prevents loss of strength or dimensional changes due to overheating. Verification includes temperature measurement (if available) and visual/dimensional inspection for warping, cracks, or groove changes.
+ACCEPTANCE: Temperature ≤500 °F (260 °C)
+REJECTION: Temperature >500 °F (260 °C)
+---
+---
+CLAUSE: 8.1 — Planning
+Structural modification of a drilling or well‑servicing structure must be carefully planned before work begins. The manufacturer should be consulted for approval of materials and methods; if the manufacturer is unavailable, a qualified person (per 4.2.1) using accepted engineering practices shall supervise the modification. This ensures that modifications are compatible with the original design and do not introduce unsafe conditions. Verification consists of documented approvals, modification procedures, and supervision records.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 8.2 — Design and Modification
+The designer of modifications must account for the impact on operating capacities, environmental loads, erection loads, transportation loads, lifting loads, structural overturning, foundation requirements, and other applicable conditions. Fabrication shall be performed under a qualified quality‑assurance program following the designer’s instructions. The API standard in effect at the time of original manufacture—or a more recent edition—shall be used and agreed upon by the user and designer. Fixtures and accessories are preferably attached by suitable clamps or bolted foundations, and no member may be drilled, welded, or burned without prior approval. These provisions guarantee that modifications maintain structural integrity and safety. Verification includes design calculations, QA program records, and approval documentation.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 8.3 — Padeyes
+Padeyes mounted on structural members or beneath crown frames must be designed and fabricated in accordance with API 4F. Each padeye should be identified with a safe working load (SWL) rating, holes shall be machine‑made, and all welds must be subjected to nondestructive testing (NDT). This ensures that padeyes can safely carry the intended loads and that weld defects are detected. Verification involves design review, SWL marking, hole inspection method, and NDT records.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 8.4 — Lifting Eyes
+Lifting eyes reduce mast damage during handling and must be designed per API 4F. Each lifting eye is the designated point at which a crane or gin‑pole truck handles the mast and must be sized to bear a specified load. Lifting eyes shall be clearly marked and personnel made aware of their importance. Typical lug designs are shown in Figure 1 for reference only; actual design and placement are determined by a qualified person. This requirement minimizes stress concentrations and prevents mast damage during lifts. Verification includes design review, load rating confirmation, marking inspection, and personnel training records.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 9.1 — Inspection and Repair Records
+The user/owner must maintain and retain an equipment file containing pertinent information about the mast and substructure. The file shall include: records of Category III and Category IV inspections (forms in Annexes A‑D); a description of the mast/derrick and/or substructure (type, style, serial number, PSL, specifications, manufacturer name and date, clear height, maximum rated static hook load with guylines if applicable, maximum combined rated static rotary and setback capacity on substructure, list of components and assembly drawings with critical areas defined); documentation of all repairs or modifications (inspection results, dates, significant defects with dimensions, location and extent of repairs, NDT methods and results, primary load‑carrying components replaced or modified, date and location of repairs, NDT inspector and welder qualifications, material certifications and traceability, assembly drawings of modifications, and the date and name of the qualified person(s) involved). Electronic records are permissible. This documentation ensures traceability, facilitates future inspections, and supports regulatory compliance. Verification consists of checking that the file is complete, up‑to‑date, and stored securely.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 9.2 — Identification/Traceability
+Equipment serial numbers or identification markings provided by the manufacturer must be maintained on the equipment. Missing nameplates shall be replaced only with those issued or controlled by the manufacturer. For unidentified equipment, the user/owner shall apply identification markings, and serial numbers or markings shall be recorded and retained. This ensures that each item can be uniquely traced to its manufacturer, specifications, and service history. Verification involves visual inspection of markings and review of records.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 9.2.1 — Nameplate
+Masts and derricks must have a permanent nameplate attached to the structure indicating: the manufacturer’s name; model number and serial number; rating including static hook load capacity with the number of lines strung to the traveling block; and, if guying is applicable, the recommended guying patterns as per Section 13. This information allows quick identification of the equipment’s capabilities and configuration. Verification is by visual inspection of the nameplate and comparison with documentation.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 9.2.2 — Substructures
+Substructures must have a permanent nameplate attached to the structure indicating: the manufacturer’s name; model number and serial number; and the combined rotary and setback capacity. This provides essential data for operational planning and load calculations. Verification is by visual inspection of the nameplate.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+---
+CLAUSE: 10.1 — Procedure
+To determine a load rating for a well‑servicing or drilling structure of unknown manufacture, the following steps shall be performed: (a) initial inspection to survey member sizes, geometry, and overall condition; (b) structural analysis in accordance with API 4F to establish a load rating; (c) repairs and refurbishment to achieve full structural integrity; (d) final inspection; (e) attachment of an identification nameplate; (f) documentation of the entire process. This procedure ensures that equipment of obscure origin can be safely placed into service with a verified rating. Verification consists of completing each step and retaining the associated records.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+
+---
+CLAUSE: 10.2 — Qualification
+Load ratings determination must be performed by a Professional Engineer who has demonstrated the ability to carry out structural analysis, ensuring that the analysis is competent and the resulting ratings are reliable. Verification consists of confirming the engineer’s professional credentials and evidence of structural analysis capability.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 11.1 — General
+The foundation must be designed to support the sum of the structure weight, machinery/equipment weight, maximum anticipated hook or rotary load, external guywire forces, environmental forces (wind/waves where applicable), and maximum setback and rod load. Foundations and guywire tensions should be checked daily; operations must be stopped if any of the conditions listed (a‑d) are observed, indicating potential instability, misalignment, or excessive settlement.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 11.2 — Leveling and Shimming
+Manufacturers must provide leveling and shim guidelines; original manufacturer‑supplied shims shall not be removed without the manufacturer’s direction, and any additional shims required for site conditions shall be installed per the manufacturer’s instructions. The mast or substructure requires leveling when any of the conditions (a‑e) are observed, such as an off‑center traveling block, uneven subsidence, opposite guywire tension changes, difficulty setting slips, or relative movement between mast and rotary supports when slips are set and the load is removed.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 12 — Raising/Bridle Line Inspection and Replacement
+Raising line life is limited by wear (number of raises), corrosion (time/environment), and damage (independent of wear/corrosion). Lines must be inspected before raising/lowering; rusty lines inspected/replaced as needed; end areas examined closely for corrosion; kinked, crushed, or otherwise distorted ropes replaced; replacement based on inspection and lift count; lines kept well lubricated with a compatible lubricant to reduce internal friction and prevent corrosion; protected from abrasion using drill‑pipe rubbers or tying‑back; in multi‑part wire‑rope substructure raising systems, remove from service if six or more broken wires occur in one lay, or three or more broken wires occur in one strand in one lay; any broken wire in a mast raising line requires replacement.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 13.1 — General
+Any mast that relies on guywires for stability must have all applicable guywires installed before work begins. Number, placement, and size should follow the manufacturer’s recommendations; if not shown on the nameplate, follow Figure 2; if obstructions prevent those patterns, a qualified person may develop an alternative pattern based on site‑specific hook load, wind load, and foundation adequacy, and the pattern must be available at the well site. All guywires must be 6×19 or 6×37 class, regular lay, IPS (minimum), IWRC wire rope per API 9B, and must not have been previously used in another application.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 13.2 — Standing Ropes
+Standing ropes (guylines, escape lines, pendant lines) must be removed from service when any of the following conditions exist: three broken wires within one lay length; two broken wires at the end connection in the strand valley; marked corrosion; corroded wires at end connections; end connections that are corroded, cracked, bent, worn, or improperly applied; or evidence of kinking, crushing, cutting, cold working, or bird caging. These criteria ensure compromised rope is taken out of service before failure.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 13.3 — Frequency of Inspection
+Guylines in use must receive a visual inspection at least once each day. Additionally, a thorough inspection must be performed once each month, with a record made of any defects observed. Refer to API 9B for further guidance on wire‑rope care and inspection.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 13.4 — Guy wire End Terminations and Hardware
+End terminations must follow good practice and the current API 9B; never turn the rope back over a small‑radius eye—use thimbles or suitably sized sheaves. When wire‑rope clips are used, double‑saddle type clips are recommended and must be installed per the clip manufacturer’s torque instructions; if a sheave replaces a thimble, add one extra clip. Brackets that attach guywires to the mast or tubing board (when non‑standard patterns are used) must be verified to have sufficient capacity for the maximum anticipated loads. All hardware that remains in the live guywire system (shackles, turnbuckles, walking boomers, chain come‑a‑longs, load binders, etc.) must have a safe working load capacity of at least 40 % of the guywire’s breaking strength, and handles on devices such as walking boomers must be positively secured to prevent accidental release. Grab hooks or open hooks on guywire terminations are not recommended.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 13.5 — Pretension of Guywires
+The sag (catenary) of a guywire can be used to estimate its pretension; Figure 3 illustrates this relationship, while Table 3 provides recommended pretension values and Table 4 gives corresponding sag values for various anchor distances and mast configurations.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 14.1 — General
+Anchors for guywires must meet spacing and capacity criteria: follow the manufacturer’s recommendations; if unavailable or obstructed, use the values shown in Figure 4 and Table 5; anchors must be capable of supporting the guywire loads determined in Section 13.1 when used with the corresponding guywire pattern; and must comply with applicable regulations.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: TABLE 3 — External Guy A
+Table 3 recommends a 5/8 in. diameter, 6×19 or 6×37 class regular lay IPS IWRC wire rope for the External Guy A guywire, with a pretension of 1000 lb (373 kg). Sag is to be determined from Figure 3.
+ACCEPTANCE: 5/8 in. size, 1000 lb (373 kg) pretension
+REJECTION: N/A
+---
+CLAUSE: TABLE 3 — External Guy B
+Table 3 recommends a 9/16 in. diameter, 6×19 or 6×37 class regular lay IPS IWRC wire rope for the External Guy B guywire, with a pretension of 500 lb (187 kg). Sag is to be determined from Figure 3.
+ACCEPTANCE: 9/16 in. size, 500 lb (187 kg) pretension
+REJECTION: N/A
+---
+CLAUSE: TABLE 3 — Internal Guy C (2)
+Table 3 recommends a 7/8 in. diameter, 6×19 or 6×37 class regular lay IPS IWRC wire rope for each Internal Guy C guywire, with a pretension of 1500 lb (560 kg) each and a sag of 3 in. (76 mm).
+ACCEPTANCE: 7/8 in. size, 1500 lb (560 kg) pretension each, 3 in. (76 mm) sag
+REJECTION: N/A
+---
+CLAUSE: TABLE 3 — Intermediate Guy D (2) c
+Table 3 recommends a 5/8 in. diameter, 6×19 or 6×37 class regular lay IPS IWRC wire rope for each Intermediate Guy D guywire (optional per manufacturer), with a pretension of 1000 lb (373 kg) each and a sag of 3 in. (76 mm).
+ACCEPTANCE: 5/8 in. size, 1000 lb (373 kg) pretension each, 3 in. (76 mm) sag
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 40 ft for Pole Mast
+Table 4 lists a guywire sag of 4 in. (102 mm) for a Pole Mast configuration with the anchor 40 ft from the well.
+ACCEPTANCE: 4 in. (102 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 40 ft for Single Mast
+Table 4 lists a guywire sag of 4 in. (102 mm) for a Single Mast configuration with the anchor 40 ft from the well.
+ACCEPTANCE: 4 in. (102 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 40 ft for Double Mast
+Table 4 lists a guywire sag of 4 in. (102 mm) for a Double Mast configuration with the anchor 40 ft from the well.
+ACCEPTANCE: 4 in. (102 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 40 ft for Tubing Board
+Table 4 lists a guywire sag of 6 in. (152 mm) for a Tubing Board configuration with the anchor 40 ft from the well.
+ACCEPTANCE: 6 in. (152 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 60 ft for Pole Mast
+Table 4 lists a guywire sag of 6 in. (152 mm) for a Pole Mast configuration with the anchor 60 ft from the well.
+ACCEPTANCE: 6 in. (152 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 60 ft for Single Mast
+Table 4 lists a guywire sag of 8 in. (203 mm) for a Single Mast configuration with the anchor 60 ft from the well.
+ACCEPTANCE: 8 in. (203 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 60 ft for Double Mast
+Table 4 lists a guywire sag of 6 in. (152 mm) for a Double Mast configuration with the anchor 60 ft from the well.
+ACCEPTANCE: 6 in. (152 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 60 ft for Tubing Board
+Table 4 lists a guywire sag of 12 in. (305 mm) for a Tubing Board configuration with the anchor 60 ft from the well.
+ACCEPTANCE: 12 in. (305 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 80 ft for Pole Mast
+Table 4 lists a guywire sag of 10 in. (254 mm) for a Pole Mast configuration with the anchor 80 ft from the well.
+ACCEPTANCE: 10 in. (254 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 80 ft for Single Mast
+Table 4 lists a guywire sag of 15 in. (381 mm) for a Single Mast configuration with the anchor 80 ft from the well.
+ACCEPTANCE: 15 in. (381 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 80 ft for Double Mast
+Table 4 lists a guywire sag of 10 in. (254 mm) for a Double Mast configuration with the anchor 80 ft from the well.
+ACCEPTANCE: 10 in. (254 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 80 ft for Tubing Board
+Table 4 lists a guywire sag of 17 in. (432 mm) for a Tubing Board configuration with the anchor 80 ft from the well.
+ACCEPTANCE: 17 in. (432 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 100 ft for Pole Mast
+Table 4 lists a guywire sag of 16 in. (406 mm) for a Pole Mast configuration with the anchor 100 ft from the well.
+ACCEPTANCE: 16 in. (406 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 100 ft for Single Mast
+Table 4 lists a guywire sag of 22 in. (559 mm) for a Single Mast configuration with the anchor 100 ft from the well.
+ACCEPTANCE: 22 in. (559 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 100 ft for Double Mast
+Table 4 lists a guywire sag of 16 in. (406 mm) for a Double Mast configuration with the anchor 100 ft from the well.
+ACCEPTANCE: 16 in. (406 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 100 ft for Tubing Board
+Table 4 lists a guywire sag of 26 in. (660 mm) for a Tubing Board configuration with the anchor 100 ft from the well.
+ACCEPTANCE: 26 in. (660 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 120 ft for Pole Mast
+Table 4 lists a guywire sag of 18 in. (457 mm) for a Pole Mast configuration with the anchor 120 ft from the well.
+ACCEPTANCE: 18 in. (457 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 120 ft for Single Mast
+Table 4 lists a guywire sag of 32 in. (813 mm) for a Single Mast configuration with the anchor 120 ft from the well.
+ACCEPTANCE: 32 in. (813 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 120 ft for Double Mast
+Table 4 lists a guywire sag of 18 in. (457 mm) for a Double Mast configuration with the anchor 120 ft from the well.
+ACCEPTANCE: 18 in. (457 mm)
+REJECTION: N/A
+---
+CLAUSE: TABLE 4 — Sag at 120 ft for Tubing Board
+Table 4 lists a guywire sag of 32 in. (813 mm) for a Tubing Board configuration with the anchor 120 ft from the well.
+ACCEPTANCE: 32 in. (813 mm)
+REJECTION: N/A
+---
+
+---
+CLAUSE: 14.2 — Capacity Verification
+The capacity of each permanent anchor must be verified within 24 months before starting work and rechecked if any changes occur that could reduce anchor capacity. Verification may be performed by pull testing or other engineering‑approved methods that give equivalent results. Anchors must be retested if deformation or damage is observed.
+ACCEPTANCE: Verification performed ≤ 24 months prior to work commencement; rechecked after any capacity‑reducing changes.
+REJECTION: Verification older than 24 months; not rechecked after changes that could decrease anchor capacity.
+---
+CLAUSE: 14.3 — Alternative Anchoring Practices
+When substructures and base beams are designed and approved by the manufacturer as anchorage for mast guywires, the anchor capacity is determined by the dead weight of equipment and fabricated components (e.g., padeyes) through engineering calculations; pull testing of the base beam is not required. For screw‑in type anchors, capacity may be correlated to installation torque per the manufacturer’s instructions, and verification must be done using a mechanical method (pull‑tested or shear‑torque method). Anchors must be retested if deformation or damage occurs.
+ACCEPTANCE: Anchor capacity derived from approved engineering calculations or torque method per manufacturer; verification method as specified.
+REJECTION: Use of unapproved alternative anchorage without proper design approval; failure to retest after deformation or damage.
+---
+CLAUSE: 14.4 — Pull Testing and Site Preparation
+When pull testing is used to verify anchor capacity, the pull direction must be in the plane of the anchor and wellhead at an angle approximating the guywire angle. The test pull must be maintained for at least two minutes after anchor movement ceases, using devices equipped with chart recorders to provide a permanent record. Measuring or recording devices must be calibrated annually or when damaged/repaired by a qualified independent service, with current calibration records kept with the equipment. Anchors must be installed so liquids drain away from the shaft; soil should be mounded and tightly packed around the shaft to keep fluids off subsurface components.
+ACCEPTANCE: Pull direction approximates guywire angle; pull duration ≥ 2 minutes; device calibrated within the last year or after damage/repair; calibration records available; drainage and mounding as specified.
+REJECTION: Pull direction not aligned; pull duration < 2 minutes; device not calibrated annually or after damage/repair; missing calibration records; improper drainage or insufficient soil mounding.
+---
+CLAUSE: 14.5 — Responsibilities of Contractor, Operator, and Testing Company
+The rig contractor must ensure anchor capacities are verified before attaching guywires, that verification is less than 24 months old, and that anchor spacing and capacity suit the mast guying pattern and anticipated loading. The contractor must maintain guywires and end terminations in good condition, inspect anchors for damage/deterioration before rigging up, inspect surface ground conditions that might indicate reduced anchor capacity, align the rig relative to wellhead and anchors, place visible markers on each guywire, and replace soil around anchors in accordance with 14.4.
+ACCEPTANCE: All contractor responsibilities fulfilled as described.
+REJECTION: Any contractor responsibility not met (e.g., unverified anchors, outdated verification, poor guywire condition, uninspected anchors, ignored ground conditions, misaligned rig, missing guywire markers, improper soil replacement).
+---
+CLAUSE: 14.6 — Responsibilities of Well Site Owner/Operator
+The well site owner/operator must install anchors per 14.1, provide anchor capacity verification per 14.2, replace anchors that are damaged, excessively deteriorated, or fail verification, maintain a permanent file record for each installed/tested anchor including installation dates, each capacity verification, pull test charts, and the verifier’s name and telephone number, keep the most current verification records on a weather‑resistant tag attached to each tested anchor indicating capacity and verification date, and place a visible marker on each anchor they furnish, install, or specify.
+ACCEPTANCE: All owner/operator responsibilities fulfilled.
+REJECTION: Any owner/operator responsibility not met (e.g., anchors not installed per 14.1, missing verification, not replacing failed/damaged anchors, incomplete file records, missing or outdated tag, missing anchor markers).
+---
+CLAUSE: 14.7 — Responsibilities of Party Conducting Capacity Verification
+The party conducting anchor capacity verification must maintain test equipment in good working condition, provide required records to the well site operator/owner or contractor as applicable, install a weatherproof tag after each pull test indicating anchor capacity and verification date, and maintain and calibrate pull testing equipment at least once per year or following any damage/repair.
+ACCEPTANCE: Equipment maintained, records provided, tag installed after each test, calibration within the last year or after damage/repair.
+REJECTION: Equipment not maintained, records not provided, tag missing after test, calibration overdue (> 1 year) or not performed after damage/repair.
+---
+CLAUSE: TABLE 5-ROW1 — Double Mast Anchor Capacity
+Anchor capacity values (in tons) for Double Mast anchors across zones as listed in Table 5: 15.6, 11.5, 9.0 (presumed zones A‑C; zone D value missing in source). These values represent the allowable anchor capacity for Double Mast configuration under guywire loading.
+ACCEPTANCE: Anchor capacity must be equal to or greater than the tabulated value for the applicable zone and mast type.
+REJECTION: Anchor capacity less than the tabulated value.
+---
+CLAUSE: TABLE 5-ROW2 — Single Mast Anchor Capacity
+Anchor capacity values (in tons) for Single Mast anchors across zones: 7.0, 5.0, 5.0, 5.0 (zones A‑D). These values represent the allowable anchor capacity for Single Mast configuration.
+ACCEPTANCE: Anchor capacity ≥ tabulated value for the zone.
+REJECTION: Anchor capacity < tabulated value.
+---
+CLAUSE: TABLE 5-ROW3 — Pole Mast Anchor Capacity
+Anchor capacity values (in tons) for Pole Mast anchors across zones: 7.0, 5.0, 5.0, 5.0 (zones A‑D). These values represent the allowable anchor capacity for Pole Mast configuration.
+ACCEPTANCE: Anchor capacity ≥ tabulated value.
+REJECTION: Anchor capacity < tabulated value.
+---
+CLAUSE: 15 — Foundations for Masts and Substructures
+Adequate foundations are essential for mast, substructure, and rig carrier stability. Foundation design must consider local ground bearing capacity, concentrated loads at mast/substructure/rig carrier points, supplemental footing needed to distribute those loads, and site preparation. Sites must be graded and drained to keep fluids away from the work area; drainage ditches under load‑bearing members should be avoided as they reduce effective bearing area. Wet conditions significantly reduce soil bearing capacity. Safe bearing capacity of local ground may be determined from Table 6 or via soil core tests, penetrometer, suitable soil tests, analysis, or empirical data. When using surface conditions to estimate bearing capacity, the soil must be homogeneous to at least twice the width of the supplemental footing; underlying soft layers to that depth govern bearing capacity rather than firmer surface soil.
+ACCEPTANCE: Foundation design addresses bearing capacity, loads, supplemental footing, drainage, and soil homogeneity as required.
+REJECTION: Foundation design omits any of these considerations; inadequate drainage; ditches under load‑bearing members; using surface bearing capacity without verifying soil homogeneity to the required depth.
+---
+CLAUSE: 15.2 — Figure 5—Portable Mast Location Preparation
+Figure 5 provides two location preparation specifications: (a) Load bearing area: compacted sand or gravel requiring picking for removal or better base; minimum safe bearing capacity 8000 psf, level and drained. (b) Rig location area: may grade away from well along centerline II with a maximum drop of 1:20; must be level across grades parallel to centerline I; desired safe bearing capacity minimum 6000 psf; area must allow maneuvering entry for drive‑in or back‑in; entire area must have drainage.
+ACCEPTANCE: Load bearing area meets ≥ 8000 psf, level, drained; rig area slope ≤ 1:20, level across parallel grades, bearing capacity ≥ 6000 psf, drainage provided, maneuvering space available.
+REJECTION: Load bearing area < 8000 psf, not level, poor drainage; rig area slope > 1:20, not level across parallel grades, bearing capacity < 6000 psf, lacking drainage, insufficient maneuvering.
+
+---
+CLAUSE: 6.1 — Safe Bearing Capacity: Solid Ledge of Hard Rock
+The safe bearing capacity for solid ledge of hard rock (e.g., granite, trap) is established to ensure that the mast foundation does not exceed the soil's load‑bearing capability, preventing settlement or failure. Verification is performed by soil testing (e.g., plate load test or penetrometer) and comparing the measured capacity to the tabulated value.
+ACCEPTANCE: Measured bearing capacity ≥ 50,000 lbf/ft² (2394 kPa)
+REJECTION: Measured bearing capacity < 50,000 lbf/ft² (2394 kPa)
+---
+CLAUSE: 6.2 — Safe Bearing Capacity: Sound Shale/Medium Rock
+The safe bearing capacity for sound shale and similar medium rock that requires blasting for removal is defined to prevent overstress of the foundation during mast operations. Verification via in‑situ testing.
+ACCEPTANCE: ≥ 20,000 lbf/ft² (958 kPa)
+REJECTION: < 20,000 lbf/ft² (958 kPa)
+---
+CLAUSE: 6.3 — Safe Bearing Capacity: Hard Pan/Cemented Sand‑Gravel
+This value represents the maximum load the hard pan or cemented sand‑gravel layer can safely support; exceeding it may cause excessive settlement or shear failure. Verified by borehole load tests.
+ACCEPTANCE: ≥ 16,000 lbf/ft² (766 kPa)
+REJECTION: < 16,000 lbf/ft² (766 kPa)
+---
+CLAUSE: 6.4 — Safe Bearing Capacity: Soft Rock/Disintegrated Ledge
+Soft rock or disintegrated ledge has lower bearing capacity; the tabulated value ensures foundation design stays within safe limits. Verified by field testing.
+ACCEPTANCE: ≥ 10,000 lbf/ft² (479 kPa)
+REJECTION: < 10,000 lbf/ft² (479 kPa)
+---
+CLAUSE: 6.5 — Safe Bearing Capacity: Compact Sand‑Gravel
+Compact sand and gravel that must be picked out has a defined safe bearing capacity to avoid foundation instability. Verified by standard penetration test or cone penetrometer.
+ACCEPTANCE: ≥ 8,000 lbf/ft² (383 kPa)
+REJECTION: < 8,000 lbf/ft² (383 kPa)
+---
+CLAUSE: 6.6 — Safe Bearing Capacity: Hard Clay
+Hard clay that requires picking for removal is assigned this bearing capacity; exceeding it may lead to shear failure or excessive deformation. Verified by unconfined compression test or vane shear.
+ACCEPTANCE: ≥ 8,000 lbf/ft² (383 kPa)
+REJECTION: < 8,000 lbf/ft² (383 kPa)
+---
+CLAUSE: 6.7 — Safe Bearing Capacity: Gravel/Coarse Sand (Natural Thick Beds)
+Natural thick beds of gravel and coarse sand provide a stable base; the listed capacity ensures the mast load does not exceed the soil’s strength. Verified by plate load test.
+ACCEPTANCE: ≥ 8,000 lbf/ft² (383 kPa)
+REJECTION: < 8,000 lbf/ft² (383 kPa)
+---
+CLAUSE: 6.8 — Safe Bearing Capacity: Loose/Medium/Coarse Sand & Fine Compact Sand
+These sand conditions have relatively low bearing capacity; the value prevents overloading that could cause settlement or lateral movement. Verified by sand cone test or CPT.
+ACCEPTANCE: ≥ 3,000 lbf/ft² (144 kPa)
+REJECTION: < 3,000 lbf/ft² (144 kPa)
+---
+CLAUSE: 6.9 — Safe Bearing Capacity: Medium Stiff Clay
+Stiff medium clay can support moderate loads; the tabulated value guides foundation design to avoid punching shear or excessive settlement. Verified by vane shear or unconfined compression.
+ACCEPTANCE: ≥ 4,000 lbf/ft² (192 kPa)
+REJECTION: < 4,000 lbf/ft² (192 kPa)
+---
+CLAUSE: 6.10 — Safe Bearing Capacity: Fine Loose Sand
+Fine loose sand has low bearing capacity; the limit ensures that mast footings do not induce shear failure or excessive settlement. Verified by sand density tests.
+ACCEPTANCE: ≥ 2,000 lbf/ft² (96 kPa)
+REJECTION: < 2,000 lbf/ft² (96 kPa)
+---
+CLAUSE: 6.11 — Safe Bearing Capacity: Soft Clay
+Soft clay is characterized by a bearing capacity lower than 2,000 lbf/ft²; foundations must be designed to avoid exceeding this low limit, often requiring remediation or deeper footings. Verified by soft‑soil testing (e.g., torvane, pocket penetrometer).
+ACCEPTANCE: Measured bearing capacity < 2,000 lbf/ft² (96 kPa)
+REJECTION: Measured bearing capacity ≥ 2,000 lbf/ft² (96 kPa)
+---
+CLAUSE: 15.2 — Wellhead Cellars
+Earthen cellars at a wellsite can cave‑in or fill with rain, well‑bore fluids, or other liquids that seep beneath the mast supplemental footing, reducing the soil’s safe bearing capacity. Timber‑lined walls have the same seepage risk, and large concrete cellars may need steel beams to span the opening and provide adequate mast support. A qualified person must evaluate these conditions to ensure the mast foundation is adequate.
+ACCEPTANCE: Adequate mast foundation provided as determined by a qualified person (no cave‑in, fluid seepage, or insufficient support)
+REJECTION: Inadequate foundation indicated by potential for cave‑in, fluid accumulation compromising bearing capacity, or lack of required steel beams in large concrete cellars
+---
+CLAUSE: 16.1 — Low‑temperature Operation Limit
+Mast raising and lowering operations have been demonstrated successfully at temperatures as low as –50 °F (–45.6 °C). To prevent brittle failure or increased susceptibility to impact, operations at or below this temperature must be conducted under a program of closely controlled inspection and handling procedures.
+ACCEPTANCE: Operations conducted at temperatures ≥ –50 °F (–45.6 °C) with controlled inspection/handling, or at lower temperatures only when justified by engineering analysis and special procedures.
+REJECTION: Operations performed below –50 °F (–45.6 °C) without the required controlled inspection and handling program.
+---
+CLAUSE: 16.2 — Welding Temperature Restriction
+Welding of oilfield structural steel should not be performed when the ambient temperature is below 0 °F (–17.8 °C) because of the risk of cold‑cracking and insufficient fusion without proper preheat.
+ACCEPTANCE: Ambient temperature during welding ≥ 0 °F (–17.8 °C)
+REJECTION: Ambient temperature during welding < 0 °F (–17.8 °C)
+---
+CLAUSE: 16.3 — Preheat Requirement for Steel Parts
+All commonly used steel grades require preheat when the parts being joined are less than 32 °F (0 °C). Some grades also need controlled interpass temperature and post‑weld heat treatment even above 32 °F; the manufacturer’s guidance must be followed.
+ACCEPTANCE: Preheat applied when part temperature < 32 °F (0 °C) (and per manufacturer for other cases)
+REJECTION: No preheat when part temperature < 32 °F (0 °C) unless manufacturer explicitly states it is unnecessary.
+---
+CLAUSE: 16.4 — Recommended Practices for Low‑temperature Operations
+To minimize damage and impact loading during mast raising and lowering in cold weather, the following practices are recommended: (a) schedule operations at the warmest part of the day, using sunlight and wind considerations; (b) apply practical heating means (e.g., high‑pressure steam or hot‑air blowers) to mast attachment points; (c) repeatedly take up and loosen mast‑raising lines to ensure free movement; (d) warm up engines and verify machinery function to avoid sudden braking or jarring; (e) perform inspection and repair as per Sections 6 and 7, which are especially critical in cold conditions; (f) observe the welding temperature and preheat restrictions noted above.
+ACCEPTANCE: All applicable practices (a) through (f) are implemented as part of the low‑temperature operation procedure.
+REJECTION: Any of the practices (a)–(f) is omitted or not followed when low‑temperature conditions are present.
+---
+CLAUSE: Annex A — Drilling Mast Visual Inspection Form
+The visual inspection form provided in Annex A is intended for free exchange between owners/operators and users of this document. It lists mast components and provides a marking scheme (NA, U, M, OK, X1, X2, X3) to indicate condition and required action. The form guides consistent field inspections and documentation.
+ACCEPTANCE: Form completed with appropriate markings for each inspected item; no missing required entries.
+REJECTION: Incomplete form, missing markings, or use of incorrect symbols that obscure the inspection outcome.
+---
+
+---
+CLAUSE: 1.1 — Number of Sheaves:
+Verify the number of sheaves installed on the mast matches the equipment specification and are free of damage, wear, or missing components. This ensures proper load handling and safety during operations. Verification is performed by visual inspection and counting sheaves, checking for defects per the inspection form.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 2.0 — Crown Bbck Structure:
+Inspect the crown brace structure for any signs of cracking, deformation, corrosion, or loose connections. The crown brace provides lateral stability to the mast; defects could compromise structural integrity under load. Verification is by visual examination and checking for proper alignment and tightness of bolts.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 3.0 — Mast Section:
+Examine mast sections for straightness, damage, corrosion, and proper fit. Mast sections must maintain dimensional stability to support loads safely. Verification involves visual inspection, measuring for deviations, and checking for weld cracks or corrosion.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 4.0 — Mast Sectbn:
+Inspect the mast section legs and associated bracing for damage, wear, corrosion, and proper installation. The mast sectbn (likely mast section) supports vertical loads; defects could lead to failure under operational stresses. Verification is by visual check and confirming correct alignment and tightness of fasteners.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 5.0 — Tubing Board Fran-w:
+Check the tubing board frame for cracks, deformation, corrosion, and secure attachment to the mast. The tubing board guides tubing during tripping operations; damage could cause snagging or equipment damage. Verification is by visual inspection and verifying proper alignment and condition.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 6.0 — Rod B z ket:
+Inspect the rod basket for damage, wear, corrosion, and proper function. The rod basket holds rods during operations; defects could lead to dropped objects or operational issues. Verification involves visual examination and checking for proper movement and secure mounting.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 7.0 — Racking Platfmn (Drilhg:
+Examine the racking platform for deformation, weld integrity, corrosion, and proper installation of safety features. The racking platform provides a work area for pipe handling; defects could create trip hazards or fail under load. Verification is by visual inspection and checking for proper alignment and secure fastening.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 8.0 — Bae Mast Sectim:
+Inspect the base mast section for corrosion, damage, cracks, and proper installation. The base mast section transfers loads to the foundation; defects could compromise overall mast stability. Verification involves visual examination and checking for proper alignment and tightness of base connections.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 11.0 — Main Hydraulic:
+Check the main hydraulic system for leaks, proper operation, component wear, and correct fluid levels. Hydraulic systems control critical mast functions; failures could lead to loss of control or unsafe conditions. Verification is by visual inspection, operational testing, and checking for proper pressure and fluid condition.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 12.0 — Tong Counterweights:
+Inspect tong counterweights for secure attachment, wear, corrosion, and correct weight. Counterweights balance the tongs during makeup/breakout operations; defects could cause uneven loading or equipment damage. Verification involves visual examination and checking for proper mounting and condition.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 14.0 — Carrier Compments:
+Inspect carrier components for damage, wear, corrosion, and proper function. Carrier components support loads during operations; defects could lead to load shifting or equipment failure. Verification is by visual inspection and checking for proper alignment and secure fastening.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 16.0 — Gas Vent Lire Clamps:
+Verify that gas vent line clamps are present, properly tightened, free of corrosion, and functioning to vent gases safely. Loose or damaged clamps could lead to gas leaks or pressure buildup. Verification is by visual inspection and checking for proper installation and condition.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 18.0 — OPERATION, INSPECTION, MAINTENANCE, AND REPAIR OF DRILLING AND WELL SERVICING STRUCTURES:
+This clause establishes the overarching requirements for operating, inspecting, maintaining, and repairing drilling and well servicing structures to ensure safety, reliability, and compliance with standards. It mandates regular inspections, timely repairs, and proper maintenance procedures. Verification is through review of maintenance records, inspection reports, and compliance with prescribed procedures.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+
+---
+CLAUSE: 1.0 — Shoes, Pedestals:
+Inspect the shoes and pedestals of the substructure for proper pin installation, pin hole condition, bolt corrosion, bolt integrity, pin/bolt tightness, safety devices, support beams, and welds. Verify by visual inspection and counting any visible marks indicating damage or wear.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 2.0 — Fbor Area:
+Examine the floor area including floor plating, handrails and toe boards, handrail material, floor grading, and welds. Verify by visual inspection and noting any visible marks.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 3.0 — Sub-Spreaders and Rotary Beams:
+Inspect rotary beams for pin condition, pin holes, eye integrity, and welds. Verify by visual inspection and recording any visible marks.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 4.0 — Anchor Mounting:
+Check anchor mounting components such as supports, flooring, breakover assembly, handrails, and welds. Verify by visual inspection and documenting any visible marks.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 5.0 — OPERATION, INSPECTION, MAINTENANCE, AND REPAIR OF DRILLING AND WELL SERVICING STRUCTURES
+Review substructure components including straight and cross braces, pin/bot holes, rn/bots, safety pins, pill back pose, drawworks, welds, BOP anchor pad eyes, and eyes. Record the number of visible marks applied during inspection.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 6.0 — E ine Foundation:
+Inspect foundation support beams, cross braces, pin/bot holes, anchor bolts, safety pins, eyes, and record the number of visible marks.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 7.0 — E ine Foundation Spreaders:
+Examine foundation spreader cross braces, pins/mt holes, ans I, safety pins, welds, and record the number of visible marks.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 8.0 — BOP Beams:
+Inspect BOP beam components including an wes, ans, safety pins, and welds. Verify by visual inspection and noting any visible marks.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 9.0 — Raising Equipnmt:
+Check raising equipment including rn connections, pin I-wes, ans, wireline, bearings, grease, hydraulic winches, hydraulic cylinders, hydraulic I-bes, cylinder, and record the number of visible marks.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 10.0 — StairslLandingsIFlooringlHandrails:
+Inspect stairs, landings, flooring, handrails for welds, pin/bolt I-wes, floor plating, stair tread spacing, handrail sockets, and visible marks.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 11.0 — PainVCoating
+Evaluate the condition of paint or coating on the structure. Verify by visual inspection for signs of degradation.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 12.0 — Skidding Equipment
+Inspect skidding equipment including pins, beam clamps, jacks, jacking motors, and rack for defects. Verify by visual inspection.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 13.0 — Corrosion (refer to Section 7.2):
+Assess corrosion in accordance with the requirements of Section 7.2. Verify by visual inspection and appropriate testing methods.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 14.0 — Comments, Drawings, and/or Pictures:
+Provide space for comments, drawings, and/or pictures, and record inspector's signature, owner representative signature, and date.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 8.0 — OPERATION, INSPECTION, MAINTENANCE, AND REPAIR OF DRILLING AND WELL SERVICING STRUCTURES
+Inspect the fourble platform, ladders, counterweight guides, wireline equipment, and associated components for handrails, decking, connections, welds, safety gates, rail alignment, rung condition, access, cage, clearance, weight, cable clamps, and visible marks. Verify by visual inspection and counting any visible marks.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 9.0 — 
+Placeholder section for inspection items related to drilling and well servicing structures (details not provided in the extracted text). Verify by visual inspection as applicable.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 10.0 — 
+Placeholder section for inspection items (details not provided in the extracted text). Verify by visual inspection as applicable.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 10.1 — Miscellaneous Sheave Assemblies:
+Inspect sheave assemblies including clevis/shackle, derrick pad eyes, sheaves, bearings, shafts, sheave bolts, side plate bolts, safety pins, grease fittings, safety line, ancillary equipment, mud line clamps, leg clamps, and associated welds. Verify by visual inspection for defects and visible marks.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 10.2 — 
+Placeholder section (details not provided). Verify by visual inspection as applicable.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 10.3 — 
+Placeholder section (details not provided). Verify by visual inspection as applicable.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 10.4 — 
+Placeholder section (details not provided). Verify by visual inspection as applicable.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 10.5 — 
+Placeholder section (details not provided). Verify by visual inspection as applicable.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 10.6 — 
+Placeholder section (details not provided). Verify by visual inspection as applicable.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 10.7 — 
+Placeholder section (details not provided). Verify by visual inspection as applicable.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 10.8 — 
+Placeholder section (details not provided). Verify by visual inspection as applicable.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 11.0 — Gas Vent Line Clamps:
+Inspect gas vent line clamps, associated welds, bolts/nuts, assist system, cable, cable attachment, counterweight, descent device, fall arrest system, and related components. Verify by visual inspection for integrity and visible marks.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 12.0 — OPERATION, INSPECTION, MAINTENANCE, AND REPAIR OF DRILLING AND WELL SERVICING STRUCTURES Paint I Coating
+Review general operation, inspection, maintenance, and repair requirements, paint/coating condition, documentation (comments, sketches, pictures), and inspector/owner representative signatures and dates. Verify by visual inspection and record review.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: 13.0 — 
+Placeholder section (details not provided). Verify by visual inspection as applicable.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+CLAUSE: Annex D.1 — General
+The visual inspection form in Annex D is intended for free exchange between owners/operators of the equipment or users of this document to record inspection findings consistently.
+ACCEPTANCE: N/A
+REJECTION: N/A
+---
+

@@ -103,7 +103,8 @@ async function main() {
     return;
   }
   
-  const files = fs.readdirSync(standardsDir).filter(f => f.endsWith('.txt'));
+  const onlyFile = process.argv[2];
+  const files = fs.readdirSync(standardsDir).filter(f => f.endsWith('.txt') && (!onlyFile || f === onlyFile));
   if (files.length === 0) {
     console.log('No .txt files found in standards directory.');
     return;
@@ -111,7 +112,7 @@ async function main() {
   
   let allChunks = [];
   for (const file of files) {
-    console.log(`Processing file: ${file}`);
+    console.log(`Processing file: ${file}${onlyFile ? ' (requested)' : ''}`);
     const filePath = path.join(standardsDir, file);
     const chunks = await processFile(filePath);
     allChunks = allChunks.concat(chunks);

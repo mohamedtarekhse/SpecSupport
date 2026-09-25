@@ -1,6 +1,7 @@
 # Secrets — never commit these
 .env
 .env.local
+what should we do/
 
 # Node
 node_modules/
@@ -16,3 +17,4 @@ Thumbs.db
 
 # Logs
 *.log
+logs/
