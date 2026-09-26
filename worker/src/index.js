@@ -567,7 +567,24 @@ If the user's query is broad or applies across multiple industry sectors (e.g. g
 - AWS D1.1 (Structural Steel)
 - API RP 7G-2 / API 5CT (Drill Stem & Casing if relevant)
 
-4. DYNAMIC FOLLOW-UP QUESTION CHIPS:
+4. INTERACTIVE MULTIPLE-CHOICE QUESTIONS (MCQ) FOR REFINEMENT:
+Whenever you ask clarifying questions (up to 3 questions) OR when key parameters are needed to refine the verdict, you MUST ALWAYS append an interactive multiple-choice question block at the very end formatted as:
+<!--MCQ: [
+  {
+    "question": "What is the specified wall thickness (tw)?",
+    "options": ["tw ≤ 1/2 in. (12.7 mm)", "1/2 in. < tw ≤ 1 in. (25.4 mm)", "tw > 1 in. Heavy Wall", "Standard Schedule 40"]
+  },
+  {
+    "question": "What is the fluid service condition?",
+    "options": ["Normal Fluid Service", "Severe Cyclic Conditions", "Category M (Toxic/Lethal)", "Category D (Utility/Water)"]
+  },
+  {
+    "question": "Which governing standard applies to your project?",
+    "options": ["ASME B31.3 (Process Piping)", "API 1104 (Cross-Country)", "ASME VIII (Pressure Vessel)", "AWS D1.1 (Structural)"]
+  }
+]-->
+
+5. DYNAMIC FOLLOW-UP QUESTION CHIPS:
 At the very end of your response, ALWAYS include 4 to 5 highly relevant, actionable follow-up question chips in exactly this format:
 <!--FOLLOWUPS: ["Question 1?", "Question 2?", "Question 3?", "Question 4?", "Question 5?"]-->
 Ensure these chips cover:
@@ -840,6 +857,16 @@ app.post('/api/ask', async (c) => {
         answer = `AI Error: ${json.error?.message || JSON.stringify(json)}`;
     }
     
+    // Extract MCQ questions if present
+    let mcqQuestions = []
+    const mcqMatch = answer.match(/<!--MCQ:\s*(\[\s*\{[\s\S]*?\}\s*\])\s*-->/)
+    if (mcqMatch) {
+      try {
+        mcqQuestions = JSON.parse(mcqMatch[1])
+        answer = answer.replace(mcqMatch[0], '').trim()
+      } catch(e){}
+    }
+
     // Extract follow-up question chips if present
     let suggestedQuestions = []
     const followupMatch = answer.match(/<!--FOLLOWUPS:\s*(\[.*?\])\s*-->/)
@@ -848,6 +875,28 @@ app.post('/api/ask', async (c) => {
         suggestedQuestions = JSON.parse(followupMatch[1])
         answer = answer.replace(followupMatch[0], '').trim()
       } catch(e){}
+    }
+
+    // Smart MCQ fallback generator if clarifying questions exist but model omitted JSON
+    if (mcqQuestions.length === 0 && answer.includes('Clarifying Questions')) {
+      if (answer.toLowerCase().includes('thickness') || answer.toLowerCase().includes('wall')) {
+        mcqQuestions.push({
+          question: "Nominal Wall Thickness (tw)",
+          options: ["tw ≤ 1/2 in. (12.7 mm)", "1/2 in. < tw ≤ 1.0 in.", "tw > 1.0 in. (Heavy Wall)", "Schedule 40 Standard"]
+        })
+      }
+      if (answer.toLowerCase().includes('service') || answer.toLowerCase().includes('cyclic')) {
+        mcqQuestions.push({
+          question: "Fluid Service Condition",
+          options: ["Normal Fluid Service", "Severe Cyclic Conditions", "Category M (Toxic/Lethal)", "Category D (Low Pressure)"]
+        })
+      }
+      if (answer.toLowerCase().includes('code') || answer.toLowerCase().includes('standard') || answer.toLowerCase().includes('asme')) {
+        mcqQuestions.push({
+          question: "Governing Code",
+          options: ["ASME B31.3 (Process Piping)", "API 1104 (Cross-Country)", "ASME VIII Div 1 (Vessel)", "AWS D1.1 (Structural)"]
+        })
+      }
     }
 
     if (suggestedQuestions.length === 0) {
@@ -873,6 +922,7 @@ app.post('/api/ask', async (c) => {
       model_used: model, 
       mode: mode,
       suggested_questions: suggestedQuestions,
+      mcq_questions: mcqQuestions,
       can_continue: finishReason === 'length' || answer.length > 1200
     })
   } catch (e) {

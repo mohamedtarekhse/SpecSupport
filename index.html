@@ -314,6 +314,117 @@
             color: var(--gemini-blue-light);
         }
 
+        
+        /* Interactive Multiple-Choice Questions (MCQ) Card */
+        .interactive-mcq-card {
+            margin: 18px 0 12px 0;
+            background: var(--gemini-surface);
+            border: 1px solid var(--gemini-border);
+            border-radius: 12px;
+            padding: 16px 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+            animation: fadeIn 0.3s ease;
+        }
+        .mcq-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--gemini-text-main);
+        }
+        .mcq-badge {
+            background: rgba(26, 115, 232, 0.15);
+            color: var(--gemini-blue-light);
+            border: 1px solid rgba(26, 115, 232, 0.3);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .mcq-question-block {
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        :root.light-mode .mcq-question-block {
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .mcq-question-block:last-child {
+            border-bottom: none;
+            margin-bottom: 6px;
+        }
+        .mcq-question-title {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--gemini-text-main);
+            margin-bottom: 8px;
+        }
+        .mcq-options-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .mcq-option-pill {
+            background: var(--gemini-card-bg);
+            border: 1px solid var(--gemini-border);
+            color: var(--gemini-text-muted);
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .mcq-option-pill:hover {
+            border-color: var(--gemini-blue-light);
+            color: var(--gemini-text-main);
+            background: var(--gemini-surface-hover);
+        }
+        .mcq-option-pill.selected {
+            background: var(--gemini-blue) !important;
+            border-color: var(--gemini-blue) !important;
+            color: #FFFFFF !important;
+            font-weight: 600;
+            box-shadow: 0 1px 4px rgba(26, 115, 232, 0.4);
+        }
+        .mcq-actions-bar {
+            margin-top: 14px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+        }
+        .mcq-refine-btn {
+            background: var(--gemini-blue);
+            color: #FFFFFF;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.84rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .mcq-refine-btn:hover {
+            background: var(--gemini-blue-hover);
+            transform: translateY(-1px);
+        }
+        .mcq-refine-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         /* Response Action Toolbar */
         .response-toolbar {
             display: flex; align-items: center; gap: 8px;
@@ -938,7 +1049,7 @@
                 
                 if (data.error) throw new Error(data.error);
 
-                appendMessage(data.answer, 'ai', data.sources, data.suggested_questions, data.can_continue);
+                appendMessage(data.answer, 'ai', data.sources, data.suggested_questions, data.can_continue, data.mcq_questions);
                 chatHistory.push({ role: 'user', content: text });
                 chatHistory.push({ role: 'assistant', content: data.answer });
 
@@ -969,7 +1080,7 @@
         }
 
         // Append Message with Action Toolbar & Follow-Ups
-        function appendMessage(text, role, sources = [], followups = [], canContinue = false) {
+        function appendMessage(text, role, sources = [], followups = [], canContinue = false, mcqs = []) {
             const list = document.getElementById('messages-list');
             const row = document.createElement('div');
             row.className = `message-row ${role}`;
@@ -1003,6 +1114,67 @@
                         sendMessage("Continue from exactly where you left off, preserving complete technical continuity.");
                     };
                     body.appendChild(contBtn);
+                }
+
+                
+                // Interactive MCQ Refinement Card
+                if (mcqs && mcqs.length > 0) {
+                    const mcqCard = document.createElement('div');
+                    mcqCard.className = 'interactive-mcq-card';
+                    mcqCard.innerHTML = `
+                        <div class="mcq-card-header">
+                            <span class="mcq-badge">Interactive Refinement</span>
+                            <span>Select parameters to pinpoint the exact clause verdict:</span>
+                        </div>
+                    `;
+
+                    const selectedParams = {};
+
+                    mcqs.forEach((mcq, qIdx) => {
+                        const qBlock = document.createElement('div');
+                        qBlock.className = 'mcq-question-block';
+                        qBlock.innerHTML = `<div class="mcq-question-title">${qIdx + 1}. ${mcq.question}</div>`;
+
+                        const grid = document.createElement('div');
+                        grid.className = 'mcq-options-grid';
+
+                        mcq.options.forEach(opt => {
+                            const pill = document.createElement('button');
+                            pill.className = 'mcq-option-pill';
+                            pill.textContent = opt;
+                            pill.onclick = () => {
+                                // Deselect siblings
+                                grid.querySelectorAll('.mcq-option-pill').forEach(p => p.classList.remove('selected'));
+                                pill.classList.add('selected');
+                                selectedParams[mcq.question] = opt;
+
+                                // Enable refine button
+                                const refineBtn = mcqCard.querySelector('.mcq-refine-btn');
+                                if (refineBtn) refineBtn.disabled = false;
+                            };
+                            grid.appendChild(pill);
+                        });
+
+                        qBlock.appendChild(grid);
+                        mcqCard.appendChild(qBlock);
+                    });
+
+                    const actionsBar = document.createElement('div');
+                    actionsBar.className = 'mcq-actions-bar';
+                    const refineBtn = document.createElement('button');
+                    refineBtn.className = 'mcq-refine-btn';
+                    refineBtn.innerHTML = '⚡ Refine Code Verdict with Selected Options';
+                    refineBtn.disabled = true;
+                    refineBtn.onclick = () => {
+                        refineBtn.disabled = true;
+                        const paramList = Object.entries(selectedParams).map(([k, v]) => `- ${k}: ${v}`).join('\n');
+                        const refineQuery = `Refining code acceptance with the following verified project parameters:\n${paramList}\n\nPlease provide the final, exact clause verdict and precise numerical acceptance thresholds.`;
+                        sendMessage(refineQuery);
+                    };
+                    actionsBar.appendChild(refineBtn);
+                    mcqCard.appendChild(actionsBar);
+
+                    body.appendChild(mcqCard);
                 }
 
                 // Suggested Next Question Chips
