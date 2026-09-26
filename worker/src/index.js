@@ -23,23 +23,24 @@ app.get('/api/health', (c) => {
 })
 
 app.post('/api/admin/config', async (c) => {
-    const token = c.req.header('Authorization')
-    if (!token || token !== `Bearer ${c.env.ADMIN_SECRET}`) return c.json({ error: 'Unauthorized' }, 401)
-    try {
-      const { openrouter_api_key, groq_api_key, active_provider } = await c.req.json()
-      
-      if (openrouter_api_key) await c.env.DB.prepare(`INSERT INTO system_config (key, value) VALUES ('openrouter_api_key', ?) ON CONFLICT(key) DO UPDATE SET value = ?`).bind(openrouter_api_key, openrouter_api_key).run()
-      if (groq_api_key) await c.env.DB.prepare(`INSERT INTO system_config (key, value) VALUES ('groq_api_key', ?) ON CONFLICT(key) DO UPDATE SET value = ?`).bind(groq_api_key, groq_api_key).run()
-      if (active_provider) await c.env.DB.prepare(`INSERT INTO system_config (key, value) VALUES ('active_provider', ?) ON CONFLICT(key) DO UPDATE SET value = ?`).bind(active_provider, active_provider).run()
-      
-      return c.json({ success: true })
-    } catch (e) {
-      if (e.message && e.message.includes("RATE_LIMIT_ALL")) {
-        return c.json({ error: "The free AI provider (OpenRouter) is currently rate-limiting requests. Please try again in a few minutes, or configure a paid API key in the admin panel." }, 429);
-      }
-      return c.json({ error: e.message }, 500)
+  const token = c.req.header('Authorization')?.split(' ')[1]
+  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  
+  try {
+    const data = await c.req.json()
+    const { groq_api_key } = data
+    
+    // Save to DB
+    if (groq_api_key !== undefined) {
+      await c.env.DB.prepare(`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)`).bind('groq_api_key', groq_api_key).run()
     }
-  })
+    
+    return c.json({ success: true })
+  } catch (e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
   
   app.post('/api/usage/check', async (c) => {
   try {
@@ -293,54 +294,44 @@ const fallbackModels = [
   'thinkingmachines/inkling:free'             // large context reasoning
 ]
 
-async function askAIProvider(c, messages, stream) {
+async function askGroq(c, messages, stream) {
     const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
     let dbConf = {}
     if (confRes.results) confRes.results.forEach(r => dbConf[r.key] = r.value)
   
-    const openrouterKey = dbConf['openrouter_api_key'] || c.env.OPENROUTER_API_KEY
     const groqKey = dbConf['groq_api_key'] || c.env.GROQ_API_KEY
-    const activeProvider = dbConf['active_provider'] || 'openrouter'
+    if (!groqKey) throw new Error('Groq API Key not configured. Please set it in the Admin Panel.')
     
-    let primaryModel = dbConf['openrouter_model'] || c.env.OPENROUTER_MODEL || 'nvidia/nemotron-3-super-120b-a12b:free'
-    
-    // We try the active provider first, then fallback to the other
-    const providers = [];
-    if (activeProvider === 'groq' && groqKey) {
-        providers.push({ name: 'groq', key: groqKey, url: 'https://api.groq.com/openai/v1/chat/completions', models: ['llama-3.1-70b-versatile', 'llama3-8b-8192'] });
-        if (openrouterKey) providers.push({ name: 'openrouter', key: openrouterKey, url: 'https://openrouter.ai/api/v1/chat/completions', models: [primaryModel, ...fallbackModels] });
-    } else {
-        if (openrouterKey) providers.push({ name: 'openrouter', key: openrouterKey, url: 'https://openrouter.ai/api/v1/chat/completions', models: [primaryModel, ...fallbackModels] });
-        if (groqKey) providers.push({ name: 'groq', key: groqKey, url: 'https://api.groq.com/openai/v1/chat/completions', models: ['llama-3.1-70b-versatile', 'llama3-8b-8192'] });
-    }
-
-    if (providers.length === 0) throw new Error('No AI Provider API Keys configured in DB or Env')
-  
+    // Fallback models in Groq if 70b is busy
+    const models = ['llama-3.1-70b-versatile', 'llama3-8b-8192', 'mixtral-8x7b-32768']
     let lastError = null
-  
-    for (const provider of providers) {
-        for (const model of provider.models) {
-            try {
-                const response = await fetch(provider.url, {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${provider.key}`,
-                        "Content-Type": "application/json",
-                        "HTTP-Referer": c.env.ALLOWED_ORIGIN || '*',
-                        "X-Title": "Inspecta"
-                    },
-                    body: JSON.stringify({ model: model, messages: messages, max_tokens: 1000, temperature: 0.1, stream: stream })
+
+    for (const model of models) {
+        try {
+            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${groqKey}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: messages,
+                    temperature: 0.2,
+                    stream: stream
                 })
-                
-                if (!response.ok) { 
-                    lastError = await response.text(); 
-                    // If rate limited, skip to next provider
-                    if (response.status === 429) break; 
-                    continue; 
-                }
-                return { response, model, provider: provider.name }
-            } catch (e) { lastError = e.message }
-        }
+            })
+            
+            if (response.status === 429) {
+                lastError = "Groq Rate Limit Exceeded";
+                continue; // Try next fallback model
+            }
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errText}`);
+            }
+            return { response, model, provider: 'groq' }
+        } catch (e) { lastError = e.message }
     }
     throw new Error(`RATE_LIMIT_ALL: ${lastError}`)
 }
@@ -552,7 +543,7 @@ app.post('/api/ask', async (c) => {
     }
     
     const { messages, sources, today } = contextData
-    const { response, model, provider } = await askAIProvider(c, messages, false)
+    const { response, model, provider } = await askGroq(c, messages, false)
     
     const json = await response.json()
     let answer = "Error connecting to AI model.";
@@ -561,8 +552,8 @@ app.post('/api/ask', async (c) => {
           answer = json.choices[0].message.content || "Empty response.";
           finishReason = json.choices[0].finish_reason || "stop";
       } else {
-          console.error("OpenRouter Error:", JSON.stringify(json));
-          answer = `OpenRouter Error: ${json.error?.message || JSON.stringify(json)}`;
+          console.error("Groq Error:", JSON.stringify(json));
+          answer = `Groq Error: ${json.error?.message || JSON.stringify(json)}`;
       }
     
     // Log usage
@@ -573,7 +564,7 @@ app.post('/api/ask', async (c) => {
     return c.json({ answer, finish_reason: finishReason, sources, model_used: model })
   } catch (e) {
     if (e.message && e.message.includes("RATE_LIMIT_ALL")) {
-      return c.json({ error: "The free AI provider (OpenRouter) is currently rate-limiting requests. Please configure a Groq API key in the admin panel." }, 429);
+      return c.json({ error: "Groq is currently rate-limiting requests. Please try again in a few minutes." }, 429);
     }
     return c.json({ error: e.message }, 500)
   }
@@ -594,7 +585,7 @@ app.post('/api/ask/stream', async (c) => {
     }
     
     const { messages, sources, today } = contextData
-    const { response, model, provider } = await askAIProvider(c, messages, true)
+    const { response, model, provider } = await askGroq(c, messages, true)
     
     // We send sources and model as initial event then stream chunks
     const stream = new ReadableStream({
