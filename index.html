@@ -649,9 +649,40 @@
         
         <div style="border-top:1px solid var(--border-color); margin:15px 0; padding-top:15px;">
             <label style="font-size:0.85rem; color:var(--text-muted); font-weight:bold;">Global AI Configuration</label>
-            <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:5px;">Groq API Key:</label>
-            <input type="password" id="key-groq" class="admin-input" style="margin-bottom:10px;" placeholder="gsk_...">
-            <button id="save-config-btn" style="width:100%; background:var(--input-bg); border:1px solid var(--border-color); color:#fff; padding:8px; border-radius:4px; cursor:pointer;">Save Groq API Key</button>
+
+            <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:5px;">Active Provider:</label>
+            <select id="active-provider" class="admin-input" style="appearance:auto; margin-bottom:5px;" onchange="toggleProviderUI()">
+                <option value="groq">Groq (Ultra-Fast Llama 3)</option>
+                <option value="openrouter">OpenRouter (NVIDIA & Large Models)</option>
+            </select>
+
+            <div id="groq-ui">
+                <label style="font-size:0.75rem; color:var(--text-muted); display:block;">Groq API Key:</label>
+                <input type="password" id="key-groq" class="admin-input" style="margin-bottom:10px;" placeholder="gsk_...">
+            </div>
+
+            <div id="openrouter-ui" style="display:none;">
+                <label style="font-size:0.75rem; color:var(--text-muted); display:block;">OpenRouter API Key:</label>
+                <input type="password" id="key-openrouter" class="admin-input" style="margin-bottom:5px;" placeholder="sk-or-v1-...">
+                
+                <label style="font-size:0.75rem; color:var(--text-muted); display:block;">Select AI Model (>13B, Free):</label>
+                <select id="model-openrouter" class="admin-input" style="appearance:auto; margin-bottom:10px;">
+                    <option value="nvidia/llama-3.1-nemotron-70b-instruct:free">NVIDIA Nemotron 70B (Free)</option>
+                    <option value="nvidia/nemotron-4-340b-instruct:free">NVIDIA Nemotron 340B (Free)</option>
+                    <option value="meta-llama/llama-3.1-70b-instruct:free">Meta Llama 3.1 70B (Free)</option>
+                    <option value="google/gemma-2-27b-it:free">Google Gemma 2 27B (Free)</option>
+                    <option value="qwen/qwen-2.5-72b-instruct:free">Qwen 2.5 72B (Free)</option>
+                </select>
+            </div>
+
+            <button id="save-config-btn" style="width:100%; background:var(--input-bg); border:1px solid var(--border-color); color:#fff; padding:8px; border-radius:4px; cursor:pointer;">Save AI Settings</button>
+            <script>
+                function toggleProviderUI() {
+                    const prov = document.getElementById('active-provider').value;
+                    document.getElementById('groq-ui').style.display = prov === 'groq' ? 'block' : 'none';
+                    document.getElementById('openrouter-ui').style.display = prov === 'openrouter' ? 'block' : 'none';
+                }
+            </script>
         </div>
 
         <div style="border-top:1px solid var(--border-color); padding-top:15px; margin-top:15px;">
@@ -1066,7 +1097,13 @@
                 .then(r => r.json())
                 .then(d => {
                     if (d.config) {
+                        
                         document.getElementById('key-groq').value = d.config.groq_api_key || '';
+                        document.getElementById('key-openrouter').value = d.config.openrouter_api_key || '';
+                        document.getElementById('model-openrouter').value = d.config.openrouter_model || 'nvidia/llama-3.1-nemotron-70b-instruct:free';
+                        document.getElementById('active-provider').value = d.config.active_provider || 'groq';
+                        toggleProviderUI();
+
                     }
                 }).catch(e => console.error("Error fetching config:", e));
             }
@@ -1082,6 +1119,9 @@
         document.getElementById('save-config-btn').onclick = async () => {
             const token = document.getElementById('admin-token').value;
             const keyGroq = document.getElementById('key-groq').value;
+            const keyOR = document.getElementById('key-openrouter').value;
+            const modelOR = document.getElementById('model-openrouter').value;
+            const actProv = document.getElementById('active-provider').value;
             if (!token) return alert("Please enter your Admin Token.");
             
             document.getElementById('save-config-btn').textContent = "Saving...";
@@ -1089,7 +1129,12 @@
                 const res = await fetch(`${API_BASE}/api/admin/config`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ groq_api_key: keyGroq })
+                    body: JSON.stringify({ 
+                        groq_api_key: keyGroq,
+                        openrouter_api_key: keyOR,
+                        openrouter_model: modelOR,
+                        active_provider: actProv
+                    })
                 });
                 if (res.ok) {
                     alert("Global API Configuration saved successfully!");

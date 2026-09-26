@@ -28,12 +28,13 @@ app.post('/api/admin/config', async (c) => {
   
   try {
     const data = await c.req.json()
-    const { groq_api_key } = data
+    const { groq_api_key, openrouter_api_key, openrouter_model, active_provider } = data
     
     // Save to DB
-    if (groq_api_key !== undefined) {
-      await c.env.DB.prepare(`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)`).bind('groq_api_key', groq_api_key).run()
-    }
+    if (groq_api_key !== undefined) await c.env.DB.prepare(`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)`).bind('groq_api_key', groq_api_key).run()
+    if (openrouter_api_key !== undefined) await c.env.DB.prepare(`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)`).bind('openrouter_api_key', openrouter_api_key).run()
+    if (openrouter_model !== undefined) await c.env.DB.prepare(`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)`).bind('openrouter_model', openrouter_model).run()
+    if (active_provider !== undefined) await c.env.DB.prepare(`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)`).bind('active_provider', active_provider).run()
     
     return c.json({ success: true })
   } catch (e) {
@@ -294,49 +295,62 @@ const fallbackModels = [
   'thinkingmachines/inkling:free'             // large context reasoning
 ]
 
-async function askGroq(c, messages, stream) {
+async function askAIProvider(c, messages, stream) {
     const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
     let dbConf = {}
     if (confRes.results) confRes.results.forEach(r => dbConf[r.key] = r.value)
   
     const groqKey = dbConf['groq_api_key'] || c.env.GROQ_API_KEY
-    if (!groqKey) throw new Error('Groq API Key not configured. Please set it in the Admin Panel.')
+    const orKey = dbConf['openrouter_api_key'] || c.env.OPENROUTER_API_KEY
+    const activeProvider = dbConf['active_provider'] || 'groq'
+    const orModel = dbConf['openrouter_model'] || 'nvidia/llama-3.1-nemotron-70b-instruct:free'
     
-    // Fallback models in Groq if 70b is busy
-    const models = ['llama-3.1-70b-versatile', 'llama3-8b-8192', 'mixtral-8x7b-32768']
+    const providers = [];
+    if (activeProvider === 'openrouter' && orKey) {
+        providers.push({ name: 'openrouter', key: orKey, url: 'https://openrouter.ai/api/v1/chat/completions', models: [orModel, 'meta-llama/llama-3.1-70b-instruct:free'] })
+        if (groqKey) providers.push({ name: 'groq', key: groqKey, url: 'https://api.groq.com/openai/v1/chat/completions', models: ['llama-3.1-70b-versatile', 'llama3-8b-8192'] })
+    } else {
+        if (groqKey) providers.push({ name: 'groq', key: groqKey, url: 'https://api.groq.com/openai/v1/chat/completions', models: ['llama-3.1-70b-versatile', 'llama3-8b-8192'] })
+        if (orKey) providers.push({ name: 'openrouter', key: orKey, url: 'https://openrouter.ai/api/v1/chat/completions', models: [orModel, 'meta-llama/llama-3.1-70b-instruct:free'] })
+    }
+
+    if (providers.length === 0) throw new Error('No AI API Key configured. Please set Groq or OpenRouter key in the Admin Panel.')
+
     let lastError = null
 
-    for (const model of models) {
-        try {
-            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${groqKey}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    model: model,
-                    messages: messages,
-                    temperature: 0.2,
-                    stream: stream,
-                    max_tokens: 1000
+    for (const provider of providers) {
+        for (const model of provider.models) {
+            try {
+                const response = await fetch(provider.url, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${provider.key}`,
+                        "Content-Type": "application/json",
+                        ...(provider.name === 'openrouter' && { "HTTP-Referer": "https://specsupport.pages.dev", "X-Title": "Inspecta" })
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: messages,
+                        temperature: 0.2,
+                        stream: stream,
+                        ...(provider.name === 'groq' && { max_tokens: 1000 })
+                    })
                 })
-            })
-            
-            if (response.status === 429) {
-                lastError = "Groq Rate Limit Exceeded";
-                continue; // Try next fallback model
+                
+                if (response.status === 429) {
+                    lastError = "Rate Limit Exceeded";
+                    continue; 
+                }
+                if (!response.ok) {
+                    const errText = await response.text();
+                    if (response.status === 401) throw new Error(`Invalid API Key for ${provider.name}`);
+                    throw new Error(`HTTP ${response.status}: ${errText}`);
+                }
+                return { response, model, provider: provider.name }
+            } catch (e) { 
+                lastError = e.message;
+                if (e.message.includes("Invalid API Key")) throw e; 
             }
-            if (!response.ok) {
-                const errText = await response.text();
-                // If it's auth error, throw immediately, don't fallback
-                if (response.status === 401) throw new Error(`Invalid Groq API Key`);
-                throw new Error(`HTTP ${response.status}: ${errText}`);
-            }
-            return { response, model, provider: 'groq' }
-        } catch (e) { 
-            lastError = e.message;
-            if (e.message.includes("Invalid Groq API Key")) throw e; 
         }
     }
     throw new Error(`RATE_LIMIT_ALL: ${lastError}`)
@@ -549,7 +563,7 @@ app.post('/api/ask', async (c) => {
     }
     
     const { messages, sources, today } = contextData
-    const { response, model, provider } = await askGroq(c, messages, false)
+    const { response, model, provider } = await askAIProvider(c, messages, false)
     
     const json = await response.json()
     let answer = "Error connecting to AI model.";
@@ -558,8 +572,8 @@ app.post('/api/ask', async (c) => {
           answer = json.choices[0].message.content || "Empty response.";
           finishReason = json.choices[0].finish_reason || "stop";
       } else {
-          console.error("Groq Error:", JSON.stringify(json));
-          answer = `Groq Error: ${json.error?.message || JSON.stringify(json)}`;
+          console.error("AI Error:", JSON.stringify(json));
+          answer = `AI Error: ${json.error?.message || JSON.stringify(json)}`;
       }
     
     // Log usage
@@ -570,7 +584,7 @@ app.post('/api/ask', async (c) => {
     return c.json({ answer, finish_reason: finishReason, sources, model_used: model })
   } catch (e) {
     if (e.message && e.message.includes("RATE_LIMIT_ALL")) {
-      return c.json({ error: "Groq is currently rate-limiting requests. Please try again in a few minutes." }, 429);
+      return c.json({ error: "The selected AI provider is currently rate-limiting requests. Please try again in a few minutes." }, 429);
     }
     return c.json({ error: e.message }, 500)
   }
@@ -591,7 +605,7 @@ app.post('/api/ask/stream', async (c) => {
     }
     
     const { messages, sources, today } = contextData
-    const { response, model, provider } = await askGroq(c, messages, true)
+    const { response, model, provider } = await askAIProvider(c, messages, true)
     
     // We send sources and model as initial event then stream chunks
     const stream = new ReadableStream({
