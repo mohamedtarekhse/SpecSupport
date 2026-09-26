@@ -649,16 +649,9 @@
         
         <div style="border-top:1px solid var(--border-color); margin:15px 0; padding-top:15px;">
             <label style="font-size:0.85rem; color:var(--text-muted); font-weight:bold;">Global AI Configuration</label>
-            <input type="password" id="config-apikey" class="admin-input" style="margin-top:5px;" placeholder="OpenRouter API Key">
-            <select id="config-model" class="admin-input" style="appearance:auto;">
-                <option value="qwen/qwen3.8-27b:free">Qwen3.8 27B (Free)</option>
-                <option value="nvidia/nemotron-3-super-120b-a12b:free">NVIDIA Nemotron Super 120B (Free) - Default</option>
-                <option value="nvidia/nemotron-3-ultra-550b-a55b:free">NVIDIA Nemotron Ultra 550B (Free)</option>
-                <option value="google/gemma-4-31b-it:free">Google Gemma 4 31B (Free)</option>
-                <option value="nex-agi/nex-n2.5-pro:free">NexAGI N2.5 Pro (Free)</option>
-                <option value="thinkingmachines/inkling:free">ThinkingMachines Inkling (Free)</option>
-            </select>
-            <button id="save-config-btn" style="width:100%; background:var(--input-bg); border:1px solid var(--border-color); color:#fff; padding:8px; border-radius:4px; cursor:pointer;">Save API Settings</button>
+            <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:5px;">Groq API Key:</label>
+            <input type="password" id="key-groq" class="admin-input" style="margin-bottom:10px;" placeholder="gsk_...">
+            <button id="save-config-btn" style="width:100%; background:var(--input-bg); border:1px solid var(--border-color); color:#fff; padding:8px; border-radius:4px; cursor:pointer;">Save Groq API Key</button>
         </div>
 
         <div style="border-top:1px solid var(--border-color); padding-top:15px; margin-top:15px;">
@@ -1073,8 +1066,7 @@
                 .then(r => r.json())
                 .then(d => {
                     if (d.config) {
-                        document.getElementById('config-apikey').value = d.config.openrouter_api_key || '';
-                        document.getElementById('config-model').value = d.config.openrouter_model || '';
+                        document.getElementById('key-groq').value = d.config.groq_api_key || '';
                     }
                 }).catch(e => console.error("Error fetching config:", e));
             }
@@ -1089,8 +1081,7 @@
 
         document.getElementById('save-config-btn').onclick = async () => {
             const token = document.getElementById('admin-token').value;
-            const key = document.getElementById('config-apikey').value;
-            const mod = document.getElementById('config-model').value;
+            const keyGroq = document.getElementById('key-groq').value;
             if (!token) return alert("Please enter your Admin Token.");
             
             document.getElementById('save-config-btn').textContent = "Saving...";
@@ -1098,7 +1089,7 @@
                 const res = await fetch(`${API_BASE}/api/admin/config`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ openrouter_api_key: key, openrouter_model: mod })
+                    body: JSON.stringify({ groq_api_key: keyGroq })
                 });
                 if (res.ok) {
                     alert("Global API Configuration saved successfully!");
