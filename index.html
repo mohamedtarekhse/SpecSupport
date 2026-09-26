@@ -652,11 +652,25 @@
 
             <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:5px;">Active Provider:</label>
             <select id="active-provider" class="admin-input" style="appearance:auto; margin-bottom:5px;" onchange="toggleProviderUI()">
+                <option value="cloudflare" selected>Cloudflare Workers AI (Native Edge - GLM-5.3 & Llama)</option>
                 <option value="groq">Groq (Ultra-Fast Llama 3)</option>
                 <option value="openrouter">OpenRouter (NVIDIA & Large Models)</option>
             </select>
 
-            <div id="groq-ui">
+            <div id="cloudflare-ui">
+                <label style="font-size:0.75rem; color:var(--text-muted); display:block;">Select Cloudflare Model:</label>
+                <select id="model-cloudflare" class="admin-input" style="appearance:auto; margin-bottom:5px;">
+                    <option value="@cf/zai-org/glm-5.3-flash" selected>GLM-5.3 Flash (320B MoE - High Performance)</option>
+                    <option value="@cf/meta/llama-3.1-8b-instruct">Meta Llama 3.1 8B (100% Free Tier)</option>
+                    <option value="@cf/meta/llama-3.3-70b-instruct-fp8-fast">Meta Llama 3.3 70B Fast</option>
+                    <option value="@cf/deepseek-ai/deepseek-r1-distill-qwen-32b">DeepSeek R1 Distill Qwen 32B</option>
+                </select>
+                <div style="font-size:0.72rem; color:#10b981; margin-bottom:10px;">
+                    ⚡ Runs natively on Cloudflare GPU edge. Zero API key needed!
+                </div>
+            </div>
+
+            <div id="groq-ui" style="display:none;">
                 <label style="font-size:0.75rem; color:var(--text-muted); display:block;">Groq API Key:</label>
                 <input type="password" id="key-groq" class="admin-input" style="margin-bottom:10px;" placeholder="gsk_...">
             </div>
@@ -679,8 +693,9 @@
             <script>
                 function toggleProviderUI() {
                     const prov = document.getElementById('active-provider').value;
-                    document.getElementById('groq-ui').style.display = prov === 'groq' ? 'block' : 'none';
-                    document.getElementById('openrouter-ui').style.display = prov === 'openrouter' ? 'block' : 'none';
+                    if (document.getElementById('cloudflare-ui')) document.getElementById('cloudflare-ui').style.display = prov === 'cloudflare' ? 'block' : 'none';
+                    if (document.getElementById('groq-ui')) document.getElementById('groq-ui').style.display = prov === 'groq' ? 'block' : 'none';
+                    if (document.getElementById('openrouter-ui')) document.getElementById('openrouter-ui').style.display = prov === 'openrouter' ? 'block' : 'none';
                 }
             </script>
         </div>
@@ -1101,7 +1116,8 @@
                         document.getElementById('key-groq').value = d.config.groq_api_key || '';
                         document.getElementById('key-openrouter').value = d.config.openrouter_api_key || '';
                         document.getElementById('model-openrouter').value = d.config.openrouter_model || 'nvidia/llama-3.1-nemotron-70b-instruct:free';
-                        document.getElementById('active-provider').value = d.config.active_provider || 'groq';
+                        if (document.getElementById('model-cloudflare')) document.getElementById('model-cloudflare').value = d.config.cloudflare_model || '@cf/zai-org/glm-5.3-flash';
+                        document.getElementById('active-provider').value = d.config.active_provider || 'cloudflare';
                         toggleProviderUI();
 
                     }
@@ -1121,6 +1137,7 @@
             const keyGroq = document.getElementById('key-groq').value;
             const keyOR = document.getElementById('key-openrouter').value;
             const modelOR = document.getElementById('model-openrouter').value;
+            const modelCF = document.getElementById('model-cloudflare') ? document.getElementById('model-cloudflare').value : '@cf/zai-org/glm-5.3-flash';
             const actProv = document.getElementById('active-provider').value;
             if (!token) return alert("Please enter your Admin Token.");
             
@@ -1133,6 +1150,7 @@
                         groq_api_key: keyGroq,
                         openrouter_api_key: keyOR,
                         openrouter_model: modelOR,
+                        cloudflare_model: modelCF,
                         active_provider: actProv
                     })
                 });

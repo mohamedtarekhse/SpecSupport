@@ -28,12 +28,13 @@ app.post('/api/admin/config', async (c) => {
   
   try {
     const data = await c.req.json()
-    const { groq_api_key, openrouter_api_key, openrouter_model, active_provider } = data
+    const { groq_api_key, openrouter_api_key, openrouter_model, cloudflare_model, active_provider } = data
     
     // Save to DB
     if (groq_api_key !== undefined) await c.env.DB.prepare(`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)`).bind('groq_api_key', groq_api_key).run()
     if (openrouter_api_key !== undefined) await c.env.DB.prepare(`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)`).bind('openrouter_api_key', openrouter_api_key).run()
     if (openrouter_model !== undefined) await c.env.DB.prepare(`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)`).bind('openrouter_model', openrouter_model).run()
+    if (cloudflare_model !== undefined) await c.env.DB.prepare(`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)`).bind('cloudflare_model', cloudflare_model).run()
     if (active_provider !== undefined) await c.env.DB.prepare(`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)`).bind('active_provider', active_provider).run()
     
     return c.json({ success: true })
@@ -208,21 +209,7 @@ app.get('/api/admin/config', async (c) => {
   } catch (e) { return c.json({ error: e.message }, 500) }
 })
 
-app.post('/api/admin/config', async (c) => {
-  const token = c.req.header('Authorization')
-  if (!token || token !== `Bearer ${c.env.ADMIN_SECRET}`) return c.json({ error: 'Unauthorized' }, 401)
-  try {
-    const { openrouter_api_key, openrouter_model } = await c.req.json()
-    
-    if (openrouter_api_key !== undefined) {
-      await c.env.DB.prepare(`INSERT INTO system_config (key, value) VALUES ('openrouter_api_key', ?) ON CONFLICT(key) DO UPDATE SET value = ?`).bind(openrouter_api_key, openrouter_api_key).run()
-    }
-    if (openrouter_model !== undefined) {
-      await c.env.DB.prepare(`INSERT INTO system_config (key, value) VALUES ('openrouter_model', ?) ON CONFLICT(key) DO UPDATE SET value = ?`).bind(openrouter_model, openrouter_model).run()
-    }
-    return c.json({ success: true })
-  } catch (e) { return c.json({ error: e.message }, 500) }
-})
+// Redundant config route removed
 
 app.post('/api/admin/compare', async (c) => {
   const token = c.req.header('Authorization')
@@ -302,58 +289,158 @@ async function askAIProvider(c, messages, stream) {
   
     const groqKey = dbConf['groq_api_key'] || c.env.GROQ_API_KEY
     const orKey = dbConf['openrouter_api_key'] || c.env.OPENROUTER_API_KEY
-    const activeProvider = dbConf['active_provider'] || 'groq'
+    const activeProvider = dbConf['active_provider'] || 'cloudflare'
+    const cfModel = dbConf['cloudflare_model'] || '@cf/zai-org/glm-5.3-flash'
     const orModel = dbConf['openrouter_model'] || 'nvidia/llama-3.1-nemotron-70b-instruct:free'
-    
-    const providers = [];
-    if (activeProvider === 'openrouter' && orKey) {
-        providers.push({ name: 'openrouter', key: orKey, url: 'https://openrouter.ai/api/v1/chat/completions', models: [orModel, 'meta-llama/llama-3.1-70b-instruct:free'] })
-        if (groqKey) providers.push({ name: 'groq', key: groqKey, url: 'https://api.groq.com/openai/v1/chat/completions', models: ['llama-3.1-70b-versatile', 'llama3-8b-8192'] })
-    } else {
-        if (groqKey) providers.push({ name: 'groq', key: groqKey, url: 'https://api.groq.com/openai/v1/chat/completions', models: ['llama-3.1-70b-versatile', 'llama3-8b-8192'] })
-        if (orKey) providers.push({ name: 'openrouter', key: orKey, url: 'https://openrouter.ai/api/v1/chat/completions', models: [orModel, 'meta-llama/llama-3.1-70b-instruct:free'] })
-    }
-
-    if (providers.length === 0) throw new Error('No AI API Key configured. Please set Groq or OpenRouter key in the Admin Panel.')
 
     let lastError = null
 
-    for (const provider of providers) {
-        for (const model of provider.models) {
-            try {
-                const response = await fetch(provider.url, {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${provider.key}`,
-                        "Content-Type": "application/json",
-                        ...(provider.name === 'openrouter' && { "HTTP-Referer": "https://specsupport.pages.dev", "X-Title": "Inspecta" })
-                    },
-                    body: JSON.stringify({
-                        model: model,
-                        messages: messages,
-                        temperature: 0.2,
-                        stream: stream,
-                        ...(provider.name === 'groq' && { max_tokens: 1000 })
-                    })
-                })
-                
-                if (response.status === 429) {
-                    lastError = "Rate Limit Exceeded";
-                    continue; 
-                }
-                if (!response.ok) {
-                    const errText = await response.text();
-                    if (response.status === 401) throw new Error(`Invalid API Key for ${provider.name}`);
-                    throw new Error(`HTTP ${response.status}: ${errText}`);
-                }
-                return { response, model, provider: provider.name }
-            } catch (e) { 
-                lastError = e.message;
-                if (e.message.includes("Invalid API Key")) throw e; 
-            }
-        }
+    // Cloudflare Workers AI runner
+    const runCloudflareAI = async (modelToUse) => {
+      if (!c.env.AI) throw new Error("Cloudflare Workers AI binding 'AI' not found in environment.")
+      const res = await c.env.AI.run(modelToUse, {
+        messages: messages,
+        max_tokens: 1500,
+        temperature: 0.2
+      })
+      const text = res?.response || (typeof res === 'string' ? res : (res?.choices?.[0]?.message?.content || ''))
+      if (!text || text === '{}') throw new Error(`Empty response from Cloudflare AI (${modelToUse})`)
+      return {
+        response: {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            choices: [{
+              message: { content: text },
+              finish_reason: "stop"
+            }]
+          })
+        },
+        model: modelToUse,
+        provider: 'cloudflare'
+      }
     }
-    throw new Error(`RATE_LIMIT_ALL: ${lastError}`)
+
+    // HTTP Provider runner (Groq / OpenRouter)
+    const runHttpProvider = async (providerName, key, url, modelToUse, maxTokens = null) => {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${key}`,
+          "Content-Type": "application/json",
+          ...(providerName === 'openrouter' && { "HTTP-Referer": "https://specsupport.pages.dev", "X-Title": "Inspecta" })
+        },
+        body: JSON.stringify({
+          model: modelToUse,
+          messages: messages,
+          temperature: 0.2,
+          stream: false,
+          ...(maxTokens && { max_tokens: maxTokens })
+        })
+      })
+
+      if (response.status === 429) throw new Error("Rate Limit Exceeded")
+      if (!response.ok) {
+        const errText = await response.text()
+        if (response.status === 401) throw new Error(`Invalid API Key for ${providerName}`)
+        throw new Error(`HTTP ${response.status}: ${errText}`)
+      }
+      return { response, model: modelToUse, provider: providerName }
+    }
+
+    // 1. Cloudflare Workers AI active (Default)
+    if (activeProvider === 'cloudflare') {
+      try {
+        return await runCloudflareAI(cfModel)
+      } catch (e) {
+        lastError = `Cloudflare AI (${cfModel}): ${e.message}`
+        console.error(lastError)
+        // Fallback to Meta Llama 3.1 8B on Cloudflare (100% free tier safety net)
+        if (cfModel !== '@cf/meta/llama-3.1-8b-instruct') {
+          try {
+            return await runCloudflareAI('@cf/meta/llama-3.1-8b-instruct')
+          } catch (e2) {
+            lastError = `Cloudflare AI (@cf/meta/llama-3.1-8b-instruct): ${e2.message}`
+            console.error(lastError)
+          }
+        }
+      }
+
+      // Fallback to Groq if key configured
+      if (groqKey) {
+        try {
+          return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', 'llama-3.1-70b-versatile', 1000)
+        } catch (e) {
+          lastError = `Groq: ${e.message}`
+        }
+      }
+      // Fallback to OpenRouter if key configured
+      if (orKey) {
+        try {
+          return await runHttpProvider('openrouter', orKey, 'https://openrouter.ai/api/v1/chat/completions', orModel)
+        } catch (e) {
+          lastError = `OpenRouter: ${e.message}`
+        }
+      }
+    }
+    // 2. Groq active
+    else if (activeProvider === 'groq') {
+      if (groqKey) {
+        const groqModels = ['llama-3.1-70b-versatile', 'llama3-8b-8192']
+        for (const m of groqModels) {
+          try {
+            return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', m, 1000)
+          } catch (e) {
+            lastError = `Groq (${m}): ${e.message}`
+            if (e.message.includes("Invalid API Key")) throw e
+          }
+        }
+      }
+      // Fallback to Cloudflare AI
+      try {
+        return await runCloudflareAI(cfModel)
+      } catch (e) {
+        lastError = `Cloudflare AI: ${e.message}`
+      }
+      // Fallback to OpenRouter
+      if (orKey) {
+        try {
+          return await runHttpProvider('openrouter', orKey, 'https://openrouter.ai/api/v1/chat/completions', orModel)
+        } catch (e) {
+          lastError = `OpenRouter: ${e.message}`
+        }
+      }
+    }
+    // 3. OpenRouter active
+    else if (activeProvider === 'openrouter') {
+      if (orKey) {
+        const orModels = [orModel, 'meta-llama/llama-3.1-70b-instruct:free']
+        for (const m of orModels) {
+          try {
+            return await runHttpProvider('openrouter', orKey, 'https://openrouter.ai/api/v1/chat/completions', m)
+          } catch (e) {
+            lastError = `OpenRouter (${m}): ${e.message}`
+            if (e.message.includes("Invalid API Key")) throw e
+          }
+        }
+      }
+      // Fallback to Cloudflare AI
+      try {
+        return await runCloudflareAI(cfModel)
+      } catch (e) {
+        lastError = `Cloudflare AI: ${e.message}`
+      }
+      // Fallback to Groq
+      if (groqKey) {
+        try {
+          return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', 'llama-3.1-70b-versatile', 1000)
+        } catch (e) {
+          lastError = `Groq: ${e.message}`
+        }
+      }
+    }
+
+    throw new Error(`RATE_LIMIT_ALL: ${lastError || 'Unable to generate response from any provider.'}`)
 }
 
 async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = []) {
