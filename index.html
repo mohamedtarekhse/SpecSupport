@@ -4,7 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inspecta | AI Assistant</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js">
+        // PDF Ingestion Logic
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
+        const logEl = document.getElementById('log');
+
+        const log = (msg) => {
+            logEl.innerHTML += `<div>${msg}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        };
+
+        dropzone.onclick = () => fileInput.click();
+        dropzone.ondragover = (e) => { e.preventDefault(); dropzone.classList.add('dragover'); };
+        dropzone.ondragleave = (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); };
+        dropzone.ondrop = (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); };
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
+
+        async function handleFile(file) {
+            if (!file) return;
+            const code = document.getElementById('std-code').value.trim();
+            const name = document.getElementById('std-name').value.trim();
+            const secret = document.getElementById('admin-token').value.trim();
+            
+            if (!code || !name || !secret) return alert("Please fill out Standard Code, Name, and ensure Admin Token is set.");
+            
+            log(`Processing: ${file.name}`);
+            const arrayBuffer = await file.arrayBuffer();
+            
+            const pdfjsLib = window['pdfjs-dist/build/pdf'];
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+            
+            const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+            log(`Loaded PDF with ${pdf.numPages} pages. Starting chunking...`);
+            
+            let currentContent = "";
+            let chunkCount = 0;
+            
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const text = textContent.items.map(item => item.str).join(" ");
+                
+                currentContent += text + " ";
+                
+                // Chunk by roughly 1000 characters
+                while (currentContent.length > 1000) {
+                    let splitIdx = currentContent.indexOf(". ", 800);
+                    if (splitIdx === -1) splitIdx = 1000;
+                    
+                    const chunkText = currentContent.substring(0, splitIdx + 1).trim();
+                    currentContent = currentContent.substring(splitIdx + 1);
+                    
+                    chunkCount++;
+                    log(`Uploading chunk ${chunkCount}...`);
+                    
+                    try {
+                        const res = await fetch(`${API_BASE}/api/admin/ingest`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": `Bearer ${secret}`
+                            },
+                            body: JSON.stringify({
+                                standard_code: code,
+                                standard_name: name,
+                                section: `Page ${i}`,
+                                clause: `Chunk ${chunkCount}`,
+                                content: chunkText
+                            })
+                        });
+                        
+                        if (!res.ok) {
+                            const err = await res.json();
+                            log(`<span style="color:red">Error on chunk ${chunkCount}: ${err.error}</span>`);
+                        }
+                    } catch (e) {
+                        log(`<span style="color:red">Network error on chunk ${chunkCount}: ${e.message}</span>`);
+                    }
+                }
+            }
+            log(`<span style="color:green">Successfully ingested ${chunkCount} chunks into D1 database!</span>`);
+        }
+
+    </script>
         <link rel="manifest" href="manifest.json">
     <script>
       if ('serviceWorker' in navigator) {
@@ -527,19 +610,14 @@
             font-weight: 500;
             animation: pulse 1.5s infinite;
         }
-    
-    .dropzone { border: 2px dashed #D97757; border-radius: 12px; padding: 50px; text-align: center; cursor: pointer; margin-top: 20px; }
-    .dropzone.dragover { background: rgba(217, 119, 87, 0.2); }
-    #admin-container input[type="text"], #admin-container input[type="password"], #admin-container select { padding: 10px; width: 300px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #3C3A35; background: #2E2D2A; color: white; }
-    #admin-container button { padding: 10px 20px; background: #D97757; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-    #admin-container button:hover { background: #b8654a; }
-    #log { margin-top: 20px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto; background: #1a1a1a; padding: 10px; border-radius: 6px; }
-    .section { background: #2E2D2A; padding: 20px; border-radius: 12px; margin-bottom: 30px; }
-    .section h2 { margin-top: 0; border-bottom: 1px solid #3C3A35; padding-bottom: 10px; }
-    #admin-container { padding: 40px; display: none; position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; background: #21201D; z-index: 1000; overflow-y: auto; box-sizing: border-box; padding-bottom: 100px; }
-
     </style>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        .dropzone { border: 2px dashed var(--accent-color); border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; margin-top: 10px; font-size: 0.85rem; color: var(--text-muted); }
+        .dropzone.dragover { background: rgba(217, 119, 87, 0.2); }
+        #log { margin-top: 10px; font-family: monospace; font-size: 0.75rem; max-height: 100px; overflow-y: auto; background: #1a1a1a; padding: 5px; border-radius: 4px; }
+    </style>
 </head>
 <body class="state-greeting">
 
@@ -1140,190 +1218,6 @@
             submitQuizBtn.disabled = false;
         };
 
-    </script>
-
-    <div id="admin-container">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h1>Inspecta Admin Dashboard</h1>
-            <button onclick="closeAdmin()">Close Admin</button>
-        </div>
-        <h1>Inspecta Admin Dashboard</h1>
-    
-    
-
-    <div class="section">
-        <h2>2. AI Provider Configuration</h2>
-        <p>Configure fallback providers to avoid rate limits. The system will automatically failover if the primary fails.</p>
-        
-        <label>Active Primary Provider:</label><br>
-        <select id="active-provider">
-            <option value="openrouter">OpenRouter (Default)</option>
-            <option value="groq">Groq (Ultra-Fast Llama 3)</option>
-        </select><br><br>
-
-        <label>OpenRouter API Key:</label><br>
-        <input type="password" id="key-openrouter"><br>
-
-        <label>Groq API Key:</label><br>
-        <input type="password" id="key-groq"><br>
-
-        <button onclick="saveConfig()">Save AI Configuration</button>
-        <span id="config-status" style="margin-left: 15px; color: #D97757;"></span>
-    </div>
-
-    <div class="section">
-        <h2>3. Zero-Touch Standard Ingestion</h2>
-        <p>Upload a PDF standard directly. The browser will chunk it and send it to the Cloudflare Worker to be embedded and saved.</p>
-        
-        <label>Standard Code (e.g., API 5CT):</label><br>
-        <input type="text" id="std-code"><br>
-        
-        <label>Standard Name:</label><br>
-        <input type="text" id="std-name"><br>
-
-        <div class="dropzone" id="dropzone">
-            Drag & Drop PDF Here or Click to Browse
-            <input type="file" id="file-input" style="display:none;" accept="application/pdf">
-        </div>
-
-        <div id="log"></div>
-    </div>
-    </div>
-
-    <script>
-
-        let adminToken = "";
-        function openAdmin() {
-            const token = prompt("Enter Admin Token:");
-            if (token) {
-                window.adminToken = token.trim();
-                document.getElementById('app-header').style.display = 'none';
-                document.getElementById('chat-window').style.display = 'none';
-                document.getElementById('input-area').style.display = 'none';
-                document.getElementById('admin-container').style.display = 'block';
-            }
-        }
-        function closeAdmin() {
-            document.getElementById('admin-container').style.display = 'none';
-            document.getElementById('app-header').style.display = 'flex';
-            document.getElementById('chat-window').style.display = 'block';
-            document.getElementById('input-area').style.display = 'block';
-        }
-
-
-        
-
-        async function saveConfig() {
-            const secret = window.adminToken;
-            if (!secret) return alert("Admin token missing.");
-            
-            const payload = {
-                active_provider: document.getElementById('active-provider').value,
-                openrouter_api_key: document.getElementById('key-openrouter').value.trim() || undefined,
-                groq_api_key: document.getElementById('key-groq').value.trim() || undefined
-            };
-
-            try {
-                const res = await fetch(`${API_BASE}/api/admin/config`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${secret}` },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (res.ok) {
-                    document.getElementById('config-status').innerText = "Configuration saved successfully!";
-                    setTimeout(() => document.getElementById('config-status').innerText = "", 3000);
-                } else {
-                    const err = await res.json();
-                    alert("Error saving config: " + err.error);
-                }
-            } catch (e) {
-                alert("Network error: " + e.message);
-            }
-        }
-
-        // PDF Ingestion Logic
-        const dropzone = document.getElementById('dropzone');
-        const fileInput = document.getElementById('file-input');
-        const logEl = document.getElementById('log');
-
-        const log = (msg) => {
-            logEl.innerHTML += `<div>${msg}</div>`;
-            logEl.scrollTop = logEl.scrollHeight;
-        };
-
-        dropzone.onclick = () => fileInput.click();
-        dropzone.ondragover = (e) => { e.preventDefault(); dropzone.classList.add('dragover'); };
-        dropzone.ondragleave = (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); };
-        dropzone.ondrop = (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); };
-        fileInput.onchange = (e) => handleFile(e.target.files[0]);
-
-        async function handleFile(file) {
-            if (!file) return;
-            const code = document.getElementById('std-code').value.trim();
-            const name = document.getElementById('std-name').value.trim();
-            const secret = window.adminToken;
-            
-            if (!code || !name || !secret) return alert("Please fill out Standard Code, Name, and Admin Secret");
-            
-            log(`Processing: ${file.name}`);
-            const arrayBuffer = await file.arrayBuffer();
-            
-            const pdfjsLib = window['pdfjs-dist/build/pdf'];
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-            
-            const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
-            log(`Loaded PDF with ${pdf.numPages} pages. Starting chunking...`);
-            
-            let currentContent = "";
-            let chunkCount = 0;
-            
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                const text = textContent.items.map(item => item.str).join(" ");
-                
-                currentContent += text + " ";
-                
-                // Chunk by roughly 1000 characters
-                while (currentContent.length > 1000) {
-                    let splitIdx = currentContent.indexOf(". ", 800);
-                    if (splitIdx === -1) splitIdx = 1000;
-                    
-                    const chunkText = currentContent.substring(0, splitIdx + 1).trim();
-                    currentContent = currentContent.substring(splitIdx + 1);
-                    
-                    chunkCount++;
-                    log(`Uploading chunk ${chunkCount}...`);
-                    
-                    try {
-                        const res = await fetch(`${API_BASE}/api/admin/ingest`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "Authorization": `Bearer ${secret}`
-                            },
-                            body: JSON.stringify({
-                                standard_code: code,
-                                standard_name: name,
-                                section: `Page ${i}`,
-                                clause: `Chunk ${chunkCount}`,
-                                content: chunkText
-                            })
-                        });
-                        
-                        if (!res.ok) {
-                            const err = await res.json();
-                            log(`<span style="color:red">Error on chunk ${chunkCount}: ${err.error}</span>`);
-                        }
-                    } catch (e) {
-                        log(`<span style="color:red">Network error on chunk ${chunkCount}: ${e.message}</span>`);
-                    }
-                }
-            }
-            log(`<span style="color:green">Successfully ingested ${chunkCount} chunks into D1 database!</span>`);
-        }
-    
     </script>
 </body>
 </html>
