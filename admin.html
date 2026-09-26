@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspecta Admin | Zero-Touch Ingestion</title>
+    <style>
+        body { font-family: sans-serif; background: #21201D; color: #ECECE3; padding: 40px; }
+        .dropzone { border: 2px dashed #D97757; border-radius: 12px; padding: 50px; text-align: center; cursor: pointer; margin-top: 20px; }
+        .dropzone.dragover { background: rgba(217, 119, 87, 0.2); }
+        input[type="text"], input[type="password"] { padding: 10px; width: 300px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #3C3A35; background: #2E2D2A; color: white; }
+        #log { margin-top: 20px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto; background: #1a1a1a; padding: 10px; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+</head>
+<body>
+
+    <h1>Zero-Touch Standard Ingestion</h1>
+    <p>Upload a PDF standard directly. The browser will chunk it and send it to the Cloudflare Worker to be embedded and saved.</p>
+    
+    <label>Standard Code (e.g., API 5CT):</label><br>
+    <input type="text" id="std-code"><br>
+    
+    <label>Standard Name:</label><br>
+    <input type="text" id="std-name"><br>
+    
+    <label>Admin Secret Token:</label><br>
+    <input type="password" id="admin-secret"><br>
+
+    <div class="dropzone" id="dropzone">
+        Drag & Drop PDF Here or Click to Browse
+        <input type="file" id="file-input" style="display:none;" accept="application/pdf">
+    </div>
+
+    <div id="log"></div>
+
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
+        const logEl = document.getElementById('log');
+        const API_BASE = "https://inspection-api.mohamedtarekhse.workers.dev"; // Live URL
+
+        const log = (msg) => {
+            logEl.innerHTML += `<div>${msg}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        };
+
+        dropzone.onclick = () => fileInput.click();
+        dropzone.ondragover = (e) => { e.preventDefault(); dropzone.classList.add('dragover'); };
+        dropzone.ondragleave = (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); };
+        dropzone.ondrop = (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); };
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
+
+        async function handleFile(file) {
+            if (!file) return;
+            const code = document.getElementById('std-code').value.trim();
+            const name = document.getElementById('std-name').value.trim();
+            const secret = document.getElementById('admin-secret').value.trim();
+            
+            if (!code || !name || !secret) return alert("Please fill out Standard Code, Name, and Admin Secret");
+            
+            log(`Processing: ${file.name}`);
+            const arrayBuffer = await file.arrayBuffer();
+            
+            const pdfjsLib = window['pdfjs-dist/build/pdf'];
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+            
+            const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+            log(`Loaded PDF with ${pdf.numPages} pages. Starting chunking...`);
+            
+            let currentContent = "";
+            let chunkCount = 0;
+            
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const text = textContent.items.map(item => item.str).join(" ");
+                
+                currentContent += text + " ";
+                
+                // Chunk by roughly 1000 characters
+                while (currentContent.length > 1000) {
+                    let splitIdx = currentContent.indexOf(". ", 800);
+                    if (splitIdx === -1) splitIdx = 1000;
+                    
+                    const chunkText = currentContent.substring(0, splitIdx + 1).trim();
+                    currentContent = currentContent.substring(splitIdx + 1);
+                    
+                    chunkCount++;
+                    log(`Uploading chunk ${chunkCount}...`);
+                    
+                    try {
+                        const res = await fetch(`${API_BASE}/api/admin/ingest`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": `Bearer ${secret}`
+                            },
+                            body: JSON.stringify({
+                                standard_code: code,
+                                standard_name: name,
+                                section: `Page ${i}`,
+                                clause: `Chunk ${chunkCount}`,
+                                content: chunkText
+                            })
+                        });
+                        
+                        if (!res.ok) {
+                            const err = await res.json();
+                            log(`<span style="color:red">Error on chunk ${chunkCount}: ${err.error}</span>`);
+                        }
+                    } catch (e) {
+                        log(`<span style="color:red">Network error on chunk ${chunkCount}: ${e.message}</span>`);
+                    }
+                }
+            }
+            log(`<span style="color:green">Successfully ingested ${chunkCount} chunks into D1 database!</span>`);
+        }
+    </script>
+</body>
+</html>
