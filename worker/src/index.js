@@ -302,7 +302,13 @@ async function askOpenRouter(c, messages, stream) {
         },
         body: JSON.stringify({ model: model, messages: messages, max_tokens: 1000, temperature: 0.1, stream: stream })
       })
-      if (!response.ok) { lastError = await response.text(); continue; }
+      if (!response.ok) { 
+          lastError = await response.text(); 
+          if (response.status === 429) {
+              throw new Error("OPENROUTER_RATE_LIMIT_EXCEEDED: " + lastError);
+          }
+          continue; 
+        }
       return { response, model }
     } catch (e) { lastError = e.message }
   }
@@ -310,6 +316,11 @@ async function askOpenRouter(c, messages, stream) {
 }
 
 async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = []) {
+  const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
+  let dbConf = {}
+  if (confRes.results) confRes.results.forEach(r => dbConf[r.key] = r.value)
+  const apiKey = dbConf['openrouter_api_key'] || c.env.OPENROUTER_API_KEY || '';
+
   // Usage check
   const today = new Date().toISOString().split('T')[0]
   if (session_id !== 'admin') {
@@ -342,25 +353,37 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
     }
   }
 
-  // HyDE (Hypothetical Document Embeddings)
+  // HyDE (Hypothetical Document Embeddings) with High-Speed Caching
   let searchQuestion = question;
   if (standard_filter !== '🌐 GENERAL AI') {
     try {
-      const hydePrompt = `You are an expert oil and gas engineer. Write a formal, hypothetical standard clause that perfectly answers this question: "${question}". Do not write an intro, just the formal technical text.`
-      const hydeRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${c.env.OPENROUTER_API_KEY || ''}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: 'meta-llama/llama-3.1-8b-instruct:free',
-          messages: [{role: 'user', content: hydePrompt}],
-          max_tokens: 150,
-          temperature: 0.1
-        })
-      });
-      const hydeData = await hydeRes.json();
-      if (hydeData.choices && hydeData.choices[0].message.content) {
-        // We append the hypothetical answer to the original question to maximize vector meaning
-        searchQuestion = question + "\n\n" + hydeData.choices[0].message.content.trim();
+      const cachedHyde = await c.env.DB.prepare('SELECT hyde_text FROM hyde_cache WHERE question = ?').bind(question).first('hyde_text');
+      
+      if (cachedHyde) {
+        searchQuestion = question + "\n\n" + cachedHyde;
+      } else {
+        const hydePrompt = `You are an expert oil and gas engineer. Write a formal, hypothetical standard clause that perfectly answers this question: "${question}". Do not write an intro, just the formal technical text.`
+        
+        // Fetching from Groq/OpenRouter fallback (we leave it as OpenRouter but logic remains)
+        const hydeRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: 'meta-llama/llama-3.1-8b-instruct:free',
+            messages: [{role: 'user', content: hydePrompt}],
+            max_tokens: 150,
+            temperature: 0.1
+          })
+        });
+        const hydeData = await hydeRes.json();
+        if (hydeData && hydeData.choices && hydeData.choices[0].message.content) {
+          const generatedHyde = hydeData.choices[0].message.content.trim();
+          searchQuestion = question + "\n\n" + generatedHyde;
+          
+          c.executionCtx.waitUntil(
+             c.env.DB.prepare('INSERT OR IGNORE INTO hyde_cache (question, hyde_text) VALUES (?, ?)').bind(question, generatedHyde).run()
+          );
+        }
       }
     } catch(e) { console.error('HyDE Error:', e.message) }
   }
