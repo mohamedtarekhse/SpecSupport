@@ -155,7 +155,7 @@
             font-size: 2.5rem;
             margin-bottom: 30px;
             color: var(--text-main);
-            text-align: center;
+            text-align: left; margin-left: 44px; /* Align with chat bubbles */
         }
         body.rtl #greeting-area h1 { font-family: 'Tajawal', sans-serif; }
 
@@ -308,8 +308,8 @@
         }
 
         .action-btn.recording {
-            color: var(--accent-color);
-            animation: pulse 1.5s infinite;
+            color: var(--text-muted); /* muted like gemini */
+            animation: pulse 2s infinite ease-in-out;
         }
 
         @keyframes pulse {
@@ -612,7 +612,7 @@
 
         <!-- Chat State -->
         <div id="chat-window">
-            <div id="ai-status-text">✨ Analyzing request...</div>
+            <div id="ai-status-text">Analyzing request...</div>
             <div class="typing-indicator" id="typing-indicator">
                 <div class="dot"></div><div class="dot"></div><div class="dot"></div>
             </div>
@@ -814,7 +814,7 @@
             div.appendChild(icon);
             div.appendChild(content);
 
-            chatWindow.insertBefore(div, typingIndicator);
+            chatWindow.insertBefore(div, document.getElementById('ai-status-text'));
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
@@ -834,15 +834,15 @@
                 userInput.style.height = 'auto';
             }
             
-            typingIndicator.style.display = 'flex';
+            typingIndicator.style.display = 'none'; // Replaced by text
             if(aiStatusText) aiStatusText.style.display = 'block';
             chatWindow.scrollTop = chatWindow.scrollHeight;
 
             let phase2, phase3;
             if(aiStatusText) {
-                aiStatusText.textContent = "✨ Analyzing request...";
-                phase2 = setTimeout(() => { aiStatusText.textContent = "🔍 Searching standards database..."; }, 1500);
-                phase3 = setTimeout(() => { aiStatusText.textContent = "📝 Formulating engineering response..."; }, 3500);
+                aiStatusText.textContent = "Analyzing request...";
+                phase2 = setTimeout(() => { aiStatusText.textContent = "Searching standards database..."; }, 1500);
+                phase3 = setTimeout(() => { aiStatusText.textContent = "Formulating response..."; }, 3500);
             }
 
             try {
