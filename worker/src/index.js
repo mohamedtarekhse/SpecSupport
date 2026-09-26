@@ -342,10 +342,33 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
     }
   }
 
-  // Embed question using Workers AI
+  // HyDE (Hypothetical Document Embeddings)
+  let searchQuestion = question;
+  if (standard_filter !== '🌐 GENERAL AI') {
+    try {
+      const hydePrompt = `You are an expert oil and gas engineer. Write a formal, hypothetical standard clause that perfectly answers this question: "${question}". Do not write an intro, just the formal technical text.`
+      const hydeRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${c.env.OPENROUTER_API_KEY || ''}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: 'meta-llama/llama-3.1-8b-instruct:free',
+          messages: [{role: 'user', content: hydePrompt}],
+          max_tokens: 150,
+          temperature: 0.1
+        })
+      });
+      const hydeData = await hydeRes.json();
+      if (hydeData.choices && hydeData.choices[0].message.content) {
+        // We append the hypothetical answer to the original question to maximize vector meaning
+        searchQuestion = question + "\n\n" + hydeData.choices[0].message.content.trim();
+      }
+    } catch(e) { console.error('HyDE Error:', e.message) }
+  }
+
+  // Embed question (or HyDE text) using Workers AI
   let questionEmbedding = []
   try {
-    const aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [question] })
+    const aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [searchQuestion] })
     // Workers AI returns { data: [ [floats] ] } for batch or { data: [[floats]] }
     questionEmbedding = aiResp.data?.[0] ?? aiResp?.[0] ?? []
   } catch(embErr) {

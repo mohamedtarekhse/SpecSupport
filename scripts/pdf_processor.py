@@ -116,15 +116,39 @@ def ocr_page(page, tmp_dir):
 
 
 def extract_pages(pdf_path, log):
-    """Returns (pages:list[str], pages_ocr:list[int]) with OCR fallback for image-only pages."""
+    """Returns (pages:list[str], pages_ocr:list[int]) with OCR fallback for image-only pages and TOC Breadcrumbs."""
     log.write(f"Reading PDF: {pdf_path}")
     doc = pymupdf.open(pdf_path)
     pages = []
     pages_ocr = []
+    
+    # 1. Extract TOC mapping (page_number -> breadcrumb string)
+    toc = doc.get_toc()
+    page_to_breadcrumb = {}
+    current_path = {}
+    
+    if toc:
+        log.write(f"Found TOC with {len(toc)} items. Building hierarchical map...")
+        for item in toc:
+            level, title, pno = item
+            current_path[level] = title
+            # clear deeper levels
+            for l in list(current_path.keys()):
+                if l > level:
+                    del current_path[l]
+            
+            breadcrumb = " > ".join([current_path[l] for l in sorted(current_path.keys())])
+            # if multiple TOC items point to the same page, keep the deepest one or concatenate
+            if pno not in page_to_breadcrumb:
+                page_to_breadcrumb[pno] = breadcrumb
+            else:
+                page_to_breadcrumb[pno] += " | " + breadcrumb
+
     with tempfile.TemporaryDirectory() as tmp:
         for pno in range(len(doc)):
             page = doc[pno]
             t = page.get_text('text').strip()
+            
             if len(t) < OCR_MIN_CHARS:
                 log.write(f"  page {pno+1}: low text ({len(t)} chars) -> OCR")
                 engine, ocr = ocr_page(page, tmp)
@@ -134,6 +158,12 @@ def extract_pages(pdf_path, log):
                     log.write(f"    OCR'd with {engine}: {len(ocr)} chars")
                 else:
                     log.write("    OCR failed, page skipped")
+            
+            # Inject TOC Breadcrumb if exists
+            breadcrumb = page_to_breadcrumb.get(pno + 1, None)
+            if breadcrumb:
+                t = f"[DOCUMENT CONTEXT: {breadcrumb}]\n\n" + t
+                
             pages.append(t)
     return pages, pages_ocr
 
