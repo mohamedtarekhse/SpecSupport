@@ -812,7 +812,7 @@
         const aiStatusText = document.getElementById('ai-status-text');
         
         async function sendMessage(forceText = null) {
-            const text = forceText || userInput.value.trim();
+            const text = (typeof forceText === 'string') ? forceText : userInput.value.trim();
             if (!text) return;
             
             const canAsk = await checkUsage();
