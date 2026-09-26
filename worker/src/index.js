@@ -572,6 +572,9 @@ app.post('/api/ask', async (c) => {
     
     return c.json({ answer, finish_reason: finishReason, sources, model_used: model })
   } catch (e) {
+    if (e.message && e.message.includes("RATE_LIMIT_ALL")) {
+      return c.json({ error: "The free AI provider (OpenRouter) is currently rate-limiting requests. Please configure a Groq API key in the admin panel." }, 429);
+    }
     return c.json({ error: e.message }, 500)
   }
 })
