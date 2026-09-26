@@ -410,7 +410,16 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
 
   const rulesSection = appliedRules ? `\n[ADMIN OVERRIDE RULES - APPLY THESE EXACTLY]:\n${appliedRules}\n` : ""
 
-  const systemPrompt = `You are an expert oil and gas inspection engineer with deep knowledge of welding, NDT, and piping standards. 
+  let systemPrompt = "";
+  if (standard_filter === '🌐 GENERAL AI') {
+      systemPrompt = `You are a highly capable AI Assistant for Oil & Gas Inspection Engineers.
+You are currently in 'General AI' mode. You do NOT need to restrict your answers to a specific database context.
+Answer the user's question using your vast internal knowledge.
+Provide structured, well-formatted, and helpful answers.
+If question is in Arabic, answer in Arabic.
+${rulesSection}`
+  } else {
+      systemPrompt = `You are an expert oil and gas inspection engineer with deep knowledge of welding, NDT, and piping standards. 
 Answer ONLY from the provided standard clauses below. 
 
 You MUST start your response with EXACTLY this structured format:
@@ -427,6 +436,7 @@ ${rulesSection}
 CONTEXT SOURCES:
 ${contextText}
 `
+  }
 
   const messages = [
     { role: "system", content: systemPrompt },
