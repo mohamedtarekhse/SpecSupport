@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inspecta | AI Assistant</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:wght@300;400&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -444,6 +445,54 @@
             gap: 4px;
         }
 
+            /* Gemini-Style Markdown Formatting */
+        .message-content h1, .message-content h2, .message-content h3, .message-content h4 {
+            color: var(--text-main);
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+        }
+        .message-content h3 { font-size: 1.15rem; }
+        .message-content p { margin-bottom: 1em; line-height: 1.6; }
+        .message-content ul, .message-content ol { padding-left: 1.5em; margin-bottom: 1em; }
+        .message-content li { margin-bottom: 0.5em; }
+        .message-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5em 0;
+            background: var(--input-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .message-content th, .message-content td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+        }
+        .message-content th {
+            background: var(--input-hover);
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+        }
+        .message-content strong {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+        .message-content blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 1em;
+            margin-left: 0;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        .message-content code {
+            background: var(--input-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body class="state-greeting">
@@ -694,7 +743,7 @@
 
             const content = document.createElement('div');
             content.className = 'message-content';
-            content.textContent = text;
+            if (type === 'ai' && typeof marked !== 'undefined') { content.innerHTML = marked.parse(text); } else { content.textContent = text; }
 
             if (sources && sources.length > 0) {
                 const sourcesDiv = document.createElement('div');
