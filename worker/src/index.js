@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 
 const app = new Hono()
 
-// Robust CORS — handles preflight OPTIONS for all routes
+// Robust CORS Ã¢â‚¬â€ handles preflight OPTIONS for all routes
 app.use('*', async (c, next) => {
   // Always set CORS headers
   c.header('Access-Control-Allow-Origin', '*')
@@ -267,8 +267,8 @@ function cosineSimilarity(vecA, vecB) {
 }
 
 const fallbackModels = [
-  'nvidia/nemotron-3-super-120b-a12b:free',   // 120B — NVIDIA flagship
-  'nvidia/nemotron-3-ultra-550b-a55b:free',   // 550B — largest free model on OpenRouter
+  'nvidia/nemotron-3-super-120b-a12b:free',   // 120B Ã¢â‚¬â€ NVIDIA flagship
+  'nvidia/nemotron-3-ultra-550b-a55b:free',   // 550B Ã¢â‚¬â€ largest free model on OpenRouter
   'google/gemma-4-31b-it:free',               // 31B instruction-tuned
   'nex-agi/nex-n2.5-pro:free',                // reasoning specialist
   'thinkingmachines/inkling:free'             // large context reasoning
@@ -309,7 +309,7 @@ async function askOpenRouter(c, messages, stream) {
   throw new Error(`All models failed. Last error: ${lastError}`)
 }
 
-async function prepareContextAndMessages(c, question, language, session_id, standard_filter) {
+async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = []) {
   // Usage check
   const today = new Date().toISOString().split('T')[0]
   if (session_id !== 'admin') {
@@ -353,8 +353,20 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
     console.error('Embedding failed:', embErr.message)
   }
   
+  // Hybrid Search (BM25 + Vector) Setup
+  let bm25Scores = {};
+  try {
+    const ftsTerm = question.replace(/[^a-zA-Z0-9 ]/g, "").split(" ").filter(w => w.length > 2).join(" OR ");
+    if (ftsTerm) {
+      const { results: ftsRes } = await c.env.DB.prepare(`SELECT rowid, bm25(standards_fts) as bm25_score FROM standards_fts WHERE standards_fts MATCH ?`).bind(ftsTerm).all();
+      // SQLite BM25 returns negative scores (more negative = better)
+      ftsRes.sort((a,b) => a.bm25_score - b.bm25_score);
+      ftsRes.forEach((r, rank) => { bm25Scores[r.rowid] = rank; });
+    }
+  } catch(e) { console.error('FTS Error:', e.message) }
+
   // Load chunks
-  let query = `SELECT standard_code, standard_name, clause, content, embedding FROM standards_chunks`
+  let query = `SELECT id, standard_code, standard_name, clause, content, embedding FROM standards_chunks`
   let params = []
   
   if (standard_filter && standard_filter !== 'ALL') {
@@ -364,15 +376,29 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
   
   const { results } = await c.env.DB.prepare(query).bind(...params).all()
   
-  // Compute similarities
+  // Compute Vector Similarities
   let scoredChunks = (results || []).map(row => {
     let emb = []
     try { emb = JSON.parse(row.embedding) } catch(e){}
     let score = emb.length > 0 ? cosineSimilarity(questionEmbedding, emb) : -1
-    return { ...row, score }
+    return { ...row, vector_score: score }
   })
   
-  scoredChunks.sort((a, b) => b.score - a.score)
+  // Rank Vector Scores
+  scoredChunks.sort((a, b) => b.vector_score - a.vector_score)
+  scoredChunks.forEach((chunk, rank) => { chunk.vector_rank = rank; })
+
+  // Reciprocal Rank Fusion (RRF)
+  const k = 60;
+  scoredChunks.forEach(chunk => {
+    const vScore = 1 / (k + chunk.vector_rank + 1);
+    const bRank = bm25Scores[chunk.id] !== undefined ? bm25Scores[chunk.id] : 1000;
+    const bScore = 1 / (k + bRank + 1);
+    chunk.rrf_score = vScore + bScore;
+  })
+
+  // Final Hybrid Sort
+  scoredChunks.sort((a, b) => b.rrf_score - a.rrf_score)
   const topChunks = scoredChunks.slice(0, 5)
   
   let contextText = ""
@@ -404,6 +430,7 @@ ${contextText}
 
   const messages = [
     { role: "system", content: systemPrompt },
+    ...(history || []),
     { role: "user", content: question }
   ]
   
@@ -412,13 +439,13 @@ ${contextText}
 
 app.post('/api/ask', async (c) => {
   try {
-    const { question, language, session_id, standard_filter } = await c.req.json()
+    const { question, language, session_id, standard_filter, history } = await c.req.json()
     
     if (!question || !session_id) return c.json({ error: 'Missing fields' }, 400)
     
     let contextData
     try {
-      contextData = await prepareContextAndMessages(c, question, language, session_id, standard_filter)
+      contextData = await prepareContextAndMessages(c, question, language, session_id, standard_filter, history)
     } catch(e) {
       if (e.message === 'RATE_LIMIT') return c.json({ error: 'Limit reached' }, 429)
       throw e
@@ -443,13 +470,13 @@ app.post('/api/ask', async (c) => {
 
 app.post('/api/ask/stream', async (c) => {
   try {
-    const { question, language, session_id, standard_filter } = await c.req.json()
+    const { question, language, session_id, standard_filter, history } = await c.req.json()
     
     if (!question || !session_id) return c.json({ error: 'Missing fields' }, 400)
     
     let contextData
     try {
-      contextData = await prepareContextAndMessages(c, question, language, session_id, standard_filter)
+      contextData = await prepareContextAndMessages(c, question, language, session_id, standard_filter, history)
     } catch(e) {
       if (e.message === 'RATE_LIMIT') return c.json({ error: 'Limit reached' }, 429)
       throw e

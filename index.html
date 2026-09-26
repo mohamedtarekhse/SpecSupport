@@ -576,6 +576,7 @@
 
         // State
         let currentLang = 'en';
+        let chatHistory = [];
         let currentStandard = 'ALL';
         let hasStartedChat = false;
         const standards = ['ALL', 'API 6A', 'API 570', 'API 510', 'AWS D1.1', 'ASME VIII', 'ASME B31.3', 'ASME IX', 'ASME V'];
@@ -670,6 +671,7 @@
 
         // Add Message to UI
         function addMessage(text, type, sources = null) {
+            chatHistory.push({role: type === 'ai' ? 'assistant' : 'user', content: text});
             if (!hasStartedChat) {
                 hasStartedChat = true;
                 body.classList.remove('state-greeting');
@@ -754,7 +756,8 @@
                         question: text,
                         language: currentLang,
                         session_id: sessionId,
-                        standard_filter: currentStandard
+                        standard_filter: currentStandard,
+                        history: chatHistory.slice(-4)
                     })
                 });
 
