@@ -283,7 +283,7 @@ async function askOpenRouter(c, messages, stream) {
   }
 
   const apiKey = dbConf['openrouter_api_key'] || c.env.OPENROUTER_API_KEY
-  let primaryModel = dbConf['openrouter_model'] || c.env.OPENROUTER_MODEL || 'qwen/qwen3.8-27b:free'
+  let primaryModel = dbConf['openrouter_model'] || c.env.OPENROUTER_MODEL || 'nvidia/nemotron-3-super-120b-a12b:free'
   
   if (!apiKey) throw new Error('OpenRouter API Key is not configured in DB or Env')
 
