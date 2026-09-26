@@ -328,10 +328,15 @@ async function askGroq(c, messages, stream) {
             }
             if (!response.ok) {
                 const errText = await response.text();
+                // If it's auth error, throw immediately, don't fallback
+                if (response.status === 401) throw new Error(`Invalid Groq API Key`);
                 throw new Error(`HTTP ${response.status}: ${errText}`);
             }
             return { response, model, provider: 'groq' }
-        } catch (e) { lastError = e.message }
+        } catch (e) { 
+            lastError = e.message;
+            if (e.message.includes("Invalid Groq API Key")) throw e; 
+        }
     }
     throw new Error(`RATE_LIMIT_ALL: ${lastError}`)
 }
