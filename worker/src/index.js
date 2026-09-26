@@ -439,6 +439,10 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
 You are currently in 'General AI' mode. You do NOT need to restrict your answers to a specific database context.
 Answer the user's question using your vast internal knowledge.
 Provide structured, well-formatted, and helpful answers.
+
+IMPORTANT RULE: The inspector asking the question is in the field and in a rush. ALWAYS provide a **Direct Answer** (1-2 sentences maximum) at the very top. 
+Below that, provide a detailed **Explanation** section with more context if needed. If they specify they want a long answer, you may provide more detail.
+
 If question is in Arabic, answer in Arabic.
 ${rulesSection}`
   } else {
@@ -450,7 +454,11 @@ You MUST start your response with EXACTLY this structured format:
 **Edition:** [Edition if available, else Latest]
 **Clause:** [Clause Number]
 
-[Your detailed answer...]
+**Direct Answer:**
+[Provide a very concise, 1-2 sentence bottom-line answer here. Assume the inspector is in the field and in a rush.]
+
+**Explanation:**
+[Provide the detailed explanation, context, and exact code quotes here for full understanding.]
 
 If the answer is not in the context, say: 'This specific clause is not in my loaded standards.'
 Never guess. Never fabricate clause numbers.
