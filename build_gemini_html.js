@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+const fs = require('fs');
+
+const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -899,7 +901,7 @@
 
             try {
                 const isArabic = anyArabic(text);
-                const res = await fetch(`${API_BASE}/api/ask`, {
+                const res = await fetch(\`\${API_BASE}/api/ask\`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -923,7 +925,7 @@
 
             } catch (err) {
                 hideStatusAnimation();
-                appendMessage(`Error: ${err.message}`, 'ai');
+                appendMessage(\`Error: \${err.message}\`, 'ai');
             } finally {
                 isGenerating = false;
                 updateSendButtonState(false);
@@ -944,17 +946,17 @@
         }
 
         function anyArabic(str) {
-            return /[\u0600-\u06FF]/.test(str);
+            return /[\\u0600-\\u06FF]/.test(str);
         }
 
         // Append Message with Action Toolbar & Follow-Ups
         function appendMessage(text, role, sources = [], followups = [], canContinue = false) {
             const list = document.getElementById('messages-list');
             const row = document.createElement('div');
-            row.className = `message-row ${role}`;
+            row.className = \`message-row \${role}\`;
 
             const avatar = document.createElement('div');
-            avatar.className = `avatar-box ${role}-avatar`;
+            avatar.className = \`avatar-box \${role}-avatar\`;
             avatar.innerHTML = role === 'user' ? '👤' : '<span class="sparkle-icon" style="font-size:1rem;">✦</span>';
 
             const body = document.createElement('div');
@@ -967,8 +969,8 @@
                 if (sources && sources.length > 0) {
                     const srcBox = document.createElement('details');
                     srcBox.className = 'sources-accordion';
-                    let listItems = sources.map(s => `<li><strong>${s.standard}</strong>: ${s.clause}</li>`).join('');
-                    srcBox.innerHTML = `<summary>📖 Verified Sources Cited (${sources.length})</summary><ul>${listItems}</ul>`;
+                    let listItems = sources.map(s => \`<li><strong>\${s.standard}</strong>: \${s.clause}</li>\`).join('');
+                    srcBox.innerHTML = \`<summary>📖 Verified Sources Cited (\${sources.length})</summary><ul>\${listItems}</ul>\`;
                     body.appendChild(srcBox);
                 }
 
@@ -991,7 +993,7 @@
                     followups.forEach(q => {
                         const chip = document.createElement('div');
                         chip.className = 'followup-chip';
-                        chip.innerHTML = `↗ ${q}`;
+                        chip.innerHTML = \`↗ \${q}\`;
                         chip.onclick = () => sendMessage(q);
                         chipsWrap.appendChild(chip);
                     });
@@ -1001,12 +1003,12 @@
                 // Action Toolbar (Copy, Upvote, Downvote, Export NCR)
                 const toolbar = document.createElement('div');
                 toolbar.className = 'response-toolbar';
-                toolbar.innerHTML = `
-                    <button class="tool-btn" onclick="copyAnswer(this, \`${encodeURIComponent(text)}\`)">📋 Copy</button>
+                toolbar.innerHTML = \`
+                    <button class="tool-btn" onclick="copyAnswer(this, \\\`\${encodeURIComponent(text)}\\\`)">📋 Copy</button>
                     <button class="tool-btn" onclick="alert('Thank you for your feedback!')">👍</button>
                     <button class="tool-btn" onclick="alert('Feedback noted for engineering review.')">👎</button>
-                    <button class="tool-btn" onclick="exportNCR(\`${encodeURIComponent(text)}\`)">📑 Export NCR</button>
-                `;
+                    <button class="tool-btn" onclick="exportNCR(\\\`\${encodeURIComponent(text)}\\\`)">📑 Export NCR</button>
+                \`;
                 body.appendChild(toolbar);
             } else {
                 body.textContent = text;
@@ -1032,17 +1034,17 @@
         function exportNCR(encodedText) {
             const raw = decodeURIComponent(encodedText);
             const ncrWindow = window.open('', '_blank');
-            ncrWindow.document.write(`
+            ncrWindow.document.write(\`
                 <html><head><title>Non-Conformance Report (NCR)</title><style>body{font-family:sans-serif; padding:30px;} pre{background:#f5f5f5; padding:15px; border-radius:8px;}</style></head>
                 <body>
                     <h2>NON-CONFORMANCE REPORT (NCR) - QUALITY DEPARTMENT</h2>
-                    <p><strong>Report Date:</strong> ${new Date().toLocaleDateString()}</p>
+                    <p><strong>Report Date:</strong> \${new Date().toLocaleDateString()}</p>
                     <p><strong>Inspection Scope:</strong> Oilfield Equipment & Welding Quality</p>
                     <hr>
-                    <pre>${raw}</pre>
+                    <pre>\${raw}</pre>
                     <br><button onclick="window.print()">Print NCR Document</button>
                 </body></html>
-            `);
+            \`);
         }
 
         // Voice Input Recognition
@@ -1169,7 +1171,7 @@
             ctx.strokeRect(minX, minY, (maxX - minX), (maxY - minY));
             ctx.fillStyle = '#EA4335';
             ctx.font = '16px Inter, sans-serif';
-            ctx.fillText(isLinearCrack ? `Crack: ${maxDimensionMm}mm` : `Pits: ${areaLossPercent}%`, minX, Math.max(minY - 8, 18));
+            ctx.fillText(isLinearCrack ? \`Crack: \${maxDimensionMm}mm\` : \`Pits: \${areaLossPercent}%\`, minX, Math.max(minY - 8, 18));
 
             lastVisionMetrics = {
                 type: isLinearCrack ? 'Linear Crack' : 'Corrosion Pitting',
@@ -1181,18 +1183,18 @@
 
             const summaryEl = document.getElementById('vision-result-summary');
             document.getElementById('vision-metrics-card').style.display = 'block';
-            summaryEl.innerHTML = `
-                <div><span class="metric-badge ${maxDimensionMm > 0 ? 'badge-reject' : 'badge-accept'}">${lastVisionMetrics.type}</span></div>
-                <div style="margin-top:6px;"><strong>Max Measured Dimension:</strong> ${maxDimensionMm} mm</div>
-                <div><strong>Surface Area Loss:</strong> ${areaLossPercent}% (ASTM G46)</div>
-                <div><strong>Aspect Ratio:</strong> ${(maxDimensionMm / (Math.min(boxWidthMm, boxHeightMm) || 1)).toFixed(1)} (${isLinearCrack ? 'Linear Indication' : 'Rounded Indication'})</div>
-            `;
+            summaryEl.innerHTML = \`
+                <div><span class="metric-badge \${maxDimensionMm > 0 ? 'badge-reject' : 'badge-accept'}">\${lastVisionMetrics.type}</span></div>
+                <div style="margin-top:6px;"><strong>Max Measured Dimension:</strong> \${maxDimensionMm} mm</div>
+                <div><strong>Surface Area Loss:</strong> \${areaLossPercent}% (ASTM G46)</div>
+                <div><strong>Aspect Ratio:</strong> \${(maxDimensionMm / (Math.min(boxWidthMm, boxHeightMm) || 1)).toFixed(1)} (\${isLinearCrack ? 'Linear Indication' : 'Rounded Indication'})</div>
+            \`;
         }
 
         function injectVisionToChat() {
             if (!lastVisionMetrics) return;
             closeVisionModal();
-            const query = `We measured a defect on site using our optical gauge: Defect Type: ${lastVisionMetrics.type}, Measured Dimension: ${lastVisionMetrics.maxDimensionMm} mm, Surface Area Loss: ${lastVisionMetrics.areaLossPercent}%. Is this acceptable under the relevant code (API 1104 / ASME B31.3 / API 5CT)?`;
+            const query = \`We measured a defect on site using our optical gauge: Defect Type: \${lastVisionMetrics.type}, Measured Dimension: \${lastVisionMetrics.maxDimensionMm} mm, Surface Area Loss: \${lastVisionMetrics.areaLossPercent}%. Is this acceptable under the relevant code (API 1104 / ASME B31.3 / API 5CT)?\`;
             sendMessage(query);
         }
 
@@ -1203,17 +1205,17 @@
             if (!file) return;
             const logBox = document.getElementById('hub-log');
             logBox.style.display = 'block';
-            logBox.innerHTML = `<div>[1/4] Calculating cryptographic SHA-256 fingerprint...</div>`;
+            logBox.innerHTML = \`<div>[1/4] Calculating cryptographic SHA-256 fingerprint...</div>\`;
 
             const buffer = await file.arrayBuffer();
             const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             const fileHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-            logBox.innerHTML += `<div>[2/4] Checking server deduplication registry: ${fileHash.substring(0, 16)}...</div>`;
+            logBox.innerHTML += \`<div>[2/4] Checking server deduplication registry: \${fileHash.substring(0, 16)}...</div>\`;
 
             // Query server if document already exists
-            const checkRes = await fetch(`${API_BASE}/api/admin/check-hash`, {
+            const checkRes = await fetch(\`\${API_BASE}/api/admin/check-hash\`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ file_hash: fileHash })
@@ -1221,25 +1223,25 @@
             const checkData = await checkRes.json();
 
             if (checkData.exists) {
-                logBox.innerHTML += `<div style="color:#60A5FA;">⚡ Document recognized: ${checkData.doc.standard_code} - ${checkData.doc.title}!</div>`;
-                logBox.innerHTML += `<div style="color:#34D399;">✓ Instant activation from server cache with 0 compute cost!</div>`;
+                logBox.innerHTML += \`<div style="color:#60A5FA;">⚡ Document recognized: \${checkData.doc.standard_code} - \${checkData.doc.title}!</div>\`;
+                logBox.innerHTML += \`<div style="color:#34D399;">✓ Instant activation from server cache with 0 compute cost!</div>\`;
                 return;
             }
 
-            logBox.innerHTML += `<div>[3/4] New document. Parsing pages with client-side PDF.js...</div>`;
+            logBox.innerHTML += \`<div>[3/4] New document. Parsing pages with client-side PDF.js...</div>\`;
             const code = document.getElementById('hub-std-code').value.trim() || file.name.replace('.pdf', '');
             const name = document.getElementById('hub-std-name').value.trim() || 'Uploaded Specification';
             const scope = document.querySelector('input[name="hub-scope"]:checked').value;
             const token = document.getElementById('admin-token').value.trim();
 
             if (!token) {
-                logBox.innerHTML += `<div style="color:#EF4444;">Error: Please enter Admin Secret Token in Settings first!</div>`;
+                logBox.innerHTML += \`<div style="color:#EF4444;">Error: Please enter Admin Secret Token in Settings first!</div>\`;
                 return;
             }
 
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
             const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-            logBox.innerHTML += `<div>Loaded ${pdf.numPages} pages. Uploading chunks with 768-d embeddings...</div>`;
+            logBox.innerHTML += \`<div>Loaded \${pdf.numPages} pages. Uploading chunks with 768-d embeddings...</div>\`;
 
             let currentContent = "";
             let chunkCount = 0;
@@ -1257,17 +1259,17 @@
                     currentContent = currentContent.substring(splitIdx + 1);
                     chunkCount++;
 
-                    await fetch(`${API_BASE}/api/admin/ingest`, {
+                    await fetch(\`\${API_BASE}/api/admin/ingest\`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
+                            'Authorization': \`Bearer \${token}\`
                         },
                         body: JSON.stringify({
                             standard_code: code,
                             standard_name: name,
-                            section: `Page ${i}`,
-                            clause: `Chunk ${chunkCount}`,
+                            section: \`Page \${i}\`,
+                            clause: \`Chunk \${chunkCount}\`,
                             content: chunkText,
                             file_hash: fileHash,
                             scope: scope,
@@ -1277,7 +1279,7 @@
                     });
                 }
             }
-            logBox.innerHTML += `<div style="color:#34D399;">✓ Ingested ${chunkCount} chunks successfully!</div>`;
+            logBox.innerHTML += \`<div style="color:#34D399;">✓ Ingested \${chunkCount} chunks successfully!</div>\`;
         }
 
         // Admin Config Save
@@ -1297,9 +1299,9 @@
             const orKey = document.getElementById('key-openrouter').value;
             const orModel = document.getElementById('model-openrouter').value;
 
-            const res = await fetch(`${API_BASE}/api/admin/config`, {
+            const res = await fetch(\`\${API_BASE}/api/admin/config\`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                headers: { 'Content-Type': 'application/json', 'Authorization': \`Bearer \${token}\` },
                 body: JSON.stringify({
                     active_provider: prov,
                     cloudflare_model: cfModel,
@@ -1319,3 +1321,7 @@
     </script>
 </body>
 </html>
+`;
+
+fs.writeFileSync('index.html', htmlContent, 'utf8');
+console.log('Successfully generated complete Google Gemini UI in index.html');

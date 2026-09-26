@@ -1,4 +1,6 @@
-import { Hono } from 'hono'
+const fs = require('fs');
+
+const workerCode = `import { Hono } from 'hono'
 
 const app = new Hono()
 
@@ -27,7 +29,7 @@ app.get('/api/health', (c) => {
 // Auto Database Schema Migration / Verification
 app.all('/api/admin/setup-db', async (c) => {
   try {
-    await c.env.DB.prepare(`
+    await c.env.DB.prepare(\`
       CREATE TABLE IF NOT EXISTS documents_catalog (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         file_hash TEXT UNIQUE NOT NULL,
@@ -40,23 +42,23 @@ app.all('/api/admin/setup-db', async (c) => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         expires_at DATETIME
       )
-    `).run()
+    \`).run()
 
     // Add columns to standards_chunks safely if they don't exist
-    const tableInfo = await c.env.DB.prepare(`PRAGMA table_info(standards_chunks)`).all()
+    const tableInfo = await c.env.DB.prepare(\`PRAGMA table_info(standards_chunks)\`).all()
     const colNames = (tableInfo.results || []).map(col => col.name)
     
     if (!colNames.includes('scope')) {
-      try { await c.env.DB.prepare(`ALTER TABLE standards_chunks ADD COLUMN scope TEXT DEFAULT 'global'`).run() } catch(e){}
+      try { await c.env.DB.prepare(\`ALTER TABLE standards_chunks ADD COLUMN scope TEXT DEFAULT 'global'\`).run() } catch(e){}
     }
     if (!colNames.includes('organization')) {
-      try { await c.env.DB.prepare(`ALTER TABLE standards_chunks ADD COLUMN organization TEXT DEFAULT 'INTERNATIONAL'`).run() } catch(e){}
+      try { await c.env.DB.prepare(\`ALTER TABLE standards_chunks ADD COLUMN organization TEXT DEFAULT 'INTERNATIONAL'\`).run() } catch(e){}
     }
     if (!colNames.includes('session_id')) {
-      try { await c.env.DB.prepare(`ALTER TABLE standards_chunks ADD COLUMN session_id TEXT`).run() } catch(e){}
+      try { await c.env.DB.prepare(\`ALTER TABLE standards_chunks ADD COLUMN session_id TEXT\`).run() } catch(e){}
     }
     if (!colNames.includes('expires_at')) {
-      try { await c.env.DB.prepare(`ALTER TABLE standards_chunks ADD COLUMN expires_at DATETIME`).run() } catch(e){}
+      try { await c.env.DB.prepare(\`ALTER TABLE standards_chunks ADD COLUMN expires_at DATETIME\`).run() } catch(e){}
     }
 
     return c.json({ success: true, message: "Database schema verified and up to date." })
@@ -72,7 +74,7 @@ app.post('/api/admin/check-hash', async (c) => {
     if (!file_hash) return c.json({ error: 'Missing file_hash' }, 400)
 
     const doc = await c.env.DB.prepare(
-      `SELECT id, file_hash, standard_code, title, organization, scope, chunk_count FROM documents_catalog WHERE file_hash = ?`
+      \`SELECT id, file_hash, standard_code, title, organization, scope, chunk_count FROM documents_catalog WHERE file_hash = ?\`
     ).bind(file_hash).first()
 
     if (doc) {
@@ -93,11 +95,11 @@ app.post('/api/admin/config', async (c) => {
     const { groq_api_key, openrouter_api_key, openrouter_model, cloudflare_model, active_provider } = data
     
     // Save to DB
-    if (groq_api_key !== undefined) await c.env.DB.prepare(`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)`).bind('groq_api_key', groq_api_key).run()
-    if (openrouter_api_key !== undefined) await c.env.DB.prepare(`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)`).bind('openrouter_api_key', openrouter_api_key).run()
-    if (openrouter_model !== undefined) await c.env.DB.prepare(`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)`).bind('openrouter_model', openrouter_model).run()
-    if (cloudflare_model !== undefined) await c.env.DB.prepare(`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)`).bind('cloudflare_model', cloudflare_model).run()
-    if (active_provider !== undefined) await c.env.DB.prepare(`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)`).bind('active_provider', active_provider).run()
+    if (groq_api_key !== undefined) await c.env.DB.prepare(\`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)\`).bind('groq_api_key', groq_api_key).run()
+    if (openrouter_api_key !== undefined) await c.env.DB.prepare(\`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)\`).bind('openrouter_api_key', openrouter_api_key).run()
+    if (openrouter_model !== undefined) await c.env.DB.prepare(\`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)\`).bind('openrouter_model', openrouter_model).run()
+    if (cloudflare_model !== undefined) await c.env.DB.prepare(\`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)\`).bind('cloudflare_model', cloudflare_model).run()
+    if (active_provider !== undefined) await c.env.DB.prepare(\`INSERT OR REPLACE INTO system_config (key, value) VALUES (?, ?)\`).bind('active_provider', active_provider).run()
     
     return c.json({ success: true })
   } catch (e) {
@@ -109,7 +111,7 @@ app.get('/api/admin/config', async (c) => {
   const token = c.req.header('Authorization')?.split(' ')[1]
   if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
   try {
-    const res = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
+    const res = await c.env.DB.prepare(\`SELECT key, value FROM system_config\`).all()
     let config = {}
     if (res.results) {
       res.results.forEach(row => config[row.key] = row.value)
@@ -126,13 +128,13 @@ app.post('/api/usage/check', async (c) => {
     const today = new Date().toISOString().split('T')[0]
     
     const usageRes = await c.env.DB.prepare(
-      `SELECT count(*) as count FROM usage_log WHERE session_id = ? AND date = ?`
+      \`SELECT count(*) as count FROM usage_log WHERE session_id = ? AND date = ?\`
     ).bind(session_id, today).first()
     
     const count = usageRes ? usageRes.count : 0
     
     const subRes = await c.env.DB.prepare(
-      `SELECT daily_limit FROM user_subscriptions WHERE session_id = ?`
+      \`SELECT daily_limit FROM user_subscriptions WHERE session_id = ?\`
     ).bind(session_id).first()
     
     const limit = subRes ? subRes.daily_limit : 9999
@@ -150,11 +152,11 @@ app.post('/api/usage/check', async (c) => {
 app.get('/api/earn/questions', async (c) => {
   try {
     const gold = await c.env.DB.prepare(
-      `SELECT id, question_text, is_gold_standard FROM crowdsource_questions WHERE is_gold_standard = 1 AND is_active = 1 ORDER BY RANDOM() LIMIT 5`
+      \`SELECT id, question_text, is_gold_standard FROM crowdsource_questions WHERE is_gold_standard = 1 AND is_active = 1 ORDER BY RANDOM() LIMIT 5\`
     ).all()
     
     const regular = await c.env.DB.prepare(
-      `SELECT id, question_text, is_gold_standard FROM crowdsource_questions WHERE is_gold_standard = 0 AND is_active = 1 ORDER BY RANDOM() LIMIT 15`
+      \`SELECT id, question_text, is_gold_standard FROM crowdsource_questions WHERE is_gold_standard = 0 AND is_active = 1 ORDER BY RANDOM() LIMIT 15\`
     ).all()
     
     const questions = [...(gold.results || []), ...(regular.results || [])]
@@ -179,7 +181,7 @@ app.post('/api/earn/submit', async (c) => {
     if (goldIds.length === 0) return c.json({ error: 'No answers' }, 400)
 
     const questions = await c.env.DB.prepare(
-      `SELECT id, is_gold_standard, gold_answer_keywords FROM crowdsource_questions WHERE id IN (${placeholders})`
+      \`SELECT id, is_gold_standard, gold_answer_keywords FROM crowdsource_questions WHERE id IN (\${placeholders})\`
     ).bind(...goldIds).all()
 
     let passedGold = true
@@ -203,14 +205,14 @@ app.post('/api/earn/submit', async (c) => {
     }
 
     const stmt = c.env.DB.prepare(
-      `INSERT INTO crowdsource_answers (question_id, session_id, user_answer, status) VALUES (?, ?, ?, 'pending')`
+      \`INSERT INTO crowdsource_answers (question_id, session_id, user_answer, status) VALUES (?, ?, ?, 'pending')\`
     )
     const batch = answers.map(a => stmt.bind(a.question_id, session_id, a.user_answer))
     await c.env.DB.batch(batch)
 
     await c.env.DB.prepare(
-      `INSERT INTO user_subscriptions (session_id, daily_limit, expert_name, expert_linkedin) VALUES (?, 50, ?, ?)
-       ON CONFLICT(session_id) DO UPDATE SET daily_limit = 50, expert_name = ?, expert_linkedin = ?, updated_at = CURRENT_TIMESTAMP`
+      \`INSERT INTO user_subscriptions (session_id, daily_limit, expert_name, expert_linkedin) VALUES (?, 50, ?, ?)
+       ON CONFLICT(session_id) DO UPDATE SET daily_limit = 50, expert_name = ?, expert_linkedin = ?, updated_at = CURRENT_TIMESTAMP\`
     ).bind(session_id, expert_name || null, expert_linkedin || null, expert_name || null, expert_linkedin || null).run()
 
     return c.json({ success: true, new_limit: 50 })
@@ -254,17 +256,17 @@ app.post('/api/admin/ingest', async (c) => {
 
     // Insert chunk into database
     await c.env.DB.prepare(
-      `INSERT INTO standards_chunks (standard_code, standard_name, section, clause, content, embedding, scope, organization, session_id, expires_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      \`INSERT INTO standards_chunks (standard_code, standard_name, section, clause, content, embedding, scope, organization, session_id, expires_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\`
     ).bind(standard_code, standard_name, section, clause, content, embedding, scope, organization, session_id, expiresAt).run()
     
     // Register in documents_catalog if hash supplied and chunk 1
     if (file_hash && (section === 'Page 1' || clause.includes('Chunk 1'))) {
       try {
-        await c.env.DB.prepare(`
+        await c.env.DB.prepare(\`
           INSERT OR REPLACE INTO documents_catalog (file_hash, standard_code, title, organization, scope, session_id, expires_at)
           VALUES (?, ?, ?, ?, ?, ?, ?)
-        `).bind(file_hash, standard_code, standard_name, organization, scope, session_id, expiresAt).run()
+        \`).bind(file_hash, standard_code, standard_name, organization, scope, session_id, expiresAt).run()
       } catch(e) {}
     }
 
@@ -285,7 +287,7 @@ app.post('/api/admin/rules', async (c) => {
     if (!keyword || !instruction) return c.json({ error: 'Missing fields' }, 400)
     
     await c.env.DB.prepare(
-      `INSERT INTO ndt_rules (keyword, instruction) VALUES (?, ?)`
+      \`INSERT INTO ndt_rules (keyword, instruction) VALUES (?, ?)\`
     ).bind(keyword, instruction).run()
     
     return c.json({ success: true })
@@ -310,7 +312,7 @@ const fallbackModels = [
 ]
 
 async function askAIProvider(c, messages, stream) {
-    const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
+    const confRes = await c.env.DB.prepare(\`SELECT key, value FROM system_config\`).all()
     let dbConf = {}
     if (confRes.results) confRes.results.forEach(r => dbConf[r.key] = r.value)
   
@@ -331,7 +333,7 @@ async function askAIProvider(c, messages, stream) {
         temperature: 0.2
       })
       const text = res?.response || (typeof res === 'string' ? res : (res?.choices?.[0]?.message?.content || ''))
-      if (!text || text === '{}') throw new Error(`Empty response from Cloudflare AI (${modelToUse})`)
+      if (!text || text === '{}') throw new Error(\`Empty response from Cloudflare AI (\${modelToUse})\`)
       return {
         response: {
           ok: true,
@@ -353,7 +355,7 @@ async function askAIProvider(c, messages, stream) {
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${key}`,
+          "Authorization": \`Bearer \${key}\`,
           "Content-Type": "application/json",
           ...(providerName === 'openrouter' && { "HTTP-Referer": "https://specsupport.pages.dev", "X-Title": "Inspecta" })
         },
@@ -369,8 +371,8 @@ async function askAIProvider(c, messages, stream) {
       if (response.status === 429) throw new Error("Rate Limit Exceeded")
       if (!response.ok) {
         const errText = await response.text()
-        if (response.status === 401) throw new Error(`Invalid API Key for ${providerName}`)
-        throw new Error(`HTTP ${response.status}: ${errText}`)
+        if (response.status === 401) throw new Error(\`Invalid API Key for \${providerName}\`)
+        throw new Error(\`HTTP \${response.status}: \${errText}\`)
       }
       return { response, model: modelToUse, provider: providerName }
     }
@@ -380,13 +382,13 @@ async function askAIProvider(c, messages, stream) {
       try {
         return await runCloudflareAI(cfModel)
       } catch (e) {
-        lastError = `Cloudflare AI (${cfModel}): ${e.message}`
+        lastError = \`Cloudflare AI (\${cfModel}): \${e.message}\`
         console.error(lastError)
         if (cfModel !== '@cf/meta/llama-3.1-8b-instruct') {
           try {
             return await runCloudflareAI('@cf/meta/llama-3.1-8b-instruct')
           } catch (e2) {
-            lastError = `Cloudflare AI (@cf/meta/llama-3.1-8b-instruct): ${e2.message}`
+            lastError = \`Cloudflare AI (@cf/meta/llama-3.1-8b-instruct): \${e2.message}\`
             console.error(lastError)
           }
         }
@@ -396,14 +398,14 @@ async function askAIProvider(c, messages, stream) {
         try {
           return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', 'llama-3.1-70b-versatile', 1000)
         } catch (e) {
-          lastError = `Groq: ${e.message}`
+          lastError = \`Groq: \${e.message}\`
         }
       }
       if (orKey) {
         try {
           return await runHttpProvider('openrouter', orKey, 'https://openrouter.ai/api/v1/chat/completions', orModel)
         } catch (e) {
-          lastError = `OpenRouter: ${e.message}`
+          lastError = \`OpenRouter: \${e.message}\`
         }
       }
     }
@@ -415,7 +417,7 @@ async function askAIProvider(c, messages, stream) {
           try {
             return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', m, 1000)
           } catch (e) {
-            lastError = `Groq (${m}): ${e.message}`
+            lastError = \`Groq (\${m}): \${e.message}\`
             if (e.message.includes("Invalid API Key")) throw e
           }
         }
@@ -423,13 +425,13 @@ async function askAIProvider(c, messages, stream) {
       try {
         return await runCloudflareAI(cfModel)
       } catch (e) {
-        lastError = `Cloudflare AI: ${e.message}`
+        lastError = \`Cloudflare AI: \${e.message}\`
       }
       if (orKey) {
         try {
           return await runHttpProvider('openrouter', orKey, 'https://openrouter.ai/api/v1/chat/completions', orModel)
         } catch (e) {
-          lastError = `OpenRouter: ${e.message}`
+          lastError = \`OpenRouter: \${e.message}\`
         }
       }
     }
@@ -441,7 +443,7 @@ async function askAIProvider(c, messages, stream) {
           try {
             return await runHttpProvider('openrouter', orKey, 'https://openrouter.ai/api/v1/chat/completions', m)
           } catch (e) {
-            lastError = `OpenRouter (${m}): ${e.message}`
+            lastError = \`OpenRouter (\${m}): \${e.message}\`
             if (e.message.includes("Invalid API Key")) throw e
           }
         }
@@ -449,22 +451,22 @@ async function askAIProvider(c, messages, stream) {
       try {
         return await runCloudflareAI(cfModel)
       } catch (e) {
-        lastError = `Cloudflare AI: ${e.message}`
+        lastError = \`Cloudflare AI: \${e.message}\`
       }
       if (groqKey) {
         try {
           return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', 'llama-3.1-70b-versatile', 1000)
         } catch (e) {
-          lastError = `Groq: ${e.message}`
+          lastError = \`Groq: \${e.message}\`
         }
       }
     }
 
-    throw new Error(`RATE_LIMIT_ALL: ${lastError || 'Unable to generate response from any provider.'}`)
+    throw new Error(\`RATE_LIMIT_ALL: \${lastError || 'Unable to generate response from any provider.'}\`)
 }
 
 async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = [], mode = 'web') {
-  const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
+  const confRes = await c.env.DB.prepare(\`SELECT key, value FROM system_config\`).all()
   let dbConf = {}
   if (confRes.results) confRes.results.forEach(r => dbConf[r.key] = r.value)
   const apiKey = dbConf['openrouter_api_key'] || c.env.OPENROUTER_API_KEY || '';
@@ -473,13 +475,13 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
   const today = new Date().toISOString().split('T')[0]
   if (session_id !== 'admin') {
     const usageRes = await c.env.DB.prepare(
-      `SELECT count(*) as count FROM usage_log WHERE session_id = ? AND date = ?`
+      \`SELECT count(*) as count FROM usage_log WHERE session_id = ? AND date = ?\`
     ).bind(session_id, today).first()
     
     const count = usageRes ? usageRes.count : 0
     
     const subRes = await c.env.DB.prepare(
-      `SELECT daily_limit FROM user_subscriptions WHERE session_id = ?`
+      \`SELECT daily_limit FROM user_subscriptions WHERE session_id = ?\`
     ).bind(session_id).first()
     
     const limit = subRes ? subRes.daily_limit : 9999
@@ -492,23 +494,23 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
   // Auto-clean expired private sandboxes
   try {
     c.executionCtx.waitUntil(
-      c.env.DB.prepare(`DELETE FROM standards_chunks WHERE expires_at IS NOT NULL AND expires_at < CURRENT_TIMESTAMP`).run()
+      c.env.DB.prepare(\`DELETE FROM standards_chunks WHERE expires_at IS NOT NULL AND expires_at < CURRENT_TIMESTAMP\`).run()
     )
   } catch(e){}
 
   // Fetch active dynamic context rules
-  const rulesRes = await c.env.DB.prepare(`SELECT keyword, instruction FROM ndt_rules WHERE is_active = 1`).all()
+  const rulesRes = await c.env.DB.prepare(\`SELECT keyword, instruction FROM ndt_rules WHERE is_active = 1\`).all()
   let appliedRules = ""
   if (rulesRes.results) {
     const qLower = question.toLowerCase()
     for (const rule of rulesRes.results) {
       if (qLower.includes(rule.keyword.toLowerCase())) {
-        appliedRules += `- ${rule.instruction}\n`
+        appliedRules += \`- \${rule.instruction}\\n\`
       }
     }
   }
 
-  const rulesSection = appliedRules ? `\n[ADMIN OVERRIDE RULES - APPLY THESE EXACTLY]:\n${appliedRules}\n` : ""
+  const rulesSection = appliedRules ? \`\\n[ADMIN OVERRIDE RULES - APPLY THESE EXACTLY]:\\n\${appliedRules}\\n\` : ""
   let sources = []
   let systemPrompt = ""
 
@@ -516,7 +518,7 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
   // MODE 1: 🌐 WEB INTELLIGENCE MODE (DEFAULT)
   // ==========================================
   if (mode === 'web') {
-    systemPrompt = `You are Inspecta Web Intelligence, a premier oil & gas, QA/QC, and non-destructive testing expert powered by 320B GLM-5.3-Flash.
+    systemPrompt = \`You are Inspecta Web Intelligence, a premier oil & gas, QA/QC, and non-destructive testing expert powered by 320B GLM-5.3-Flash.
 You are currently operating in 'Web Mode' (broad engineering and scientific knowledge).
 Answer the user's question with uncompromising technical accuracy, citing real international standards (API, ASME, AWS, ISO, NACE) and engineering physics.
 
@@ -530,16 +532,16 @@ MANDATORY STRUCTURE:
 **Quality Recommendation:**
 [State the exact measuring tool, calibration requirement, and inspection step to do the job right.]
 
-${rulesSection}
+\${rulesSection}
 At the very end of your response, ALWAYS include 3 contextual follow-up question chips in exactly this format:
 <!--FOLLOWUPS: ["Question 1?", "Question 2?", "Question 3?"]-->
-`
+\`
   }
   // ==========================================
   // MODE 2: 💡 ASK AN EXPERT (OEM & FIELD SOP)
   // ==========================================
   else if (mode === 'expert') {
-    systemPrompt = `You are a Senior Level III QA/QC & Oilfield Equipment Reliability Expert with 30+ years of rig-floor and manufacturing experience.
+    systemPrompt = \`You are a Senior Level III QA/QC & Oilfield Equipment Reliability Expert with 30+ years of rig-floor and manufacturing experience.
 Your specialty is combining legal codes (API, ASME) with OEM Manufacturer Procedures (NOV, Cameron, Hydril, Baker Hughes) and hard-won field practical wisdom.
 
 MANDATORY STRUCTURE:
@@ -561,10 +563,10 @@ MANDATORY STRUCTURE:
 **5. Step-by-Step Field SOP:**
 [Exact tool, cleaning procedure, NDT technique, and disposition.]
 
-${rulesSection}
+\${rulesSection}
 At the very end of your response, ALWAYS include 3 contextual follow-up question chips in exactly this format:
 <!--FOLLOWUPS: ["Question 1?", "Question 2?", "Question 3?"]-->
-`
+\`
   }
   // ==========================================
   // MODE 3: 📚 STANDARDS (STRICT RAG DATABASE)
@@ -575,9 +577,9 @@ At the very end of your response, ALWAYS include 3 contextual follow-up question
     try {
       const cachedHyde = await c.env.DB.prepare('SELECT hyde_text FROM hyde_cache WHERE question = ?').bind(question).first('hyde_text');
       if (cachedHyde) {
-        searchQuestion = question + "\n\n" + cachedHyde;
+        searchQuestion = question + "\\n\\n" + cachedHyde;
       } else {
-        const hydePrompt = `You are an expert oil and gas engineer. Write a formal, hypothetical standard clause that perfectly answers this question: "${question}". Do not write an intro, just the formal technical text.`
+        const hydePrompt = \`You are an expert oil and gas engineer. Write a formal, hypothetical standard clause that perfectly answers this question: "\${question}". Do not write an intro, just the formal technical text.\`
         let generatedHyde = null;
         if (c.env.AI) {
           try {
@@ -589,7 +591,7 @@ At the very end of your response, ALWAYS include 3 contextual follow-up question
           } catch(e) {}
         }
         if (generatedHyde) {
-          searchQuestion = question + "\n\n" + generatedHyde;
+          searchQuestion = question + "\\n\\n" + generatedHyde;
           c.executionCtx.waitUntil(
             c.env.DB.prepare('INSERT OR IGNORE INTO hyde_cache (question, hyde_text) VALUES (?, ?)').bind(question, generatedHyde).run()
           );
@@ -609,22 +611,22 @@ At the very end of your response, ALWAYS include 3 contextual follow-up question
     try {
       const ftsTerm = question.replace(/[^a-zA-Z0-9 ]/g, "").split(" ").filter(w => w.length > 2).join(" OR ");
       if (ftsTerm) {
-        const { results: ftsRes } = await c.env.DB.prepare(`SELECT rowid, bm25(standards_fts) as bm25_score FROM standards_fts WHERE standards_fts MATCH ?`).bind(ftsTerm).all();
+        const { results: ftsRes } = await c.env.DB.prepare(\`SELECT rowid, bm25(standards_fts) as bm25_score FROM standards_fts WHERE standards_fts MATCH ?\`).bind(ftsTerm).all();
         ftsRes.sort((a,b) => a.bm25_score - b.bm25_score);
         ftsRes.forEach((r, rank) => { bm25Scores[r.rowid] = rank; });
       }
     } catch(e) {}
 
     // Multi-Tier Scoped SQL Query: Global + Shared Company + Session Sandbox
-    let query = `
+    let query = \`
       SELECT id, standard_code, standard_name, clause, content, embedding, scope, organization 
       FROM standards_chunks 
       WHERE (scope = 'global' OR scope IS NULL OR (scope = 'private_temp' AND session_id = ?))
-    `
+    \`
     let params = [session_id]
 
     if (standard_filter && standard_filter !== 'ALL' && standard_filter !== '🌐 GENERAL AI') {
-      query += ` AND standard_code = ?`
+      query += \` AND standard_code = ?\`
       params.push(standard_filter)
     }
 
@@ -655,26 +657,26 @@ At the very end of your response, ALWAYS include 3 contextual follow-up question
     let hasPrivateSpec = false
     topChunks.forEach((chunk, idx) => {
       if (chunk.scope === 'private_temp' || chunk.scope === 'company_shared') hasPrivateSpec = true
-      contextText += `[Source ${idx+1}] Standard: ${chunk.standard_code} | Clause: ${chunk.clause}\n${chunk.content}\n\n`
+      contextText += \`[Source \${idx+1}] Standard: \${chunk.standard_code} | Clause: \${chunk.clause}\\n\${chunk.content}\\n\\n\`
       sources.push({ standard: chunk.standard_code, clause: chunk.clause })
     })
 
-    const overrideNotice = hasPrivateSpec ? `\n[HIERARCHICAL GOVERNANCE OVERRIDE ACTIVE]: A company-specific procedure or project specification is loaded in context. COMPANY PROCEDURES TAKE ABSOLUTE PRECEDENCE OVER GENERAL CODES. If the company spec mandates stricter limits, enforce them!\n` : ""
+    const overrideNotice = hasPrivateSpec ? \`\\n[HIERARCHICAL GOVERNANCE OVERRIDE ACTIVE]: A company-specific procedure or project specification is loaded in context. COMPANY PROCEDURES TAKE ABSOLUTE PRECEDENCE OVER GENERAL CODES. If the company spec mandates stricter limits, enforce them!\\n\` : ""
 
     // Database-First with Web Fallback
     if (topChunks.length === 0 || topChunks[0].vector_score < 0.25) {
-      systemPrompt = `You are an expert oil and gas inspection engineer.
+      systemPrompt = \`You are an expert oil and gas inspection engineer.
 The user asked about a clause that is NOT currently pre-loaded in the local database.
 Perform a Database-First Web Refinement:
 1. Search your global technical knowledge to locate the exact standard and clause.
 2. Filter and refine the response through strict engineering principles and loaded NDT rules.
 3. State clearly: "[Web Refined: Clause retrieved from global technical literature]".
-${rulesSection}
-`
+\${rulesSection}
+\`
     } else {
-      systemPrompt = `You are an expert oil and gas inspection engineer.
+      systemPrompt = \`You are an expert oil and gas inspection engineer.
 Answer strictly from the verified standard clauses below.
-${overrideNotice}
+\${overrideNotice}
 MANDATORY STRUCTURE:
 **Standard:** [Standard Code & Title]
 **Clause:** [Clause Number]
@@ -688,13 +690,13 @@ MANDATORY STRUCTURE:
 **Quality Execution:**
 [Tool required, calibration requirement, and ITP hold point.]
 
-${rulesSection}
+\${rulesSection}
 CONTEXT SOURCES:
-${contextText}
+\${contextText}
 
 At the very end of your response, ALWAYS include 3 contextual follow-up question chips in exactly this format:
 <!--FOLLOWUPS: ["Question 1?", "Question 2?", "Question 3?"]-->
-`
+\`
     }
   }
 
@@ -732,12 +734,12 @@ app.post('/api/ask', async (c) => {
         finishReason = json.choices[0].finish_reason || "stop";
     } else {
         console.error("AI Error:", JSON.stringify(json));
-        answer = `AI Error: ${json.error?.message || JSON.stringify(json)}`;
+        answer = \`AI Error: \${json.error?.message || JSON.stringify(json)}\`;
     }
     
     // Extract follow-up question chips if present
     let suggestedQuestions = []
-    const followupMatch = answer.match(/<!--FOLLOWUPS:\s*(\[.*?\])\s*-->/)
+    const followupMatch = answer.match(/<!--FOLLOWUPS:\\s*(\\[.*?\\])\\s*-->/)
     if (followupMatch) {
       try {
         suggestedQuestions = JSON.parse(followupMatch[1])
@@ -756,7 +758,7 @@ app.post('/api/ask', async (c) => {
 
     // Log usage
     await c.env.DB.prepare(
-      `INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`
+      \`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)\`
     ).bind(session_id, question, model, today).run()
     
     return c.json({ 
@@ -777,3 +779,7 @@ app.post('/api/ask', async (c) => {
 })
 
 export default app
+`;
+
+fs.writeFileSync('worker/src/index.js', workerCode, 'utf8');
+console.log('Successfully wrote complete Next-Gen worker/src/index.js');
