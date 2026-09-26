@@ -33,7 +33,12 @@ app.post('/api/admin/config', async (c) => {
       if (active_provider) await c.env.DB.prepare(`INSERT INTO system_config (key, value) VALUES ('active_provider', ?) ON CONFLICT(key) DO UPDATE SET value = ?`).bind(active_provider, active_provider).run()
       
       return c.json({ success: true })
-    } catch (e) { return c.json({ error: e.message }, 500) }
+    } catch (e) {
+      if (e.message && e.message.includes("RATE_LIMIT_ALL")) {
+        return c.json({ error: "The free AI provider (OpenRouter) is currently rate-limiting requests. Please try again in a few minutes, or configure a paid API key in the admin panel." }, 429);
+      }
+      return c.json({ error: e.message }, 500)
+    }
   })
   
   app.post('/api/usage/check', async (c) => {
