@@ -318,7 +318,8 @@ async function askGroq(c, messages, stream) {
                     model: model,
                     messages: messages,
                     temperature: 0.2,
-                    stream: stream
+                    stream: stream,
+                    max_tokens: 1000
                 })
             })
             
