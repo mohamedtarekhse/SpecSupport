@@ -1,8 +1,8 @@
-import { Hono } from 'hono'
+﻿import { Hono } from 'hono'
 
 const app = new Hono()
 
-// Robust CORS Ã¢â‚¬â€ handles preflight OPTIONS for all routes
+// Robust CORS ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â handles preflight OPTIONS for all routes
 app.use('*', async (c, next) => {
   // Always set CORS headers
   c.header('Access-Control-Allow-Origin', '*')
@@ -267,8 +267,8 @@ function cosineSimilarity(vecA, vecB) {
 }
 
 const fallbackModels = [
-  'nvidia/nemotron-3-super-120b-a12b:free',   // 120B Ã¢â‚¬â€ NVIDIA flagship
-  'nvidia/nemotron-3-ultra-550b-a55b:free',   // 550B Ã¢â‚¬â€ largest free model on OpenRouter
+  'nvidia/nemotron-3-super-120b-a12b:free',   // 120B ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â NVIDIA flagship
+  'nvidia/nemotron-3-ultra-550b-a55b:free',   // 550B ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â largest free model on OpenRouter
   'google/gemma-4-31b-it:free',               // 31B instruction-tuned
   'nex-agi/nex-n2.5-pro:free',                // reasoning specialist
   'thinkingmachines/inkling:free'             // large context reasoning
@@ -344,7 +344,7 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
 
   // HyDE (Hypothetical Document Embeddings)
   let searchQuestion = question;
-  if (standard_filter !== '🌐 GENERAL AI') {
+  if (standard_filter !== 'ðŸŒ GENERAL AI') {
     try {
       const hydePrompt = `You are an expert oil and gas engineer. Write a formal, hypothetical standard clause that perfectly answers this question: "${question}". Do not write an intro, just the formal technical text.`
       const hydeRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -434,7 +434,7 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
   const rulesSection = appliedRules ? `\n[ADMIN OVERRIDE RULES - APPLY THESE EXACTLY]:\n${appliedRules}\n` : ""
 
   let systemPrompt = "";
-  if (standard_filter === '🌐 GENERAL AI') {
+  if (standard_filter === 'ðŸŒ GENERAL AI') {
       systemPrompt = `You are a highly capable AI Assistant for Oil & Gas Inspection Engineers.
 You are currently in 'General AI' mode. You do NOT need to restrict your answers to a specific database context.
 Answer the user's question using your vast internal knowledge.
@@ -489,13 +489,14 @@ app.post('/api/ask', async (c) => {
     
     const json = await response.json()
     const answer = json.choices[0].message.content
+      const finishReason = json.choices[0].finish_reason
     
     // Log usage
     await c.env.DB.prepare(
       `INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`
     ).bind(session_id, question, model, today).run()
     
-    return c.json({ answer, sources, model_used: model })
+    return c.json({ answer, finish_reason: finishReason, sources, model_used: model })
   } catch (e) {
     return c.json({ error: e.message }, 500)
   }

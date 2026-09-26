@@ -493,6 +493,30 @@
             font-family: monospace;
             font-size: 0.9em;
         }
+            @media (max-width: 768px) {
+            #input-container {
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                background: var(--bg-color);
+                padding: 10px !important;
+                z-index: 100;
+            }
+            #chat-window { padding-bottom: 120px !important; }
+            .message { flex-direction: column; gap: 8px; }
+            .message-icon { align-self: flex-start; }
+        }
+        #ai-status-text {
+            display: none;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--accent-color);
+            margin: 10px 0;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            animation: pulse 1.5s infinite;
+        }
     </style>
 </head>
 <body class="state-greeting">
@@ -578,6 +602,7 @@
 
         <!-- Chat State -->
         <div id="chat-window">
+            <div id="ai-status-text">✨ Analyzing request...</div>
             <div class="typing-indicator" id="typing-indicator">
                 <div class="dot"></div><div class="dot"></div><div class="dot"></div>
             </div>
@@ -784,18 +809,31 @@
         }
 
         // Send Message
-        async function sendMessage() {
-            const text = userInput.value.trim();
+        const aiStatusText = document.getElementById('ai-status-text');
+        
+        async function sendMessage(forceText = null) {
+            const text = forceText || userInput.value.trim();
             if (!text) return;
             
             const canAsk = await checkUsage();
             if (!canAsk) return;
 
             addMessage(text, 'user');
-            userInput.value = '';
-            userInput.style.height = 'auto'; // reset height
+            if (!forceText) {
+                userInput.value = '';
+                userInput.style.height = 'auto';
+            }
+            
             typingIndicator.style.display = 'flex';
+            if(aiStatusText) aiStatusText.style.display = 'block';
             chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            let phase2, phase3;
+            if(aiStatusText) {
+                aiStatusText.textContent = "✨ Analyzing request...";
+                phase2 = setTimeout(() => { aiStatusText.textContent = "🔍 Searching standards database..."; }, 1500);
+                phase3 = setTimeout(() => { aiStatusText.textContent = "📝 Formulating engineering response..."; }, 3500);
+            }
 
             try {
                 const res = await fetch(`${API_BASE}/api/ask`, {
@@ -810,7 +848,9 @@
                     })
                 });
 
+                if(aiStatusText) { clearTimeout(phase2); clearTimeout(phase3); aiStatusText.style.display = 'none'; }
                 typingIndicator.style.display = 'none';
+                
                 if (res.status === 429) return checkUsage();
 
                 const data = await res.json();
@@ -820,9 +860,22 @@
                 modelIndicator.textContent = data.model_used;
                 modelIndicator.style.display = 'block';
 
+                if (data.finish_reason === 'length') {
+                    const contBtn = document.createElement('button');
+                    contBtn.textContent = "Continue generating...";
+                    contBtn.style.cssText = "margin-top:10px; background:var(--input-bg); color:var(--text-main); border:1px solid var(--border-color); padding:8px 16px; border-radius:16px; cursor:pointer;";
+                    contBtn.onclick = () => {
+                        contBtn.remove();
+                        sendMessage("Continue from exactly where you left off.");
+                    };
+                    chatWindow.appendChild(contBtn);
+                    chatWindow.scrollTop = chatWindow.scrollHeight;
+                }
+
             } catch (err) {
+                if(aiStatusText) { clearTimeout(phase2); clearTimeout(phase3); aiStatusText.style.display = 'none'; }
                 typingIndicator.style.display = 'none';
-                addMessage(currentLang === 'ar' ? 'Ø­Ø¯Ø« Ø®Ø·Ø£.' : 'Error occurred.', 'ai');
+                addMessage(currentLang === 'ar' ? 'Error.' : 'Error occurred.', 'ai');
             }
         }
 
