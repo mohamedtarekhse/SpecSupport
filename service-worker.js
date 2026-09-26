@@ -1,4 +1,4 @@
-const CACHE_NAME = 'inspecta-v1';
+const CACHE_NAME = 'inspecta-v2'; // Bumped version to force update
 const ASSETS = [
     './',
     './index.html',
@@ -8,6 +8,7 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
+    self.skipWaiting(); // Force new service worker to activate immediately
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             return cache.addAll(ASSETS);
@@ -15,13 +16,33 @@ self.addEventListener('install', (event) => {
     );
 });
 
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        return caches.delete(cacheName); // Delete old caches
+                    }
+                })
+            );
+        }).then(() => self.clients.claim())
+    );
+});
+
 self.addEventListener('fetch', (event) => {
-    // Only intercept GET requests
     if (event.request.method !== 'GET') return;
-    
-    // Don't intercept API calls to Cloudflare
     if (event.request.url.includes('/api/')) return;
 
+    // Network-first strategy for HTML files to ensure updates are always seen
+    if (event.request.headers.get('accept').includes('text/html') || event.request.url.endsWith('index.html') || event.request.url === self.registration.scope) {
+        event.respondWith(
+            fetch(event.request).catch(() => caches.match(event.request))
+        );
+        return;
+    }
+
+    // Cache-first for static assets
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
             return cachedResponse || fetch(event.request);
