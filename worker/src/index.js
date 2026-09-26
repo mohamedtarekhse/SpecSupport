@@ -22,7 +22,21 @@ app.get('/api/health', (c) => {
   return c.json({ status: 'ok', model: c.env.OPENROUTER_MODEL || 'qwen/qwen3.8-27b:free' })
 })
 
-app.post('/api/usage/check', async (c) => {
+app.post('/api/admin/config', async (c) => {
+    const token = c.req.header('Authorization')
+    if (!token || token !== `Bearer ${c.env.ADMIN_SECRET}`) return c.json({ error: 'Unauthorized' }, 401)
+    try {
+      const { openrouter_api_key, groq_api_key, active_provider } = await c.req.json()
+      
+      if (openrouter_api_key) await c.env.DB.prepare(`INSERT INTO system_config (key, value) VALUES ('openrouter_api_key', ?) ON CONFLICT(key) DO UPDATE SET value = ?`).bind(openrouter_api_key, openrouter_api_key).run()
+      if (groq_api_key) await c.env.DB.prepare(`INSERT INTO system_config (key, value) VALUES ('groq_api_key', ?) ON CONFLICT(key) DO UPDATE SET value = ?`).bind(groq_api_key, groq_api_key).run()
+      if (active_provider) await c.env.DB.prepare(`INSERT INTO system_config (key, value) VALUES ('active_provider', ?) ON CONFLICT(key) DO UPDATE SET value = ?`).bind(active_provider, active_provider).run()
+      
+      return c.json({ success: true })
+    } catch (e) { return c.json({ error: e.message }, 500) }
+  })
+  
+  app.post('/api/usage/check', async (c) => {
   try {
     const { session_id } = await c.req.json()
     if (!session_id) return c.json({ error: 'Missing session_id' }, 400)
@@ -274,45 +288,56 @@ const fallbackModels = [
   'thinkingmachines/inkling:free'             // large context reasoning
 ]
 
-async function askOpenRouter(c, messages, stream) {
-  // Fetch from DB first
-  const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
-  let dbConf = {}
-  if (confRes.results) {
-    confRes.results.forEach(r => dbConf[r.key] = r.value)
-  }
-
-  const apiKey = dbConf['openrouter_api_key'] || c.env.OPENROUTER_API_KEY
-  let primaryModel = dbConf['openrouter_model'] || c.env.OPENROUTER_MODEL || 'nvidia/nemotron-3-super-120b-a12b:free'
+async function askAIProvider(c, messages, stream) {
+    const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
+    let dbConf = {}
+    if (confRes.results) confRes.results.forEach(r => dbConf[r.key] = r.value)
   
-  if (!apiKey) throw new Error('OpenRouter API Key is not configured in DB or Env')
+    const openrouterKey = dbConf['openrouter_api_key'] || c.env.OPENROUTER_API_KEY
+    const groqKey = dbConf['groq_api_key'] || c.env.GROQ_API_KEY
+    const activeProvider = dbConf['active_provider'] || 'openrouter'
+    
+    let primaryModel = dbConf['openrouter_model'] || c.env.OPENROUTER_MODEL || 'nvidia/nemotron-3-super-120b-a12b:free'
+    
+    // We try the active provider first, then fallback to the other
+    const providers = [];
+    if (activeProvider === 'groq' && groqKey) {
+        providers.push({ name: 'groq', key: groqKey, url: 'https://api.groq.com/openai/v1/chat/completions', models: ['llama-3.1-70b-versatile', 'llama3-8b-8192'] });
+        if (openrouterKey) providers.push({ name: 'openrouter', key: openrouterKey, url: 'https://openrouter.ai/api/v1/chat/completions', models: [primaryModel, ...fallbackModels] });
+    } else {
+        if (openrouterKey) providers.push({ name: 'openrouter', key: openrouterKey, url: 'https://openrouter.ai/api/v1/chat/completions', models: [primaryModel, ...fallbackModels] });
+        if (groqKey) providers.push({ name: 'groq', key: groqKey, url: 'https://api.groq.com/openai/v1/chat/completions', models: ['llama-3.1-70b-versatile', 'llama3-8b-8192'] });
+    }
 
-  let modelsToTry = [primaryModel, ...fallbackModels]
-  let lastError = null
-
-  for (const model of modelsToTry) {
-    try {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": c.env.ALLOWED_ORIGIN || '*',
-          "X-Title": "Inspecta"
-        },
-        body: JSON.stringify({ model: model, messages: messages, max_tokens: 1000, temperature: 0.1, stream: stream })
-      })
-      if (!response.ok) { 
-          lastError = await response.text(); 
-          if (response.status === 429) {
-              throw new Error("OPENROUTER_RATE_LIMIT_EXCEEDED: " + lastError);
-          }
-          continue; 
+    if (providers.length === 0) throw new Error('No AI Provider API Keys configured in DB or Env')
+  
+    let lastError = null
+  
+    for (const provider of providers) {
+        for (const model of provider.models) {
+            try {
+                const response = await fetch(provider.url, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${provider.key}`,
+                        "Content-Type": "application/json",
+                        "HTTP-Referer": c.env.ALLOWED_ORIGIN || '*',
+                        "X-Title": "Inspecta"
+                    },
+                    body: JSON.stringify({ model: model, messages: messages, max_tokens: 1000, temperature: 0.1, stream: stream })
+                })
+                
+                if (!response.ok) { 
+                    lastError = await response.text(); 
+                    // If rate limited, skip to next provider
+                    if (response.status === 429) break; 
+                    continue; 
+                }
+                return { response, model, provider: provider.name }
+            } catch (e) { lastError = e.message }
         }
-      return { response, model }
-    } catch (e) { lastError = e.message }
-  }
-  throw new Error(`All models failed. Last error: ${lastError}`)
+    }
+    throw new Error(`RATE_LIMIT_ALL: ${lastError}`)
 }
 
 async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = []) {
@@ -365,11 +390,17 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
         const hydePrompt = `You are an expert oil and gas engineer. Write a formal, hypothetical standard clause that perfectly answers this question: "${question}". Do not write an intro, just the formal technical text.`
         
         // Fetching from Groq/OpenRouter fallback (we leave it as OpenRouter but logic remains)
-        const hydeRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        // Use Groq for HyDE if available because it's 10x faster
+        const groqKey = dbConf['groq_api_key'] || c.env.GROQ_API_KEY;
+        const hydeUrl = groqKey ? 'https://api.groq.com/openai/v1/chat/completions' : 'https://openrouter.ai/api/v1/chat/completions';
+        const hydeKey = groqKey || apiKey;
+        const hydeModel = groqKey ? 'llama3-8b-8192' : 'meta-llama/llama-3.1-8b-instruct:free';
+        
+        const hydeRes = await fetch(hydeUrl, {
           method: "POST",
-          headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+          headers: { "Authorization": `Bearer ${hydeKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
-            model: 'meta-llama/llama-3.1-8b-instruct:free',
+            model: hydeModel,
             messages: [{role: 'user', content: hydePrompt}],
             max_tokens: 150,
             temperature: 0.1
@@ -516,7 +547,7 @@ app.post('/api/ask', async (c) => {
     }
     
     const { messages, sources, today } = contextData
-    const { response, model } = await askOpenRouter(c, messages, false)
+    const { response, model, provider } = await askAIProvider(c, messages, false)
     
     const json = await response.json()
     let answer = "Error connecting to AI model.";
@@ -555,7 +586,7 @@ app.post('/api/ask/stream', async (c) => {
     }
     
     const { messages, sources, today } = contextData
-    const { response, model } = await askOpenRouter(c, messages, true)
+    const { response, model, provider } = await askAIProvider(c, messages, true)
     
     // We send sources and model as initial event then stream chunks
     const stream = new ReadableStream({

@@ -3,42 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inspecta Admin | Zero-Touch Ingestion</title>
+    <title>Inspecta Admin | Configuration & Ingestion</title>
     <style>
         body { font-family: sans-serif; background: #21201D; color: #ECECE3; padding: 40px; }
         .dropzone { border: 2px dashed #D97757; border-radius: 12px; padding: 50px; text-align: center; cursor: pointer; margin-top: 20px; }
         .dropzone.dragover { background: rgba(217, 119, 87, 0.2); }
-        input[type="text"], input[type="password"] { padding: 10px; width: 300px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #3C3A35; background: #2E2D2A; color: white; }
-        #log { margin-top: 20px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto; background: #1a1a1a; padding: 10px; }
+        input[type="text"], input[type="password"], select { padding: 10px; width: 300px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #3C3A35; background: #2E2D2A; color: white; }
+        button { padding: 10px 20px; background: #D97757; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #b8654a; }
+        #log { margin-top: 20px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto; background: #1a1a1a; padding: 10px; border-radius: 6px; }
+        .section { background: #2E2D2A; padding: 20px; border-radius: 12px; margin-bottom: 30px; }
+        .section h2 { margin-top: 0; border-bottom: 1px solid #3C3A35; padding-bottom: 10px; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 </head>
 <body>
-
-    <h1>Zero-Touch Standard Ingestion</h1>
-    <p>Upload a PDF standard directly. The browser will chunk it and send it to the Cloudflare Worker to be embedded and saved.</p>
+    <h1>Inspecta Admin Dashboard</h1>
     
-    <label>Standard Code (e.g., API 5CT):</label><br>
-    <input type="text" id="std-code"><br>
-    
-    <label>Standard Name:</label><br>
-    <input type="text" id="std-name"><br>
-    
-    <label>Admin Secret Token:</label><br>
-    <input type="password" id="admin-secret"><br>
-
-    <div class="dropzone" id="dropzone">
-        Drag & Drop PDF Here or Click to Browse
-        <input type="file" id="file-input" style="display:none;" accept="application/pdf">
+    <div class="section">
+        <h2>1. Global Admin Authentication</h2>
+        <label>Admin Secret Token (Required for all actions):</label><br>
+        <input type="password" id="admin-secret"><br>
     </div>
 
-    <div id="log"></div>
+    <div class="section">
+        <h2>2. AI Provider Configuration</h2>
+        <p>Configure fallback providers to avoid rate limits. The system will automatically failover if the primary fails.</p>
+        
+        <label>Active Primary Provider:</label><br>
+        <select id="active-provider">
+            <option value="openrouter">OpenRouter (Default)</option>
+            <option value="groq">Groq (Ultra-Fast Llama 3)</option>
+        </select><br><br>
+
+        <label>OpenRouter API Key:</label><br>
+        <input type="password" id="key-openrouter"><br>
+
+        <label>Groq API Key:</label><br>
+        <input type="password" id="key-groq"><br>
+
+        <button onclick="saveConfig()">Save AI Configuration</button>
+        <span id="config-status" style="margin-left: 15px; color: #D97757;"></span>
+    </div>
+
+    <div class="section">
+        <h2>3. Zero-Touch Standard Ingestion</h2>
+        <p>Upload a PDF standard directly. The browser will chunk it and send it to the Cloudflare Worker to be embedded and saved.</p>
+        
+        <label>Standard Code (e.g., API 5CT):</label><br>
+        <input type="text" id="std-code"><br>
+        
+        <label>Standard Name:</label><br>
+        <input type="text" id="std-name"><br>
+
+        <div class="dropzone" id="dropzone">
+            Drag & Drop PDF Here or Click to Browse
+            <input type="file" id="file-input" style="display:none;" accept="application/pdf">
+        </div>
+
+        <div id="log"></div>
+    </div>
 
     <script>
+        const API_BASE = "https://inspection-api.mohamedtarekhse.workers.dev"; // Live URL
+
+        async function saveConfig() {
+            const secret = document.getElementById('admin-secret').value.trim();
+            if (!secret) return alert("Please enter the Admin Secret Token above.");
+            
+            const payload = {
+                active_provider: document.getElementById('active-provider').value,
+                openrouter_api_key: document.getElementById('key-openrouter').value.trim() || undefined,
+                groq_api_key: document.getElementById('key-groq').value.trim() || undefined
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/config`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${secret}` },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (res.ok) {
+                    document.getElementById('config-status').innerText = "Configuration saved successfully!";
+                    setTimeout(() => document.getElementById('config-status').innerText = "", 3000);
+                } else {
+                    const err = await res.json();
+                    alert("Error saving config: " + err.error);
+                }
+            } catch (e) {
+                alert("Network error: " + e.message);
+            }
+        }
+
+        // PDF Ingestion Logic
         const dropzone = document.getElementById('dropzone');
         const fileInput = document.getElementById('file-input');
         const logEl = document.getElementById('log');
-        const API_BASE = "https://inspection-api.mohamedtarekhse.workers.dev"; // Live URL
 
         const log = (msg) => {
             logEl.innerHTML += `<div>${msg}</div>`;
