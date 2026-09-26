@@ -488,8 +488,15 @@ app.post('/api/ask', async (c) => {
     const { response, model } = await askOpenRouter(c, messages, false)
     
     const json = await response.json()
-    const answer = json.choices[0].message.content
-      const finishReason = json.choices[0].finish_reason
+    let answer = "Error connecting to AI model.";
+      let finishReason = "stop";
+      if (json && json.choices && json.choices.length > 0) {
+          answer = json.choices[0].message.content || "Empty response.";
+          finishReason = json.choices[0].finish_reason || "stop";
+      } else {
+          console.error("OpenRouter Error:", JSON.stringify(json));
+          answer = `OpenRouter Error: ${json.error?.message || JSON.stringify(json)}`;
+      }
     
     // Log usage
     await c.env.DB.prepare(
