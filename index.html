@@ -952,9 +952,17 @@
                 if(aiStatusText) { clearTimeout(phase2); clearTimeout(phase3); aiStatusText.style.display = 'none'; }
                 typingIndicator.style.display = 'none';
                 
-                if (res.status === 429) return checkUsage();
-
                 const data = await res.json();
+                
+                if (res.status === 429) {
+                    if (data.error === 'Limit reached') {
+                        checkUsage();
+                        return;
+                    } else {
+                        throw new Error(data.error);
+                    }
+                }
+                
                 if (data.error) throw new Error(data.error);
 
                 addMessage(data.answer, 'ai', data.sources);
