@@ -344,7 +344,7 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
 
   // HyDE (Hypothetical Document Embeddings)
   let searchQuestion = question;
-  if (standard_filter !== 'ðŸŒ GENERAL AI') {
+  if (standard_filter !== '🌐 GENERAL AI') {
     try {
       const hydePrompt = `You are an expert oil and gas engineer. Write a formal, hypothetical standard clause that perfectly answers this question: "${question}". Do not write an intro, just the formal technical text.`
       const hydeRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -434,7 +434,7 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
   const rulesSection = appliedRules ? `\n[ADMIN OVERRIDE RULES - APPLY THESE EXACTLY]:\n${appliedRules}\n` : ""
 
   let systemPrompt = "";
-  if (standard_filter === 'ðŸŒ GENERAL AI') {
+  if (standard_filter === '🌐 GENERAL AI') {
       systemPrompt = `You are a highly capable AI Assistant for Oil & Gas Inspection Engineers.
 You are currently in 'General AI' mode. You do NOT need to restrict your answers to a specific database context.
 Answer the user's question using your vast internal knowledge.
