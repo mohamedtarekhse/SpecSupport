@@ -328,6 +328,20 @@
             margin: 14px 0;
         }
 
+        
+        /* Message Tail / Footer Container */
+        .message-tail {
+            margin-top: 18px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        :root.light-mode .message-tail {
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
         /* Interactive Multiple-Choice Questions (MCQ) Card */
         .interactive-mcq-card {
             margin: 18px 0 12px 0;
@@ -1138,16 +1152,20 @@
             body.className = 'message-body';
             
             if (role === 'ai') {
-                body.innerHTML = marked.parse(text);
+                // 1. Clean any stray question headings from the text so body is purely technical
+                let cleanText = text
+                    .replace(/###\s*❓?\s*(?:Clarifying|Follow-up|Suggested|Potential)\s*Questions[\s\S]*?(?=\n###|\n\*\*Detailed|\n\*\*Quality|\n\*\*1\.|\n\*\*The Code|$)/gi, '')
+                    .replace(/<!--[\s\S]*?-->/g, '')
+                    .trim();
 
-                // Sources Accordion
-                if (sources && sources.length > 0) {
-                    const srcBox = document.createElement('details');
-                    srcBox.className = 'sources-accordion';
-                    let listItems = sources.map(s => `<li><strong>${s.standard}</strong>: ${s.clause}</li>`).join('');
-                    srcBox.innerHTML = `<summary>📖 Verified Sources Cited (${sources.length})</summary><ul>${listItems}</ul>`;
-                    body.appendChild(srcBox);
-                }
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                contentDiv.innerHTML = marked.parse(cleanText);
+                body.appendChild(contentDiv);
+
+                // 2. Dedicated Response Tail Container (positioned strictly at the bottom)
+                const tailDiv = document.createElement('div');
+                tailDiv.className = 'message-tail';
 
                 // Continue Generating Button
                 if (canContinue) {
@@ -1158,18 +1176,17 @@
                         contBtn.remove();
                         sendMessage("Continue from exactly where you left off, preserving complete technical continuity.");
                     };
-                    body.appendChild(contBtn);
+                    tailDiv.appendChild(contBtn);
                 }
 
-                
-                // Interactive MCQ Refinement Card
+                // Interactive MCQ Refinement Card (Only rendered at tail if conflict exists)
                 if (mcqs && mcqs.length > 0) {
                     const mcqCard = document.createElement('div');
                     mcqCard.className = 'interactive-mcq-card';
                     mcqCard.innerHTML = `
                         <div class="mcq-card-header">
-                            <span class="mcq-badge">Interactive Refinement</span>
-                            <span>Select parameters to pinpoint the exact clause verdict:</span>
+                            <span class="mcq-badge">Specification Conflict Fork</span>
+                            <span>Select applicable project path to finalize verdict:</span>
                         </div>
                     `;
 
@@ -1188,12 +1205,10 @@
                             pill.className = 'mcq-option-pill';
                             pill.textContent = opt;
                             pill.onclick = () => {
-                                // Deselect siblings
                                 grid.querySelectorAll('.mcq-option-pill').forEach(p => p.classList.remove('selected'));
                                 pill.classList.add('selected');
                                 selectedParams[mcq.question] = opt;
 
-                                // Enable refine button
                                 const refineBtn = mcqCard.querySelector('.mcq-refine-btn');
                                 if (refineBtn) refineBtn.disabled = false;
                             };
@@ -1208,21 +1223,21 @@
                     actionsBar.className = 'mcq-actions-bar';
                     const refineBtn = document.createElement('button');
                     refineBtn.className = 'mcq-refine-btn';
-                    refineBtn.innerHTML = '⚡ Refine Code Verdict with Selected Options';
+                    refineBtn.innerHTML = '⚡ Resolve Conflict with Selected Path';
                     refineBtn.disabled = true;
                     refineBtn.onclick = () => {
                         refineBtn.disabled = true;
                         const paramList = Object.entries(selectedParams).map(([k, v]) => `- ${k}: ${v}`).join('\n');
-                        const refineQuery = `Refining code acceptance with the following verified project parameters:\n${paramList}\n\nPlease provide the final, exact clause verdict and precise numerical acceptance thresholds.`;
+                        const refineQuery = `Resolving specification conflict with the following verified project condition:\n${paramList}\n\nPlease provide the final verified clause verdict.`;
                         sendMessage(refineQuery);
                     };
                     actionsBar.appendChild(refineBtn);
                     mcqCard.appendChild(actionsBar);
 
-                    body.appendChild(mcqCard);
+                    tailDiv.appendChild(mcqCard);
                 }
 
-                // Suggested Next Question Chips (Explicitly clickable buttons)
+                // Follow-up Question Chips (Strictly positioned at the tail of the response)
                 if (followups && followups.length > 0) {
                     const chipsWrap = document.createElement('div');
                     chipsWrap.className = 'followups-container';
@@ -1240,32 +1255,30 @@
                         };
                         chipsWrap.appendChild(chip);
                     });
-                    body.appendChild(chipsWrap);
+                    tailDiv.appendChild(chipsWrap);
                 }
 
-                // Auto-hyperlink any clarifying or follow-up question text inside markdown so nothing is dead text
-                body.querySelectorAll('li').forEach(li => {
-                    const txt = li.textContent.trim();
-                    if (txt.endsWith('?') || txt.includes('What is') || txt.includes('Which code') || txt.includes('What are')) {
-                        li.classList.add('clickable-q-link');
-                        li.title = "Click to ask Inspecta this question";
-                        li.onclick = (e) => {
-                            e.preventDefault();
-                            sendMessage(txt);
-                        };
-                    }
-                });
+                // Sources Accordion (at tail)
+                if (sources && sources.length > 0) {
+                    const srcBox = document.createElement('details');
+                    srcBox.className = 'sources-accordion';
+                    let listItems = sources.map(s => `<li><strong>${s.standard}</strong>: ${s.clause}</li>`).join('');
+                    srcBox.innerHTML = `<summary>📖 Verified Sources Cited (${sources.length})</summary><ul>${listItems}</ul>`;
+                    tailDiv.appendChild(srcBox);
+                }
 
-                // Action Toolbar (Copy, Upvote, Downvote, Export NCR)
+                // Action Toolbar (at tail)
                 const toolbar = document.createElement('div');
                 toolbar.className = 'response-toolbar';
                 toolbar.innerHTML = `
-                    <button class="tool-btn" onclick="copyAnswer(this, \`${encodeURIComponent(text)}\`)">📋 Copy</button>
+                    <button class="tool-btn" onclick="copyAnswer(this, \`${encodeURIComponent(cleanText)}\`)">📋 Copy</button>
                     <button class="tool-btn" onclick="alert('Thank you for your feedback!')">👍</button>
                     <button class="tool-btn" onclick="alert('Feedback noted for engineering review.')">👎</button>
-                    <button class="tool-btn" onclick="exportNCR(\`${encodeURIComponent(text)}\`)">📑 Export NCR</button>
+                    <button class="tool-btn" onclick="exportNCR(\`${encodeURIComponent(cleanText)}\`)">📑 Export NCR</button>
                 `;
-                body.appendChild(toolbar);
+                tailDiv.appendChild(toolbar);
+
+                body.appendChild(tailDiv);
             } else {
                 body.textContent = text;
             }

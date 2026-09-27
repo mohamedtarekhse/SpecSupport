@@ -552,14 +552,15 @@ Start your response IMMEDIATELY with the following high-contrast markdown block 
 - **🔬 Required NDT Method & Standard**: [e.g. Visual per AWS B1.11 / RT per ASME V Art 2]
 - **📜 Personnel Qualification**: [e.g. ASNT SNT-TC-1A Level II / ASME IX Welder]
 
-2. DEFINITIVE TECHNICAL ANSWERS (DO NOT ASK QUESTIONS):
-Provide the complete technical answer directly. DO NOT print lists of clarifying questions. DO NOT interrogate the user.
-If a code has different criteria for different conditions (e.g. Normal Fluid vs. Severe Cyclic vs. Category M), state the exact numbers for BOTH in a clear table or in the explanation so the user has the complete answer immediately.
+2. DEFINITIVE TECHNICAL ANSWERS IN RESPONSE BODY (NO QUESTION LISTS IN BODY):
+The body of your response must contain ONLY engineering verdicts, metallurgical explanations, calculations, tables, and quality recommendations.
+DO NOT write lists of clarifying questions or follow-up questions inside the body of your response.
+If different service categories or wall thicknesses apply, state the exact limits for each in a clear table or in the explanation.
 
 3. OPTIONAL MCQ CONFLICT RESOLUTION (STRICT LAST RESORT ONLY):
-MCQ is STRICTLY an optional fallback. Use it ONLY when you get completely lost or encounter an irreconcilable conflict where two or more options have equal probability (50/50 conflict between two opposing standards).
+MCQ is STRICTLY an optional fallback. Use it ONLY when you encounter an irreconcilable conflict where two or more options have equal probability (50/50 conflict between two opposing standards).
 In ordinary engineering queries, DO NOT emit any MCQ block. Answer definitively.
-Only if you are genuinely lost due to an equal-probability conflict, append:
+Only if you are genuinely lost due to an equal-probability conflict, append at the very tail:
 <!--MCQ: [
   {
     "question": "Which conflicting specification applies?",
@@ -567,10 +568,11 @@ Only if you are genuinely lost due to an equal-probability conflict, append:
   }
 ]-->
 
-4. FORWARD-LOOKING CLICKABLE FOLLOW-UP QUESTIONS:
-At the very end of your response, ALWAYS include 4 to 5 forward-looking question chips in exactly this format:
+4. FORWARD-LOOKING CLICKABLE FOLLOW-UP QUESTIONS (STRICTLY AT TAIL):
+At the very end of your response (after all body text), append 4 to 5 forward-looking question chips in exactly this format:
 <!--FOLLOWUPS: ["Question 1?", "Question 2?", "Question 3?", "Question 4?", "Question 5?"]-->
 CRITICAL RULES FOR FOLLOW-UP CHIPS:
+- DO NOT write these questions as plain markdown text inside the body.
 - These are hyperlinked questions for the USER to click to ask YOU subsequent technical deep-dives.
 - NEVER repeat or rephrase the user's original query.
 - NEVER ask the user questions in these chips.
@@ -838,25 +840,31 @@ app.post('/api/ask', async (c) => {
         answer = `AI Error: ${json.error?.message || JSON.stringify(json)}`;
     }
     
-    // Extract MCQ questions if present
+    // 1. Extract optional MCQ questions if model flagged a 50/50 conflict (Multi-line safe)
     let mcqQuestions = []
-    const mcqMatch = answer.match(/<!--MCQ:\s*(\[\s*\{[\s\S]*?\}\s*\])\s*-->/)
+    const mcqMatch = answer.match(/<!--MCQ:\s*(\[[\s\S]*?\])\s*-->/i)
     if (mcqMatch) {
       try {
         mcqQuestions = JSON.parse(mcqMatch[1])
-        answer = answer.replace(mcqMatch[0], '').trim()
       } catch(e){}
+      answer = answer.replace(mcqMatch[0], '').trim()
     }
 
-    // Extract follow-up question chips if present
+    // 2. Extract follow-up question chips (Multi-line safe)
     let suggestedQuestions = []
-    const followupMatch = answer.match(/<!--FOLLOWUPS:\s*(\[.*?\])\s*-->/)
+    const followupMatch = answer.match(/<!--FOLLOWUPS:\s*(\[[\s\S]*?\])\s*-->/i)
     if (followupMatch) {
       try {
         suggestedQuestions = JSON.parse(followupMatch[1])
-        answer = answer.replace(followupMatch[0], '').trim()
       } catch(e){}
+      answer = answer.replace(followupMatch[0], '').trim()
     }
+
+    // 3. Remove any remaining HTML comments from answer
+    answer = answer.replace(/<!--[\s\S]*?-->/g, '').trim()
+
+    // 4. Strip any dead question lists from the body of the response so they don't pollute the body
+    answer = answer.replace(/###\s*❓?\s*(?:Clarifying|Follow-up|Suggested|Potential)\s*Questions[\s\S]*?(?=\n###|\n\*\*Detailed|\n\*\*Quality|\n\*\*1\.|\n\*\*The Code|$)/gi, '').trim()
 
     // Extract MCQ questions ONLY if model explicitly flagged an equal-probability conflict
     // (MCQ is strictly an optional last resort tool)
