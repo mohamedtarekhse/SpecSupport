@@ -127,7 +127,10 @@ app.all('/api/admin/setup-db', async (c) => {
         ['ASME B31.3', '328.2 (Welder Qualification)', 'ASME IX', 'QW Series', 'PERSONNEL_QUAL', 'WPS, PQR, and Welder Performance Qualification records strictly governed by Section IX'],
         ['API 1104', 'Section 9 (Acceptance Standards)', 'API 1104', 'Appendix A', 'ECA_ALTERNATIVE', 'Allows Engineering Critical Assessment (fracture mechanics) for larger allowable planar flaws in pipelines'],
         ['AWS D1.1', 'Clause 6 (Inspection)', 'AWS B1.11', 'Full Scope', 'GOVERNS_VT', 'Detailed visual inspection guide for fillet throat, reinforcement profile, and undercut tolerances'],
-        ['API 5CT', 'Section 10 (NDE)', 'ISO 10893-8 / ASTM E213', 'Full Scope', 'GOVERNS_METHOD', 'Electromagnetic and ultrasonic testing of casing and tubing for longitudinal and transverse defects']
+        ['API 5CT', 'Section 10 (NDE)', 'ISO 10893-8 / ASTM E213', 'Full Scope', 'GOVERNS_METHOD', 'Electromagnetic and ultrasonic testing of casing and tubing for longitudinal and transverse defects'],
+        ['API RP 8B', 'Full Scope (Hoisting Equipment)', 'ISO 13534', 'Full Scope', 'IDENTICAL_INTERNATIONAL', 'ISO 13534 is the direct international equivalent for hoisting equipment (elevators, links, blocks, hooks) inspection and maintenance'],
+        ['API RP 8B', 'Section 5 (Periodic Inspection)', 'API Spec 8C', 'PSL 1 & 2', 'COMPANION_MANUFACTURING', 'API 8C governs manufacturing design verification and proof testing; API RP 8B governs in-service field inspection and wear limits'],
+        ['API RP 8B', 'Scope Delineation', 'API RP 7K', 'Clause 1.1', 'DISTINCT_EQUIPMENT_SCOPE', 'API RP 8B exclusively governs hoisting tools (elevators, links, blocks). API 7K covers rotary/drilling tools (drawworks, rotary tables, slips, tongs). Non-overlapping scopes: NEVER use API 7K for elevators!']
       ]
       for (const [srcStd, srcCl, tgtStd, tgtCl, relType, desc] of defaultRels) {
         try {
@@ -875,15 +878,35 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
     }
   } catch(e){}
 
-  // 2. Cross-Standard Entity Knowledge Graph Traversal
+  // 2. Cross-Standard Entity Knowledge Graph Traversal & Scope Boundary Guard
   let knowledgeGraphLinks = []
   try {
     const qUpper = question.toUpperCase()
+    const qLower = question.toLowerCase()
+    let detectedEquipmentStds = []
+    if (qLower.includes('elevator') || qLower.includes('hoisting') || qLower.includes('bail') || qLower.includes('traveling block') || qLower.includes('crown block')) {
+      detectedEquipmentStds.push('API RP 8B', 'API SPEC 8C', 'ISO 13534')
+    }
+    if (qLower.includes('rotary table') || qLower.includes('power tong') || qLower.includes('drawworks') || qLower.includes('rotary hose')) {
+      detectedEquipmentStds.push('API RP 7K', 'API SPEC 7K')
+    }
+    if (qLower.includes('drill pipe') || qLower.includes('drill collar') || qLower.includes('hwdp') || qLower.includes('tool joint')) {
+      detectedEquipmentStds.push('API RP 7G-2', 'DS-1')
+    }
+
     const rels = await c.env.DB.prepare(`SELECT source_standard, source_clause, target_standard, target_clause, relationship_type, description FROM standards_relationships`).all()
     if (rels && rels.results) {
       for (const r of rels.results) {
-        if (qUpper.includes(r.source_standard.toUpperCase()) || (r.target_standard && qUpper.includes(r.target_standard.toUpperCase()))) {
-          knowledgeGraphLinks.push(`• Standard Cross-Reference [${r.relationship_type}]: ${r.source_standard} (${r.source_clause || 'General'}) links to ${r.target_standard} (${r.target_clause || 'General'}) — ${r.description}`)
+        const srcUpper = r.source_standard.toUpperCase()
+        const tgtUpper = r.target_standard ? r.target_standard.toUpperCase() : ""
+        const isMatched = qUpper.includes(srcUpper) || (tgtUpper && qUpper.includes(tgtUpper)) || detectedEquipmentStds.includes(srcUpper)
+        
+        if (isMatched) {
+          if (r.relationship_type === 'DISTINCT_EQUIPMENT_SCOPE') {
+            knowledgeGraphLinks.push(`• MANDATORY SCOPE BOUNDARY [${r.relationship_type}]: ${r.description}`)
+          } else {
+            knowledgeGraphLinks.push(`• Standard Cross-Reference [${r.relationship_type}]: ${r.source_standard} (${r.source_clause || 'General'}) links to ${r.target_standard} (${r.target_clause || 'General'}) — ${r.description}`)
+          }
         }
       }
     }
@@ -930,13 +953,26 @@ Maintain an authoritative, audit-ready engineering style. DO NOT use emojis (no 
 The body of your response must contain ONLY engineering verdicts, metallurgical explanations, calculations, tables, and quality recommendations.
 DO NOT write lists of clarifying questions or follow-up questions inside the body of your response.
 
-4. MANDATORY CROSS-STANDARD COMPARISON & SPECIFICATION DELTA:
-In your technical explanation, you MUST ALWAYS include a dedicated comparative analysis:
+4. MANDATORY SCOPE-PARITY COMPARISON & SPECIFICATION DELTA:
+In your technical explanation, include a dedicated comparative analysis:
 ### Cross-Standard Comparison & Specification Delta
-Provide a clear Markdown comparison table:
-- Contrast the Primary Governing Standard against Alternative Global Codes (e.g. ASME B31.3 vs API 1104 vs ASME VIII vs AWS D1.1 vs ISO 5817).
-- If a company or project procedure is active in context ("Your Standard"), explicitly contrast "Your Company Specification" vs. "Global Baseline Standard" and highlight the EXACT DELTA (e.g., where the company procedure mandates stricter dimensional tolerances, higher preheat, 100% NDT instead of spot inspection, or lower hardness limits).
-- Explain the engineering rationale for the differences (e.g., cyclic fatigue vs. static pressure vs. sour corrosion).
+Provide a clear Markdown comparison table following the STRICT SCOPE PARITY PRINCIPLE:
+- CRITICAL RULE: Comparisons MUST be conducted strictly within the EXACT SAME equipment or service scope. NEVER compare mismatched scopes!
+  * HOISTING EQUIPMENT (Elevators, Elevator Links/Bails, Hooks, Traveling Blocks, Swivels):
+    - Governing Codes: API RP 8B (In-service inspection & wear limits) and API Spec 8C (Manufacturing/Proof Load), and their direct international equivalents ISO 13534 (inspection) & ISO 13535 (manufacturing).
+    - STRICT PROHIBITION: NEVER bring in API 7K, API 6A, API 16D, or ASME for Elevators! API 7K governs Rotary/Drilling equipment (tongs, slips, rotary tables, mud pumps) and has ZERO application or authority over elevators.
+    - Valid Elevator Comparison Entities:
+      1. API RP 8B (Global Code Baseline) vs. Direct International Equivalent ISO 13534.
+      2. API RP 8B (Industry Minimum) vs. OEM Equipment Manufacturer Procedures (e.g. NOV / Blohm+Voss / Varco — contrasting tighter bore tolerances, hinge pin clearances, or mandatory NDT frequencies).
+      3. API RP 8B (Industry Baseline) vs. Major Operator / Drilling Contractor Specs (e.g. Saudi Aramco SAEP-1145, Shell DEP, Transocean, Valaris — contrasting annual Cat IV vs API 5-year baseline).
+      4. API RP 8B (Field In-Service Inspection) vs. API Spec 8C (Factory Proof Load & PSL requirements).
+  * DRILL STEM (Drill Pipe, HWDP, Drill Collars): Compare API RP 7G-2 vs. TH Hill DS-1 (Standard vs. Category 3-5). Do NOT compare with API 5L line pipe.
+  * ROTARY & DRILLING TOOLS (Power Tongs, Slips, Rotary Tables, Mud Pumps, Kellys): Governed by API 7K / API Spec 7-1 vs. OEM specifications.
+  * PROCESS & PIPELINE WELDING: Compare ASME B31.3 vs. API 1104 vs. AWS D1.1 vs. ISO 5817 (same joint/welding scope).
+  * PRESSURE VESSELS: Compare ASME Section VIII Div 1 vs. Div 2 vs. PD 5500 vs. EN 13445.
+- If only ONE international standard exists for that specific equipment (as is the case for Hoisting Tools under API RP 8B / ISO 13534), DO NOT invent an unrelated standard. Instead, compare:
+  [API Code Baseline] vs. [OEM Specification (e.g. NOV/Varco)] vs. [Company / Rig Contractor Specification]
+  and highlight the EXACT DELTA (e.g., stricter wear limits, shorter Category IV overhaul frequency, mandatory NDT hold points).
 
 5. OPTIONAL MCQ CONFLICT RESOLUTION (STRICT LAST RESORT ONLY):
 MCQ is STRICTLY an optional fallback. Use it ONLY when you encounter an irreconcilable conflict where two or more options have equal probability (50/50 conflict between two opposing standards).
@@ -974,7 +1010,7 @@ ADDITIONAL STRUCTURE AFTER VERDICT CARD:
 [Provide detailed metallurgical reasoning, calculations, and exact code citations here.]
 
 ### Cross-Standard Comparison & Specification Delta
-[Comparative Markdown table and delta analysis between standards or between your company standard and global codes.]
+[Comparative Markdown table and delta analysis strictly adhering to the Scope Parity Principle (never compare mismatched scopes like elevators to API 7K). If only one international code governs, contrast API baseline vs OEM specifications vs Company procedures.]
 
 **Quality Recommendation & Execution:**
 [State the exact measuring tool, calibration requirement, and inspection step to do the job right.]
@@ -999,7 +1035,7 @@ ADDITIONAL STRUCTURE AFTER VERDICT CARD:
 [State manufacturer-specific limits (e.g. NOV hoisting wear limits, Cameron BOP grease purge, Hydril rubber elongation).]
 
 ### Cross-Standard Comparison & Specification Delta
-[Comparative Markdown table contrasting OEM specs vs Base Codes vs Project Specs, highlighting exact delta and strictness differences.]
+[Comparative Markdown table strictly within the same equipment scope (e.g. OEM specs vs API baseline vs Company Specs), highlighting exact delta and strictness differences. Never mix mismatched equipment scopes.]
 
 **3. Field Failure Hotspots (Where It Actually Breaks):**
 [List the exact 2-3 stress concentrations where fatigue cracks initiate 90% of the time in the field.]
@@ -1189,7 +1225,7 @@ ADDITIONAL STRUCTURE AFTER VERDICT CARD:
 [Detailed engineering explanation, calculations, and exact clause citations.]
 
 ### Cross-Standard Comparison & Specification Delta
-[Comparative Markdown table and delta analysis between standards or between your company standard and global codes.]
+[Comparative Markdown table and delta analysis strictly adhering to the Scope Parity Principle (never compare mismatched scopes like elevators to API 7K). If only one international code governs, contrast API baseline vs OEM specifications vs Company procedures.]
 
 **Quality Execution & ITP Hold Point:**
 [Tool required, calibration requirement, and mandatory sign-off hold point.]
@@ -1208,7 +1244,7 @@ ADDITIONAL STRUCTURE AFTER VERDICT CARD:
 [Detailed engineering explanation, calculations, and exact clause citations.]
 
 ### Cross-Standard Comparison & Specification Delta
-[Comparative Markdown table and delta analysis between standards or between your company standard and global codes.]
+[Comparative Markdown table and delta analysis strictly adhering to the Scope Parity Principle (never compare mismatched scopes like elevators to API 7K). If only one international code governs, contrast API baseline vs OEM specifications vs Company procedures.]
 
 **Quality Execution & ITP Hold Point:**
 [Tool required, calibration requirement, and mandatory sign-off hold point.]
