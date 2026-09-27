@@ -486,6 +486,73 @@ app.get('/api/admin/tables', async (c) => {
   }
 })
 
+// AI-Powered Table-to-JSON Parser for raw PDF text
+app.post('/api/admin/auto-parse-table', async (c) => {
+  try {
+    const { standard_code, table_text, file_hash = '', scope = 'global', session_id = null } = await c.req.json()
+    if (!standard_code || !table_text) return c.json({ error: 'Missing standard_code or table_text' }, 400)
+
+    const parsePrompt = `You are an expert standards database parser. Convert the following text containing a technical standard table into a valid JSON object with EXACTLY this structure:
+{
+  "table_id": "e.g. Table 1 or Table A.1",
+  "table_title": "Full title of table",
+  "headers": ["Col 1", "Col 2"],
+  "raw_markdown": "| Col 1 | Col 2 |\\n|---|---|\\n| Val 1 | Val 2 |",
+  "rows": [
+    { "col_1": "val_1", "col_2": "val_2" }
+  ]
+}
+
+DO NOT write explanations or conversational text. Output ONLY the raw JSON object.
+
+TEXT TO PARSE:
+${table_text.substring(0, 3500)}`
+
+    let parsedJson = null
+    if (c.env.AI) {
+      try {
+        const aiRes = await c.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+          messages: [{ role: 'user', content: parsePrompt }],
+          max_tokens: 1500
+        })
+        const respText = (aiRes?.response || (typeof aiRes === 'string' ? aiRes : '')).trim()
+        const jsonMatch = respText.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          parsedJson = JSON.parse(jsonMatch[0])
+        }
+      } catch(e){}
+    }
+
+    if (!parsedJson) {
+      return c.json({ error: 'Failed to parse table structure' }, 422)
+    }
+
+    // Save directly into standards_tables
+    await c.env.DB.prepare(`
+      INSERT INTO standards_tables (
+        standard_code, edition, table_id, table_title, section_context, 
+        headers_json, raw_markdown, structured_json, scope, session_id, file_hash
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      standard_code,
+      '',
+      parsedJson.table_id || 'Table',
+      parsedJson.table_title || 'Standards Table',
+      '',
+      JSON.stringify(parsedJson.headers || []),
+      parsedJson.raw_markdown || '',
+      JSON.stringify(parsedJson.rows || []),
+      scope,
+      session_id,
+      file_hash
+    ).run()
+
+    return c.json({ success: true, table: parsedJson })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
 app.post('/api/admin/rules', async (c) => {
   const token = c.req.header('Authorization')?.split(' ')[1]
   if (token !== c.env.ADMIN_SECRET) {

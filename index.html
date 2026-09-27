@@ -1815,31 +1815,57 @@
 
                     // 3. Table-to-JSON Transformer: Detect & Save Structured Tables
                     const tables = extractMarkdownTables(text);
-                    for (const tbl of tables) {
-                        try {
-                            await fetch(`${API_BASE}/api/admin/ingest-table`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                                },
-                                body: JSON.stringify({
-                                    standard_code: code,
-                                    table_id: tbl.tableId || `Table P${i}`,
-                                    table_title: tbl.title || `${code} Table (Page ${i})`,
-                                    section_context: [currentBreadcrumbs.chapter, currentBreadcrumbs.section].filter(Boolean).join(' > '),
-                                    headers_json: tbl.headers,
-                                    raw_markdown: tbl.rawMarkdown,
-                                    structured_json: tbl.rows,
-                                    file_hash: fileHash,
-                                    scope: scope,
-                                    session_id: sessionId,
-                                    is_temporary: scope === 'private_temp'
-                                })
-                            });
-                            tableCount++;
-                            logBox.innerHTML += `<div>[Table-to-JSON] Structured ${tbl.tableId} from Page ${i} saved into D1!</div>`;
-                        } catch(te){}
+                    if (tables.length > 0) {
+                        for (const tbl of tables) {
+                            try {
+                                await fetch(`${API_BASE}/api/admin/ingest-table`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                                    },
+                                    body: JSON.stringify({
+                                        standard_code: code,
+                                        table_id: tbl.tableId || `Table P${i}`,
+                                        table_title: tbl.title || `${code} Table (Page ${i})`,
+                                        section_context: [currentBreadcrumbs.chapter, currentBreadcrumbs.section].filter(Boolean).join(' > '),
+                                        headers_json: tbl.headers,
+                                        raw_markdown: tbl.rawMarkdown,
+                                        structured_json: tbl.rows,
+                                        file_hash: fileHash,
+                                        scope: scope,
+                                        session_id: sessionId,
+                                        is_temporary: scope === 'private_temp'
+                                    })
+                                });
+                                tableCount++;
+                                logBox.innerHTML += `<div>[Table-to-JSON] Structured ${tbl.tableId} from Page ${i} saved into D1!</div>`;
+                            } catch(te){}
+                        }
+                    } else {
+                        // Detect standard tables without markdown pipes (e.g. Table 1, Table A.1)
+                        const tableTitleMatch = text.match(/(?:Table|TABLE)\s+([0-9A-Z\.\-_]+)\s*[:—–\-]?\s*([^\n\r]+)/i);
+                        if (tableTitleMatch) {
+                            logBox.innerHTML += `<div>[Table-to-JSON] Detected ${tableTitleMatch[0].substring(0, 45)} on Page ${i}. Structuring with AI...</div>`;
+                            try {
+                                const autoRes = await fetch(`${API_BASE}/api/admin/auto-parse-table`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        standard_code: code,
+                                        table_text: text,
+                                        file_hash: fileHash,
+                                        scope: scope,
+                                        session_id: sessionId
+                                    })
+                                });
+                                const autoData = await autoRes.json();
+                                if (autoData.success) {
+                                    tableCount++;
+                                    logBox.innerHTML += `<div>[Table-to-JSON] Saved ${autoData.table.table_id || 'Table'} from Page ${i} into D1!</div>`;
+                                }
+                            } catch(autoErr){}
+                        }
                     }
 
                     currentContent += text + " ";
