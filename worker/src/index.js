@@ -65,6 +65,80 @@ app.all('/api/admin/setup-db', async (c) => {
       await c.env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_tables_code ON standards_tables(standard_code, table_id)`).run()
     } catch(e){}
 
+    // 1. Bilingual Oilfield Jargon Dictionary (العامية الفنية ↔ Formal Code)
+    await c.env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS oilfield_jargon (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        term_ar TEXT UNIQUE NOT NULL,
+        formal_term_en TEXT NOT NULL,
+        relevant_standard TEXT,
+        governing_clause TEXT,
+        description TEXT
+      )
+    `).run()
+
+    // Seed default oilfield slang terms
+    const jargonCount = await c.env.DB.prepare(`SELECT count(*) as count FROM oilfield_jargon`).first()
+    if (!jargonCount || jargonCount.count === 0) {
+      const defaultJargon = [
+        ['سوستة', 'Root Concavity / Incomplete Penetration', 'API 1104 / ASME B31.3', 'Clause 9.3.4 / Table 341.3.2', 'Depression at the weld root or underfill between passes'],
+        ['بقعة', 'Lack of Fusion / Cold Lap', 'API 1104 / ASME B31.3', 'Clause 9.3.2 / Table 341.3.2', 'Discontinuity where weld metal failed to fuse with base metal'],
+        ['شعرية', 'Hairline Surface Crack', 'API 1104 / ASME B31.3', 'Clause 9.3.1 / Table 341.3.2', 'Micro-crack on weld toe or cap, zero tolerance flaw'],
+        ['غماز', 'Cluster Porosity / Gas Pockets', 'ASME B31.3 / API 1104', 'Table 341.3.2 / Clause 9.3.8', 'Trapped shielding gas cavities in weld bead'],
+        ['ترييح', 'Excessive Penetration / Burn-Through', 'API 1104 / AWS D1.1', 'Clause 9.3.7', 'Excessive puddle melting through the root run'],
+        ['عض', 'Undercut', 'ASME B31.3 / API 1104', 'Table 341.3.2 / Clause 9.3.11', 'Groove melted into base metal adjacent to weld toe or root'],
+        ['نحر', 'Undercut / Base Metal Washout', 'ASME B31.3 / API 1104', 'Table 341.3.2 / Clause 9.3.11', 'Erosion or severe melting at the boundary'],
+        ['تنقير', 'Corrosion Pitting', 'ASTM G46 / API 579', 'Section 5 Pitting Evaluation', 'Localized cavity attack on steel surface'],
+        ['سولار', 'Diesel Oil Penetration Leak Test', 'API 650 / ASME V', 'Section 7.3.6', 'Capillary leak test on storage tank floor welds'],
+        ['جاز', 'Kerosene / Diesel Leak Detection', 'API 650 / ASME V', 'Section 7.3.6', 'Low-surface-tension leak check on fillet joints'],
+        ['هاي لو', 'Internal Misalignment (Hi-Lo)', 'API 1104 / ASME B31.3', 'Clause 7.2 / Para 328.4.2', 'Height offset between adjoining pipe ends']
+      ]
+      for (const [ar, en, std, cl, desc] of defaultJargon) {
+        try {
+          await c.env.DB.prepare(`
+            INSERT OR IGNORE INTO oilfield_jargon (term_ar, formal_term_en, relevant_standard, governing_clause, description)
+            VALUES (?, ?, ?, ?, ?)
+          `).bind(ar, en, std, cl, desc).run()
+        } catch(e){}
+      }
+    }
+
+    // 2. Cross-Standard Entity Knowledge Graph (Relationship Mapping)
+    await c.env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS standards_relationships (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        source_standard TEXT NOT NULL,
+        source_clause TEXT,
+        target_standard TEXT NOT NULL,
+        target_clause TEXT,
+        relationship_type TEXT NOT NULL,
+        description TEXT
+      )
+    `).run()
+    try {
+      await c.env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_rel_src ON standards_relationships(source_standard)`).run()
+    } catch(e){}
+
+    const relCount = await c.env.DB.prepare(`SELECT count(*) as count FROM standards_relationships`).first()
+    if (!relCount || relCount.count === 0) {
+      const defaultRels = [
+        ['ASME B31.3', '344.5 (RT Examination)', 'ASME V', 'Article 2', 'GOVERNS_METHOD', 'Mandates radiographic technique, film density (1.8-4.0), and IQI wire sensitivity'],
+        ['ASME B31.3', '344.6 (UT Examination)', 'ASME V', 'Article 4', 'GOVERNS_METHOD', 'Mandates ultrasonic calibration blocks, DAC curve construction, and transducer angles'],
+        ['ASME B31.3', '328.2 (Welder Qualification)', 'ASME IX', 'QW Series', 'PERSONNEL_QUAL', 'WPS, PQR, and Welder Performance Qualification records strictly governed by Section IX'],
+        ['API 1104', 'Section 9 (Acceptance Standards)', 'API 1104', 'Appendix A', 'ECA_ALTERNATIVE', 'Allows Engineering Critical Assessment (fracture mechanics) for larger allowable planar flaws in pipelines'],
+        ['AWS D1.1', 'Clause 6 (Inspection)', 'AWS B1.11', 'Full Scope', 'GOVERNS_VT', 'Detailed visual inspection guide for fillet throat, reinforcement profile, and undercut tolerances'],
+        ['API 5CT', 'Section 10 (NDE)', 'ISO 10893-8 / ASTM E213', 'Full Scope', 'GOVERNS_METHOD', 'Electromagnetic and ultrasonic testing of casing and tubing for longitudinal and transverse defects']
+      ]
+      for (const [srcStd, srcCl, tgtStd, tgtCl, relType, desc] of defaultRels) {
+        try {
+          await c.env.DB.prepare(`
+            INSERT INTO standards_relationships (source_standard, source_clause, target_standard, target_clause, relationship_type, description)
+            VALUES (?, ?, ?, ?, ?, ?)
+          `).bind(srcStd, srcCl, tgtStd, tgtCl, relType, desc).run()
+        } catch(e){}
+      }
+    }
+
     // Add columns to standards_chunks safely if they don't exist
     const tableInfo = await c.env.DB.prepare(`PRAGMA table_info(standards_chunks)`).all()
     const colNames = (tableInfo.results || []).map(col => col.name)
@@ -636,6 +710,59 @@ function extractAlphanumericEntities(text) {
   return entities
 }
 
+// Deterministic Engineering Formula Evaluation (Zero Hallucination Math)
+function evaluateEngineeringFormulas(question) {
+  const q = question.toLowerCase()
+  let results = []
+
+  // 1. Geometric Unsharpness (Ug = F * d / D) - ASME Section V Article 2, T-274.2
+  const ugMatch = q.match(/(?:ug|geometric unsharpness|unsharpness)/i)
+  if (ugMatch) {
+    const fMatch = q.match(/focal\s*(?:spot)?\s*(?:size)?\s*[:=]?\s*([0-9\.]+)\s*(?:mm)?/i)
+    const dMatch = q.match(/(?:thickness|ofd|object-to-film)\s*[:=]?\s*([0-9\.]+)\s*(?:mm)?/i)
+    const sfdMatch = q.match(/(?:sfd|source-to-film|distance)\s*[:=]?\s*([0-9\.]+)\s*(?:mm)?/i)
+
+    if (fMatch && dMatch && sfdMatch) {
+      const F = parseFloat(fMatch[1])
+      const d = parseFloat(dMatch[1])
+      const SFD = parseFloat(sfdMatch[1])
+      const D = SFD - d
+      if (D > 0) {
+        const Ug = (F * d) / D
+        let limit = d <= 50 ? 0.51 : (d <= 75 ? 0.76 : (d <= 100 ? 1.02 : 1.78))
+        const passed = Ug <= limit
+        results.push(`VERIFIED MATH [Geometric Unsharpness Ug per ASME Section V Article 2, T-274.2]:
+• Formula: Ug = (F * d) / D = (${F} * ${d}) / (${SFD} - ${d})
+• Calculated Ug: ${Ug.toFixed(3)} mm
+• ASME V Maximum Allowable Limit (thickness ${d} mm): ${limit} mm
+• Compliance Disposition: ${passed ? 'COMPLIANT (PASS)' : 'NON-COMPLIANT (FAIL - MUST INCREASE SFD)'}`)
+      }
+    }
+  }
+
+  // 2. Barlow's Pipeline Formula: P = (2 * S * t / D) * F (ASME B31.4 / B31.8)
+  const barlowMatch = q.match(/(?:barlow|maop|design pressure|internal design pressure)/i)
+  if (barlowMatch) {
+    const sMatch = q.match(/(?:smys|yield strength|s)\s*[:=]?\s*([0-9]+)\s*(?:psi|bar)?/i)
+    const tMatch = q.match(/(?:wall thickness|thickness|t)\s*[:=]?\s*([0-9\.]+)\s*(?:in|inch|mm)?/i)
+    const diaMatch = q.match(/(?:outer diameter|od|diameter|d)\s*[:=]?\s*([0-9\.]+)\s*(?:in|inch|mm)?/i)
+    const fFactorMatch = q.match(/(?:design factor|f)\s*[:=]?\s*(0\.[0-9]+)/i)
+
+    if (sMatch && tMatch && diaMatch) {
+      const S = parseFloat(sMatch[1])
+      const t = parseFloat(tMatch[1])
+      const D = parseFloat(diaMatch[1])
+      const F = fFactorMatch ? parseFloat(fFactorMatch[1]) : 0.72
+      const P = ((2 * S * t) / D) * F
+      results.push(`VERIFIED MATH [Barlow's Equation for Pipeline MAOP per ASME B31.4/B31.8]:
+• Formula: P = (2 * S * t / D) * F = (2 * ${S} * ${t} / ${D}) * ${F}
+• Calculated Maximum Allowable Operating Pressure (MAOP): ${P.toFixed(2)} psi (${(P * 0.0689476).toFixed(2)} bar)`)
+    }
+  }
+
+  return results.length > 0 ? results.join("\n\n") : null
+}
+
 async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = [], mode = 'web') {
   const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
   let dbConf = {}
@@ -667,6 +794,36 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
       c.env.DB.prepare(`DELETE FROM standards_chunks WHERE expires_at IS NOT NULL AND expires_at < CURRENT_TIMESTAMP`).run()
     )
   } catch(e){}
+
+  // 1. Bilingual Oilfield Jargon Expander (العامية الفنية ↔ Formal Code)
+  let detectedJargonNotes = []
+  try {
+    const jargonList = await c.env.DB.prepare(`SELECT term_ar, formal_term_en, relevant_standard, governing_clause, description FROM oilfield_jargon`).all()
+    if (jargonList && jargonList.results) {
+      for (const item of jargonList.results) {
+        if (question.includes(item.term_ar)) {
+          detectedJargonNotes.push(`• Field Term: "${item.term_ar}" translates to official terminology "${item.formal_term_en}" (Governed by ${item.relevant_standard} ${item.governing_clause}) - ${item.description}`)
+        }
+      }
+    }
+  } catch(e){}
+
+  // 2. Cross-Standard Entity Knowledge Graph Traversal
+  let knowledgeGraphLinks = []
+  try {
+    const qUpper = question.toUpperCase()
+    const rels = await c.env.DB.prepare(`SELECT source_standard, source_clause, target_standard, target_clause, relationship_type, description FROM standards_relationships`).all()
+    if (rels && rels.results) {
+      for (const r of rels.results) {
+        if (qUpper.includes(r.source_standard.toUpperCase()) || (r.target_standard && qUpper.includes(r.target_standard.toUpperCase()))) {
+          knowledgeGraphLinks.push(`• Standard Cross-Reference [${r.relationship_type}]: ${r.source_standard} (${r.source_clause || 'General'}) links to ${r.target_standard} (${r.target_clause || 'General'}) — ${r.description}`)
+        }
+      }
+    }
+  } catch(e){}
+
+  // 3. Deterministic Engineering Formula Evaluation
+  const formulaEvaluation = evaluateEngineeringFormulas(question)
 
   // Fetch active dynamic context rules
   const rulesRes = await c.env.DB.prepare(`SELECT keyword, instruction FROM ndt_rules WHERE is_active = 1`).all()
@@ -1020,6 +1177,21 @@ ${contextText}
       systemPrompt += tblText
     }
   } catch(e) {}
+
+  // Bilingual Oilfield Jargon Translations
+  if (detectedJargonNotes.length > 0) {
+    systemPrompt += `\n[BILINGUAL OILFIELD JARGON TRANSLATION (العامية الفنية ↔ Code)]:\n${detectedJargonNotes.join("\n")}\n`
+  }
+
+  // Cross-Standard Knowledge Graph Mandatory Links
+  if (knowledgeGraphLinks.length > 0) {
+    systemPrompt += `\n[CROSS-STANDARD KNOWLEDGE GRAPH MANDATORY LINKS]:\n${knowledgeGraphLinks.slice(0, 3).join("\n")}\n`
+  }
+
+  // Verified Engineering Formula Mathematics
+  if (formulaEvaluation) {
+    systemPrompt += `\n${formulaEvaluation}\n`
+  }
 
   const messages = [
     { role: "system", content: systemPrompt },
