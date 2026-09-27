@@ -576,13 +576,15 @@ app.post('/api/admin/rules', async (c) => {
   }
 })
 
-// Cosine similarity
 function cosineSimilarity(vecA, vecB) {
+  if (!Array.isArray(vecA) || !Array.isArray(vecB) || !vecA.length || !vecB.length) return 0;
   let dotProduct = 0; let normA = 0; let normB = 0;
-  for (let i = 0; i < vecA.length; i++) {
+  const len = Math.min(vecA.length, vecB.length);
+  for (let i = 0; i < len; i++) {
     dotProduct += vecA[i] * vecB[i]; normA += vecA[i] * vecA[i]; normB += vecB[i] * vecB[i];
   }
-  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB))
+  const denom = Math.sqrt(normA) * Math.sqrt(normB);
+  return denom === 0 ? 0 : dotProduct / denom;
 }
 
 async function askAIProvider(c, messages, stream) {
@@ -1136,8 +1138,13 @@ ${rulesSection}
     const { results } = await c.env.DB.prepare(query).bind(...params).all()
     let scoredChunks = (results || []).map(row => {
       let emb = []
-      try { emb = JSON.parse(row.embedding) } catch(e){}
-      let score = emb.length > 0 ? cosineSimilarity(questionEmbedding, emb) : -1
+      try { 
+        if (row.embedding) {
+          const parsed = JSON.parse(row.embedding)
+          if (Array.isArray(parsed)) emb = parsed
+        }
+      } catch(e){}
+      let score = (emb.length > 0 && Array.isArray(questionEmbedding) && questionEmbedding.length > 0) ? cosineSimilarity(questionEmbedding, emb) : -1
       return { ...row, vector_score: score }
     })
 

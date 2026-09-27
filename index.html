@@ -1752,11 +1752,17 @@
                 });
                 const checkData = await checkRes.json();
 
-                if (checkData.exists) {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+                const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+                logBox.innerHTML += `<div>Loaded ${pdf.numPages} pages. Checking index coverage...</div>`;
+
+                if (checkData.exists && checkData.doc && checkData.doc.chunk_count >= Math.max(10, Math.floor(pdf.numPages * 0.7))) {
                     logBox.innerHTML += `<div style="color:#60A5FA;">⚡ Document recognized: ${checkData.doc.standard_code} - ${checkData.doc.title}!</div>`;
-                    logBox.innerHTML += `<div style="color:#34D399;">✓ Instant activation from server cache with 0 compute cost!</div>`;
+                    logBox.innerHTML += `<div style="color:#34D399;">✓ Verified complete coverage (${checkData.doc.chunk_count} chunks active in D1). Instant activation with 0 compute cost!</div>`;
                     loadStandardsCatalog();
                     return;
+                } else if (checkData.exists && checkData.doc) {
+                    logBox.innerHTML += `<div style="color:#F59E0B;">⚠️ Incomplete index detected (${checkData.doc.chunk_count} chunks for ${pdf.numPages} pages). Resuming complete comprehension...</div>`;
                 }
 
                 logBox.innerHTML += `<div>[3/4] Parsing document pages (with On-Device OCR + Table-to-JSON)...</div>`;
@@ -1764,10 +1770,6 @@
                 const name = document.getElementById('hub-std-name').value.trim() || file.name.replace('.pdf', '');
                 const scope = document.querySelector('input[name="hub-scope"]:checked').value;
                 const token = document.getElementById('admin-token').value.trim();
-
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-                const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-                logBox.innerHTML += `<div>Loaded ${pdf.numPages} pages. Processing with hierarchical breadcrumbs...</div>`;
 
                 let currentContent = "";
                 let chunkCount = 0;
@@ -1778,7 +1780,8 @@
                     clause: ""
                 };
 
-                for (let i = 1; i <= Math.min(pdf.numPages, 20); i++) {
+                const totalPages = pdf.numPages;
+                for (let i = 1; i <= totalPages; i++) {
                     const page = await pdf.getPage(i);
                     const textContent = await page.getTextContent();
                     let text = textContent.items.map(item => item.str).join(" ").trim();
@@ -1908,7 +1911,7 @@
                             throw new Error(resData.error || 'Server error during chunk upload');
                         }
 
-                        logBox.innerHTML = `<div>[3/4] Ingesting ${code}: Page ${i}/${Math.min(pdf.numPages, 20)} (Chunk #${chunkCount} saved)...</div>`;
+                        logBox.innerHTML = `<div>[3/4] Ingesting ${code}: Page ${i}/${totalPages} (Chunk #${chunkCount} saved)...</div>`;
                     }
                 }
 
