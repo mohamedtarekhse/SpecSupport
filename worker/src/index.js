@@ -598,9 +598,16 @@ Start your response IMMEDIATELY with the following high-contrast markdown block 
 2. DEFINITIVE TECHNICAL ANSWERS IN RESPONSE BODY (NO QUESTION LISTS IN BODY):
 The body of your response must contain ONLY engineering verdicts, metallurgical explanations, calculations, tables, and quality recommendations.
 DO NOT write lists of clarifying questions or follow-up questions inside the body of your response.
-If different service categories or wall thicknesses apply, state the exact limits for each in a clear table or in the explanation.
 
-3. OPTIONAL MCQ CONFLICT RESOLUTION (STRICT LAST RESORT ONLY):
+3. MANDATORY CROSS-STANDARD COMPARISON & SPECIFICATION DELTA:
+In your technical explanation, you MUST ALWAYS include a dedicated comparative analysis:
+### 📊 Cross-Standard Comparison & Specification Delta:
+Provide a clear Markdown comparison table:
+- Contrast the Primary Governing Standard against Alternative Global Codes (e.g. ASME B31.3 vs API 1104 vs ASME VIII vs AWS D1.1 vs ISO 5817).
+- If a company or project procedure is active in context ("Your Standard"), explicitly contrast "Your Company Specification" vs. "Global Baseline Standard" and highlight the EXACT DELTA (e.g., where the company procedure mandates stricter dimensional tolerances, higher preheat, 100% NDT instead of spot inspection, or lower hardness limits).
+- Explain the engineering rationale for the differences (e.g., cyclic fatigue vs. static pressure vs. sour corrosion).
+
+4. OPTIONAL MCQ CONFLICT RESOLUTION (STRICT LAST RESORT ONLY):
 MCQ is STRICTLY an optional fallback. Use it ONLY when you encounter an irreconcilable conflict where two or more options have equal probability (50/50 conflict between two opposing standards).
 In ordinary engineering queries, DO NOT emit any MCQ block. Answer definitively.
 Only if you are genuinely lost due to an equal-probability conflict, append at the very tail:
@@ -611,7 +618,7 @@ Only if you are genuinely lost due to an equal-probability conflict, append at t
   }
 ]-->
 
-4. FORWARD-LOOKING CLICKABLE FOLLOW-UP QUESTIONS (STRICTLY AT TAIL):
+5. FORWARD-LOOKING CLICKABLE FOLLOW-UP QUESTIONS (STRICTLY AT TAIL):
 At the very end of your response (after all body text), append 4 to 5 forward-looking question chips in exactly this format:
 <!--FOLLOWUPS: ["Question 1?", "Question 2?", "Question 3?", "Question 4?", "Question 5?"]-->
 CRITICAL RULES FOR FOLLOW-UP CHIPS:
@@ -635,6 +642,9 @@ ADDITIONAL STRUCTURE AFTER VERDICT CARD:
 **Detailed Engineering Explanation:**
 [Provide detailed metallurgical reasoning, calculations, and exact code citations here.]
 
+### 📊 Cross-Standard Comparison & Specification Delta:
+[Comparative Markdown table and delta analysis between standards or between your company standard and global codes.]
+
 **Quality Recommendation & Execution:**
 [State the exact measuring tool, calibration requirement, and inspection step to do the job right.]
 
@@ -656,6 +666,9 @@ ADDITIONAL STRUCTURE AFTER VERDICT CARD:
 
 **2. OEM Specifics & Technical Bulletins:**
 [State manufacturer-specific limits (e.g. NOV hoisting wear limits, Cameron BOP grease purge, Hydril rubber elongation).]
+
+### 📊 Cross-Standard Comparison & Specification Delta:
+[Comparative Markdown table contrasting OEM specs vs Base Codes vs Project Specs, highlighting exact delta and strictness differences.]
 
 **3. Field Failure Hotspots (Where It Actually Breaks):**
 [List the exact 2-3 stress concentrations where fatigue cracks initiate 90% of the time in the field.]
@@ -822,6 +835,16 @@ Perform a Database-First Web Refinement:
 
 ${coreInspectionDirectives}
 
+ADDITIONAL STRUCTURE AFTER VERDICT CARD:
+**Detailed Engineering Explanation:**
+[Detailed engineering explanation, calculations, and exact clause citations.]
+
+### 📊 Cross-Standard Comparison & Specification Delta:
+[Comparative Markdown table and delta analysis between standards or between your company standard and global codes.]
+
+**Quality Execution & ITP Hold Point:**
+[Tool required, calibration requirement, and mandatory sign-off hold point.]
+
 ${rulesSection}
 `
     } else {
@@ -834,6 +857,9 @@ ${coreInspectionDirectives}
 ADDITIONAL STRUCTURE AFTER VERDICT CARD:
 **Detailed Engineering Explanation:**
 [Detailed engineering explanation, calculations, and exact clause citations.]
+
+### 📊 Cross-Standard Comparison & Specification Delta:
+[Comparative Markdown table and delta analysis between standards or between your company standard and global codes.]
 
 **Quality Execution & ITP Hold Point:**
 [Tool required, calibration requirement, and mandatory sign-off hold point.]
