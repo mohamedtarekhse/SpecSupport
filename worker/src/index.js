@@ -1050,7 +1050,25 @@ ${rulesSection}
       chunk.rrf_score = vScore + bScore;
     })
 
-    scoredChunks.sort((a, b) => b.rrf_score - a.rrf_score)
+    // ColBERT-Style Sub-Token Late Interaction Scoring
+    // Matches exact alphanumeric codes (e.g., 341.3.2, UW-12, 1/32", 12mm) directly
+    const queryTokens = question.match(/[0-9a-zA-Z\.\-_/]+/g) || []
+    scoredChunks.forEach(chunk => {
+      let tokenBoost = 0
+      const contentLower = (chunk.clause + " " + chunk.content).toLowerCase()
+      for (const tok of queryTokens) {
+        if (tok.length >= 3 && contentLower.includes(tok.toLowerCase())) {
+          if (/\d/.test(tok) || tok.includes('.')) {
+            tokenBoost += 0.35 // Strong boost for exact alphanumeric clause / dimension tokens
+          } else {
+            tokenBoost += 0.05
+          }
+        }
+      }
+      chunk.final_retrieval_score = chunk.rrf_score + tokenBoost
+    })
+
+    scoredChunks.sort((a, b) => b.final_retrieval_score - a.final_retrieval_score)
 
     // Merge exact alphanumeric clause matches to top with maximum priority
     const combinedChunks = []
