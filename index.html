@@ -280,52 +280,183 @@
         .message-body ul, .message-body ol { margin: 8px 0 12px 0; padding-left: 22px; }
         body.rtl .message-body ul, body.rtl .message-body ol { padding-left: 0; padding-right: 22px; }
 
-        /* Markdown Table Styling */
+        /* Engineering Executive Tables */
         .message-body table {
-            width: 100%; border-collapse: collapse; margin: 16px 0;
+            width: 100%; border-collapse: separate; border-spacing: 0; margin: 16px 0;
             background: var(--gemini-surface); border-radius: 8px; overflow: hidden;
-            font-size: 0.9rem; border: 1px solid var(--gemini-border);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+            font-size: 0.88rem; border: 1px solid var(--gemini-border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
         }
         .message-body th, .message-body td {
-            padding: 10px 14px; text-align: left;
+            padding: 11px 16px; text-align: left;
             border-bottom: 1px solid var(--gemini-border);
         }
         body.rtl .message-body th, body.rtl .message-body td { text-align: right; }
-        .message-body th { background: var(--gemini-surface-hover); font-weight: 600; border-bottom: 2px solid var(--gemini-border); }
+        .message-body th { 
+            background: rgba(255, 255, 255, 0.03); 
+            color: var(--gemini-text-muted); 
+            font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
+            border-bottom: 2px solid var(--gemini-border); 
+        }
+        :root.light-mode .message-body th {
+            background: rgba(0, 0, 0, 0.03);
+            color: #475569;
+        }
+        .message-body tr:last-child td { border-bottom: none; }
         .message-body tr:hover td { background: var(--gemini-surface-hover); }
 
-        /* Blockquote for Missing Parameters Warning */
+        /* Professional Technical Blockquote */
         .message-body blockquote {
-            border-left: 3px solid #F59E0B;
-            background: rgba(245, 158, 11, 0.08);
+            border-left: 3px solid var(--gemini-blue);
+            background: rgba(26, 115, 232, 0.05);
             margin: 14px 0; padding: 10px 16px;
-            border-radius: 4px; font-size: 0.92rem;
+            border-radius: 4px; font-size: 0.9rem;
             color: var(--gemini-text-main);
         }
         body.rtl .message-body blockquote {
-            border-left: none; border-right: 3px solid #F59E0B;
+            border-left: none; border-right: 3px solid var(--gemini-blue);
         }
 
         .message-body code {
             background: var(--gemini-surface-hover);
             padding: 2px 6px; border-radius: 4px;
             font-family: monospace; font-size: 0.88em;
-            color: var(--gemini-blue-light);
+            color: var(--gemini-text-main);
+            border: 1px solid var(--gemini-border);
         }
 
-        
-        
-        /* Engineering Grey Area Callout Card */
-        .message-body h3:has(+ p, + ul, + ol) {
-            margin-top: 20px;
-        }
-        .grey-area-card {
-            background: rgba(245, 158, 11, 0.08);
-            border: 1px solid rgba(245, 158, 11, 0.3);
+        /* Executive Engineering Verdict Card */
+        .executive-verdict-card {
+            background: var(--gemini-surface);
+            border: 1px solid var(--gemini-border);
+            border-left: 4px solid var(--gemini-blue);
             border-radius: 8px;
+            margin: 12px 0 20px 0;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+        }
+        body.rtl .executive-verdict-card {
+            border-left: 1px solid var(--gemini-border);
+            border-right: 4px solid var(--gemini-blue);
+        }
+        .verdict-card-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--gemini-border);
+        }
+        :root.light-mode .verdict-card-topbar {
+            background: rgba(0, 0, 0, 0.02);
+        }
+        .verdict-card-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: var(--gemini-text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .verdict-title-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--gemini-blue);
+        }
+        .verdict-top-badge {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: var(--gemini-text-muted);
+            background: var(--gemini-surface-hover);
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--gemini-border);
+        }
+        .verdict-items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1px;
+            background: var(--gemini-border);
+        }
+        .verdict-item {
+            background: var(--gemini-surface);
             padding: 12px 16px;
-            margin: 14px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .verdict-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .verdict-item-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gemini-text-muted);
+        }
+        .verdict-item-value {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--gemini-text-main);
+            line-height: 1.4;
+        }
+        /* Muted, professional status badges (NO loud neon, NO emojis) */
+        .status-tag {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+        .status-pass {
+            background: rgba(34, 197, 94, 0.12);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+        :root.light-mode .status-pass {
+            background: #DCFCE7;
+            color: #15803D;
+            border: 1px solid #BBF7D0;
+        }
+        .status-fail {
+            background: rgba(239, 68, 68, 0.12);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+        :root.light-mode .status-fail {
+            background: #FEE2E2;
+            color: #B91C1C;
+            border: 1px solid #FECACA;
+        }
+        .status-ndt {
+            background: rgba(59, 130, 246, 0.12);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.25);
+        }
+        :root.light-mode .status-ndt {
+            background: #DBEAFE;
+            color: #1D4ED8;
+            border: 1px solid #BFDBFE;
+        }
+        .status-info {
+            background: rgba(148, 163, 184, 0.12);
+            color: #cbd5e1;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+        }
+        :root.light-mode .status-info {
+            background: #F1F5F9;
+            color: #475569;
+            border: 1px solid #E2E8F0;
         }
 
         
@@ -491,34 +622,39 @@
         }
         .followup-chip {
             background: var(--gemini-surface);
-            border: 1px solid rgba(138, 180, 248, 0.35);
-            color: var(--gemini-blue-light);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
+            border: 1px solid var(--gemini-border);
+            color: var(--gemini-text-main);
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 0.83rem;
             font-weight: 500;
             cursor: pointer !important;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            transition: all 0.15s ease;
             user-select: none;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
         .followup-chip:hover {
-            background: rgba(26, 115, 232, 0.18);
-            border-color: var(--gemini-blue-light);
+            background: var(--gemini-surface-hover);
+            border-color: var(--gemini-text-muted);
             color: #FFFFFF;
             transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(26, 115, 232, 0.25);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        :root.light-mode .followup-chip:hover {
+            color: #000000;
+            border-color: #94A3B8;
         }
         .followup-chip:active {
             transform: translateY(0);
         }
         .followup-chip .chip-arrow {
-            color: var(--gemini-blue-light);
-            font-weight: 700;
+            color: var(--gemini-text-muted);
+            font-weight: 600;
+            font-size: 0.82rem;
         }
         .clickable-q-link {
             color: var(--gemini-blue-light) !important;
@@ -1149,6 +1285,76 @@
             return /[\u0600-\u06FF]/.test(str);
         }
 
+        function stripDistractingEmojis(str) {
+            if (!str) return '';
+            return str
+                .replace(/[\u{1F000}-\u{1FAFF}\u{200D}\u{FE00}-\u{FE0F}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+                .trim();
+        }
+
+        function formatExecutiveVerdictCard(html) {
+            const verdictRegex = /<h3[^>]*>([\s\S]*?(?:GOVERNING CODE|CODE VERDICT|SPECIFICATION SUMMARY)[\s\S]*?)<\/h3>\s*<ul[^>]*>([\s\S]*?)<\/ul>/i;
+            return html.replace(verdictRegex, (match, title, listItems) => {
+                let cleanTitle = stripDistractingEmojis(title);
+                if (!cleanTitle) cleanTitle = 'CODE VERDICT & SPECIFICATION SUMMARY';
+                
+                let itemsHtml = '';
+                const itemRegex = /<li[^>]*>([\s\S]*?)<\/li>/gi;
+                let itemMatch;
+                while ((itemMatch = itemRegex.exec(listItems)) !== null) {
+                    let itemContent = stripDistractingEmojis(itemMatch[1]);
+
+                    let label = '';
+                    let val = itemContent;
+                    if (itemContent.includes('</strong>:')) {
+                        const parts = itemContent.split('</strong>:');
+                        label = parts[0].replace(/<strong[^>]*>/, '').trim();
+                        val = parts.slice(1).join('</strong>:').trim();
+                    } else if (itemContent.includes('<strong>')) {
+                        const parts = itemContent.split('</strong>');
+                        label = parts[0].replace(/<strong[^>]*>/, '').trim();
+                        val = parts.slice(1).replace(/^[:\s-]+/, '').trim();
+                    }
+
+                    let statusTag = '';
+                    const lowerLabel = label.toLowerCase();
+                    if (lowerLabel.includes('pass') || lowerLabel.includes('acceptance') || lowerLabel.includes('acceptable')) {
+                        statusTag = '<span class="status-tag status-pass">PASS</span>';
+                    } else if (lowerLabel.includes('fail') || lowerLabel.includes('reject') || lowerLabel.includes('rejection')) {
+                        statusTag = '<span class="status-tag status-fail">REJECT</span>';
+                    } else if (lowerLabel.includes('ndt') || lowerLabel.includes('method') || lowerLabel.includes('examination')) {
+                        statusTag = '<span class="status-tag status-ndt">NDT</span>';
+                    } else if (lowerLabel.includes('personnel') || lowerLabel.includes('qualification')) {
+                        statusTag = '<span class="status-tag status-info">QUAL</span>';
+                    }
+
+                    itemsHtml += `
+                        <div class="verdict-item">
+                            <div class="verdict-item-header">
+                                <span class="verdict-item-label">${label}</span>
+                                ${statusTag}
+                            </div>
+                            <div class="verdict-item-value">${val}</div>
+                        </div>`;
+                }
+
+                return `
+                    <div class="executive-verdict-card">
+                        <div class="verdict-card-topbar">
+                            <div class="verdict-card-title">
+                                <span class="verdict-title-indicator"></span>
+                                <span>${cleanTitle}</span>
+                            </div>
+                            <span class="verdict-top-badge">SPECIFICATION BASELINE</span>
+                        </div>
+                        <div class="verdict-items-grid">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
         // Append Message with Action Toolbar & Follow-Ups
         function appendMessage(text, role, sources = [], followups = [], canContinue = false, mcqs = []) {
             const list = document.getElementById('messages-list');
@@ -1157,7 +1363,9 @@
 
             const avatar = document.createElement('div');
             avatar.className = `avatar-box ${role}-avatar`;
-            avatar.innerHTML = role === 'user' ? '👤' : '<span class="sparkle-icon" style="font-size:1rem;">✦</span>';
+            avatar.innerHTML = role === 'user' 
+                ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--gemini-text-muted)"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>'
+                : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gemini-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>';
 
             const body = document.createElement('div');
             body.className = 'message-body';
@@ -1171,7 +1379,8 @@
 
                 const contentDiv = document.createElement('div');
                 contentDiv.className = 'message-content';
-                contentDiv.innerHTML = marked.parse(cleanText);
+                let parsedHtml = marked.parse(cleanText);
+                contentDiv.innerHTML = formatExecutiveVerdictCard(parsedHtml);
                 body.appendChild(contentDiv);
 
                 // 2. Dedicated Response Tail Container (positioned strictly at the bottom)
