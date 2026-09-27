@@ -477,16 +477,48 @@
         }
         .followup-chip {
             background: var(--gemini-surface);
-            border: 1px solid var(--gemini-border);
-            color: var(--gemini-text-main);
-            padding: 7px 14px; border-radius: 20px;
-            font-size: 0.82rem; cursor: pointer;
-            transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+            border: 1px solid rgba(138, 180, 248, 0.35);
+            color: var(--gemini-blue-light);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer !important;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            user-select: none;
         }
         .followup-chip:hover {
-            background: var(--gemini-surface-hover);
+            background: rgba(26, 115, 232, 0.18);
             border-color: var(--gemini-blue-light);
+            color: #FFFFFF;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(26, 115, 232, 0.25);
+        }
+        .followup-chip:active {
+            transform: translateY(0);
+        }
+        .followup-chip .chip-arrow {
             color: var(--gemini-blue-light);
+            font-weight: 700;
+        }
+        .clickable-q-link {
+            color: var(--gemini-blue-light) !important;
+            cursor: pointer !important;
+            text-decoration: underline !important;
+            display: inline-block;
+            margin: 4px 0;
+            transition: all 0.15s;
+        }
+        .clickable-q-link:hover {
+            color: #FFFFFF !important;
+            background: rgba(26, 115, 232, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
         }
 
         /* Sources Accordion */
@@ -1190,19 +1222,39 @@
                     body.appendChild(mcqCard);
                 }
 
-                // Suggested Next Question Chips
+                // Suggested Next Question Chips (Explicitly clickable buttons)
                 if (followups && followups.length > 0) {
                     const chipsWrap = document.createElement('div');
                     chipsWrap.className = 'followups-container';
                     followups.forEach(q => {
-                        const chip = document.createElement('div');
+                        const chip = document.createElement('button');
+                        chip.type = 'button';
                         chip.className = 'followup-chip';
-                        chip.innerHTML = `↗ ${q}`;
-                        chip.onclick = () => sendMessage(q);
+                        chip.setAttribute('role', 'button');
+                        chip.setAttribute('tabindex', '0');
+                        chip.innerHTML = `<span class="chip-arrow">↗</span> <span>${q}</span>`;
+                        chip.onclick = (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            sendMessage(q);
+                        };
                         chipsWrap.appendChild(chip);
                     });
                     body.appendChild(chipsWrap);
                 }
+
+                // Auto-hyperlink any clarifying or follow-up question text inside markdown so nothing is dead text
+                body.querySelectorAll('li').forEach(li => {
+                    const txt = li.textContent.trim();
+                    if (txt.endsWith('?') || txt.includes('What is') || txt.includes('Which code') || txt.includes('What are')) {
+                        li.classList.add('clickable-q-link');
+                        li.title = "Click to ask Inspecta this question";
+                        li.onclick = (e) => {
+                            e.preventDefault();
+                            sendMessage(txt);
+                        };
+                    }
+                });
 
                 // Action Toolbar (Copy, Upvote, Downvote, Export NCR)
                 const toolbar = document.createElement('div');

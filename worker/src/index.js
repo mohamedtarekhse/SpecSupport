@@ -537,7 +537,7 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
   let sources = []
   let systemPrompt = ""
 
-  // Core anti-hallucination, strict anti-assumption, and zero-click verdict instructions
+  // Core anti-hallucination and zero-click verdict instructions
   const coreInspectionDirectives = `
 CORE INSPECTION DIRECTIVES:
 1. MANDATORY ZERO-CLICK VERDICT CARD:
@@ -552,55 +552,28 @@ Start your response IMMEDIATELY with the following high-contrast markdown block 
 - **🔬 Required NDT Method & Standard**: [e.g. Visual per AWS B1.11 / RT per ASME V Art 2]
 - **📜 Personnel Qualification**: [e.g. ASNT SNT-TC-1A Level II / ASME IX Welder]
 
-2. DEFINE THE ENGINEERING GREY AREA BEFORE ASKING:
-In welding and NDT inspection, an answer is rarely binary without complete boundary conditions.
-NEVER make silent assumptions. If the user prompt omits crucial boundary parameters (such as fluid service, wall thickness, design code, or operating temperature), you MUST explicitly define the "ENGINEERING GREY AREA":
-- Explain WHY the standard forks and HOW the decision flips between ACCEPT and REJECT depending on the missing parameter.
+2. DEFINITIVE TECHNICAL ANSWERS (DO NOT ASK QUESTIONS):
+Provide the complete technical answer directly. DO NOT print lists of clarifying questions. DO NOT interrogate the user.
+If a code has different criteria for different conditions (e.g. Normal Fluid vs. Severe Cyclic vs. Category M), state the exact numbers for BOTH in a clear table or in the explanation so the user has the complete answer immediately.
 
-MANDATORY GREY AREA FORMAT (when boundary conditions are missing):
-### ⚠️ THE ENGINEERING GREY AREA
-[State clearly why this decision is in a grey area and cannot be finalized without specific boundary conditions.]
-- **Boundary Fork 1 (e.g. Service Severity)**: Explain how acceptance criteria change (e.g. 'Under Normal Fluid Service, up to 1.0 mm (1/32 in.) is acceptable, BUT under Severe Cyclic Conditions, allowable limit is strictly 0.0 mm / REJECT').
-- **Boundary Fork 2 (e.g. Wall Thickness Ratio)**: Explain the dimensional formula fork (e.g. 'Allowable depth is min(1.0 mm, tw/4). If wall thickness is < 4 mm, the allowable limit shrinks below 1.0 mm').
-
-### ❓ Clarifying Questions to Resolve the Grey Area:
-(Ask a MAXIMUM of 3 precise, targeted questions directly tied to resolving the forks above)
-1. [Targeted Question 1]
-2. [Targeted Question 2]
-3. [Targeted Question 3]
-
-3. MULTI-CODE COMPARISON MATRIX FOR BROAD / AMBIGUOUS QUERIES:
-If the user's query is broad or applies across multiple industry sectors (e.g. general questions about "undercut", "porosity", "hydrotest pressure", or "fatigue cracks"), DO NOT assume one code. Provide a **Cross-Sector Comparison Matrix Table** comparing:
-- ASME B31.3 (Process Plant Piping)
-- API 1104 (Cross-Country Pipelines)
-- ASME VIII Div 1 (Pressure Vessels)
-- AWS D1.1 (Structural Steel)
-- API RP 7G-2 / API 5CT (Drill Stem & Casing if relevant)
-
-4. INTERACTIVE MULTIPLE-CHOICE QUESTIONS (MCQ) TO RESOLVE THE GREY AREA:
-Whenever you define a grey area or ask clarifying questions, you MUST ALWAYS append an interactive multiple-choice question block at the very end so the user can click their field parameters:
+3. OPTIONAL MCQ CONFLICT RESOLUTION (STRICT LAST RESORT ONLY):
+MCQ is STRICTLY an optional fallback. Use it ONLY when you get completely lost or encounter an irreconcilable conflict where two or more options have equal probability (50/50 conflict between two opposing standards).
+In ordinary engineering queries, DO NOT emit any MCQ block. Answer definitively.
+Only if you are genuinely lost due to an equal-probability conflict, append:
 <!--MCQ: [
   {
-    "question": "Nominal Wall Thickness (tw)",
-    "options": ["tw ≤ 1/2 in. (12.7 mm)", "1/2 in. < tw ≤ 1 in. (25.4 mm)", "tw > 1 in. Heavy Wall", "Standard Schedule 40"]
-  },
-  {
-    "question": "Fluid Service Condition",
-    "options": ["Normal Fluid Service", "Severe Cyclic Conditions", "Category M (Toxic/Lethal)", "Category D (Utility/Water)"]
-  },
-  {
-    "question": "Applicable Design Code",
-    "options": ["ASME B31.3 (Process Piping)", "API 1104 (Cross-Country)", "ASME VIII (Pressure Vessel)", "AWS D1.1 (Structural)"]
+    "question": "Which conflicting specification applies?",
+    "options": ["Option A", "Option B"]
   }
 ]-->
 
-5. FORWARD-LOOKING FOLLOW-UP QUESTION CHIPS (DIRECTED AT THE AI):
+4. FORWARD-LOOKING CLICKABLE FOLLOW-UP QUESTIONS:
 At the very end of your response, ALWAYS include 4 to 5 forward-looking question chips in exactly this format:
 <!--FOLLOWUPS: ["Question 1?", "Question 2?", "Question 3?", "Question 4?", "Question 5?"]-->
 CRITICAL RULES FOR FOLLOW-UP CHIPS:
-- NEVER repeat, rephrase, or echo the user's original query.
-- NEVER ask the user to answer questions or provide parameters in these chips (that belongs solely in the Grey Area & MCQ section).
-- These chips must be FORWARD-LOOKING questions that the USER would click to ask YOU (the AI assistant) subsequent technical details (e.g. repair welding procedures, NDT calibration standards, comparison with ISO standards, inspector certification rules).
+- These are hyperlinked questions for the USER to click to ask YOU subsequent technical deep-dives.
+- NEVER repeat or rephrase the user's original query.
+- NEVER ask the user questions in these chips.
 `
 
   // ==========================================
@@ -885,27 +858,9 @@ app.post('/api/ask', async (c) => {
       } catch(e){}
     }
 
-    // Smart MCQ fallback generator if clarifying questions exist but model omitted JSON
-    if (mcqQuestions.length === 0 && answer.includes('Clarifying Questions')) {
-      if (answer.toLowerCase().includes('thickness') || answer.toLowerCase().includes('wall')) {
-        mcqQuestions.push({
-          question: "Nominal Wall Thickness (tw)",
-          options: ["tw ≤ 1/2 in. (12.7 mm)", "1/2 in. < tw ≤ 1.0 in.", "tw > 1.0 in. (Heavy Wall)", "Schedule 40 Standard"]
-        })
-      }
-      if (answer.toLowerCase().includes('service') || answer.toLowerCase().includes('cyclic')) {
-        mcqQuestions.push({
-          question: "Fluid Service Condition",
-          options: ["Normal Fluid Service", "Severe Cyclic Conditions", "Category M (Toxic/Lethal)", "Category D (Low Pressure)"]
-        })
-      }
-      if (answer.toLowerCase().includes('code') || answer.toLowerCase().includes('standard') || answer.toLowerCase().includes('asme')) {
-        mcqQuestions.push({
-          question: "Governing Code",
-          options: ["ASME B31.3 (Process Piping)", "API 1104 (Cross-Country)", "ASME VIII Div 1 (Vessel)", "AWS D1.1 (Structural)"]
-        })
-      }
-    }
+    // Extract MCQ questions ONLY if model explicitly flagged an equal-probability conflict
+    // (MCQ is strictly an optional last resort tool)
+    // No aggressive fallback injection: if the model answered definitively, do NOT show MCQs.
 
         // Strictly filter suggested questions:
     // 1. Must NOT echo the user's question
