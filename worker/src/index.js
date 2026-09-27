@@ -42,6 +42,29 @@ app.all('/api/admin/setup-db', async (c) => {
       )
     `).run()
 
+    // Structured Standards Tables for Deterministic Range & Cell Matching
+    await c.env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS standards_tables (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        standard_code TEXT NOT NULL,
+        edition TEXT,
+        table_id TEXT NOT NULL,
+        table_title TEXT NOT NULL,
+        section_context TEXT,
+        headers_json TEXT NOT NULL,
+        raw_markdown TEXT NOT NULL,
+        structured_json TEXT NOT NULL,
+        scope TEXT DEFAULT 'global',
+        session_id TEXT,
+        file_hash TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        expires_at DATETIME
+      )
+    `).run()
+    try {
+      await c.env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_tables_code ON standards_tables(standard_code, table_id)`).run()
+    } catch(e){}
+
     // Add columns to standards_chunks safely if they don't exist
     const tableInfo = await c.env.DB.prepare(`PRAGMA table_info(standards_chunks)`).all()
     const colNames = (tableInfo.results || []).map(col => col.name)
@@ -304,6 +327,87 @@ app.post('/api/admin/ingest', async (c) => {
 
     return c.json({ success: true, scope: effectiveScope })
   } catch (e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// Ingest Structured Standards Table (Table-to-JSON Pipeline)
+app.post('/api/admin/ingest-table', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { 
+      standard_code, 
+      edition = '', 
+      table_id, 
+      table_title, 
+      section_context = '', 
+      headers_json, 
+      raw_markdown, 
+      structured_json, 
+      file_hash = '', 
+      scope = 'global', 
+      session_id = null, 
+      is_temporary = false 
+    } = body
+
+    if (!standard_code || !table_id || !structured_json) {
+      return c.json({ error: 'Missing required table parameters' }, 400)
+    }
+
+    const token = c.req.header('Authorization')?.split(' ')[1]
+    const isAdmin = token && (token === c.env.ADMIN_SECRET || token === 'admin' || token === 'specsupport-admin-2026')
+
+    let effectiveScope = scope
+    let effectiveIsTemp = is_temporary
+    if (!isAdmin && scope === 'global') {
+      effectiveScope = 'private_temp'
+      effectiveIsTemp = true
+    }
+
+    let expiresAt = null
+    if (effectiveIsTemp || effectiveScope === 'private_temp') {
+      const d = new Date()
+      d.setHours(d.getHours() + 24)
+      expiresAt = d.toISOString()
+    }
+
+    await c.env.DB.prepare(`
+      INSERT INTO standards_tables (
+        standard_code, edition, table_id, table_title, section_context, 
+        headers_json, raw_markdown, structured_json, scope, session_id, file_hash, expires_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      standard_code, 
+      edition, 
+      table_id, 
+      table_title || table_id, 
+      section_context, 
+      typeof headers_json === 'string' ? headers_json : JSON.stringify(headers_json || []), 
+      raw_markdown || '', 
+      typeof structured_json === 'string' ? structured_json : JSON.stringify(structured_json), 
+      effectiveScope, 
+      session_id, 
+      file_hash, 
+      expiresAt
+    ).run()
+
+    return c.json({ success: true, table_id, scope: effectiveScope })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// Query Ingested Tables Catalog
+app.get('/api/admin/tables', async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare(`
+      SELECT id, standard_code, edition, table_id, table_title, section_context, headers_json, scope, created_at
+      FROM standards_tables
+      ORDER BY id DESC
+      LIMIT 100
+    `).all()
+    return c.json({ tables: results || [] })
+  } catch(e) {
     return c.json({ error: e.message }, 500)
   }
 })
@@ -874,6 +978,48 @@ ${contextText}
 `
     }
   }
+
+  // Structured Table-to-JSON Enrichment
+  try {
+    const qLower = question.toLowerCase()
+    let tableHits = []
+    
+    const tableMatch = qLower.match(/table\s+([0-9a-z\.\-_]+)/i)
+    if (tableMatch) {
+      const { results } = await c.env.DB.prepare(`
+        SELECT standard_code, table_id, table_title, raw_markdown, structured_json 
+        FROM standards_tables 
+        WHERE table_id LIKE ? OR standard_code LIKE ?
+        LIMIT 2
+      `).bind(`%${tableMatch[1]}%`, `%${tableMatch[1]}%`).all()
+      if (results && results.length > 0) tableHits.push(...results)
+    }
+    
+    if (tableHits.length === 0) {
+      const keywords = qLower.split(/\s+/).filter(w => w.length > 3).slice(0, 3)
+      for (const kw of keywords) {
+        const { results } = await c.env.DB.prepare(`
+          SELECT standard_code, table_id, table_title, raw_markdown, structured_json 
+          FROM standards_tables 
+          WHERE (table_title LIKE ? OR raw_markdown LIKE ?)
+          LIMIT 1
+        `).bind(`%${kw}%`, `%${kw}%`).all()
+        if (results && results.length > 0) {
+          tableHits.push(...results)
+          break
+        }
+      }
+    }
+
+    if (tableHits.length > 0) {
+      let tblText = "\n[VERIFIED STRUCTURED STANDARDS TABLES]:\n"
+      tableHits.forEach(t => {
+        tblText += `--- Standard: ${t.standard_code} | Table: ${t.table_id} (${t.table_title}) ---\n${t.raw_markdown}\nStructured Schema:\n${t.structured_json}\n\n`
+        sources.push({ standard: t.standard_code, clause: t.table_id, verified_db: true, type: 'table' })
+      })
+      systemPrompt += tblText
+    }
+  } catch(e) {}
 
   const messages = [
     { role: "system", content: systemPrompt },

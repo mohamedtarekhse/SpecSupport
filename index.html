@@ -8,6 +8,8 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- PDF.js for Client-Side Parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <!-- Tesseract.js for On-Device OCR of Scanned Standards -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <!-- Google Fonts: Inter Sans-Serif & Tajawal (Arabic) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -1687,8 +1689,47 @@
             sendMessage(query);
         }
 
+        function extractMarkdownTables(text) {
+            const tables = [];
+            const tableRegex = /(?:\|[^\n]+\|\r?\n){2,}/g;
+            let match;
+            while ((match = tableRegex.exec(text)) !== null) {
+                const tableStr = match[0].trim();
+                const lines = tableStr.split(/\r?\n/).map(l => l.trim()).filter(l => l.startsWith('|') && l.endsWith('|'));
+                if (lines.length >= 2) {
+                    const headers = lines[0].split('|').slice(1, -1).map(h => h.trim());
+                    let startRow = 1;
+                    if (lines[1] && lines[1].includes('---')) startRow = 2;
+                    
+                    const rows = [];
+                    for (let r = startRow; r < lines.length; r++) {
+                        const cells = lines[r].split('|').slice(1, -1).map(c => c.trim());
+                        const rowObj = {};
+                        headers.forEach((h, idx) => {
+                            rowObj[h || `col_${idx}`] = cells[idx] || '';
+                        });
+                        rows.push(rowObj);
+                    }
+                    
+                    const preText = text.substring(Math.max(0, match.index - 120), match.index);
+                    const titleMatch = preText.match(/(Table\s+[0-9A-Z\.\-_]+[^\n]*)/i);
+                    const tableId = titleMatch ? titleMatch[1].split(/[:\-–]/)[0].trim() : 'Table';
+                    const title = titleMatch ? titleMatch[1].trim() : `${tableId}`;
+
+                    tables.push({
+                        tableId,
+                        title,
+                        headers,
+                        rows,
+                        rawMarkdown: tableStr
+                    });
+                }
+            }
+            return tables;
+        }
+
         // ==========================================
-        // SMART PDF INGESTION & HASH DEDUPLICATION
+        // SMART PDF INGESTION: OCR, TABLES & BREADCRUMBS
         // ==========================================
         async function handleSmartPDFUpload(file) {
             if (!file) return;
@@ -1704,7 +1745,6 @@
 
                 logBox.innerHTML += `<div>[2/4] Checking server deduplication registry: ${fileHash.substring(0, 16)}...</div>`;
 
-                // Query server if document already exists
                 const checkRes = await fetch(`${API_BASE}/api/admin/check-hash`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1719,7 +1759,7 @@
                     return;
                 }
 
-                logBox.innerHTML += `<div>[3/4] New document. Parsing pages with client-side PDF.js...</div>`;
+                logBox.innerHTML += `<div>[3/4] Parsing document pages (with On-Device OCR + Table-to-JSON)...</div>`;
                 const code = document.getElementById('hub-std-code').value.trim() || file.name.replace('.pdf', '');
                 const name = document.getElementById('hub-std-name').value.trim() || file.name.replace('.pdf', '');
                 const scope = document.querySelector('input[name="hub-scope"]:checked').value;
@@ -1727,23 +1767,96 @@
 
                 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
                 const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-                logBox.innerHTML += `<div>Loaded ${pdf.numPages} pages. Uploading chunks with 768-d embeddings...</div>`;
+                logBox.innerHTML += `<div>Loaded ${pdf.numPages} pages. Processing with hierarchical breadcrumbs...</div>`;
 
                 let currentContent = "";
                 let chunkCount = 0;
+                let tableCount = 0;
+                let currentBreadcrumbs = {
+                    chapter: "",
+                    section: "",
+                    clause: ""
+                };
 
                 for (let i = 1; i <= Math.min(pdf.numPages, 20); i++) {
                     const page = await pdf.getPage(i);
                     const textContent = await page.getTextContent();
-                    const text = textContent.items.map(item => item.str).join(" ");
+                    let text = textContent.items.map(item => item.str).join(" ").trim();
+
+                    // 1. Zero-Cost Client-Side OCR Fallback for Scanned Pages
+                    if (text.length < 25 && window.Tesseract) {
+                        try {
+                            logBox.innerHTML += `<div>Page ${i}: Scanned page/image detected. Running local Tesseract OCR...</div>`;
+                            const viewport = page.getViewport({ scale: 1.5 });
+                            const canvas = document.createElement('canvas');
+                            canvas.width = viewport.width;
+                            canvas.height = viewport.height;
+                            const ctx = canvas.getContext('2d');
+                            await page.render({ canvasContext: ctx, viewport }).promise;
+                            const ocrResult = await Tesseract.recognize(canvas, 'eng');
+                            if (ocrResult && ocrResult.data && ocrResult.data.text) {
+                                text = ocrResult.data.text;
+                                logBox.innerHTML += `<div>Page ${i}: OCR extracted ${text.length} characters.</div>`;
+                            }
+                        } catch(ocrErr) {
+                            console.warn("OCR fallback error:", ocrErr);
+                        }
+                    }
+
+                    // 2. Track Hierarchical Structure (Breadcrumbs)
+                    const chapterMatch = text.match(/(?:Chapter|CHAPTER)\s+([0-9IVXLCDM]+[^\n\.\,]*)/i);
+                    if (chapterMatch) currentBreadcrumbs.chapter = chapterMatch[0].trim();
+                    
+                    const secMatch = text.match(/(?:Section|SECTION|Article|ARTICLE)\s+([0-9A-Z\.\-]+[^\n\.\,]*)/i);
+                    if (secMatch) currentBreadcrumbs.section = secMatch[0].trim();
+
+                    const clauseMatch = text.match(/\b([0-9]{3}\.[0-9]+(?:\.[0-9]+)?|[TUtu]\-[0-9]{3,4}|UW\-[0-9]{2,3})\b/);
+                    if (clauseMatch) currentBreadcrumbs.clause = clauseMatch[0].trim();
+
+                    // 3. Table-to-JSON Transformer: Detect & Save Structured Tables
+                    const tables = extractMarkdownTables(text);
+                    for (const tbl of tables) {
+                        try {
+                            await fetch(`${API_BASE}/api/admin/ingest-table`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                                },
+                                body: JSON.stringify({
+                                    standard_code: code,
+                                    table_id: tbl.tableId || `Table P${i}`,
+                                    table_title: tbl.title || `${code} Table (Page ${i})`,
+                                    section_context: [currentBreadcrumbs.chapter, currentBreadcrumbs.section].filter(Boolean).join(' > '),
+                                    headers_json: tbl.headers,
+                                    raw_markdown: tbl.rawMarkdown,
+                                    structured_json: tbl.rows,
+                                    file_hash: fileHash,
+                                    scope: scope,
+                                    session_id: sessionId,
+                                    is_temporary: scope === 'private_temp'
+                                })
+                            });
+                            tableCount++;
+                            logBox.innerHTML += `<div>[Table-to-JSON] Structured ${tbl.tableId} from Page ${i} saved into D1!</div>`;
+                        } catch(te){}
+                    }
+
                     currentContent += text + " ";
 
-                    while (currentContent.length > 900) {
-                        let splitIdx = currentContent.indexOf(". ", 750);
-                        if (splitIdx === -1) splitIdx = 900;
-                        const chunkText = currentContent.substring(0, splitIdx + 1).trim();
+                    while (currentContent.length > 850) {
+                        let splitIdx = currentContent.indexOf(". ", 700);
+                        if (splitIdx === -1) splitIdx = 850;
+                        const rawChunk = currentContent.substring(0, splitIdx + 1).trim();
                         currentContent = currentContent.substring(splitIdx + 1);
                         chunkCount++;
+
+                        // Inject Hierarchical Context Breadcrumbs
+                        const breadcrumbHeader = `[STANDARD: ${code}]` + 
+                            (currentBreadcrumbs.chapter ? ` [${currentBreadcrumbs.chapter}]` : '') +
+                            (currentBreadcrumbs.section ? ` [${currentBreadcrumbs.section}]` : '') +
+                            (currentBreadcrumbs.clause ? ` [CLAUSE: ${currentBreadcrumbs.clause}]` : '');
+                        const contextualChunk = `${breadcrumbHeader}\n${rawChunk}`;
 
                         const res = await fetch(`${API_BASE}/api/admin/ingest`, {
                             method: 'POST',
@@ -1754,9 +1867,9 @@
                             body: JSON.stringify({
                                 standard_code: code,
                                 standard_name: name,
-                                section: `Page ${i}`,
-                                clause: `Chunk ${chunkCount}`,
-                                content: chunkText,
+                                section: currentBreadcrumbs.section || `Page ${i}`,
+                                clause: currentBreadcrumbs.clause || `Chunk ${chunkCount}`,
+                                content: contextualChunk,
                                 file_hash: fileHash,
                                 scope: scope,
                                 session_id: sessionId,
@@ -1773,7 +1886,7 @@
                     }
                 }
 
-                logBox.innerHTML += `<div style="color:#34D399; font-weight:600;">✓ Ingested ${chunkCount} chunks successfully into database!</div>`;
+                logBox.innerHTML += `<div style="color:#34D399; font-weight:600;">✓ Ingested ${chunkCount} chunks + ${tableCount} structured tables successfully into D1!</div>`;
                 loadStandardsCatalog();
             } catch(err) {
                 logBox.innerHTML += `<div style="color:#EF4444; font-weight:600;">Upload Error: ${err.message}</div>`;
