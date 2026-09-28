@@ -159,7 +159,375 @@ app.all('/api/admin/setup-db', async (c) => {
       try { await c.env.DB.prepare(`ALTER TABLE standards_chunks ADD COLUMN expires_at DATETIME`).run() } catch(e){}
     }
 
+    // 3. Standards Taxonomy & Equipment Categorization Governance Matrix
+    await ensureTaxonomyTable(c.env.DB)
+
     return c.json({ success: true, message: "Database schema verified and up to date." })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+let isTaxonomyInitialized = false
+
+async function ensureTaxonomyTable(db) {
+  if (isTaxonomyInitialized) return
+  try {
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS standards_taxonomy (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        equipment_category TEXT NOT NULL,
+        equipment_name TEXT NOT NULL,
+        keywords TEXT NOT NULL,
+        primary_standard TEXT NOT NULL,
+        companion_standards TEXT,
+        prohibited_standards TEXT,
+        governing_clause_table TEXT,
+        default_service_condition TEXT,
+        primary_ndt_method TEXT,
+        sop_personnel_qualification TEXT,
+        mandatory_hold_point TEXT,
+        inspection_frequencies TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `).run()
+    try {
+      await db.prepare(`CREATE INDEX IF NOT EXISTS idx_tax_equip ON standards_taxonomy(equipment_name)`).run()
+    } catch(e){}
+
+    const countRes = await db.prepare(`SELECT count(*) as count FROM standards_taxonomy`).first()
+    if (!countRes || countRes.count === 0) {
+      const defaultTaxonomy = [
+        [
+          'Hoisting Equipment',
+          'Elevators & Bails (Links)',
+          'elevator, elevators, bail, bails, link, links, hoisting, elevator bore, hinge pin, latch lock',
+          'API RP 8B / ISO 13534',
+          'API Spec 8C (Manufacturing & PSL), ISO 13535',
+          'API Spec 7K, API RP 7L, API 6A, API 16D, ASME B31.3',
+          'API RP 8B Section 5 & Table 1 (Periodic Inspection Categories I-IV)',
+          'Drilling & Workover Hoisting (High Cyclic Fatigue)',
+          'Wet Fluorescent Magnetic Particle (WFMPI) on critical load-bearing areas + Ultrasonic Flaw Detection (UT)',
+          'ASNT SNT-TC-1A / ISO 9712 Level II (MT/UT) for NDT; OEM Certified Specialist (NOV/Varco) for Cat IV complete overhaul; LEEA for lifting elements',
+          'Hold Point (H): Cat III (6-month) & Cat IV (1-5 year) disassembly, WFMPI of link eyes and elevator hinge lugs, dimensional bore check. QA/QC sign-off mandatory before return to well operations.',
+          'Cat I: Daily visual & latch test; Cat II: Weekly; Cat III: 6 Months (WFMPI); Cat IV: 1 to 5 Years (Full NDT & OEM Overhaul)'
+        ],
+        [
+          'Hoisting Equipment',
+          'Traveling Blocks, Hooks & Swivels',
+          'traveling block, crown block, hook, swivel, becket, sheave groove, main bearing',
+          'API RP 8B / ISO 13534',
+          'API Spec 8C, ISO 13535',
+          'API Spec 7K, API 1104, ASME B31.3',
+          'API RP 8B Section 5 & Table 1 / Sheave Groove Gauges per API RP 9B',
+          'Continuous Dynamic Hoisting & Rotation',
+          'WFMPI on hook shank, trunnions, and clevis pins; UT on load pins',
+          'ASNT SNT-TC-1A Level II MT/UT; OEM Certified Field Technician',
+          'Hold Point (H): Sheave groove wear gauge verification and hook shank thread NDT during Cat III/IV inspection.',
+          'Cat I: Daily; Cat II: Weekly; Cat III: 6 Months; Cat IV: 1-5 Years teardown'
+        ],
+        [
+          'Well Control Equipment',
+          'Blowout Preventers (BOPs) & Variable Bore Rams (VBR)',
+          'vbr, variable bore ram, bop, blowout preventer, pipe ram, blind shear ram, annular preventer, well control, bonnet',
+          'API Standard 53',
+          'API Spec 16A (BOP Systems), API Spec 16D (Control Systems), IADC Well Control Manual',
+          'API Spec 7K, API RP 8B, ASME B31.3, API 1104',
+          'API Standard 53 Section 6 & 7 (Periodic In-Service Testing & Ram Operating Limits)',
+          'High Pressure / High Temperature (HPHT) Sour/Drilling Fluid Service',
+          'Visual (VT), Dimensional Cavity Measurement, MPI on hinge pins and bonnet bolts, Hydraulic Pressure Testing',
+          'IADC WellSharp / IWCF Level 4 Well Control Supervisor + OEM Certified Pressure Control Technician (Cameron/SLB, NOV Shaffer, Hydril)',
+          'Hold Point (H): High-pressure (100% RWP) and low-pressure (250-350 psi) hydrostatic stump pressure test (10 min hold each, zero leakage) witnessed & signed off by Contractor Toolpusher & Company Man before BOP spud-in.',
+          'Daily function test; 14-day or 21-day pressure test cycle; Cat IV 5-year OEM remanufacture'
+        ],
+        [
+          'Drill Stem Elements',
+          'Drill Pipe, HWDP & Tool Joints',
+          'drill pipe, hwdp, heavy weight drill pipe, drill collar, tool joint, pin and box, drill stem, premium class, class 2',
+          'API RP 7G-2 / ISO 10407-2',
+          'TH Hill DS-1 (Volumes 3 & 4), API Spec 7-1, API RP 7G',
+          'API 5L (Line pipe), API 5CT (Casing), API RP 8B, API 1104',
+          'API RP 7G-2 Section 10 & Tables for Wear Limits (Premium = 80% Min Remaining Wall; Class 2 = 70%)',
+          'Severe Torsional & Cyclic Bending Fatigue, Corrosive Drilling Mud',
+          'Full-length Electromagnetic Inspection (EMI / FEMC), Ultrasonic Wall Thickness (UT), Wet Fluorescent MPI on Tool Joint Threads & Upset',
+          'TH Hill DS-1 Certified Tubular Inspector / ASNT SNT-TC-1A Level II (EMI, UT, MPI)',
+          'Witness Point (W): Thread profile lead & taper gauge check, tool joint shoulder refacing verification, and slip area transverse crack rejection.',
+          'DS-1 Category 3-5 based on cumulative rotating hours / shallow vs deep hole intervals'
+        ],
+        [
+          'Rotary & Drilling Tools',
+          'Power Tongs, Rotary Slips & Rotary Tables',
+          'power tong, rotary table, rotary slips, drill pipe slips, drill collar slips, iron roughneck, kelly, master bushing',
+          'API Spec 7K / API RP 7L',
+          'API Spec 7-1, OEM Service Manuals',
+          'API RP 8B (Hoisting tools only), API Standard 53, ASME B31.3',
+          'API Spec 7K Section 8 & Table 2 (Primary Load-Bearing and Torque Transmitting Components)',
+          'High Torque Makeup / Breakout, Heavy Shock Loads',
+          'WFMPI on slip bodies, tong hinge pins, hanger assemblies, and torque reaction arms',
+          'OEM Certified Mechanical Technician / ASNT SNT-TC-1A Level II MPI',
+          'Witness Point (W): Torque load-cell calibration check and slip segment insert wear verification before running heavy tubular strings.',
+          'Cat I: Daily; Cat II: Monthly; Cat III: 6 Months (MPI); Cat IV: Annual or OEM recommended overhaul'
+        ],
+        [
+          'Wire Rope & Rigging',
+          'Drilling Line & Hoisting Wire Rope',
+          'drilling line, wire rope, ton-mile, cut-off, slip and cut, dead-line anchor, strand, broken wires, rope diameter',
+          'API RP 9B / IADC Drilling Manual Chapter 20',
+          'ISO 4309 (Wire rope discard criteria), API Spec 9A',
+          'API Spec 7K, ASME B31.3, API 1104',
+          'API RP 9B Section 3 & 4 (Ton-Mile Calculation, Cut-off Program, Broken Wire Discard Limits)',
+          'High Tensile Tension, Drum Crushing, Sheave Bending Fatigue',
+          'Visual Wire Count, Caliper Diameter Measurement, Electromagnetic Wire Rope Testing (MRT / LMA)',
+          'LEEA Certified Wire Rope Inspector / Rig Toolpusher / Rig Superintendent',
+          'Hold Point (H): Mandatory slip-and-cut execution when calculated ton-miles reach target cutoff goal; Dead-line anchor clamp torque verification.',
+          'Daily visual check; Weekly caliper survey; Cumulative ton-mile cutoff monitoring'
+        ],
+        [
+          'Pressure Piping & Process Welds',
+          'Process Piping & Plant Welds',
+          'b31.3, process piping, butt weld, socket weld, normal fluid service, severe cyclic, piping spool, flange weld',
+          'ASME B31.3',
+          'ASME Section V (NDE Methods), ASME Section IX (Welding Qualification), AWS B1.11 (Visual)',
+          'API 1104 (Cross-country transmission only), API RP 8B, API 7K',
+          'ASME B31.3 Chapter VI & Table 341.3.2 (Acceptance Criteria for Welds)',
+          'Internal Process Pressure, Thermal Expansion, Cyclic Stresses',
+          '100% Visual Examination (VT), Radiographic Examination (RT) per ASME V Art 2 or Ultrasonic (UT) per Art 4',
+          'AWS Certified Welding Inspector (CWI) / CSWIP 3.1 + ASNT SNT-TC-1A / ISO 9712 Level II (RT/UT)',
+          'Hold Point (H): Fit-up / Root Pass inspection (Hi-Lo and Root Gap) + Final RT/UT interpretation + Hydrostatic Leak Test (1.5x Design Pressure minimum 10 min).',
+          '100% VT of all welds; Random 5% or 100% RT/UT depending on Fluid Service category'
+        ],
+        [
+          'Cross-Country Pipelines',
+          'Pipeline Girth Welds & Transmission Lines',
+          'api 1104, pipeline weld, girth weld, transmission line, b31.4, b31.8, golden weld, tie-in weld',
+          'API 1104 (22nd Edition)',
+          'ASME B31.4 (Liquid Pipelines), ASME B31.8 (Gas Pipelines), API Spec 5L',
+          'ASME B31.3 (Plant process piping only), API RP 8B, API 7K',
+          'API 1104 Section 9 (Acceptance Standards) / Appendix A (Alternative ECA)',
+          'Cross-Country High Pressure Hydrocarbon Transmission',
+          'Radiographic Testing (RT - X-ray crawler or Gamma) / Automated Ultrasonic Testing (AUT)',
+          'AWS CWI / CSWIP 3.1 Welding Inspector + ASNT SNT-TC-1A Level II RT/AUT Film Interpreter',
+          'Hold Point (H): Radiographic film review / AUT flaw sizing acceptance and Golden Weld sign-off prior to field joint blast cleaning and shrink sleeve coating.',
+          '100% NDE on road/water crossings and tie-ins; Designated sampling percentage on mainline'
+        ],
+        [
+          'Pressure Vessels',
+          'Pressure Vessel Shells, Heads & Nozzles',
+          'pressure vessel, asme viii, division 1, div 1, separator, scrubber, drum, uw-51, uw-52, joint efficiency',
+          'ASME Section VIII Division 1',
+          'ASME Section V, ASME Section IX, API 510 (In-Service Inspection)',
+          'API 1104, API RP 8B, API 7K',
+          'ASME Section VIII Div 1 Paragraphs UW-51 / UW-52 & Appendix 4 (Rounded Indications)',
+          'High Internal Pressure & Elevated Temperature',
+          'Full / Spot Radiography (RT) or Phased Array Ultrasonic Testing (PAUT)',
+          'Authorized Inspector (National Board Commission) + ASNT Level II RT/UT',
+          'Hold Point (H): ASME Authorized Inspector (AI) Internal Visual Inspection, Hydrostatic Pressure Test (1.3x MAOP), and Nameplate Code Stamping (U-Stamp).',
+          'Construction stage milestones per Inspection & Test Plan (ITP)'
+        ],
+        [
+          'Lifting Gear & Rigging',
+          'Slings, Shackles, Pad Eyes & Spreader Beams',
+          'sling, shackles, pad eye, eyebolt, spreader beam, lifting gear, rigging, wll, proof load, chain sling',
+          'LEEA Code of Practice / ASME B30.9 / ASME B30.26',
+          'API RP 2D (Offshore Cranes & Rigging), EN 12079 / DNVGL-ST-E271',
+          'API RP 8B (Well hoisting equipment only), API 7K',
+          'LEEA Sections 1-4 & ASME B30.9 (Periodic Inspection, Elongation, and Discard Limits)',
+          'Overhead Lifting, Dynamic Rig Floor Handling',
+          'Visual (VT) for distortion/wear, Wet Fluorescent MPI on pad eye welds and shackle bodies',
+          'LEEA Certified Lifting Equipment Inspector / ASNT SNT-TC-1A Level II MPI',
+          'Hold Point (H): Proof Load Test (2x WLL) followed by 100% MPI on all pad eye structural welds. Color coding and RFID tagging prior to release.',
+          'Pre-use visual daily; Thorough 6-month statutory examination by competent person'
+        ]
+      ]
+
+      for (const row of defaultTaxonomy) {
+        await db.prepare(`
+          INSERT INTO standards_taxonomy (
+            equipment_category, equipment_name, keywords, primary_standard, companion_standards, 
+            prohibited_standards, governing_clause_table, default_service_condition, 
+            primary_ndt_method, sop_personnel_qualification, mandatory_hold_point, inspection_frequencies
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(...row).run()
+      }
+    }
+    isTaxonomyInitialized = true
+  } catch(e) {
+    console.error("ensureTaxonomyTable error:", e)
+  }
+}
+
+// 🏛️ Taxonomy API Endpoints
+app.get('/api/admin/taxonomy', async (c) => {
+  try {
+    await ensureTaxonomyTable(c.env.DB)
+    const { results } = await c.env.DB.prepare(`
+      SELECT * FROM standards_taxonomy ORDER BY equipment_category, equipment_name
+    `).all()
+    return c.json({ success: true, taxonomy: results || [] })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+app.post('/api/admin/taxonomy', async (c) => {
+  const token = c.req.header('Authorization')?.split(' ')[1]
+  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  try {
+    await ensureTaxonomyTable(c.env.DB)
+    const body = await c.req.json()
+    const { 
+      id, equipment_category, equipment_name, keywords, primary_standard, 
+      companion_standards, prohibited_standards, governing_clause_table, 
+      default_service_condition, primary_ndt_method, sop_personnel_qualification, 
+      mandatory_hold_point, inspection_frequencies 
+    } = body
+
+    if (!equipment_category || !equipment_name || !keywords || !primary_standard) {
+      return c.json({ error: 'Missing required taxonomy fields' }, 400)
+    }
+
+    if (id) {
+      await c.env.DB.prepare(`
+        UPDATE standards_taxonomy SET
+          equipment_category = ?, equipment_name = ?, keywords = ?, primary_standard = ?,
+          companion_standards = ?, prohibited_standards = ?, governing_clause_table = ?,
+          default_service_condition = ?, primary_ndt_method = ?, sop_personnel_qualification = ?,
+          mandatory_hold_point = ?, inspection_frequencies = ?
+        WHERE id = ?
+      `).bind(
+        equipment_category, equipment_name, keywords, primary_standard,
+        companion_standards || '', prohibited_standards || '', governing_clause_table || '',
+        default_service_condition || '', primary_ndt_method || '', sop_personnel_qualification || '',
+        mandatory_hold_point || '', inspection_frequencies || '', id
+      ).run()
+    } else {
+      await c.env.DB.prepare(`
+        INSERT INTO standards_taxonomy (
+          equipment_category, equipment_name, keywords, primary_standard,
+          companion_standards, prohibited_standards, governing_clause_table,
+          default_service_condition, primary_ndt_method, sop_personnel_qualification,
+          mandatory_hold_point, inspection_frequencies
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        equipment_category, equipment_name, keywords, primary_standard,
+        companion_standards || '', prohibited_standards || '', governing_clause_table || '',
+        default_service_condition || '', primary_ndt_method || '', sop_personnel_qualification || '',
+        mandatory_hold_point || '', inspection_frequencies || ''
+      ).run()
+    }
+    return c.json({ success: true })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+app.delete('/api/admin/taxonomy/:id', async (c) => {
+  const token = c.req.header('Authorization')?.split(' ')[1]
+  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  try {
+    const id = c.req.param('id')
+    await c.env.DB.prepare(`DELETE FROM standards_taxonomy WHERE id = ?`).bind(id).run()
+    return c.json({ success: true })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// 🔍 Database Refiner & Quality Auditor Endpoints
+app.get('/api/admin/audit-quality', async (c) => {
+  try {
+    await ensureTaxonomyTable(c.env.DB)
+    const totalChunksRes = await c.env.DB.prepare(`SELECT count(*) as count FROM standards_chunks`).first()
+    const totalChunks = totalChunksRes ? totalChunksRes.count : 0
+
+    const genericRes = await c.env.DB.prepare(`
+      SELECT count(*) as count FROM standards_chunks 
+      WHERE section LIKE 'Page %' OR clause LIKE 'Chunk %' OR clause IS NULL OR section IS NULL
+    `).first()
+    const genericChunks = genericRes ? genericRes.count : 0
+
+    const boilerplateRes = await c.env.DB.prepare(`
+      SELECT count(*) as count FROM standards_chunks 
+      WHERE content LIKE '%Downloaded from%' 
+         OR content LIKE '%Copyright %' 
+         OR content LIKE '%All rights reserved%' 
+         OR content LIKE '%Page % of %'
+         OR content LIKE '%Single user license%'
+    `).first()
+    const boilerplateChunks = boilerplateRes ? boilerplateRes.count : 0
+
+    const missingEmbRes = await c.env.DB.prepare(`
+      SELECT count(*) as count FROM standards_chunks WHERE embedding IS NULL OR embedding = '' OR embedding = '[]'
+    `).first()
+    const missingEmbeddings = missingEmbRes ? missingEmbRes.count : 0
+
+    const tablesCountRes = await c.env.DB.prepare(`SELECT count(*) as count FROM standards_tables`).first()
+    const totalTables = tablesCountRes ? tablesCountRes.count : 0
+
+    const taxCountRes = await c.env.DB.prepare(`SELECT count(*) as count FROM standards_taxonomy`).first()
+    const totalTaxonomy = taxCountRes ? taxCountRes.count : 0
+
+    let hygieneScore = 100
+    if (totalChunks > 0) {
+      const boilerplateRatio = boilerplateChunks / totalChunks
+      const genericRatio = genericChunks / totalChunks
+      const penalty = (boilerplateRatio * 40) + (genericRatio * 40)
+      hygieneScore = Math.max(15, Math.round(100 - penalty))
+    }
+
+    return c.json({
+      success: true,
+      total_chunks: totalChunks,
+      generic_breadcrumbs_count: genericChunks,
+      boilerplate_artifacts_count: boilerplateChunks,
+      missing_embeddings_count: missingEmbeddings,
+      structured_tables_count: totalTables,
+      taxonomy_rules_count: totalTaxonomy,
+      hygiene_score: hygieneScore
+    })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+app.post('/api/admin/refine-chunks', async (c) => {
+  const token = c.req.header('Authorization')?.split(' ')[1]
+  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  try {
+    const { results } = await c.env.DB.prepare(`
+      SELECT id, content FROM standards_chunks 
+      WHERE content LIKE '%Downloaded from%' 
+         OR content LIKE '%Copyright %' 
+         OR content LIKE '%All rights reserved%' 
+         OR content LIKE '%Page % of %'
+         OR content LIKE '%Single user license%'
+      LIMIT 200
+    `).all()
+
+    let refinedCount = 0
+    if (results && results.length > 0) {
+      for (const row of results) {
+        let cleaned = row.content
+          .replace(/Downloaded from\s+[^\n]+/gi, '')
+          .replace(/Copyright\s+[0-9]{4}[^\n]+/gi, '')
+          .replace(/All rights reserved[^\n]*/gi, '')
+          .replace(/Page\s+[0-9]+\s+of\s+[0-9]+/gi, '')
+          .replace(/Single user license[^\n]*/gi, '')
+          .replace(/\n{3,}/g, '\n\n')
+          .trim()
+
+        if (cleaned !== row.content && cleaned.length > 20) {
+          await c.env.DB.prepare(`UPDATE standards_chunks SET content = ? WHERE id = ?`).bind(cleaned, row.id).run()
+          refinedCount++
+        }
+      }
+    }
+
+    return c.json({
+      success: true,
+      refined_count: refinedCount,
+      message: `Refined and cleaned ${refinedCount} chunks in this batch.`
+    })
   } catch(e) {
     return c.json({ error: e.message }, 500)
   }
@@ -867,6 +1235,46 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
     )
   } catch(e){}
 
+  // 0. Standards Taxonomy Governance Engine (Equipment Categorization & Direct Response Router)
+  let taxonomyGovernanceNote = ""
+  try {
+    await ensureTaxonomyTable(c.env.DB)
+    const { results: taxRules } = await c.env.DB.prepare(`
+      SELECT equipment_category, equipment_name, keywords, primary_standard, companion_standards, 
+             prohibited_standards, governing_clause_table, default_service_condition, 
+             primary_ndt_method, sop_personnel_qualification, mandatory_hold_point, inspection_frequencies
+      FROM standards_taxonomy
+    `).all()
+
+    if (taxRules && taxRules.length > 0) {
+      const qLower = question.toLowerCase()
+      for (const rule of taxRules) {
+        const kwList = (rule.keywords || '').split(',').map(k => k.trim().toLowerCase()).filter(Boolean)
+        const nameLower = (rule.equipment_name || '').toLowerCase()
+        const isMatch = kwList.some(k => qLower.includes(k)) || qLower.includes(nameLower)
+        
+        if (isMatch) {
+          taxonomyGovernanceNote = `
+[DATABASE TAXONOMY & EQUIPMENT GOVERNANCE ACTIVE - STRICT MANDATORY COMPLIANCE]:
+• Equipment Identified: ${rule.equipment_name} (Category: ${rule.equipment_category})
+• Primary Governing Standard: ${rule.primary_standard}
+• Governing Clause / Table: ${rule.governing_clause_table}
+• Companion Standards: ${rule.companion_standards || 'None'}
+• STRICTLY PROHIBITED STANDARDS (ZERO SCOPE APPLICATION): ${rule.prohibited_standards || 'None'}
+  -> ENFORCEMENT DIRECTIVE: You MUST declare "${rule.primary_standard}" as the Primary Code in the Verdict Card.
+  -> You are STRICTLY FORBIDDEN from citing or applying "${rule.prohibited_standards}" for this equipment!
+• Mandatory Cross-Disciplinary Personnel Qualification: ${rule.sop_personnel_qualification}
+• Mandatory QA/QC Hold Point: ${rule.mandatory_hold_point}
+• Service Condition & Inspection Frequencies: ${rule.inspection_frequencies || 'Per relevant code'}
+`
+          break
+        }
+      }
+    }
+  } catch(e) {
+    console.error("Taxonomy lookup error:", e)
+  }
+
   // 1. Bilingual Oilfield Jargon Expander (العامية الفنية ↔ Formal Code)
   let detectedJargonNotes = []
   try {
@@ -1331,6 +1739,11 @@ ${contextText}
   // Verified Engineering Formula Mathematics
   if (formulaEvaluation) {
     systemPrompt += `\n${formulaEvaluation}\n`
+  }
+
+  // Prepend Database Taxonomy & Equipment Governance Directive (Absolute Highest Priority)
+  if (taxonomyGovernanceNote) {
+    systemPrompt = `${taxonomyGovernanceNote}\n${systemPrompt}`
   }
 
   const messages = [

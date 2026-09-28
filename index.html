@@ -969,18 +969,47 @@
         .badge-reject { background: #EA4335; color: #FFF; }
         .badge-accept { background: #34A853; color: #FFF; }
 
-        /* Admin Slide-Over Panel */
+        /* Admin Slide-Over & Data Refiner Panel */
         #admin-panel {
-            display: none; position: absolute;
-            top: 60px; right: 20px;
+            display: none; position: fixed;
+            top: 64px; right: 20px;
             background: var(--gemini-surface);
             border: 1px solid var(--gemini-border);
-            border-radius: 16px; width: 340px;
-            padding: 20px; z-index: 200;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.5);
-            max-height: 80vh; overflow-y: auto;
+            border-radius: 16px; width: 560px; max-width: calc(100vw - 32px);
+            padding: 20px; z-index: 250;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+            max-height: 85vh; overflow-y: auto;
         }
         body.rtl #admin-panel { right: auto; left: 20px; }
+        .admin-nav-tabs {
+            display: flex; gap: 6px; border-bottom: 1px solid var(--gemini-border);
+            margin-bottom: 14px; padding-bottom: 8px; overflow-x: auto;
+        }
+        .admin-nav-tab {
+            background: transparent; border: none; color: var(--gemini-text-muted);
+            padding: 6px 12px; border-radius: 8px; cursor: pointer;
+            font-size: 0.82rem; font-weight: 500; transition: all 0.2s; white-space: nowrap;
+        }
+        .admin-nav-tab:hover {
+            color: var(--gemini-text-main); background: var(--gemini-surface-hover);
+        }
+        .admin-nav-tab.active {
+            background: var(--gemini-surface-hover); color: var(--gemini-blue-light);
+            border-bottom: 2px solid var(--gemini-blue-light); border-radius: 8px 8px 0 0;
+            font-weight: 600;
+        }
+        .admin-stat-card {
+            background: var(--gemini-bg); border: 1px solid var(--gemini-border);
+            border-radius: 10px; padding: 10px; text-align: center;
+        }
+        .admin-stat-val { font-size: 1.3rem; font-weight: 700; color: var(--gemini-text-main); }
+        .admin-stat-lbl { font-size: 0.7rem; color: var(--gemini-text-muted); text-transform: uppercase; margin-top: 3px; }
+        .taxonomy-item-card {
+            background: var(--gemini-bg); border: 1px solid var(--gemini-border);
+            border-radius: 10px; padding: 10px 12px; font-size: 0.8rem;
+            transition: border-color 0.2s;
+        }
+        .taxonomy-item-card:hover { border-color: var(--gemini-blue-light); }
         .admin-input {
             width: 100%; margin-bottom: 12px; padding: 8px 12px;
             background: var(--gemini-bg); color: var(--gemini-text-main);
@@ -1192,47 +1221,188 @@
         </div>
     </div>
 
-    <!-- Admin Panel Slider -->
+    <!-- Admin Panel Slide-Over & Database Refiner -->
     <div id="admin-panel">
-        <h3 style="margin-top:0; font-size:1.05rem; display:flex; justify-content:space-between; align-items:center;">
-            <span>Admin Settings</span>
-            <button style="background:none; border:none; color:var(--gemini-text-muted); cursor:pointer;" onclick="toggleAdminPanel()">&times;</button>
-        </h3>
-        <label style="font-size:0.75rem; color:var(--gemini-text-muted);">Admin Secret Token:</label>
-        <input type="password" id="admin-token" class="admin-input" placeholder="Secret Token">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:1.1rem;">⚙️</span>
+                <h3 style="margin:0; font-size:1.05rem; font-weight:600;">Admin Center & Data Refiner</h3>
+            </div>
+            <button style="background:none; border:none; color:var(--gemini-text-muted); font-size:1.2rem; cursor:pointer;" onclick="toggleAdminPanel()">&times;</button>
+        </div>
 
-        <label style="font-size:0.75rem; color:var(--gemini-text-muted); margin-top:5px; display:block;">Active AI Provider:</label>
-        <select id="active-provider" class="admin-input" onchange="toggleProviderSettings()">
-            <option value="cloudflare" selected>Cloudflare Workers AI (GLM-5.3 & Llama)</option>
-            <option value="groq">Groq (Ultra-Fast Llama 3)</option>
-            <option value="openrouter">OpenRouter (NVIDIA & Large Models)</option>
-        </select>
+        <!-- Admin Tab Navigation -->
+        <div class="admin-nav-tabs">
+            <button class="admin-nav-tab active" id="tab-btn-audit" onclick="switchAdminTab('audit')">🧹 Database Refiner</button>
+            <button class="admin-nav-tab" id="tab-btn-taxonomy" onclick="switchAdminTab('taxonomy')">🏛️ Standards Taxonomy</button>
+            <button class="admin-nav-tab" id="tab-btn-ai" onclick="switchAdminTab('ai')">⚡ AI Engine</button>
+        </div>
 
-        <div id="cf-settings">
-            <label style="font-size:0.75rem; color:var(--gemini-text-muted);">Cloudflare Model:</label>
-            <select id="model-cloudflare" class="admin-input">
-                <option value="@cf/zai-org/glm-5.3-flash" selected>GLM-5.3 Flash (320B MoE)</option>
-                <option value="@cf/meta/llama-3.1-8b-instruct">Meta Llama 3.1 8B (100% Free)</option>
-                <option value="@cf/meta/llama-3.3-70b-instruct-fp8-fast">Meta Llama 3.3 70B Fast</option>
+        <!-- Token Header -->
+        <div style="margin-bottom:14px; background:var(--gemini-bg); padding:10px 12px; border-radius:10px; border:1px solid var(--gemini-border);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <label style="font-size:0.75rem; color:var(--gemini-text-muted); font-weight:600;">ADMIN SECRET TOKEN:</label>
+                <span style="font-size:0.7rem; color:#10B981;">Required for write & refine actions</span>
+            </div>
+            <input type="password" id="admin-token" class="admin-input" style="margin-bottom:0;" placeholder="Enter ADMIN_SECRET token...">
+        </div>
+
+        <!-- TAB 1: 🧹 Database Refiner & Quality Auditor -->
+        <div id="admin-tab-audit" class="admin-tab-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="font-size:0.85rem; font-weight:600; color:var(--gemini-text-main);">D1 Knowledge Base Quality & Hygiene</span>
+                <button class="tool-btn" style="padding:4px 10px;" onclick="runDatabaseAudit()">🔍 Audit Now</button>
+            </div>
+
+            <!-- Health Score Bar -->
+            <div style="background:var(--gemini-bg); border:1px solid var(--gemini-border); border-radius:10px; padding:12px; margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span style="font-size:0.8rem; color:var(--gemini-text-muted);">Database Hygiene Score</span>
+                    <span id="audit-hygiene-badge" style="font-weight:700; font-size:0.95rem; color:#34D399;">--%</span>
+                </div>
+                <div style="width:100%; height:8px; background:rgba(255,255,255,0.08); border-radius:4px; overflow:hidden;">
+                    <div id="audit-hygiene-bar" style="width:0%; height:100%; background:#34D399; transition:width 0.4s ease;"></div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:14px;">
+                <div class="admin-stat-card">
+                    <div class="admin-stat-val" id="audit-total-chunks">-</div>
+                    <div class="admin-stat-lbl">Total Chunks</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-val" id="audit-tables-count">-</div>
+                    <div class="admin-stat-lbl">Tables Catalog</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-val" id="audit-taxonomy-count">-</div>
+                    <div class="admin-stat-lbl">Taxonomy Rules</div>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
+                <div class="admin-stat-card" style="text-align:left;">
+                    <div style="font-size:0.75rem; color:var(--gemini-text-muted);">Lingering Boilerplates:</div>
+                    <div id="audit-boilerplate-count" style="font-weight:700; font-size:1.1rem; color:#F59E0B;">-</div>
+                    <div style="font-size:0.7rem; color:var(--gemini-text-muted);">Copyright & footer artifacts</div>
+                </div>
+                <div class="admin-stat-card" style="text-align:left;">
+                    <div style="font-size:0.75rem; color:var(--gemini-text-muted);">Generic Breadcrumbs:</div>
+                    <div id="audit-generic-count" style="font-weight:700; font-size:1.1rem; color:#60A5FA;">-</div>
+                    <div style="font-size:0.7rem; color:var(--gemini-text-muted);">Missing exact clause tags</div>
+                </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div style="background:var(--gemini-bg); border:1px solid var(--gemini-border); border-radius:10px; padding:12px; margin-bottom:10px;">
+                <div style="font-size:0.85rem; font-weight:600; margin-bottom:6px;">Automated Data Refiner</div>
+                <p style="font-size:0.78rem; color:var(--gemini-text-muted); margin:0 0 10px 0;">
+                    Scans database chunks to strip OCR noise, unescaped footers ("Downloaded from...", "Copyright..."), and normalize whitespace.
+                </p>
+                <div style="display:flex; gap:8px;">
+                    <button class="mode-pill active" id="btn-refine-chunks" style="flex:1; justify-content:center; padding:8px 12px; font-size:0.8rem;" onclick="executeBatchRefinement()">🧹 Run Batch Refine (200 Chunks)</button>
+                </div>
+                <div id="refine-progress-msg" style="margin-top:8px; font-size:0.76rem; color:#34D399; display:none;"></div>
+            </div>
+        </div>
+
+        <!-- TAB 2: 🏛️ Standards Taxonomy & Equipment Routing -->
+        <div id="admin-tab-taxonomy" class="admin-tab-content" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <div>
+                    <span style="font-size:0.85rem; font-weight:600; color:var(--gemini-text-main);">Equipment Taxonomy & Governance</span>
+                    <div style="font-size:0.72rem; color:var(--gemini-text-muted);">Governs AI answers, qualifications, and eliminates wrong standards.</div>
+                </div>
+                <button class="tool-btn" style="padding:4px 8px; font-size:0.75rem;" onclick="loadTaxonomyRules()">🔄 Refresh</button>
+            </div>
+
+            <div style="margin-bottom:10px;">
+                <input type="text" id="tax-search-box" class="admin-input" style="margin-bottom:8px; padding:6px 10px; font-size:0.8rem;" placeholder="Filter by equipment (e.g. elevator, BOP, weld, tongs)..." oninput="filterTaxonomyRules()">
+            </div>
+
+            <div id="taxonomy-rules-list" style="max-height:280px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
+                <div style="color:var(--gemini-text-muted); text-align:center; padding:15px; font-size:0.8rem;">Loading taxonomy rules...</div>
+            </div>
+
+            <!-- Add / Edit Taxonomy Rule Form -->
+            <div style="margin-top:14px; border-top:1px solid var(--gemini-border); padding-top:10px;">
+                <details style="font-size:0.8rem;">
+                    <summary style="cursor:pointer; color:var(--gemini-blue-light); font-weight:600;">➕ Add / Update Equipment Governance Rule</summary>
+                    <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
+                        <input type="hidden" id="tax-form-id" value="">
+                        <div>
+                            <label style="font-size:0.72rem; color:var(--gemini-text-muted);">Category / Discipline:</label>
+                            <input type="text" id="tax-form-category" class="admin-input" placeholder="e.g. Hoisting Equipment" style="margin-bottom:0; padding:6px;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.72rem; color:var(--gemini-text-muted);">Equipment Name:</label>
+                            <input type="text" id="tax-form-name" class="admin-input" placeholder="e.g. Elevators & Bails" style="margin-bottom:0; padding:6px;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.72rem; color:var(--gemini-text-muted);">Trigger Keywords (comma-separated):</label>
+                            <input type="text" id="tax-form-keywords" class="admin-input" placeholder="elevator, bails, links, hoisting" style="margin-bottom:0; padding:6px;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.72rem; color:var(--gemini-text-muted);">Primary Governing Standard:</label>
+                            <input type="text" id="tax-form-primary" class="admin-input" placeholder="API RP 8B / ISO 13534" style="margin-bottom:0; padding:6px;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.72rem; color:var(--gemini-text-muted);">Prohibited Standards (Strictly Out of Scope):</label>
+                            <input type="text" id="tax-form-prohibited" class="admin-input" placeholder="API Spec 7K, API 6A, ASME B31.3" style="margin-bottom:0; padding:6px;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.72rem; color:var(--gemini-text-muted);">Mandatory SOP Personnel Qualification:</label>
+                            <input type="text" id="tax-form-personnel" class="admin-input" placeholder="ASNT SNT-TC-1A Level II MT/UT; OEM Certified (NOV/Varco)" style="margin-bottom:0; padding:6px;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.72rem; color:var(--gemini-text-muted);">Mandatory QA/QC Hold Point:</label>
+                            <input type="text" id="tax-form-holdpoint" class="admin-input" placeholder="Hold Point (H) - Cat III/IV NDT Sign-off" style="margin-bottom:0; padding:6px;">
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="mode-pill active" style="flex:1; justify-content:center; padding:7px;" onclick="saveTaxonomyRule()">Save Taxonomy Rule</button>
+                            <button class="tool-btn" onclick="resetTaxonomyForm()">Clear</button>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- TAB 3: ⚡ AI Engine & Provider Config -->
+        <div id="admin-tab-ai" class="admin-tab-content" style="display:none;">
+            <label style="font-size:0.75rem; color:var(--gemini-text-muted); display:block; margin-bottom:4px;">Active AI Provider:</label>
+            <select id="active-provider" class="admin-input" onchange="toggleProviderSettings()">
+                <option value="cloudflare" selected>Cloudflare Workers AI (GLM-5.3 & Llama)</option>
+                <option value="groq">Groq (Ultra-Fast Llama 3)</option>
+                <option value="openrouter">OpenRouter (NVIDIA & Large Models)</option>
             </select>
-        </div>
 
-        <div id="groq-settings" style="display:none;">
-            <label style="font-size:0.75rem; color:var(--gemini-text-muted);">Groq API Key:</label>
-            <input type="password" id="key-groq" class="admin-input" placeholder="gsk_...">
-        </div>
+            <div id="cf-settings">
+                <label style="font-size:0.75rem; color:var(--gemini-text-muted);">Cloudflare Model:</label>
+                <select id="model-cloudflare" class="admin-input">
+                    <option value="@cf/zai-org/glm-5.3-flash" selected>GLM-5.3 Flash (320B MoE)</option>
+                    <option value="@cf/meta/llama-3.1-8b-instruct">Meta Llama 3.1 8B (100% Free)</option>
+                    <option value="@cf/meta/llama-3.3-70b-instruct-fp8-fast">Meta Llama 3.3 70B Fast</option>
+                </select>
+            </div>
 
-        <div id="or-settings" style="display:none;">
-            <label style="font-size:0.75rem; color:var(--gemini-text-muted);">OpenRouter API Key:</label>
-            <input type="password" id="key-openrouter" class="admin-input" placeholder="sk-or-v1-...">
-            <label style="font-size:0.75rem; color:var(--gemini-text-muted);">Model:</label>
-            <select id="model-openrouter" class="admin-input">
-                <option value="nvidia/llama-3.1-nemotron-70b-instruct:free">NVIDIA Nemotron 70B (Free)</option>
-                <option value="meta-llama/llama-3.1-70b-instruct:free">Meta Llama 3.1 70B (Free)</option>
-            </select>
-        </div>
+            <div id="groq-settings" style="display:none;">
+                <label style="font-size:0.75rem; color:var(--gemini-text-muted);">Groq API Key:</label>
+                <input type="password" id="key-groq" class="admin-input" placeholder="gsk_...">
+            </div>
 
-        <button class="mode-pill active" style="width:100%; justify-content:center; margin-top:5px;" onclick="saveAdminConfig()">Save Settings</button>
+            <div id="or-settings" style="display:none;">
+                <label style="font-size:0.75rem; color:var(--gemini-text-muted);">OpenRouter API Key:</label>
+                <input type="password" id="key-openrouter" class="admin-input" placeholder="sk-or-v1-...">
+                <label style="font-size:0.75rem; color:var(--gemini-text-muted);">Model:</label>
+                <select id="model-openrouter" class="admin-input">
+                    <option value="nvidia/llama-3.1-nemotron-70b-instruct:free">NVIDIA Nemotron 70B (Free)</option>
+                    <option value="meta-llama/llama-3.1-70b-instruct:free">Meta Llama 3.1 70B (Free)</option>
+                </select>
+            </div>
+
+            <button class="mode-pill active" style="width:100%; justify-content:center; margin-top:6px;" onclick="saveAdminConfig()">Save AI Settings</button>
+        </div>
     </div>
 
     <!-- Core Application Logic -->
@@ -1775,7 +1945,11 @@
         function closeStandardsModal() { document.getElementById('standards-modal').style.display = 'none'; }
         function toggleAdminPanel() {
             const p = document.getElementById('admin-panel');
-            p.style.display = p.style.display === 'none' ? 'block' : 'none';
+            const isOpening = p.style.display === 'none' || p.style.display === '';
+            p.style.display = isOpening ? 'block' : 'none';
+            if (isOpening) {
+                runDatabaseAudit();
+            }
         }
 
         // ==========================================
@@ -2166,12 +2340,259 @@
             });
             const data = await res.json();
             if (data.success) {
+                localStorage.setItem('inspecta_admin_token', token);
                 alert("Configuration saved successfully!");
                 toggleAdminPanel();
             } else {
                 alert("Error: " + data.error);
             }
         }
+
+        // ==========================================
+        // 🧹 DATABASE REFINER & QUALITY AUDITOR
+        // ==========================================
+        let allTaxonomyRules = [];
+
+        function switchAdminTab(tab) {
+            document.getElementById('tab-btn-audit').classList.toggle('active', tab === 'audit');
+            document.getElementById('tab-btn-taxonomy').classList.toggle('active', tab === 'taxonomy');
+            document.getElementById('tab-btn-ai').classList.toggle('active', tab === 'ai');
+
+            document.getElementById('admin-tab-audit').style.display = tab === 'audit' ? 'block' : 'none';
+            document.getElementById('admin-tab-taxonomy').style.display = tab === 'taxonomy' ? 'block' : 'none';
+            document.getElementById('admin-tab-ai').style.display = tab === 'ai' ? 'block' : 'none';
+
+            if (tab === 'audit') runDatabaseAudit();
+            if (tab === 'taxonomy') loadTaxonomyRules();
+        }
+
+        async function runDatabaseAudit() {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/audit-quality`);
+                const data = await res.json();
+                if (!data.success) return;
+
+                const score = data.hygiene_score || 0;
+                const scoreColor = score >= 80 ? '#34D399' : (score >= 60 ? '#FBBF24' : '#EF4444');
+                const badge = document.getElementById('audit-hygiene-badge');
+                const bar = document.getElementById('audit-hygiene-bar');
+                if (badge) { badge.textContent = `${score}%`; badge.style.color = scoreColor; }
+                if (bar) { bar.style.width = `${score}%`; bar.style.background = scoreColor; }
+
+                document.getElementById('audit-total-chunks').textContent = data.total_chunks || 0;
+                document.getElementById('audit-tables-count').textContent = data.structured_tables_count || 0;
+                document.getElementById('audit-taxonomy-count').textContent = data.taxonomy_rules_count || 0;
+                document.getElementById('audit-boilerplate-count').textContent = data.boilerplate_artifacts_count || 0;
+                document.getElementById('audit-generic-count').textContent = data.generic_breadcrumbs_count || 0;
+            } catch(e) {
+                console.error("Audit error:", e);
+            }
+        }
+
+        async function executeBatchRefinement() {
+            const token = document.getElementById('admin-token').value.trim();
+            if (!token) return alert("Please enter Admin Secret Token to execute data refinement.");
+            localStorage.setItem('inspecta_admin_token', token);
+
+            const btn = document.getElementById('btn-refine-chunks');
+            const msgEl = document.getElementById('refine-progress-msg');
+            btn.disabled = true;
+            btn.textContent = "Refining & Cleaning...";
+            msgEl.style.display = 'block';
+            msgEl.innerHTML = `<span style="color:#60A5FA;">Processing chunks in Cloudflare D1...</span>`;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/refine-chunks`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    msgEl.innerHTML = `<span style="color:#34D399;">✓ ${data.message}</span>`;
+                    await runDatabaseAudit();
+                } else {
+                    msgEl.innerHTML = `<span style="color:#EF4444;">Error: ${data.error}</span>`;
+                }
+            } catch(e) {
+                msgEl.innerHTML = `<span style="color:#EF4444;">Network Error: ${e.message}</span>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "🧹 Run Batch Refine (200 Chunks)";
+            }
+        }
+
+        // ==========================================
+        // 🏛️ STANDARDS TAXONOMY GOVERNANCE
+        // ==========================================
+        async function loadTaxonomyRules() {
+            const listEl = document.getElementById('taxonomy-rules-list');
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/taxonomy`);
+                const data = await res.json();
+                if (data.success && Array.isArray(data.taxonomy)) {
+                    allTaxonomyRules = data.taxonomy;
+                    renderTaxonomyList(allTaxonomyRules);
+                } else {
+                    listEl.innerHTML = `<div style="color:#EF4444; padding:10px;">Failed to load rules: ${data.error}</div>`;
+                }
+            } catch(e) {
+                listEl.innerHTML = `<div style="color:#EF4444; padding:10px;">Network Error: ${e.message}</div>`;
+            }
+        }
+
+        function renderTaxonomyList(rules) {
+            const listEl = document.getElementById('taxonomy-rules-list');
+            if (!rules || rules.length === 0) {
+                listEl.innerHTML = `<div style="color:var(--gemini-text-muted); text-align:center; padding:15px;">No taxonomy governance rules found.</div>`;
+                return;
+            }
+
+            let html = '';
+            rules.forEach(r => {
+                const prohibitedHtml = r.prohibited_standards ? `<div style="margin-top:4px; font-size:0.73rem; color:#EF4444;"><strong>⛔ Prohibits:</strong> ${escapeHtml(r.prohibited_standards)}</div>` : '';
+                html += `
+                <div class="taxonomy-item-card">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
+                        <div>
+                            <span style="font-weight:700; color:var(--gemini-text-main); font-size:0.86rem;">${escapeHtml(r.equipment_name)}</span>
+                            <span style="font-size:0.7rem; background:rgba(26,115,232,0.15); color:var(--gemini-blue-light); padding:2px 6px; border-radius:4px; margin-left:6px;">${escapeHtml(r.equipment_category)}</span>
+                        </div>
+                        <div style="display:flex; gap:4px;">
+                            <button class="tool-btn" style="padding:2px 6px; font-size:0.72rem;" onclick="editTaxonomyRule(${r.id})">✏️</button>
+                            <button class="tool-btn" style="padding:2px 6px; font-size:0.72rem; color:#EF4444;" onclick="deleteTaxonomyRule(${r.id})">🗑️</button>
+                        </div>
+                    </div>
+                    <div style="font-size:0.75rem; color:#34D399; font-weight:600; margin-bottom:3px;">
+                        Primary Code: ${escapeHtml(r.primary_standard)}
+                    </div>
+                    <div style="font-size:0.73rem; color:var(--gemini-text-muted); margin-bottom:3px;">
+                        <strong>SOP Qualification:</strong> ${escapeHtml(r.sop_personnel_qualification || 'Standard NDT')}
+                    </div>
+                    <div style="font-size:0.73rem; color:var(--gemini-text-muted);">
+                        <strong>Mandatory Hold Point:</strong> ${escapeHtml(r.mandatory_hold_point || 'Visual sign-off')}
+                    </div>
+                    ${prohibitedHtml}
+                </div>`;
+            });
+            listEl.innerHTML = html;
+        }
+
+        function filterTaxonomyRules() {
+            const q = (document.getElementById('tax-search-box').value || '').toLowerCase().trim();
+            if (!q) {
+                renderTaxonomyList(allTaxonomyRules);
+                return;
+            }
+            const filtered = allTaxonomyRules.filter(r => 
+                (r.equipment_name || '').toLowerCase().includes(q) ||
+                (r.equipment_category || '').toLowerCase().includes(q) ||
+                (r.keywords || '').toLowerCase().includes(q) ||
+                (r.primary_standard || '').toLowerCase().includes(q)
+            );
+            renderTaxonomyList(filtered);
+        }
+
+        function editTaxonomyRule(id) {
+            const rule = allTaxonomyRules.find(r => r.id === id);
+            if (!rule) return;
+            document.getElementById('tax-form-id').value = rule.id || '';
+            document.getElementById('tax-form-category').value = rule.equipment_category || '';
+            document.getElementById('tax-form-name').value = rule.equipment_name || '';
+            document.getElementById('tax-form-keywords').value = rule.keywords || '';
+            document.getElementById('tax-form-primary').value = rule.primary_standard || '';
+            document.getElementById('tax-form-prohibited').value = rule.prohibited_standards || '';
+            document.getElementById('tax-form-personnel').value = rule.sop_personnel_qualification || '';
+            document.getElementById('tax-form-holdpoint').value = rule.mandatory_hold_point || '';
+
+            // Open the details element
+            const details = document.querySelector('#admin-tab-taxonomy details');
+            if (details) details.open = true;
+        }
+
+        function resetTaxonomyForm() {
+            document.getElementById('tax-form-id').value = '';
+            document.getElementById('tax-form-category').value = '';
+            document.getElementById('tax-form-name').value = '';
+            document.getElementById('tax-form-keywords').value = '';
+            document.getElementById('tax-form-primary').value = '';
+            document.getElementById('tax-form-prohibited').value = '';
+            document.getElementById('tax-form-personnel').value = '';
+            document.getElementById('tax-form-holdpoint').value = '';
+        }
+
+        async function saveTaxonomyRule() {
+            const token = document.getElementById('admin-token').value.trim();
+            if (!token) return alert("Please enter Admin Secret Token.");
+            localStorage.setItem('inspecta_admin_token', token);
+
+            const id = document.getElementById('tax-form-id').value;
+            const category = document.getElementById('tax-form-category').value.trim();
+            const name = document.getElementById('tax-form-name').value.trim();
+            const keywords = document.getElementById('tax-form-keywords').value.trim();
+            const primary = document.getElementById('tax-form-primary').value.trim();
+            const prohibited = document.getElementById('tax-form-prohibited').value.trim();
+            const personnel = document.getElementById('tax-form-personnel').value.trim();
+            const holdpoint = document.getElementById('tax-form-holdpoint').value.trim();
+
+            if (!category || !name || !keywords || !primary) {
+                return alert("Please fill in Category, Equipment Name, Trigger Keywords, and Primary Standard.");
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/taxonomy`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        id: id ? parseInt(id) : undefined,
+                        equipment_category: category,
+                        equipment_name: name,
+                        keywords: keywords,
+                        primary_standard: primary,
+                        prohibited_standards: prohibited,
+                        sop_personnel_qualification: personnel,
+                        mandatory_hold_point: holdpoint
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert("Taxonomy Rule saved successfully!");
+                    resetTaxonomyForm();
+                    await loadTaxonomyRules();
+                } else {
+                    alert("Save Error: " + data.error);
+                }
+            } catch(e) {
+                alert("Network Error: " + e.message);
+            }
+        }
+
+        async function deleteTaxonomyRule(id) {
+            const token = document.getElementById('admin-token').value.trim();
+            if (!token) return alert("Please enter Admin Secret Token.");
+            if (!confirm("Are you sure you want to delete this taxonomy governance rule?")) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/taxonomy/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    await loadTaxonomyRules();
+                } else {
+                    alert("Delete Error: " + data.error);
+                }
+            } catch(e) {
+                alert("Network Error: " + e.message);
+            }
+        }
+
+        // Auto-load token from storage on startup
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedToken = localStorage.getItem('inspecta_admin_token') || '';
+            const tokenInput = document.getElementById('admin-token');
+            if (tokenInput && savedToken) tokenInput.value = savedToken;
+        });
     </script>
 </body>
 </html>
