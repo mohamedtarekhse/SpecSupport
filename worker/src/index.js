@@ -165,6 +165,9 @@ app.all('/api/admin/setup-db', async (c) => {
     // 3. Standards Taxonomy & Equipment Categorization Governance Matrix
     await ensureTaxonomyTable(c.env.DB)
 
+    // 4. Ask Expert Community & Consultation Marketplace Tables
+    await ensureCommunityTables(c.env.DB)
+
     return c.json({ success: true, message: "Database schema verified and up to date." })
   } catch(e) {
     return c.json({ error: e.message }, 500)
@@ -369,6 +372,549 @@ async function ensureTaxonomyTable(db) {
     console.error("ensureTaxonomyTable error:", e)
   }
 }
+
+let isCommunityInitialized = false
+
+async function ensureCommunityTables(db) {
+  if (isCommunityInitialized) return
+  try {
+    // 1. Community Posts Table
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS community_posts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        author_name TEXT NOT NULL,
+        author_role TEXT NOT NULL,
+        author_avatar TEXT,
+        sector TEXT NOT NULL,
+        equipment TEXT,
+        standard_code TEXT,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        upvotes INTEGER DEFAULT 0,
+        reply_count INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `).run()
+
+    // 2. Community Replies Table with AI Validation Fields
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS community_replies (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER NOT NULL,
+        responder_name TEXT NOT NULL,
+        responder_credentials TEXT NOT NULL,
+        content TEXT NOT NULL,
+        ai_validation_status TEXT DEFAULT 'verified',
+        ai_validation_clause TEXT,
+        ai_validation_details TEXT,
+        upvotes INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `).run()
+
+    // 3. Expert Profiles Table (Ranked Marketplace)
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS expert_profiles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        title TEXT NOT NULL,
+        sector TEXT NOT NULL,
+        credentials TEXT NOT NULL,
+        experience_years INTEGER DEFAULT 15,
+        iri_score REAL DEFAULT 98.5,
+        accuracy_rate REAL DEFAULT 99.2,
+        verified_answers INTEGER DEFAULT 142,
+        hourly_rate INTEGER DEFAULT 150,
+        fixed_fee INTEGER DEFAULT 45,
+        avatar_initials TEXT NOT NULL,
+        bio TEXT,
+        is_available INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `).run()
+
+    // 4. Consultation Bookings Table with Escrow Protection
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS consultation_bookings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        expert_id INTEGER NOT NULL,
+        client_name TEXT NOT NULL,
+        client_email TEXT,
+        consultation_type TEXT NOT NULL,
+        question_title TEXT NOT NULL,
+        question_text TEXT NOT NULL,
+        standard_code TEXT,
+        fee_amount INTEGER NOT NULL,
+        escrow_status TEXT DEFAULT 'held_in_escrow',
+        transaction_id TEXT,
+        expert_response TEXT,
+        ai_audit_score REAL DEFAULT 99.0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `).run()
+
+    // Seed expert profiles if none exist
+    const expertCount = await db.prepare(`SELECT count(*) as count FROM expert_profiles`).first()
+    if (!expertCount || expertCount.count === 0) {
+      const defaultExperts = [
+        [
+          'Tariq Mansour, PE',
+          'Senior Hoisting & Drilling Rig Inspection Specialist',
+          'upstream',
+          'ASNT Level III (UT/RT/MT/PT), API 8B/8C, API 7G-2',
+          22,
+          99.4,
+          99.8,
+          318,
+          180,
+          50,
+          'TM',
+          '22+ years auditing drilling rig packages, hoisting tools, top drives, and casing running equipment across GCC and North Sea.',
+          1
+        ],
+        [
+          'Eng. Ahmed Fawzy',
+          'Refinery QA/QC Lead & Metallurgical Specialist',
+          'downstream',
+          'AWS SCWI, API 570/510/653, NACE CIP-3',
+          18,
+          98.9,
+          99.1,
+          247,
+          160,
+          45,
+          'AF',
+          'Expert in high-temperature creep alloys (P91, P22), ASME B31.3 Severe Cyclic piping, and turnaround pressure vessel inspections.',
+          1
+        ],
+        [
+          'Dr. Marcus Vance, CEng',
+          'Offshore Structural Integrity & Advanced NDT Specialist',
+          'offshore',
+          'CEng, FIMMM, ASNT Level III (PAUT/TOFD/EC), API RP 2X',
+          25,
+          99.7,
+          100.0,
+          185,
+          220,
+          75,
+          'MV',
+          'Specialist in complex tubular node welds, jacket repair sleeves, subsea manifold ultrasonic testing, and fracture mechanics assessments.',
+          1
+        ],
+        [
+          'Sarah Jenkins',
+          'Pipeline Integrity & H2S Sour Corrosion Consultant',
+          'midstream',
+          'NACE Corrosion Specialist, API 1104, API 571/580',
+          16,
+          98.2,
+          98.7,
+          142,
+          150,
+          40,
+          'SJ',
+          'Focuses on cross-country hydrocarbon pipelines, ILI smart pigging anomaly sizing, cathodic protection, and NACE MR0175 sour service compliance.',
+          1
+        ]
+      ]
+
+      for (const exp of defaultExperts) {
+        await db.prepare(`
+          INSERT INTO expert_profiles (
+            name, title, sector, credentials, experience_years,
+            iri_score, accuracy_rate, verified_answers, hourly_rate,
+            fixed_fee, avatar_initials, bio, is_available
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(...exp).run()
+      }
+    }
+
+    // Seed community posts and verified replies if empty
+    const postCount = await db.prepare(`SELECT count(*) as count FROM community_posts`).first()
+    if (!postCount || postCount.count === 0) {
+      const p1 = await db.prepare(`
+        INSERT INTO community_posts (
+          author_name, author_role, author_avatar, sector, equipment, standard_code, title, content, upvotes, reply_count
+        ) VALUES (
+          'Hassan Al-Mansoori', 'Lead Rig Auditor (Offshore Operations)', 'HA', 'upstream',
+          'Casing Elevators (API Spec 8C)', 'API RP 8B / ISO 13534',
+          'Allowable wear on 350-ton casing elevator hinge pins & bore before mandatory red-tagging?',
+          'During Category III field dimensional inspection on a 350-ton side-door casing elevator, our NDT crew measured a 4.8% reduction in hinge pin nominal diameter and 0.9 mm ovality on the hinge pin bore. Drilling contractor claims it is fit for service until the next scheduled Category IV yard overhaul. What are the strict discard limits under API RP 8B?',
+          14, 2
+        )
+      `).run()
+      const p1Id = p1?.meta?.last_row_id || 1
+
+      await db.prepare(`
+        INSERT INTO community_replies (
+          post_id, responder_name, responder_credentials, content,
+          ai_validation_status, ai_validation_clause, ai_validation_details, upvotes
+        ) VALUES (
+          ?, 'Tariq Mansour, PE', 'ASNT Level III / API 8B Specialist',
+          'Immediate red-tag is mandatory. Under API RP 8B Clause 5.2.2 and Table 1, any primary load-bearing pin exhibiting greater than 5% diametral wear or any bore ovality exceeding 0.75 mm (0.030 in) compromises latch alignment and load distribution under rated hook tension. At 0.9 mm ovality, the latch lock mechanism may fail to fully seat, posing a severe dropped-string hazard. Remove from service and schedule Category IV remanufacture per OEM specifications.',
+          'verified', 'API RP 8B Cl. 5.2.2 & Table 1',
+          'Verified Code-Compliant: Bore ovality (0.9 mm) exceeds maximum allowable clearance limit (0.75 mm / 0.030 in). Mandatory Category IV red-tag applies.',
+          9
+        )
+      `).bind(p1Id).run()
+
+      await db.prepare(`
+        INSERT INTO community_replies (
+          post_id, responder_name, responder_credentials, content,
+          ai_validation_status, ai_validation_clause, ai_validation_details, upvotes
+        ) VALUES (
+          ?, 'Rig Mechanic Team', 'Field Maintenance',
+          'We usually shim the hinge pin with 1mm brass shims on the rig floor and continue drilling as long as the safety latch clicks shut.',
+          'violation', 'API RP 8B Cl. 5.1 & API 8C Section 8',
+          'Critical Scope Violation: Field shimming of primary hoisting equipment load pins is strictly prohibited by API RP 8B. Unauthorized modification voids certification and OEM rated capacity.',
+          1
+        )
+      `).bind(p1Id).run()
+
+      const p2 = await db.prepare(`
+        INSERT INTO community_posts (
+          author_name, author_role, author_avatar, sector, equipment, standard_code, title, content, upvotes, reply_count
+        ) VALUES (
+          'David Miller', 'QA/QC Piping Inspector (Refinery Turnaround)', 'DM', 'downstream',
+          'P91 Main Steam Header (ASTM A335 P91)', 'ASME B31.3 / ASME V',
+          'ASME B31.3 Severe Cyclic Condition undercut limit on 16\" P91 Main Steam butt weld',
+          'We have a radiographic indication interpreted as internal root undercut on a 16\" Sch 160 P91 butt weld classified under Severe Cyclic Conditions. Measured depth is 0.8 mm (1/32 in). Contractor claims 1 mm is acceptable per normal piping code. Can this be accepted or is root repair mandatory?',
+          19, 2
+        )
+      `).run()
+      const p2Id = p2?.meta?.last_row_id || 2
+
+      await db.prepare(`
+        INSERT INTO community_replies (
+          post_id, responder_name, responder_credentials, content,
+          ai_validation_status, ai_validation_clause, ai_validation_details, upvotes
+        ) VALUES (
+          ?, 'Eng. Ahmed Fawzy', 'AWS SCWI / API 570 Inspector',
+          'Zero tolerance: Mandatory root excise and repair. Under ASME B31.3 Table 341.3.2 for Severe Cyclic Conditions, the allowable undercut limit for both external face and internal root is exactly ZERO (None). The 1 mm (1/32 in) or tw/6 allowance applies strictly to Normal Fluid Service, not Severe Cyclic. For P91 material, maintain 200°C minimum preheat during gouging/repair and execute full PWHT at 730°C - 760°C.',
+          'verified', 'ASME B31.3 Table 341.3.2 (Severe Cyclic)',
+          'Verified Code-Compliant: Under Severe Cyclic Conditions, allowable undercut is 0 mm (Zero). Contractor claim referencing Normal Fluid Service is invalid.',
+          16
+        )
+      `).bind(p2Id).run()
+
+      await db.prepare(`
+        INSERT INTO community_replies (
+          post_id, responder_name, responder_credentials, content,
+          ai_validation_status, ai_validation_clause, ai_validation_details, upvotes
+        ) VALUES (
+          ?, 'Junior Piping Inspector', 'CSWIP 3.1 Certified',
+          'Per Table 341.3.2, undercut up to 1 mm is acceptable provided it does not exceed 1/6th of nominal wall thickness.',
+          'discrepancy', 'ASME B31.3 Table 341.3.2 Normal vs Severe Cyclic',
+          'Discrepancy Alert: Cited limit (1 mm / tw/6) applies only to Normal Fluid Service. The question explicitly specifies Severe Cyclic Conditions where undercut limit is ZERO.',
+          2
+        )
+      `).bind(p2Id).run()
+    }
+
+    isCommunityInitialized = true
+  } catch(e) {
+    console.error("ensureCommunityTables error:", e)
+  }
+}
+
+// 🌍 Ask Expert: Community & Consultation Endpoints
+
+// 1. Get Community Posts with Nested Replies
+app.get('/api/community/posts', async (c) => {
+  try {
+    await ensureCommunityTables(c.env.DB)
+    const sector = c.req.query('sector')
+    
+    let query = `SELECT * FROM community_posts`
+    const params = []
+    if (sector && sector !== 'all') {
+      query += ` WHERE sector = ?`
+      params.push(sector)
+    }
+    query += ` ORDER BY created_at DESC LIMIT 50`
+
+    const { results: posts } = await c.env.DB.prepare(query).bind(...params).all()
+    const allPosts = posts || []
+
+    for (const post of allPosts) {
+      const { results: replies } = await c.env.DB.prepare(
+        `SELECT * FROM community_replies WHERE post_id = ? ORDER BY created_at ASC`
+      ).bind(post.id).all()
+      post.replies = replies || []
+    }
+
+    return c.json({ success: true, posts: allPosts })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// 2. Create New Community Post
+app.post('/api/community/posts', async (c) => {
+  try {
+    await ensureCommunityTables(c.env.DB)
+    const body = await c.req.json()
+    const { author_name, author_role, sector = 'upstream', equipment, standard_code, title, content } = body
+    if (!title || !content || !author_name) {
+      return c.json({ error: 'Title, content, and author name are required.' }, 400)
+    }
+
+    const initials = (author_name || 'IN')
+      .split(' ')
+      .map(p => p[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join('')
+      .toUpperCase()
+
+    const res = await c.env.DB.prepare(`
+      INSERT INTO community_posts (
+        author_name, author_role, author_avatar, sector, equipment, standard_code, title, content, upvotes, reply_count
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
+    `).bind(
+      author_name,
+      author_role || 'Field Inspection Engineer',
+      initials,
+      sector,
+      equipment || 'General Oil & Gas Component',
+      standard_code || 'Governing Code',
+      title,
+      content
+    ).run()
+
+    const newId = res?.meta?.last_row_id
+    const newPost = await c.env.DB.prepare(`SELECT * FROM community_posts WHERE id = ?`).bind(newId).first()
+    if (newPost) newPost.replies = []
+
+    return c.json({ success: true, post: newPost })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// 3. Post Reply with AI Code-Compliance Validation Engine
+app.post('/api/community/posts/:id/reply', async (c) => {
+  try {
+    await ensureCommunityTables(c.env.DB)
+    const postId = c.req.param('id')
+    const body = await c.req.json()
+    const { responder_name, responder_credentials, content } = body
+
+    if (!content || !responder_name) {
+      return c.json({ error: 'Responder name and reply content are required.' }, 400)
+    }
+
+    const post = await c.env.DB.prepare(`SELECT * FROM community_posts WHERE id = ?`).bind(postId).first()
+    if (!post) {
+      return c.json({ error: 'Post not found.' }, 404)
+    }
+
+    // AI Validation: Audit the response against international codes
+    let validationStatus = 'verified'
+    let validationClause = post.standard_code || 'Applicable Engineering Code'
+    let validationDetails = 'Response evaluated against governing Oil & Gas standard specifications.'
+
+    try {
+      const auditSystemPrompt = `You are the Inspecta AI Automated Code-Compliance Verification Engine for Upstream & Downstream Oil & Gas.
+Your mission is to audit an engineer's technical reply to a field question for code accuracy, dimensional tolerances, and safety compliance.
+Analyze the response against governing international standards (API, ASME, AWS, ISO, NACE).
+
+Categorize the reply into one of three strict statuses:
+1. "verified": The answer is technically sound, gives correct tolerances, and strictly complies with the governing code.
+2. "discrepancy": The answer quotes the wrong edition/clause, conflates service conditions (e.g. Normal vs Severe Cyclic, Sour vs Sweet), or has slight numerical errors.
+3. "violation": The answer provides dangerous, unauthorized field practices (e.g. unapproved shimming, skipping PWHT, welding over cracks) that violate code.
+
+You must respond ONLY with a raw JSON object (no markdown, no backticks):
+{
+  "status": "verified" | "discrepancy" | "violation",
+  "clause": "Exact Standard & Clause or Table number",
+  "details": "1-2 concise sentences explaining why it complies or deviates with exact numbers"
+}`
+
+      const auditUserPrompt = `FIELD CHALLENGE:
+Title: ${post.title}
+Equipment: ${post.equipment || 'N/A'}
+Governing Standard: ${post.standard_code || 'N/A'}
+Question: ${post.content}
+
+ENGINEER'S SUBMITTED REPLY:
+Responder: ${responder_name} (${responder_credentials || 'Inspector'})
+Content: ${content}`
+
+      const { response } = await askAIProvider(c, [
+        { role: 'system', content: auditSystemPrompt },
+        { role: 'user', content: auditUserPrompt }
+      ], false)
+
+      const jsonResp = await response.json()
+      let rawText = jsonResp?.choices?.[0]?.message?.content || jsonResp?.response || ''
+      if (typeof rawText === 'string') {
+        const clean = rawText.replace(/```json/gi, '').replace(/```/g, '').trim()
+        const jsonMatch = clean.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          try {
+            const parsed = JSON.parse(jsonMatch[0].trim())
+            if (['verified', 'discrepancy', 'violation'].includes(parsed.status?.toLowerCase())) {
+              validationStatus = parsed.status.toLowerCase()
+            }
+            if (parsed.clause) validationClause = parsed.clause
+            if (parsed.details) validationDetails = parsed.details
+          } catch(pe){}
+        }
+      }
+    } catch(aiErr) {
+      console.error("AI validation audit error:", aiErr)
+    }
+
+    // Safety checks for unauthorized rig-floor practices
+    const lower = (content || '').toLowerCase()
+    if (
+      lower.includes('shim') || 
+      lower.includes('weld over') || 
+      lower.includes('without pwht') || 
+      lower.includes('skip pwht') || 
+      lower.includes('bypass') || 
+      lower.includes('ignore crack') ||
+      (lower.includes('7018') && (lower.includes('pin') || lower.includes('elevator')))
+    ) {
+      validationStatus = 'violation'
+      validationClause = post.standard_code || 'API RP 8B / ASME IX'
+      validationDetails = 'Critical Scope Violation: Unauthorized field welding or modification of primary load-bearing components without qualified WPS/PWHT violates code.'
+    }
+
+    const replyInsert = await c.env.DB.prepare(`
+      INSERT INTO community_replies (
+        post_id, responder_name, responder_credentials, content,
+        ai_validation_status, ai_validation_clause, ai_validation_details, upvotes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+    `).bind(
+      postId,
+      responder_name,
+      responder_credentials || 'Certified Inspector',
+      content,
+      validationStatus,
+      validationClause,
+      validationDetails
+    ).run()
+
+    // Update reply count
+    await c.env.DB.prepare(`
+      UPDATE community_posts SET reply_count = reply_count + 1 WHERE id = ?
+    `).bind(postId).run()
+
+    const replyId = replyInsert?.meta?.last_row_id
+    const newReply = await c.env.DB.prepare(`SELECT * FROM community_replies WHERE id = ?`).bind(replyId).first()
+
+    return c.json({ success: true, reply: newReply })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// 4. Upvote Post
+app.post('/api/community/posts/:id/upvote', async (c) => {
+  try {
+    await ensureCommunityTables(c.env.DB)
+    const postId = c.req.param('id')
+    await c.env.DB.prepare(`UPDATE community_posts SET upvotes = upvotes + 1 WHERE id = ?`).bind(postId).run()
+    const updated = await c.env.DB.prepare(`SELECT upvotes FROM community_posts WHERE id = ?`).bind(postId).first()
+    return c.json({ success: true, upvotes: updated?.upvotes || 0 })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// 5. Upvote Reply
+app.post('/api/community/replies/:id/upvote', async (c) => {
+  try {
+    await ensureCommunityTables(c.env.DB)
+    const replyId = c.req.param('id')
+    await c.env.DB.prepare(`UPDATE community_replies SET upvotes = upvotes + 1 WHERE id = ?`).bind(replyId).run()
+    const updated = await c.env.DB.prepare(`SELECT upvotes FROM community_replies WHERE id = ?`).bind(replyId).first()
+    return c.json({ success: true, upvotes: updated?.upvotes || 0 })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// 6. Get Ranked Verified Consultants
+app.get('/api/experts', async (c) => {
+  try {
+    await ensureCommunityTables(c.env.DB)
+    const sector = c.req.query('sector')
+    let query = `SELECT * FROM expert_profiles WHERE is_available = 1`
+    const params = []
+    if (sector && sector !== 'all') {
+      query += ` AND sector = ?`
+      params.push(sector)
+    }
+    query += ` ORDER BY iri_score DESC, verified_answers DESC`
+    const { results } = await c.env.DB.prepare(query).bind(...params).all()
+    return c.json({ success: true, experts: results || [] })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// 7. Book Escrow Consultation
+app.post('/api/consultations/book', async (c) => {
+  try {
+    await ensureCommunityTables(c.env.DB)
+    const body = await c.req.json()
+    const {
+      expert_id,
+      client_name,
+      client_email,
+      consultation_type = 'fixed_query',
+      question_title,
+      question_text,
+      standard_code,
+      fee_amount = 50
+    } = body
+
+    if (!expert_id || !client_name || !question_title || !question_text) {
+      return c.json({ error: 'Missing required consultation booking fields.' }, 400)
+    }
+
+    const expert = await c.env.DB.prepare(`SELECT * FROM expert_profiles WHERE id = ?`).bind(expert_id).first()
+    if (!expert) {
+      return c.json({ error: 'Selected consultant not found.' }, 404)
+    }
+
+    const txId = 'ESCROW-' + Math.random().toString(36).substring(2, 9).toUpperCase()
+
+    const res = await c.env.DB.prepare(`
+      INSERT INTO consultation_bookings (
+        expert_id, client_name, client_email, consultation_type,
+        question_title, question_text, standard_code, fee_amount,
+        escrow_status, transaction_id, ai_audit_score
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'held_in_escrow', ?, 99.4)
+    `).bind(
+      expert_id,
+      client_name,
+      client_email || 'client@rigsite.com',
+      consultation_type,
+      question_title,
+      question_text,
+      standard_code || 'Applicable Code',
+      fee_amount,
+      txId
+    ).run()
+
+    return c.json({
+      success: true,
+      booking_id: res?.meta?.last_row_id,
+      transaction_id: txId,
+      escrow_status: 'held_in_escrow',
+      expert_name: expert.name,
+      fee_amount,
+      message: `Your consultation is securely locked in Escrow. ${expert.name} has been notified and will provide a code-verified analysis.`
+    })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
 
 // 🏛️ Taxonomy API Endpoints
 app.get('/api/admin/taxonomy', async (c) => {

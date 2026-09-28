@@ -29,6 +29,24 @@
             --gemini-card-border: #303134;
             --gemini-gradient: linear-gradient(74deg, #4285F4 0%, #9B72CB 25%, #D96570 50%, #9B72CB 75%, #4285F4 100%);
             --max-width: 860px;
+
+            /* SAP Blue Horizon Theme Palette */
+            --sap-blue: #0070F2;
+            --sap-blue-hover: #0854A0;
+            --sap-blue-active: #0056B3;
+            --sap-blue-dark: #0A6ED1;
+            --sap-blue-soft: rgba(0, 112, 242, 0.12);
+            --sap-blue-soft-border: rgba(0, 112, 242, 0.32);
+            --sap-blue-glow: rgba(0, 112, 242, 0.25);
+            --sap-green: #107E3E;
+            --sap-green-soft: rgba(16, 126, 62, 0.12);
+            --sap-green-border: rgba(16, 126, 62, 0.32);
+            --sap-amber: #E76500;
+            --sap-amber-soft: rgba(231, 101, 0, 0.12);
+            --sap-amber-border: rgba(231, 101, 0, 0.32);
+            --sap-red: #BB0000;
+            --sap-red-soft: rgba(187, 0, 0, 0.12);
+            --sap-red-border: rgba(187, 0, 0, 0.32);
         }
 
         :root.light-mode {
@@ -39,12 +57,20 @@
             --gemini-border: #E1E3E1;
             --gemini-text-main: #1F1F1F;
             --gemini-text-muted: #444746;
-            --gemini-blue: #0B57D0;
-            --gemini-blue-hover: #0842A0;
-            --gemini-blue-light: #1A73E8;
+            --gemini-blue: #0070F2;
+            --gemini-blue-hover: #0854A0;
+            --gemini-blue-light: #0A6ED1;
             --gemini-pill-bg: #E1E8F0;
             --gemini-card-bg: #F0F4F9;
             --gemini-card-border: #E1E3E1;
+
+            --sap-blue: #0070F2;
+            --sap-blue-hover: #0854A0;
+            --sap-blue-active: #0056B3;
+            --sap-blue-dark: #0A6ED1;
+            --sap-blue-soft: rgba(0, 112, 242, 0.08);
+            --sap-blue-soft-border: rgba(0, 112, 242, 0.22);
+            --sap-blue-glow: rgba(0, 112, 242, 0.15);
         }
 
         /* Base Reset */
@@ -1036,6 +1062,657 @@
             }
             .prompt-card { min-width: 220px; scroll-snap-align: start; }
         }
+        /* Gemini-Clone Line SVG System */
+        .gemini-svg {
+            width: 18px; height: 18px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.85;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            display: inline-block;
+            vertical-align: middle;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+        .gemini-svg-sm { width: 14px; height: 14px; stroke-width: 2; }
+        .gemini-svg-lg { width: 22px; height: 22px; stroke-width: 1.8; }
+
+        /* SAP Blue Accents on Mode Switcher */
+        .mode-pill {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .mode-pill.active {
+            background: var(--sap-blue) !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 2px 10px var(--sap-blue-glow) !important;
+        }
+        .mode-pill.active .gemini-svg {
+            stroke: #FFFFFF !important;
+        }
+        .icon-btn:hover {
+            color: var(--sap-blue);
+            border-color: var(--sap-blue-soft-border);
+            background: var(--sap-blue-soft);
+        }
+
+        /* Ask Expert Sub-Navigation Bar */
+        .expert-subnav-bar {
+            width: 100%;
+            background: var(--gemini-bg);
+            border-bottom: 1px solid var(--gemini-border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px 16px;
+            z-index: 90;
+            animation: fadeIn 0.25s ease;
+        }
+        .expert-subnav-inner {
+            display: flex;
+            gap: 8px;
+            background: var(--gemini-surface);
+            border: 1px solid var(--gemini-border);
+            border-radius: 30px;
+            padding: 4px;
+        }
+        .expert-subtab-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--gemini-text-muted);
+            padding: 7px 18px;
+            border-radius: 24px;
+            font-size: 0.84rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .expert-subtab-btn:hover {
+            color: var(--gemini-text-main);
+            background: var(--gemini-surface-hover);
+        }
+        .expert-subtab-btn.active {
+            background: var(--sap-blue-soft);
+            color: var(--sap-blue);
+            border-color: var(--sap-blue-soft-border);
+            font-weight: 600;
+            box-shadow: 0 0 14px var(--sap-blue-glow);
+        }
+        .expert-subtab-btn.active .gemini-svg {
+            stroke: var(--sap-blue);
+        }
+        .expert-tag-badge {
+            font-size: 0.64rem;
+            padding: 2px 7px;
+            border-radius: 12px;
+            background: var(--sap-blue);
+            color: #FFFFFF;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        .expert-tag-badge.gold {
+            background: linear-gradient(135deg, #DF6E0C, #F59E0B);
+        }
+
+        /* Common Container for Community & Marketplace Views */
+        .expert-view-container {
+            width: 100%;
+            max-width: 980px;
+            padding: 24px 20px 120px 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            flex: 1;
+            height: calc(100vh - 120px);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        .expert-view-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+            border-bottom: 1px solid var(--gemini-border);
+            padding-bottom: 20px;
+        }
+        .expert-view-title-group h2 {
+            margin: 6px 0 4px 0;
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: var(--gemini-text-main);
+            letter-spacing: -0.4px;
+        }
+        .expert-view-title-group p {
+            margin: 0;
+            font-size: 0.88rem;
+            color: var(--gemini-text-muted);
+            line-height: 1.4;
+        }
+        .expert-view-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--sap-blue-soft);
+            color: var(--sap-blue);
+            border: 1px solid var(--sap-blue-soft-border);
+            padding: 3px 10px;
+            border-radius: 14px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .sap-btn-primary {
+            background: var(--sap-blue);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 22px;
+            padding: 9px 20px;
+            font-size: 0.86rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px var(--sap-blue-glow);
+        }
+        .sap-btn-primary:hover {
+            background: var(--sap-blue-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px var(--sap-blue-glow);
+        }
+        .sap-btn-primary .gemini-svg {
+            stroke: #FFFFFF;
+        }
+
+        /* Sector Filters */
+        .community-filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .filter-label {
+            font-size: 0.78rem;
+            color: var(--gemini-text-muted);
+            font-weight: 600;
+            white-space: nowrap;
+            margin-right: 4px;
+        }
+        .sector-filter-btn, .market-filter-btn {
+            background: var(--gemini-surface);
+            border: 1px solid var(--gemini-border);
+            color: var(--gemini-text-muted);
+            border-radius: 18px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .sector-filter-btn:hover, .market-filter-btn:hover {
+            color: var(--gemini-text-main);
+            border-color: var(--sap-blue-soft-border);
+        }
+        .sector-filter-btn.active, .market-filter-btn.active {
+            background: var(--sap-blue-soft);
+            color: var(--sap-blue);
+            border-color: var(--sap-blue);
+            font-weight: 600;
+        }
+
+        /* Escrow Banner */
+        .escrow-banner {
+            background: var(--sap-blue-soft);
+            border: 1px solid var(--sap-blue-soft-border);
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .escrow-banner-icon {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            background: var(--sap-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px var(--sap-blue-glow);
+        }
+        .escrow-banner-text {
+            font-size: 0.85rem;
+            color: var(--gemini-text-main);
+            line-height: 1.45;
+        }
+        .escrow-banner-text strong {
+            color: var(--sap-blue);
+            font-weight: 700;
+            margin-right: 4px;
+        }
+
+        /* Community Post Cards */
+        .community-posts-stream {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .post-card {
+            background: var(--gemini-surface);
+            border: 1px solid var(--gemini-border);
+            border-radius: 14px;
+            padding: 20px;
+            transition: all 0.2s ease;
+        }
+        .post-card:hover {
+            border-color: var(--sap-blue-soft-border);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .post-author-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .author-avatar {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--sap-blue), var(--sap-blue-hover));
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px var(--sap-blue-glow);
+        }
+        .author-details {
+            display: flex;
+            flex-direction: column;
+        }
+        .author-name {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--gemini-text-main);
+        }
+        .author-role {
+            font-size: 0.74rem;
+            color: var(--gemini-text-muted);
+        }
+        .post-meta-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .tag-pill {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: var(--gemini-bg);
+            border: 1px solid var(--gemini-border);
+            color: var(--gemini-text-muted);
+            font-weight: 500;
+        }
+        .tag-pill.sector-tag {
+            background: var(--sap-blue-soft);
+            color: var(--sap-blue);
+            border-color: var(--sap-blue-soft-border);
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        .post-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--gemini-text-main);
+            margin: 0 0 10px 0;
+            line-height: 1.4;
+        }
+        .post-body {
+            font-size: 0.88rem;
+            color: var(--gemini-text-main);
+            line-height: 1.6;
+            margin: 0 0 16px 0;
+            white-space: pre-line;
+        }
+        .post-footer-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--gemini-border);
+        }
+        .post-action-btn {
+            background: transparent;
+            border: 1px solid var(--gemini-border);
+            color: var(--gemini-text-muted);
+            padding: 6px 14px;
+            border-radius: 18px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .post-action-btn:hover {
+            color: var(--sap-blue);
+            border-color: var(--sap-blue-soft-border);
+            background: var(--sap-blue-soft);
+        }
+        .post-action-btn.active {
+            color: var(--sap-blue);
+            border-color: var(--sap-blue);
+            background: var(--sap-blue-soft);
+            font-weight: 600;
+        }
+
+        /* Replies Section */
+        .replies-container {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px dashed var(--gemini-border);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .reply-item {
+            background: var(--gemini-bg);
+            border: 1px solid var(--gemini-border);
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .reply-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .reply-responder {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--gemini-text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .reply-credentials {
+            font-size: 0.72rem;
+            color: var(--gemini-text-muted);
+            font-weight: 400;
+        }
+        .reply-text {
+            font-size: 0.85rem;
+            color: var(--gemini-text-main);
+            line-height: 1.55;
+            margin: 0;
+            white-space: pre-line;
+        }
+
+        /* AI Code-Compliance Validation Badges */
+        .ai-audit-badge {
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .ai-audit-badge-header {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-weight: 700;
+            font-size: 0.82rem;
+        }
+        .ai-audit-badge.verified {
+            background: var(--sap-green-soft);
+            border: 1px solid var(--sap-green-border);
+            color: #10B981;
+        }
+        .ai-audit-badge.verified .gemini-svg { stroke: #10B981; }
+        .ai-audit-badge.discrepancy {
+            background: var(--sap-amber-soft);
+            border: 1px solid var(--sap-amber-border);
+            color: #F59E0B;
+        }
+        .ai-audit-badge.discrepancy .gemini-svg { stroke: #F59E0B; }
+        .ai-audit-badge.violation {
+            background: var(--sap-red-soft);
+            border: 1px solid var(--sap-red-border);
+            color: #EF4444;
+        }
+        .ai-audit-badge.violation .gemini-svg { stroke: #EF4444; }
+        .ai-audit-detail {
+            font-size: 0.76rem;
+            line-height: 1.45;
+            color: var(--gemini-text-muted);
+        }
+
+        /* Inline Reply Form */
+        .reply-form-box {
+            background: var(--gemini-bg);
+            border: 1px solid var(--gemini-border);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .reply-inputs-row {
+            display: flex;
+            gap: 8px;
+        }
+        .reply-input-sm {
+            flex: 1;
+            background: var(--gemini-surface);
+            border: 1px solid var(--gemini-border);
+            color: var(--gemini-text-main);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            outline: none;
+        }
+        .reply-input-sm:focus {
+            border-color: var(--sap-blue);
+        }
+        .reply-textarea {
+            width: 100%;
+            background: var(--gemini-surface);
+            border: 1px solid var(--gemini-border);
+            color: var(--gemini-text-main);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 55px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .reply-textarea:focus {
+            border-color: var(--sap-blue);
+        }
+
+        /* Marketplace: Ranked Experts Grid */
+        .experts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            gap: 18px;
+        }
+        @media (max-width: 600px) {
+            .experts-grid { grid-template-columns: 1fr; }
+        }
+        .expert-card {
+            background: var(--gemini-surface);
+            border: 1px solid var(--gemini-border);
+            border-radius: 14px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 16px;
+            transition: all 0.2s ease;
+        }
+        .expert-card:hover {
+            border-color: var(--sap-blue-soft-border);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+        .expert-card-top {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+        .expert-avatar-lg {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--sap-blue), var(--sap-blue-hover));
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px var(--sap-blue-glow);
+        }
+        .expert-card-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .expert-card-name-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .expert-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gemini-text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .expert-iri-pill {
+            background: linear-gradient(135deg, var(--sap-blue) 0%, var(--sap-blue-dark) 100%);
+            color: #FFFFFF;
+            padding: 3px 9px;
+            border-radius: 14px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 6px var(--sap-blue-glow);
+        }
+        .expert-iri-pill .gemini-svg { stroke: #FFFFFF; }
+        .expert-credentials {
+            font-size: 0.75rem;
+            color: var(--sap-blue);
+            font-weight: 600;
+        }
+        .expert-title {
+            font-size: 0.8rem;
+            color: var(--gemini-text-muted);
+            line-height: 1.35;
+        }
+        .expert-metrics-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            background: var(--gemini-bg);
+            border: 1px solid var(--gemini-border);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+        }
+        .metric-val {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--gemini-text-main);
+        }
+        .metric-lbl {
+            font-size: 0.65rem;
+            color: var(--gemini-text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        .expert-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid var(--gemini-border);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .expert-pricing-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .price-primary {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--gemini-text-main);
+        }
+        .price-secondary {
+            font-size: 0.72rem;
+            color: var(--gemini-text-muted);
+        }
+
+        /* Modal Styles */
+        .modal-form-group {
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .modal-form-group label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--gemini-text-muted);
+        }
+        .community-loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 40px 20px;
+            color: var(--gemini-text-muted);
+            font-size: 0.88rem;
+        }
     </style>
 </head>
 <body>
@@ -1044,27 +1721,68 @@
     <header>
         <div class="header-left">
             <a href="#" class="logo-title" onclick="resetChat(); return false;">
-                <span class="sparkle-icon">✦</span>
+                <svg class="gemini-svg" style="width:20px; height:20px; stroke:var(--sap-blue);" viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></svg>
                 <span>Inspecta</span>
             </a>
         </div>
 
         <!-- Centered 3-Mode Segmented Pill Switcher (Web Mode Default) -->
         <div class="gemini-mode-switch">
-            <button id="mode-web-btn" class="mode-pill active" onclick="setMode('web')">🌐 Web Mode</button>
-            <button id="mode-standards-btn" class="mode-pill" onclick="setMode('standards')">📚 Standards</button>
-            <button id="mode-expert-btn" class="mode-pill" onclick="setMode('expert')">💡 Ask Expert</button>
+            <button id="mode-web-btn" class="mode-pill active" onclick="setMode('web')">
+                <svg class="gemini-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span>Web Mode</span>
+            </button>
+            <button id="mode-standards-btn" class="mode-pill" onclick="setMode('standards')">
+                <svg class="gemini-svg" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15zM8 7h8M8 11h6"/></svg>
+                <span>Standards</span>
+            </button>
+            <button id="mode-expert-btn" class="mode-pill" onclick="setMode('expert')">
+                <svg class="gemini-svg" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 10l-2.5 1.5.7-2.9-2.2-2 2.9-.2L22 4l1.1 2.4 2.9.2-2.2 2 .7 2.9z"/></svg>
+                <span>Ask Expert</span>
+            </button>
         </div>
 
         <div class="header-actions">
-            <button class="icon-btn" title="On-Device Defect Vision" onclick="openVisionModal()">📷</button>
-            <button class="icon-btn" title="Standards & Specs Hub" onclick="openStandardsModal()">📁</button>
-            <button class="icon-btn" title="Purge Cache & Refresh" onclick="forceCachePurge()">♻️</button>
-            <button class="icon-btn" title="Toggle Dark/Light Mode" onclick="toggleTheme()">🌗</button>
-            <a href="refiner.html" class="icon-btn" title="Database Refiner & AI Rule Studio" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">🧹</a>
-            <button class="icon-btn" title="Admin Settings" onclick="toggleAdminPanel()">⚙️</button>
+            <button class="icon-btn" title="On-Device Defect Vision" onclick="openVisionModal()">
+                <svg class="gemini-svg" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </button>
+            <button class="icon-btn" title="Standards & Specs Hub" onclick="openStandardsModal()">
+                <svg class="gemini-svg" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            </button>
+            <button class="icon-btn" title="Purge Cache & Refresh" onclick="forceCachePurge()">
+                <svg class="gemini-svg" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            </button>
+            <button class="icon-btn" title="Toggle Dark/Light Mode" onclick="toggleTheme()">
+                <svg class="gemini-svg" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+            <a href="refiner.html" class="icon-btn" title="Database Refiner & AI Rule Studio" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">
+                <svg class="gemini-svg" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            </a>
+            <button class="icon-btn" title="Admin Settings" onclick="toggleAdminPanel()">
+                <svg class="gemini-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
         </div>
     </header>
+
+    <!-- Dedicated Sub-Navigation Bar for Ask Expert Mode -->
+    <div id="expert-subnav-bar" class="expert-subnav-bar" style="display: none;">
+        <div class="expert-subnav-inner">
+            <button id="expert-subtab-ai" class="expert-subtab-btn active" onclick="switchExpertSubTab('ai')">
+                <svg class="gemini-svg" viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></svg>
+                <span>AI Senior Level III</span>
+            </button>
+            <button id="expert-subtab-feed" class="expert-subtab-btn" onclick="switchExpertSubTab('feed')">
+                <svg class="gemini-svg" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>O&G Community Feed</span>
+                <span class="expert-tag-badge">AI Audited</span>
+            </button>
+            <button id="expert-subtab-market" class="expert-subtab-btn" onclick="switchExpertSubTab('market')">
+                <svg class="gemini-svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span>Verified Consultants</span>
+                <span class="expert-tag-badge gold">IRI Ranked</span>
+            </button>
+        </div>
+    </div>
 
     <!-- Main Workspace Area -->
     <div id="app-container" class="state-greeting">
@@ -1077,19 +1795,27 @@
             <!-- 4 Interactive Gemini Prompt Cards -->
             <div class="prompt-cards-grid">
                 <div class="prompt-card" onclick="sendQuickPrompt('What is the maximum allowable hardness for casing in sour service per API 5CT and NACE MR0175?')">
-                    <div class="prompt-card-icon">🛢️</div>
+                    <div class="prompt-card-icon">
+                        <svg class="gemini-svg" style="stroke:var(--sap-blue);" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3"/></svg>
+                    </div>
                     <div class="prompt-card-text">Sour Service Hardness (API 5CT / NACE)</div>
                 </div>
                 <div class="prompt-card" onclick="sendQuickPrompt('What is the maximum allowable undercut depth for Normal Fluid Service piping per ASME B31.3?')">
-                    <div class="prompt-card-icon">🔍</div>
+                    <div class="prompt-card-icon">
+                        <svg class="gemini-svg" style="stroke:var(--sap-blue);" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </div>
                     <div class="prompt-card-text">Piping Weld Undercut (ASME B31.3)</div>
                 </div>
                 <div class="prompt-card" onclick="sendQuickPrompt('What are the minimum and maximum acceptable optical density limits for X-ray and Gamma-ray film per ASME Section V Article 2?')">
-                    <div class="prompt-card-icon">☢️</div>
+                    <div class="prompt-card-icon">
+                        <svg class="gemini-svg" style="stroke:var(--sap-blue);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M12 2a10 10 0 0 0-8.66 5l3.46 2A6 6 0 0 1 12 6V2z"/><path d="M20.66 7A10 10 0 0 0 12 2v4a6 6 0 0 1 5.2 3l3.46-2z"/><path d="M12 22a10 10 0 0 0 8.66-5l-3.46-2A6 6 0 0 1 12 18v4z"/><path d="M3.34 17A10 10 0 0 0 12 22v-4a6 6 0 0 1-5.2-3l-3.46 2z"/></svg>
+                    </div>
                     <div class="prompt-card-text">RT Optical Density Limits (ASME V)</div>
                 </div>
                 <div class="prompt-card" onclick="sendQuickPrompt('How do you calculate minimum hydrostatic test pressure and hold time for piping per ASME B31.3?')">
-                    <div class="prompt-card-icon">🧪</div>
+                    <div class="prompt-card-icon">
+                        <svg class="gemini-svg" style="stroke:var(--sap-blue);" viewBox="0 0 24 24"><path d="M10 2v7.5l-5.5 9A2 2 0 0 0 6.2 21.5h11.6a2 2 0 0 0 1.7-3l-5.5-9V2h-4z"/><line x1="8" y1="2" x2="16" y2="2"/><line x1="7" y1="16" x2="17" y2="16"/></svg>
+                    </div>
                     <div class="prompt-card-text">Hydrostatic Pressure Formula & Hold</div>
                 </div>
             </div>
@@ -1110,12 +1836,95 @@
             </div>
         </div>
 
+        <!-- Ask Expert: Oil & Gas Community Feed View -->
+        <div id="expert-community-view" class="expert-view-container" style="display: none;">
+            <div class="expert-view-header">
+                <div class="expert-view-title-group">
+                    <div class="expert-view-badge">
+                        <svg class="gemini-svg" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                        <span>AI-Validated Engineering Network</span>
+                    </div>
+                    <h2>Upstream & Downstream Technical Feed</h2>
+                    <p>Rig-floor challenges, metallurgical inquiries, and real-time AI code-compliance validation.</p>
+                </div>
+                <button class="sap-btn-primary" onclick="openNewPostModal()">
+                    <svg class="gemini-svg" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>Post Field Challenge</span>
+                </button>
+            </div>
+
+            <!-- Sector Filters -->
+            <div class="community-filter-bar">
+                <span class="filter-label">Filter Sector:</span>
+                <button class="sector-filter-btn active" onclick="filterCommunityPosts('all', this)">All Sectors</button>
+                <button class="sector-filter-btn" onclick="filterCommunityPosts('upstream', this)">Upstream Drilling & Rig</button>
+                <button class="sector-filter-btn" onclick="filterCommunityPosts('downstream', this)">Downstream Refining & Petrochem</button>
+                <button class="sector-filter-btn" onclick="filterCommunityPosts('midstream', this)">Midstream Pipelines</button>
+                <button class="sector-filter-btn" onclick="filterCommunityPosts('offshore', this)">Offshore & Subsea</button>
+            </div>
+
+            <!-- Posts Feed Stream -->
+            <div id="community-posts-stream" class="community-posts-stream">
+                <div class="community-loading-state">
+                    <div class="status-dots"><div class="status-dot"></div><div class="status-dot"></div><div class="status-dot"></div></div>
+                    <span>Loading verified oilfield challenges...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ask Expert: Verified Consultants Marketplace View -->
+        <div id="expert-marketplace-view" class="expert-view-container" style="display: none;">
+            <div class="expert-view-header">
+                <div class="expert-view-title-group">
+                    <div class="expert-view-badge">
+                        <svg class="gemini-svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <span>Inspecta Reliability Index (IRI)</span>
+                    </div>
+                    <h2>Certified Oil & Gas Consultants Marketplace</h2>
+                    <p>Direct 1-on-1 consultations with verified Level III, CWI, and Professional Engineers. 100% Escrow Protected.</p>
+                </div>
+            </div>
+
+            <!-- Escrow Banner -->
+            <div class="escrow-banner">
+                <div class="escrow-banner-icon">
+                    <svg class="gemini-svg" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <div class="escrow-banner-text">
+                    <strong>Inspecta Escrow Guarantee:</strong>
+                    <span>Client funds are held in secure escrow. Fees are only released when technical accuracy and standard clause references are confirmed.</span>
+                </div>
+            </div>
+
+            <!-- Specialization Filters -->
+            <div class="community-filter-bar">
+                <span class="filter-label">Specialization:</span>
+                <button class="market-filter-btn active" onclick="filterExperts('all', this)">All Disciplines</button>
+                <button class="market-filter-btn" onclick="filterExperts('upstream', this)">Upstream Drilling & Rig</button>
+                <button class="market-filter-btn" onclick="filterExperts('downstream', this)">Downstream & Vessels</button>
+                <button class="market-filter-btn" onclick="filterExperts('offshore', this)">Offshore & Subsea NDT</button>
+                <button class="market-filter-btn" onclick="filterExperts('midstream', this)">Pipelines & Corrosion</button>
+            </div>
+
+            <!-- Experts Grid -->
+            <div id="experts-grid" class="experts-grid">
+                <div class="community-loading-state">
+                    <div class="status-dots"><div class="status-dot"></div><div class="status-dot"></div><div class="status-dot"></div></div>
+                    <span>Loading ranked Level III consultants...</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Floating 32px Gemini Input Pill -->
         <div id="input-container">
             <div class="gemini-pill-box">
-                <button class="pill-attach-btn" title="Add File or Defect Photo" onclick="toggleAttachmentMenu()">+</button>
+                <button class="pill-attach-btn" title="Add File or Defect Photo" onclick="toggleAttachmentMenu()">
+                    <svg class="gemini-svg" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
                 <textarea id="user-input" rows="1" placeholder="Ask Inspecta about engineering standards, welding, or defects..." onkeydown="handleInputKey(event)" oninput="autoGrow(this)"></textarea>
-                <button id="mic-btn" class="pill-mic-btn" title="Voice Input" onclick="toggleVoiceInput()">🎙️</button>
+                <button id="mic-btn" class="pill-mic-btn" title="Voice Input" onclick="toggleVoiceInput()">
+                    <svg class="gemini-svg" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                </button>
                 <button id="send-btn" class="pill-send-btn" title="Send" onclick="sendMessage()">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="12" y1="19" x2="12" y2="5"></line>
@@ -1408,6 +2217,187 @@
 
             <button class="mode-pill active" style="width:100%; justify-content:center; margin-top:6px;" onclick="saveAdminConfig()">Save AI Settings</button>
         </div>
+    <!-- New Field Challenge Modal -->
+    <div id="new-post-modal" class="gemini-modal" style="display:none;">
+        <div class="gemini-modal-content" style="max-width:550px;">
+            <div class="modal-header">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <svg class="gemini-svg" style="stroke:var(--sap-blue);" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                    <h3 style="margin:0; font-size:1.1rem; color:var(--gemini-text-main);">Post Field Engineering Challenge</h3>
+                </div>
+                <button class="close-modal-btn" onclick="closeNewPostModal()">&times;</button>
+            </div>
+            <div style="font-size:0.8rem; color:var(--gemini-text-muted); margin-bottom:14px;">
+                Submit real-world oilfield inspection questions. Peer responses will be automatically audited by Inspecta AI against international standards.
+            </div>
+
+            <div class="modal-form-group">
+                <label>Your Name / Title:</label>
+                <input type="text" id="post-author-name" class="admin-input" placeholder="e.g. Hassan Al-Mansoori, Lead Rig Inspector">
+            </div>
+
+            <div class="modal-form-group">
+                <label>Your Organization / Role:</label>
+                <input type="text" id="post-author-role" class="admin-input" placeholder="e.g. ADNOC Offshore QA/QC / Aramco Contractor">
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div class="modal-form-group">
+                    <label>Sector / Discipline:</label>
+                    <select id="post-sector" class="admin-input">
+                        <option value="upstream">Upstream Drilling & Rig</option>
+                        <option value="downstream">Downstream Refining & Petrochem</option>
+                        <option value="midstream">Midstream Pipelines</option>
+                        <option value="offshore">Offshore & Subsea</option>
+                    </select>
+                </div>
+                <div class="modal-form-group">
+                    <label>Equipment / Component:</label>
+                    <input type="text" id="post-equipment" class="admin-input" placeholder="e.g. Casing Elevator, P91 Header">
+                </div>
+            </div>
+
+            <div class="modal-form-group">
+                <label>Governing Standard / Code Reference:</label>
+                <input type="text" id="post-standard" class="admin-input" placeholder="e.g. API RP 8B / ISO 13534, ASME B31.3">
+            </div>
+
+            <div class="modal-form-group">
+                <label>Challenge Title:</label>
+                <input type="text" id="post-title" class="admin-input" placeholder="e.g. Allowable wear limit on elevator hinge pins before discard">
+            </div>
+
+            <div class="modal-form-group">
+                <label>Detailed Technical Findings & Questions:</label>
+                <textarea id="post-content" class="admin-input" style="min-height:90px; resize:vertical;" placeholder="Describe dimensions, NDT indications, service conditions (Sour/Sweet/Temp), and specific criteria needed..."></textarea>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
+                <button class="tool-btn" onclick="closeNewPostModal()">Cancel</button>
+                <button class="sap-btn-primary" onclick="submitNewCommunityPost()">
+                    <svg class="gemini-svg" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    <span>Publish Challenge</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book Paid Escrow Consultation Modal -->
+    <div id="book-consultation-modal" class="gemini-modal" style="display:none;">
+        <div class="gemini-modal-content" style="max-width:540px;">
+            <div class="modal-header">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <svg class="gemini-svg" style="stroke:var(--sap-blue);" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <h3 style="margin:0; font-size:1.1rem; color:var(--gemini-text-main);">Book Escrow Consultation</h3>
+                </div>
+                <button class="close-modal-btn" onclick="closeBookModal()">&times;</button>
+            </div>
+
+            <div id="book-expert-summary" style="background:var(--sap-blue-soft); border:1px solid var(--sap-blue-soft-border); border-radius:10px; padding:12px; margin-bottom:14px; display:flex; align-items:center; gap:12px;">
+                <div id="book-expert-avatar" class="author-avatar" style="width:44px; height:44px;">TM</div>
+                <div>
+                    <div id="book-expert-name" style="font-weight:700; font-size:0.95rem; color:var(--gemini-text-main);">Tariq Mansour, PE</div>
+                    <div id="book-expert-credentials" style="font-size:0.75rem; color:var(--sap-blue);">ASNT Level III / API 8B Specialist</div>
+                    <div id="book-expert-iri" style="font-size:0.72rem; color:var(--gemini-text-muted);">Inspecta Reliability Index: 99.4/100</div>
+                </div>
+            </div>
+
+            <div class="modal-form-group">
+                <label>Select Consultation Package:</label>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <label id="opt-pkg-query" style="display:flex; flex-direction:column; padding:10px; border-radius:8px; border:2px solid var(--sap-blue); background:var(--sap-blue-soft); cursor:pointer;">
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <span style="font-weight:700; font-size:0.85rem; color:var(--gemini-text-main);">Fixed Code Query</span>
+                            <input type="radio" name="consultation_pkg" value="fixed_query" checked onchange="updateBookingPackage('fixed')">
+                        </div>
+                        <span id="book-price-fixed" style="font-size:0.95rem; font-weight:700; color:var(--sap-blue); margin-top:4px;">$50 Fixed</span>
+                        <span style="font-size:0.7rem; color:var(--gemini-text-muted);">Written code report within 4h</span>
+                    </label>
+                    <label id="opt-pkg-live" style="display:flex; flex-direction:column; padding:10px; border-radius:8px; border:1px solid var(--gemini-border); background:var(--gemini-surface); cursor:pointer;">
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <span style="font-weight:700; font-size:0.85rem; color:var(--gemini-text-main);">Live 1h Triage</span>
+                            <input type="radio" name="consultation_pkg" value="live_triage" onchange="updateBookingPackage('live')">
+                        </div>
+                        <span id="book-price-hourly" style="font-size:0.95rem; font-weight:700; color:var(--sap-blue); margin-top:4px;">$180 / hr</span>
+                        <span style="font-size:0.7rem; color:var(--gemini-text-muted);">Urgent video call & root cause</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-form-group">
+                <label>Client Name / Title:</label>
+                <input type="text" id="book-client-name" class="admin-input" placeholder="e.g. Eng. Khalid Al-Otaibi">
+            </div>
+
+            <div class="modal-form-group">
+                <label>Work Email:</label>
+                <input type="email" id="book-client-email" class="admin-input" placeholder="e.g. k.alotaibi@rigsite.com">
+            </div>
+
+            <div class="modal-form-group">
+                <label>Governing Standard & Equipment:</label>
+                <input type="text" id="book-standard" class="admin-input" placeholder="e.g. API RP 8B / 350-ton casing elevators">
+            </div>
+
+            <div class="modal-form-group">
+                <label>Summary Title of Consultation:</label>
+                <input type="text" id="book-title" class="admin-input" placeholder="e.g. Urgent review of ultrasonic indication in jacket node weld">
+            </div>
+
+            <div class="modal-form-group">
+                <label>Technical Challenge / Report Details:</label>
+                <textarea id="book-text" class="admin-input" style="min-height:75px; resize:vertical;" placeholder="Detail your specific defect measurements, metallographic context, or urgent decision needed..."></textarea>
+            </div>
+
+            <div style="background:rgba(0,112,242,0.06); border-radius:8px; padding:10px; font-size:0.76rem; color:var(--gemini-text-muted); display:flex; align-items:center; gap:8px;">
+                <svg class="gemini-svg" style="stroke:var(--sap-blue); width:16px; height:16px;" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Funds are held safely in Escrow. Payment is released only after you verify code compliance.</span>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+                <button class="tool-btn" onclick="closeBookModal()">Cancel</button>
+                <button class="sap-btn-primary" onclick="submitBooking()">
+                    <svg class="gemini-svg" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <span>Authorize Escrow (<span id="book-btn-price">$50</span>)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Escrow Booking Confirmation Modal -->
+    <div id="escrow-success-modal" class="gemini-modal" style="display:none;">
+        <div class="gemini-modal-content" style="max-width:480px; text-align:center; padding:30px 24px;">
+            <div style="width:58px; height:58px; border-radius:50%; background:var(--sap-green-soft); border:2px solid var(--sap-green-border); display:flex; align-items:center; justify-content:center; margin:0 auto 16px auto;">
+                <svg class="gemini-svg" style="stroke:#10B981; width:30px; height:30px;" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <h3 style="margin:0 0 8px 0; font-size:1.3rem; color:var(--gemini-text-main);">Escrow Locked Successfully</h3>
+            <p id="escrow-success-msg" style="font-size:0.88rem; color:var(--gemini-text-muted); margin:0 0 16px 0; line-height:1.5;">
+                Your consultation fee has been locked in secure Escrow. The specialist has been notified with high priority.
+            </p>
+
+            <div style="background:var(--gemini-surface); border:1px solid var(--gemini-border); border-radius:10px; padding:14px; text-align:left; font-size:0.82rem; margin-bottom:20px; display:flex; flex-direction:column; gap:8px;">
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="color:var(--gemini-text-muted);">Transaction ID:</span>
+                    <strong id="escrow-tx-id" style="color:var(--sap-blue); font-family:monospace;">ESCROW-7K99J</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="color:var(--gemini-text-muted);">Consultant:</span>
+                    <strong id="escrow-expert-assigned">Tariq Mansour, PE</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="color:var(--gemini-text-muted);">Escrow Status:</span>
+                    <span class="expert-tag-badge" style="background:#10B981;">HELD_IN_ESCROW</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="color:var(--gemini-text-muted);">Release Condition:</span>
+                    <span style="color:var(--gemini-text-main);">Verified Code Citation Delivery</span>
+                </div>
+            </div>
+
+            <button class="sap-btn-primary" style="width:100%; justify-content:center;" onclick="closeEscrowSuccessModal()">
+                <span>Return to Engineering Hub</span>
+            </button>
+        </div>
     </div>
 
     <!-- Core Application Logic -->
@@ -1421,6 +2411,23 @@
         let isGenerating = false;
         let speechRecognition = null;
         let lastVisionMetrics = null;
+
+        // Ask Expert Community & Marketplace State
+        let currentExpertSubTab = 'ai'; // 'ai' | 'feed' | 'market'
+        let currentCommunityFilter = 'all';
+        let currentMarketFilter = 'all';
+        let selectedExpertForBooking = null;
+        let selectedBookingPackage = 'fixed';
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
 
         // Initialize Theme & Mode on Load
         window.addEventListener('DOMContentLoaded', () => {
@@ -1443,18 +2450,545 @@
             document.getElementById('mode-standards-btn').classList.toggle('active', mode === 'standards');
             document.getElementById('mode-expert-btn').classList.toggle('active', mode === 'expert');
 
+            const subnav = document.getElementById('expert-subnav-bar');
+            const commView = document.getElementById('expert-community-view');
+            const marketView = document.getElementById('expert-marketplace-view');
+            const inputCont = document.getElementById('input-container');
             const headline = document.getElementById('hero-headline');
             const sub = document.getElementById('hero-subtitle');
-            
-            if (mode === 'web') {
-                headline.textContent = "Hello, Inspector";
-                sub.textContent = "Operating in Web Intelligence Mode. Ask any engineering, welding, or defect question.";
-            } else if (mode === 'standards') {
-                headline.textContent = "Standards Search";
-                sub.textContent = "Strict clause-by-clause retrieval against API, ASME, AWS, ISO, and NACE codes.";
+
+            if (mode === 'expert') {
+                if (subnav) subnav.style.display = 'flex';
+                switchExpertSubTab(currentExpertSubTab || 'ai');
+                if (headline) headline.textContent = "Ask an Expert";
+                if (sub) sub.textContent = "Rig-floor wisdom, Level III code audits, and community peer review.";
             } else {
-                headline.textContent = "Ask an Expert";
-                sub.textContent = "Rig-floor wisdom, OEM procedures (NOV, Cameron, Hydril), and veteran inspector SOPs.";
+                if (subnav) subnav.style.display = 'none';
+                if (commView) commView.style.display = 'none';
+                if (marketView) marketView.style.display = 'none';
+                if (inputCont) inputCont.style.display = 'flex';
+                
+                const messagesList = document.getElementById('messages-list');
+                const chatWin = document.getElementById('chat-window');
+                const greetingArea = document.getElementById('greeting-area');
+                if (messagesList && messagesList.children.length > 0) {
+                    if (chatWin) chatWin.style.display = 'flex';
+                    if (greetingArea) greetingArea.style.display = 'none';
+                } else {
+                    if (chatWin) chatWin.style.display = 'none';
+                    if (greetingArea) greetingArea.style.display = 'flex';
+                }
+
+                if (mode === 'web') {
+                    if (headline) headline.textContent = "Hello, Inspector";
+                    if (sub) sub.textContent = "Operating in Web Intelligence Mode. Ask any engineering, welding, or defect question.";
+                } else if (mode === 'standards') {
+                    if (headline) headline.textContent = "Standards Search";
+                    if (sub) sub.textContent = "Strict clause-by-clause retrieval against API, ASME, AWS, ISO, and NACE codes.";
+                }
+            }
+        }
+
+        function switchExpertSubTab(tab) {
+            currentExpertSubTab = tab;
+            const aiBtn = document.getElementById('expert-subtab-ai');
+            const feedBtn = document.getElementById('expert-subtab-feed');
+            const marketBtn = document.getElementById('expert-subtab-market');
+            if (aiBtn) aiBtn.classList.toggle('active', tab === 'ai');
+            if (feedBtn) feedBtn.classList.toggle('active', tab === 'feed');
+            if (marketBtn) marketBtn.classList.toggle('active', tab === 'market');
+
+            const commView = document.getElementById('expert-community-view');
+            const marketView = document.getElementById('expert-marketplace-view');
+            const chatWin = document.getElementById('chat-window');
+            const greetingArea = document.getElementById('greeting-area');
+            const inputCont = document.getElementById('input-container');
+
+            if (tab === 'ai') {
+                if (commView) commView.style.display = 'none';
+                if (marketView) marketView.style.display = 'none';
+                if (inputCont) inputCont.style.display = 'flex';
+                const messagesList = document.getElementById('messages-list');
+                if (messagesList && messagesList.children.length > 0) {
+                    if (chatWin) chatWin.style.display = 'flex';
+                    if (greetingArea) greetingArea.style.display = 'none';
+                } else {
+                    if (chatWin) chatWin.style.display = 'none';
+                    if (greetingArea) greetingArea.style.display = 'flex';
+                }
+            } else if (tab === 'feed') {
+                if (greetingArea) greetingArea.style.display = 'none';
+                if (chatWin) chatWin.style.display = 'none';
+                if (inputCont) inputCont.style.display = 'none';
+                if (marketView) marketView.style.display = 'none';
+                if (commView) commView.style.display = 'flex';
+                loadCommunityPosts(currentCommunityFilter);
+            } else if (tab === 'market') {
+                if (greetingArea) greetingArea.style.display = 'none';
+                if (chatWin) chatWin.style.display = 'none';
+                if (inputCont) inputCont.style.display = 'none';
+                if (commView) commView.style.display = 'none';
+                if (marketView) marketView.style.display = 'flex';
+                loadExperts(currentMarketFilter);
+            }
+        }
+
+        async function loadCommunityPosts(sector = 'all') {
+            const stream = document.getElementById('community-posts-stream');
+            if (!stream) return;
+            try {
+                const url = sector && sector !== 'all' 
+                    ? `${API_BASE}/api/community/posts?sector=${encodeURIComponent(sector)}` 
+                    : `${API_BASE}/api/community/posts`;
+                const res = await fetch(url);
+                const data = await res.json();
+                const posts = data.posts || [];
+
+                if (posts.length === 0) {
+                    stream.innerHTML = `
+                        <div class="community-loading-state">
+                            <svg class="gemini-svg" style="width:36px; height:36px; stroke:var(--gemini-text-muted);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                            <span>No challenges posted yet in this sector. Be the first to post!</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                posts.forEach(p => {
+                    const replies = p.replies || [];
+                    let repliesHtml = '';
+                    replies.forEach(r => {
+                        let badgeClass = 'verified';
+                        let badgeIcon = '<polyline points="20 6 9 17 4 12"/>';
+                        let badgeLabel = 'Code Verified';
+
+                        if (r.ai_validation_status === 'discrepancy') {
+                            badgeClass = 'discrepancy';
+                            badgeIcon = '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>';
+                            badgeLabel = 'Discrepancy Alert';
+                        } else if (r.ai_validation_status === 'violation') {
+                            badgeClass = 'violation';
+                            badgeIcon = '<polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+                            badgeLabel = 'Scope Violation';
+                        }
+
+                        repliesHtml += `
+                            <div class="reply-item">
+                                <div class="reply-header">
+                                    <div class="reply-responder">
+                                        <span>${escapeHtml(r.responder_name)}</span>
+                                        <span class="reply-credentials">• ${escapeHtml(r.responder_credentials)}</span>
+                                    </div>
+                                    <button class="post-action-btn" onclick="upvoteReply(${r.id}, this)">
+                                        <svg class="gemini-svg gemini-svg-sm" viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                                        <span>${r.upvotes || 0}</span>
+                                    </button>
+                                </div>
+                                <p class="reply-text">${escapeHtml(r.content)}</p>
+                                <div class="ai-audit-badge ${badgeClass}">
+                                    <div class="ai-audit-badge-header">
+                                        <svg class="gemini-svg gemini-svg-sm" viewBox="0 0 24 24">${badgeIcon}</svg>
+                                        <span>${badgeLabel}: ${escapeHtml(r.ai_validation_clause || '')}</span>
+                                    </div>
+                                    <div class="ai-audit-detail">${escapeHtml(r.ai_validation_details || '')}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += `
+                        <div class="post-card" id="post-card-${p.id}">
+                            <div class="post-header">
+                                <div class="post-author-group">
+                                    <div class="author-avatar">${escapeHtml(p.author_avatar || 'IN')}</div>
+                                    <div class="author-details">
+                                        <span class="author-name">${escapeHtml(p.author_name)}</span>
+                                        <span class="author-role">${escapeHtml(p.author_role || 'Field Engineer')}</span>
+                                    </div>
+                                </div>
+                                <div class="post-meta-tags">
+                                    <span class="tag-pill sector-tag">${escapeHtml(p.sector)}</span>
+                                    <span class="tag-pill">${escapeHtml(p.equipment || 'Equipment')}</span>
+                                    <span class="tag-pill" style="color:var(--sap-blue);">${escapeHtml(p.standard_code || 'Code')}</span>
+                                </div>
+                            </div>
+
+                            <h3 class="post-title">${escapeHtml(p.title)}</h3>
+                            <p class="post-body">${escapeHtml(p.content)}</p>
+
+                            <div class="post-footer-actions">
+                                <button class="post-action-btn" onclick="upvotePost(${p.id}, this)">
+                                    <svg class="gemini-svg" viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                                    <span id="post-upvotes-${p.id}">${p.upvotes || 0} Endorsements</span>
+                                </button>
+                                <button class="post-action-btn" onclick="togglePostReplies(${p.id})">
+                                    <svg class="gemini-svg" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                                    <span id="post-replies-count-${p.id}">${replies.length} Technical Replies</span>
+                                </button>
+                            </div>
+
+                            <div id="replies-wrapper-${p.id}" class="replies-container">
+                                <div id="replies-list-${p.id}" style="display:flex; flex-direction:column; gap:10px;">
+                                    ${repliesHtml}
+                                </div>
+
+                                <!-- Add Reply Form -->
+                                <div class="reply-form-box">
+                                    <div style="font-size:0.75rem; font-weight:700; color:var(--sap-blue); display:flex; align-items:center; gap:6px;">
+                                        <svg class="gemini-svg gemini-svg-sm" viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></svg>
+                                        <span>Submit Technical Answer (AI-Audited for Code Compliance)</span>
+                                    </div>
+                                    <div class="reply-inputs-row">
+                                        <input type="text" id="reply-name-${p.id}" class="reply-input-sm" placeholder="Your Name (e.g. Eng. Tarek)">
+                                        <input type="text" id="reply-cred-${p.id}" class="reply-input-sm" placeholder="Credentials (e.g. AWS CWI / API 570)">
+                                    </div>
+                                    <textarea id="reply-text-${p.id}" class="reply-textarea" placeholder="Quote exact clause, formula, or field experience..."></textarea>
+                                    <div style="display:flex; justify-content:flex-end;">
+                                        <button class="sap-btn-primary" style="padding:6px 14px; font-size:0.78rem;" id="reply-btn-${p.id}" onclick="submitCommunityReply(${p.id})">
+                                            <svg class="gemini-svg gemini-svg-sm" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                            <span>Submit & Verify</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                stream.innerHTML = html;
+            } catch(err) {
+                console.error("loadCommunityPosts error:", err);
+                stream.innerHTML = `<div class="community-loading-state"><span>Failed to load community feed. Please check connectivity.</span></div>`;
+            }
+        }
+
+        async function submitCommunityReply(postId) {
+            const nameEl = document.getElementById(`reply-name-${postId}`);
+            const credEl = document.getElementById(`reply-cred-${postId}`);
+            const textEl = document.getElementById(`reply-text-${postId}`);
+            const btn = document.getElementById(`reply-btn-${postId}`);
+
+            const name = nameEl?.value.trim();
+            const cred = credEl?.value.trim() || 'Certified Inspector';
+            const content = textEl?.value.trim();
+
+            if (!name || !content) {
+                alert('Please provide your name and your technical answer.');
+                return;
+            }
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<span>Auditing against Code...</span>`;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/community/posts/${postId}/reply`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        responder_name: name,
+                        responder_credentials: cred,
+                        content: content
+                    })
+                });
+                const data = await res.json();
+                if (data.success && data.reply) {
+                    textEl.value = '';
+                    loadCommunityPosts(currentCommunityFilter);
+                } else {
+                    alert(data.error || 'Failed to submit reply');
+                }
+            } catch(e) {
+                alert('Error submitting reply: ' + e.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = `<svg class="gemini-svg gemini-svg-sm" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span>Submit & Verify</span>`;
+                }
+            }
+        }
+
+        async function loadExperts(sector = 'all') {
+            const grid = document.getElementById('experts-grid');
+            if (!grid) return;
+            try {
+                const url = sector && sector !== 'all' 
+                    ? `${API_BASE}/api/experts?sector=${encodeURIComponent(sector)}` 
+                    : `${API_BASE}/api/experts`;
+                const res = await fetch(url);
+                const data = await res.json();
+                const experts = data.experts || [];
+
+                if (experts.length === 0) {
+                    grid.innerHTML = `<div class="community-loading-state" style="grid-column:1/-1;"><span>No specialists found in this category.</span></div>`;
+                    return;
+                }
+
+                let html = '';
+                experts.forEach(exp => {
+                    const expJson = encodeURIComponent(JSON.stringify(exp));
+                    html += `
+                        <div class="expert-card">
+                            <div>
+                                <div class="expert-card-top">
+                                    <div class="expert-avatar-lg">${escapeHtml(exp.avatar_initials || 'EX')}</div>
+                                    <div class="expert-card-info">
+                                        <div class="expert-card-name-row">
+                                            <div class="expert-name">
+                                                <span>${escapeHtml(exp.name)}</span>
+                                                <svg class="gemini-svg gemini-svg-sm" style="stroke:var(--sap-blue);" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                                            </div>
+                                            <div class="expert-iri-pill">
+                                                <svg class="gemini-svg gemini-svg-sm" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                                <span>IRI ${exp.iri_score.toFixed(1)} / 100</span>
+                                            </div>
+                                        </div>
+                                        <div class="expert-credentials">${escapeHtml(exp.credentials)}</div>
+                                        <div class="expert-title">${escapeHtml(exp.title)}</div>
+                                    </div>
+                                </div>
+
+                                <div class="expert-metrics-row" style="margin-top:14px;">
+                                    <div>
+                                        <div class="metric-val" style="color:#10B981;">${exp.accuracy_rate}%</div>
+                                        <div class="metric-lbl">Accuracy Rate</div>
+                                    </div>
+                                    <div>
+                                        <div class="metric-val">${exp.verified_answers}</div>
+                                        <div class="metric-lbl">Verified Audits</div>
+                                    </div>
+                                    <div>
+                                        <div class="metric-val">${exp.experience_years} Yrs</div>
+                                        <div class="metric-lbl">Field Experience</div>
+                                    </div>
+                                </div>
+
+                                <p style="font-size:0.8rem; color:var(--gemini-text-muted); line-height:1.45; margin:12px 0 0 0;">
+                                    ${escapeHtml(exp.bio || '')}
+                                </p>
+                            </div>
+
+                            <div class="expert-card-footer">
+                                <div class="expert-pricing-info">
+                                    <span class="price-primary">$${exp.fixed_fee} <span style="font-size:0.75rem; font-weight:normal; color:var(--gemini-text-muted);">/ fixed query</span></span>
+                                    <span class="price-secondary">or $${exp.hourly_rate}/hr live triage</span>
+                                </div>
+                                <button class="sap-btn-primary" onclick="openBookModal('${expJson}')">
+                                    <svg class="gemini-svg" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                    <span>Book Consultation</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                grid.innerHTML = html;
+            } catch(err) {
+                console.error("loadExperts error:", err);
+                grid.innerHTML = `<div class="community-loading-state" style="grid-column:1/-1;"><span>Failed to load verified consultants.</span></div>`;
+            }
+        }
+
+        function openBookModal(expJsonEncoded) {
+            try {
+                const exp = JSON.parse(decodeURIComponent(expJsonEncoded));
+                selectedExpertForBooking = exp;
+                selectedBookingPackage = 'fixed';
+
+                document.getElementById('book-expert-avatar').textContent = exp.avatar_initials || 'EX';
+                document.getElementById('book-expert-name').textContent = exp.name;
+                document.getElementById('book-expert-credentials').textContent = exp.credentials;
+                document.getElementById('book-expert-iri').textContent = `Inspecta Reliability Index: ${exp.iri_score.toFixed(1)}/100`;
+
+                document.getElementById('book-price-fixed').textContent = `$${exp.fixed_fee} Fixed`;
+                document.getElementById('book-price-hourly').textContent = `$${exp.hourly_rate} / hr`;
+                document.getElementById('book-btn-price').textContent = `$${exp.fixed_fee}`;
+
+                updateBookingPackage('fixed');
+                document.getElementById('book-consultation-modal').style.display = 'flex';
+            } catch(e) {
+                console.error("openBookModal error:", e);
+            }
+        }
+
+        function closeBookModal() {
+            document.getElementById('book-consultation-modal').style.display = 'none';
+        }
+
+        function updateBookingPackage(pkg) {
+            selectedBookingPackage = pkg;
+            const optFixed = document.getElementById('opt-pkg-query');
+            const optLive = document.getElementById('opt-pkg-live');
+            const btnPrice = document.getElementById('book-btn-price');
+
+            if (pkg === 'fixed') {
+                if (optFixed) {
+                    optFixed.style.border = '2px solid var(--sap-blue)';
+                    optFixed.style.background = 'var(--sap-blue-soft)';
+                }
+                if (optLive) {
+                    optLive.style.border = '1px solid var(--gemini-border)';
+                    optLive.style.background = 'var(--gemini-surface)';
+                }
+                if (btnPrice && selectedExpertForBooking) {
+                    btnPrice.textContent = `$${selectedExpertForBooking.fixed_fee}`;
+                }
+            } else {
+                if (optLive) {
+                    optLive.style.border = '2px solid var(--sap-blue)';
+                    optLive.style.background = 'var(--sap-blue-soft)';
+                }
+                if (optFixed) {
+                    optFixed.style.border = '1px solid var(--gemini-border)';
+                    optFixed.style.background = 'var(--gemini-surface)';
+                }
+                if (btnPrice && selectedExpertForBooking) {
+                    btnPrice.textContent = `$${selectedExpertForBooking.hourly_rate}`;
+                }
+            }
+        }
+
+        async function submitBooking() {
+            if (!selectedExpertForBooking) return;
+            const clientName = document.getElementById('book-client-name')?.value.trim();
+            const clientEmail = document.getElementById('book-client-email')?.value.trim();
+            const standard = document.getElementById('book-standard')?.value.trim();
+            const title = document.getElementById('book-title')?.value.trim();
+            const text = document.getElementById('book-text')?.value.trim();
+
+            if (!clientName || !title || !text) {
+                alert('Please fill out your name, consultation title, and technical challenge details.');
+                return;
+            }
+
+            const fee = selectedBookingPackage === 'fixed' 
+                ? selectedExpertForBooking.fixed_fee 
+                : selectedExpertForBooking.hourly_rate;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/consultations/book`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        expert_id: selectedExpertForBooking.id,
+                        client_name: clientName,
+                        client_email: clientEmail,
+                        consultation_type: selectedBookingPackage,
+                        question_title: title,
+                        question_text: text,
+                        standard_code: standard,
+                        fee_amount: fee
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    closeBookModal();
+                    document.getElementById('escrow-tx-id').textContent = data.transaction_id || 'ESCROW-SECURE';
+                    document.getElementById('escrow-expert-assigned').textContent = selectedExpertForBooking.name;
+                    document.getElementById('escrow-success-modal').style.display = 'flex';
+                } else {
+                    alert(data.error || 'Booking error');
+                }
+            } catch(e) {
+                alert('Error booking consultation: ' + e.message);
+            }
+        }
+
+        function closeEscrowSuccessModal() {
+            document.getElementById('escrow-success-modal').style.display = 'none';
+        }
+
+        function openNewPostModal() {
+            document.getElementById('new-post-modal').style.display = 'flex';
+        }
+        function closeNewPostModal() {
+            document.getElementById('new-post-modal').style.display = 'none';
+        }
+        async function submitNewCommunityPost() {
+            const authorName = document.getElementById('post-author-name')?.value.trim();
+            const authorRole = document.getElementById('post-author-role')?.value.trim();
+            const sector = document.getElementById('post-sector')?.value;
+            const equipment = document.getElementById('post-equipment')?.value.trim();
+            const standard = document.getElementById('post-standard')?.value.trim();
+            const title = document.getElementById('post-title')?.value.trim();
+            const content = document.getElementById('post-content')?.value.trim();
+
+            if (!authorName || !title || !content) {
+                alert('Please enter your name, challenge title, and detailed technical findings.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/community/posts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        author_name: authorName,
+                        author_role: authorRole,
+                        sector: sector,
+                        equipment: equipment,
+                        standard_code: standard,
+                        title: title,
+                        content: content
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeNewPostModal();
+                    loadCommunityPosts(currentCommunityFilter);
+                } else {
+                    alert(data.error || 'Failed to post challenge');
+                }
+            } catch(e) {
+                alert('Error posting challenge: ' + e.message);
+            }
+        }
+
+        function filterCommunityPosts(sector, btn) {
+            currentCommunityFilter = sector;
+            document.querySelectorAll('.sector-filter-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            loadCommunityPosts(sector);
+        }
+
+        function filterExperts(sector, btn) {
+            currentMarketFilter = sector;
+            document.querySelectorAll('.market-filter-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            loadExperts(sector);
+        }
+
+        async function upvotePost(postId, btn) {
+            try {
+                const res = await fetch(`${API_BASE}/api/community/posts/${postId}/upvote`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    const countEl = document.getElementById(`post-upvotes-${postId}`);
+                    if (countEl) countEl.textContent = `${data.upvotes} Endorsements`;
+                    if (btn) btn.classList.add('active');
+                }
+            } catch(e){}
+        }
+
+        async function upvoteReply(replyId, btn) {
+            try {
+                const res = await fetch(`${API_BASE}/api/community/replies/${replyId}/upvote`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    const span = btn.querySelector('span');
+                    if (span) span.textContent = data.upvotes;
+                    btn.classList.add('active');
+                }
+            } catch(e){}
+        }
+
+        function togglePostReplies(postId) {
+            const wrapper = document.getElementById(`replies-wrapper-${postId}`);
+            if (wrapper) {
+                wrapper.style.display = wrapper.style.display === 'none' ? 'flex' : 'none';
             }
         }
 
@@ -1481,6 +3015,9 @@
             document.getElementById('app-container').className = 'state-greeting';
             document.getElementById('messages-list').innerHTML = '';
             chatHistory = [];
+            if (currentMode === 'expert') {
+                switchExpertSubTab('ai');
+            }
         }
 
         // Gemini Monochrome Morphing Loading Status
