@@ -1732,9 +1732,17 @@ You must format your response strictly into the following three distinct section
 - State the exact numerical threshold, dimension, pass/fail status, acceptance tolerance, or required action directly upfront.
 - Absolutely NO conversational fluff, no polite greetings, no introductory filler or preambles.
 
-### 2. Engineering Explanation & Technical Rationale
+### 2. Engineering Explanation, Technical Rationale & Plug-and-Play Calculation
 - Provide thorough engineering reasoning, metallurgy, fracture mechanics, stress concentration dynamics, and operational context.
 - Explain the physical or operational reason why this limit exists and how it behaves under field service conditions.
+- MANDATORY PLUG-AND-PLAY FIELD CALCULATION EXAMPLE:
+  Whenever the requirement involves a mathematical formula, wall thickness ratio (e.g. tw/4, 12.5% wall loss), pressure calculation (e.g. 1.25x or 1.5x MAOP, Barlow's equation), or dimension-dependent threshold (e.g. elevator bore formula 1.0175 x Du + 2.03 mm, Ug = Fd/D):
+  You MUST include a dedicated subsection:
+  #### Plug-and-Play Field Calculation
+  Provide a realistic worked calculation demonstrating how an inspector applies the formula to a real workpiece in both Metric (SI) and USC Customary units, with explicit PASS and REJECT numerical scenarios:
+  * **Input Parameters**: State realistic sample values (e.g. Nominal wall $t_w = 8.0\text{ mm}$ / $0.315\text{ in.}$).
+  * **Step-by-Step Evaluation**: Show the formula substitution with calculated numerical limit.
+  * **Field Disposition**: Explicitly show what measurement passes (e.g. $0.7\text{ mm}$ $\rightarrow$ **PASS**) and what measurement fails (e.g. $1.2\text{ mm}$ $\rightarrow$ **REJECT**).
 - When cross-standard comparisons or manufacturer procedures are relevant, include a dedicated comparative subsection adhering strictly to the Scope Parity Principle (e.g. Hoisting under API 8B vs ISO 13534 vs OEM NOV/Varco; never mismatched equipment scopes).
 
 ### 3. Exact Code Evidence & Verbatim Data Extract
