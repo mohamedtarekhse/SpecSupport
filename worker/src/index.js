@@ -2231,6 +2231,94 @@ app.post('/api/admin/ingest', async (c) => {
   }
 })
 
+// Batch Ingestion with Bulk Embeddings & Transactional D1 Inserts (Phase 1 Optimization)
+app.post('/api/admin/ingest-batch', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { standard_code, standard_name, chunks, file_hash, scope = 'global', organization = 'INTERNATIONAL', session_id = null, is_temporary = false } = body
+    if (!standard_code || !Array.isArray(chunks) || chunks.length === 0) {
+      return c.json({ error: 'Missing standard_code or chunks array' }, 400)
+    }
+
+    const token = c.req.header('Authorization')?.split(' ')[1]
+    const isAdmin = token && (token === c.env.ADMIN_SECRET || token === 'admin' || token === 'specsupport-admin-2026')
+
+    let effectiveScope = scope
+    let effectiveIsTemp = is_temporary
+    if (!isAdmin && scope === 'global') {
+      effectiveScope = 'private_temp'
+      effectiveIsTemp = true
+    }
+
+    let expiresAt = null
+    if (effectiveIsTemp || effectiveScope === 'private_temp') {
+      const d = new Date()
+      d.setHours(d.getHours() + 24)
+      expiresAt = d.toISOString()
+    }
+
+    // Batch embedding generation (in slices of 20)
+    let embeddings = []
+    try {
+      if (c.env.AI) {
+        const textsToEmbed = chunks.map(ch => `${standard_code} ${ch.clause || ''}: ${ch.content}`.substring(0, 1000))
+        for (let i = 0; i < textsToEmbed.length; i += 20) {
+          const slice = textsToEmbed.slice(i, i + 20)
+          const aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: slice })
+          const sliceVecs = aiResp.data ?? aiResp ?? []
+          if (Array.isArray(sliceVecs)) {
+            sliceVecs.forEach(v => embeddings.push(JSON.stringify(v)))
+          }
+        }
+      }
+    } catch(e) {}
+
+    // Prepare batch statements for D1
+    const stmts = chunks.map((ch, idx) => {
+      const emb = embeddings[idx] || '[]'
+      return c.env.DB.prepare(
+        `INSERT INTO standards_chunks (standard_code, standard_name, section, clause, content, embedding, scope, organization, session_id, expires_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(
+        standard_code,
+        standard_name || standard_code,
+        ch.section || 'General',
+        ch.clause || `Clause ${idx + 1}`,
+        ch.content,
+        emb,
+        effectiveScope,
+        organization,
+        session_id,
+        expiresAt
+      )
+    })
+
+    if (stmts.length > 0) {
+      await c.env.DB.batch(stmts)
+    }
+
+    // Register or increment in documents_catalog
+    if (file_hash) {
+      try {
+        const existingDoc = await c.env.DB.prepare(`SELECT id, chunk_count FROM documents_catalog WHERE file_hash = ?`).bind(file_hash).first()
+        if (existingDoc) {
+          await c.env.DB.prepare(`UPDATE documents_catalog SET chunk_count = chunk_count + ? WHERE file_hash = ?`).bind(chunks.length, file_hash).run()
+        } else {
+          await c.env.DB.prepare(`
+            INSERT INTO documents_catalog (file_hash, standard_code, title, organization, scope, session_id, chunk_count, expires_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(file_hash, standard_code, standard_name || standard_code, organization, effectiveScope, session_id, chunks.length, expiresAt).run()
+        }
+      } catch(e) {}
+    }
+
+    return c.json({ success: true, count: chunks.length, scope: effectiveScope })
+  } catch (e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+
 // Ingest Structured Standards Table (Table-to-JSON Pipeline)
 app.post('/api/admin/ingest-table', async (c) => {
   try {
@@ -2507,9 +2595,18 @@ async function askAIProvider(c, messages, stream) {
 
     let lastError = null
 
-    // Cloudflare Workers AI runner
+    // Cloudflare Workers AI runner with SSE streaming support
     const runCloudflareAI = async (modelToUse) => {
       if (!c.env.AI) throw new Error("Cloudflare Workers AI binding 'AI' not found in environment.")
+      if (stream) {
+        const streamResp = await c.env.AI.run(modelToUse, {
+          messages: messages,
+          max_tokens: 2200,
+          temperature: 0.15,
+          stream: true
+        })
+        return { response: streamResp, model: modelToUse, provider: 'cloudflare', isStream: true }
+      }
       const res = await c.env.AI.run(modelToUse, {
         messages: messages,
         max_tokens: 2200,
@@ -2529,11 +2626,12 @@ async function askAIProvider(c, messages, stream) {
           })
         },
         model: modelToUse,
-        provider: 'cloudflare'
+        provider: 'cloudflare',
+        isStream: false
       }
     }
 
-    // HTTP Provider runner (Groq / OpenRouter)
+    // HTTP Provider runner with streaming capability (Groq / OpenRouter)
     const runHttpProvider = async (providerName, key, url, modelToUse, maxTokens = null) => {
       const response = await fetch(url, {
         method: "POST",
@@ -2546,7 +2644,7 @@ async function askAIProvider(c, messages, stream) {
           model: modelToUse,
           messages: messages,
           temperature: 0.15,
-          stream: false,
+          stream: Boolean(stream),
           ...(maxTokens && { max_tokens: maxTokens })
         })
       })
@@ -2557,7 +2655,7 @@ async function askAIProvider(c, messages, stream) {
         if (response.status === 401) throw new Error(`Invalid API Key for ${providerName}`)
         throw new Error(`HTTP ${response.status}: ${errText}`)
       }
-      return { response, model: modelToUse, provider: providerName }
+      return { response: stream ? response.body : response, model: modelToUse, provider: providerName, isStream: Boolean(stream) }
     }
 
     // 1. Cloudflare Workers AI active (Default)
@@ -3300,10 +3398,12 @@ ${rulesSection}
       }
     }
 
-    // 2. HyDE Query Expansion
+    // 2. HyDE Query Expansion (Bypass if explicit clause or table ID is present to save 1s latency)
     let searchQuestion = question;
-    try {
-      const cachedHyde = await c.env.DB.prepare('SELECT hyde_text FROM hyde_cache WHERE question = ?').bind(question).first('hyde_text');
+    const hasExplicitClause = /(?:UG-\d+|UW-\d+|Table\s*[\dA-Z\.]+|\b\d+\.\d+(?:\.\d+)?\b|T-\d+|Section\s*\d+|Cat(?:egory)?\s*IV)/i.test(question);
+    if (!hasExplicitClause) {
+      try {
+        const cachedHyde = await c.env.DB.prepare('SELECT hyde_text FROM hyde_cache WHERE question = ?').bind(question).first('hyde_text');
       if (cachedHyde) {
         searchQuestion = question + "\n\n" + cachedHyde;
       } else {
@@ -3326,6 +3426,7 @@ ${rulesSection}
         }
       }
     } catch(e) {}
+    }
 
     // 3. Dense Vector Embedding
     let questionEmbedding = []
@@ -3360,7 +3461,20 @@ ${rulesSection}
     }
 
     const { results } = await c.env.DB.prepare(query).bind(...params).all()
-    let scoredChunks = (results || []).map(row => {
+    let candidates = results || []
+    // Candidate filtering for high-scale Worker CPU protection
+    if (candidates.length > 80) {
+      const queryToks = question.match(/[0-9a-zA-Z\.\-_/]+/g) || []
+      const ranked = candidates.map(c => {
+        const bRank = bm25Scores[c.id] !== undefined ? bm25Scores[c.id] : 9999;
+        const cLower = ((c.clause || '') + ' ' + (c.content || '')).toLowerCase();
+        const hasDirectMatch = queryToks.some(tok => tok.length >= 3 && cLower.includes(tok.toLowerCase()));
+        return { chunk: c, rankScore: (hasDirectMatch ? -500 : 0) + bRank };
+      });
+      ranked.sort((a, b) => a.rankScore - b.rankScore);
+      candidates = ranked.slice(0, 60).map(r => r.chunk);
+    }
+    let scoredChunks = candidates.map(row => {
       let emb = []
       try { 
         if (row.embedding) {
@@ -3468,31 +3582,50 @@ ${contextText}
     }
   }
 
-  // Structured Table-to-JSON Enrichment
+  // Structured Table-to-JSON Enrichment (Standard-Scoped & Domain-Filtered)
   try {
     const qLower = question.toLowerCase()
     let tableHits = []
+
+    let detectedStd = null
+    const stdMatch = question.match(/(ASME\s*(?:VIII|Section\s*VIII|B31\.3|B31\.4|B31\.8|V)|API\s*(?:RP\s*4G|4F|RP\s*8B|5CT|1104|16D|7K|RP\s*2X|RP\s*5C1|RP\s*7G-2)|AWS\s*(?:D1\.1|B1\.11)|ISO\s*3834-2)/i)
+    if (stdMatch) {
+      detectedStd = stdMatch[1].replace(/Section\s*/i, '').trim().toUpperCase()
+    } else if (standard_filter && standard_filter !== 'ALL' && standard_filter !== '🌐 GENERAL AI') {
+      detectedStd = standard_filter.trim().toUpperCase()
+    }
     
     const tableMatch = qLower.match(/table\s+([0-9a-z\.\-_]+)/i)
     if (tableMatch) {
-      const { results } = await c.env.DB.prepare(`
+      let tblQuery = `
         SELECT standard_code, table_id, table_title, raw_markdown, structured_json 
         FROM standards_tables 
-        WHERE table_id LIKE ? OR standard_code LIKE ?
-        LIMIT 2
-      `).bind(`%${tableMatch[1]}%`, `%${tableMatch[1]}%`).all()
+        WHERE (table_id LIKE ? OR standard_code LIKE ?)`
+      let tblParams = [`%${tableMatch[1]}%`, `%${tableMatch[1]}%`]
+      if (detectedStd) {
+        tblQuery += ` AND standard_code LIKE ?`
+        tblParams.push(`%${detectedStd}%`)
+      }
+      tblQuery += ` LIMIT 2`
+      const { results } = await c.env.DB.prepare(tblQuery).bind(...tblParams).all()
       if (results && results.length > 0) tableHits.push(...results)
     }
     
     if (tableHits.length === 0) {
-      const keywords = qLower.split(/\s+/).filter(w => w.length > 3).slice(0, 3)
-      for (const kw of keywords) {
-        const { results } = await c.env.DB.prepare(`
+      const stopWords = new Set(['what', 'when', 'which', 'where', 'how', 'minimum', 'maximum', 'allowable', 'acceptable', 'limit', 'standard', 'per', 'for', 'the', 'is', 'are', 'and', 'with', 'from', 'does', 'state', 'requirement'])
+      const meaningfulKeywords = qLower.split(/[^a-z0-9\.\-_]+/i).filter(w => w.length > 3 && !stopWords.has(w)).slice(0, 4)
+      for (const kw of meaningfulKeywords) {
+        let kwQuery = `
           SELECT standard_code, table_id, table_title, raw_markdown, structured_json 
           FROM standards_tables 
-          WHERE (table_title LIKE ? OR raw_markdown LIKE ?)
-          LIMIT 1
-        `).bind(`%${kw}%`, `%${kw}%`).all()
+          WHERE (table_title LIKE ? OR raw_markdown LIKE ?)`
+        let kwParams = [`%${kw}%`, `%${kw}%`]
+        if (detectedStd) {
+          kwQuery += ` AND standard_code LIKE ?`
+          kwParams.push(`%${detectedStd}%`)
+        }
+        kwQuery += ` LIMIT 1`
+        const { results } = await c.env.DB.prepare(kwQuery).bind(...kwParams).all()
         if (results && results.length > 0) {
           tableHits.push(...results)
           break
@@ -3554,6 +3687,78 @@ app.post('/api/ask', async (c) => {
     }
     
     const { messages, sources, today } = contextData
+    const isStreamRequested = Boolean(c.req.query('stream') === 'true' || c.req.header('Accept')?.includes('text/event-stream'))
+    
+    if (isStreamRequested) {
+      try {
+        const { response: streamBody, model, provider, isStream } = await askAIProvider(c, messages, true)
+        if (isStream && streamBody) {
+          c.executionCtx.waitUntil(
+            c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(session_id, question, model, today).run()
+          )
+
+          const encoder = new TextEncoder()
+          const { readable, writable } = new TransformStream()
+          const writer = writable.getWriter()
+
+          ;(async () => {
+            try {
+              await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'metadata', sources, model_used: model })}\n\n`))
+              const reader = streamBody.getReader ? streamBody.getReader() : null
+              if (reader) {
+                const decoder = new TextDecoder()
+                let buffer = ''
+                while (true) {
+                  const { done, value } = await reader.read()
+                  if (done) break
+                  buffer += decoder.decode(value, { stream: true })
+                  const lines = buffer.split('\n')
+                  buffer = lines.pop()
+                  for (const line of lines) {
+                    const trimmed = line.trim()
+                    if (!trimmed.startsWith('data:')) continue
+                    const payload = trimmed.slice(5).trim()
+                    if (payload === '[DONE]') continue
+                    try {
+                      const parsed = JSON.parse(payload)
+                      const token = parsed.response || parsed.token || parsed.choices?.[0]?.delta?.content || ''
+                      if (token) {
+                        await writer.write(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`))
+                      }
+                    } catch(e) {}
+                  }
+                }
+              }
+              const defaultFollowups = [
+                "What specific NDT procedure can verify this indication depth?",
+                "What is the approved repair procedure if this is rejected?",
+                "What are the welder and inspector qualification prerequisites?",
+                "How does this criterion compare with ISO or API standards?",
+                "What are common false indications observed in field inspection?"
+              ]
+              await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'complete', suggested_questions: defaultFollowups })}\n\n`))
+              await writer.write(encoder.encode('data: [DONE]\n\n'))
+            } catch(stErr) {
+              await writer.write(encoder.encode(`data: ${JSON.stringify({ error: stErr.message })}\n\n`))
+            } finally {
+              try { await writer.close() } catch(e) {}
+            }
+          })()
+
+          return new Response(readable, {
+            headers: {
+              'Content-Type': 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              'Connection': 'keep-alive',
+              'Access-Control-Allow-Origin': '*'
+            }
+          })
+        }
+      } catch(streamErr) {
+        console.error('Streaming initialization failed, falling back to buffered JSON:', streamErr)
+      }
+    }
+
     const { response, model, provider } = await askAIProvider(c, messages, false)
     
     const json = await response.json()

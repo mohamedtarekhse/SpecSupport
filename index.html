@@ -9,7 +9,7 @@
     <!-- PDF.js for Client-Side Parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <!-- Tesseract.js for On-Device OCR of Scanned Standards -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <!-- Tesseract.js loaded on-demand dynamically when OCR is triggered -->
     <!-- Google Fonts: Inter Sans-Serif & Tajawal (Arabic) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -1771,6 +1771,18 @@
             color: var(--gemini-text-muted);
             font-size: 0.88rem;
         }
+    
+        .streaming-cursor {
+            display: inline-block;
+            color: var(--gemini-blue, #0070F2);
+            animation: blinkCursor 0.8s infinite;
+            font-size: 0.9em;
+            margin-left: 3px;
+        }
+        @keyframes blinkCursor {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -2490,6 +2502,20 @@
 
     <!-- Core Application Logic -->
     <script>
+        let tesseractLoadedPromise = null;
+        function ensureTesseractLoaded() {
+            if (window.Tesseract) return Promise.resolve(window.Tesseract);
+            if (tesseractLoadedPromise) return tesseractLoadedPromise;
+            tesseractLoadedPromise = new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+                s.onload = () => resolve(window.Tesseract);
+                s.onerror = (e) => reject(new Error('Failed to load on-demand Tesseract OCR engine.'));
+                document.head.appendChild(s);
+            });
+            return tesseractLoadedPromise;
+        }
+
         const API_BASE = "https://inspection-api.mohamedtarekhse.workers.dev";
         let currentMode = localStorage.getItem('inspecta_mode') || 'web';
         let currentTheme = localStorage.getItem('inspecta_theme') || 'dark';
@@ -3160,9 +3186,12 @@
 
             try {
                 const isArabic = anyArabic(text);
-                const res = await fetch(`${API_BASE}/api/ask`, {
+                const res = await fetch(`${API_BASE}/api/ask?stream=true`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/event-stream, application/json'
+                    },
                     body: JSON.stringify({
                         question: text,
                         language: isArabic ? 'ar' : 'en',
@@ -3174,13 +3203,58 @@
                 });
 
                 hideStatusAnimation();
-                const data = await res.json();
-                
-                if (data.error) throw new Error(data.error);
+                const contentType = res.headers.get('content-type') || '';
 
-                appendMessage(data.answer, 'ai', data.sources, data.suggested_questions, data.can_continue, data.mcq_questions);
-                chatHistory.push({ role: 'user', content: text });
-                chatHistory.push({ role: 'assistant', content: data.answer });
+                if (contentType.includes('text/event-stream') && res.body) {
+                    const streamMsg = appendStreamingMessage();
+                    const reader = res.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = '';
+                    let fullAnswer = '';
+                    let streamSources = [];
+                    let streamFollowups = [];
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop();
+
+                        for (const line of lines) {
+                            const trimmed = line.trim();
+                            if (!trimmed.startsWith('data:')) continue;
+                            const payload = trimmed.slice(5).trim();
+                            if (payload === '[DONE]') continue;
+                            try {
+                                const parsed = JSON.parse(payload);
+                                if (parsed.type === 'metadata') {
+                                    streamSources = parsed.sources || [];
+                                } else if (parsed.type === 'complete') {
+                                    streamFollowups = parsed.suggested_questions || [];
+                                } else if (parsed.token !== undefined) {
+                                    fullAnswer += String(parsed.token);
+                                    streamMsg.updateText(fullAnswer);
+                                } else if (parsed.error) {
+                                    throw new Error(parsed.error);
+                                }
+                            } catch(pe) {
+                                if (pe.message && !pe.message.includes('JSON')) console.warn(pe);
+                            }
+                        }
+                    }
+
+                    streamMsg.finalize(fullAnswer, streamSources, streamFollowups);
+                    chatHistory.push({ role: 'user', content: text });
+                    chatHistory.push({ role: 'assistant', content: fullAnswer });
+                } else {
+                    const data = await res.json();
+                    if (data.error) throw new Error(data.error);
+
+                    appendMessage(data.answer, 'ai', data.sources, data.suggested_questions, data.can_continue, data.mcq_questions);
+                    chatHistory.push({ role: 'user', content: text });
+                    chatHistory.push({ role: 'assistant', content: data.answer });
+                }
 
             } catch (err) {
                 hideStatusAnimation();
@@ -3339,6 +3413,42 @@
         }
 
         // Append Message with Action Toolbar & Follow-Ups
+        
+        function appendStreamingMessage() {
+            const list = document.getElementById('messages-list');
+            const row = document.createElement('div');
+            row.className = 'message-row ai';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar-box ai-avatar';
+            avatar.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gemini-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>';
+
+            const body = document.createElement('div');
+            body.className = 'message-body';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = '<span class="streaming-cursor">▊</span>';
+            body.appendChild(contentDiv);
+
+            row.appendChild(avatar);
+            row.appendChild(body);
+            list.appendChild(row);
+            list.scrollTop = list.scrollHeight;
+
+            return {
+                updateText: (accumulated) => {
+                    let clean = accumulated.replace(/<!--[\s\S]*?-->/g, '').trim();
+                    contentDiv.innerHTML = marked.parse(clean) + '<span class="streaming-cursor">▊</span>';
+                    list.scrollTop = list.scrollHeight;
+                },
+                finalize: (finalText, sources = [], followups = []) => {
+                    row.remove();
+                    appendMessage(finalText, 'ai', sources, followups, finalText.length > 1200, []);
+                }
+            };
+        }
+
         function appendMessage(text, role, sources = [], followups = [], canContinue = false, mcqs = []) {
             const list = document.getElementById('messages-list');
             const row = document.createElement('div');
@@ -3820,10 +3930,11 @@
                     // 2D Spatial Layout Aware text reconstruction
                     let text = extractTextWithLayout(textContent);
 
-                    // 1. Zero-Cost Client-Side OCR Fallback for Scanned Pages
-                    if (text.length < 25 && window.Tesseract) {
+                    // 1. Zero-Cost Client-Side OCR Fallback for Scanned Pages (Lazy Loaded)
+                    if (text.length < 25) {
                         try {
-                            logBox.innerHTML += `<div>Page ${i}: Scanned page/image detected. Running local Tesseract OCR...</div>`;
+                            logBox.innerHTML += `<div>Page ${i}: Scanned page/image detected. Initializing local Tesseract OCR engine...</div>`;
+                            await ensureTesseractLoaded();
                             const viewport = page.getViewport({ scale: 1.5 });
                             const canvas = document.createElement('canvas');
                             canvas.width = viewport.width;
@@ -3907,11 +4018,30 @@
 
                     currentContent += text + " ";
 
+                    function findSafeSentenceBoundary(t, targetLen = 700, maxLen = 900) {
+                        if (t.length <= maxLen) return t.length;
+                        const searchSlice = t.substring(targetLen, maxLen);
+                        const safeRegex = /(?<!\b(?:e\.g|i\.e|Table|Fig|Sec|Para|UG|UW|API|ASME|AWS|ISO|No|Rev|\d))\.\s+(?=[A-Z0-9\(\[])/g;
+                        let m;
+                        let best = -1;
+                        while ((m = safeRegex.exec(searchSlice)) !== null) {
+                            best = targetLen + m.index + 1;
+                            break;
+                        }
+                        if (best !== -1) return best;
+                        const nlIdx = t.indexOf('\n', targetLen);
+                        if (nlIdx !== -1 && nlIdx <= maxLen) return nlIdx + 1;
+                        const spIdx = t.lastIndexOf(' ', maxLen);
+                        if (spIdx >= targetLen) return spIdx + 1;
+                        return maxLen;
+                    }
+
                     while (currentContent.length > 850) {
-                        let splitIdx = currentContent.indexOf(". ", 700);
-                        if (splitIdx === -1) splitIdx = 850;
-                        const rawChunk = currentContent.substring(0, splitIdx + 1).trim();
-                        currentContent = currentContent.substring(splitIdx + 1);
+                        let splitIdx = findSafeSentenceBoundary(currentContent, 700, 920);
+                        const rawChunk = currentContent.substring(0, splitIdx).trim();
+                        // 120-character semantic overlap carried into next chunk
+                        const overlapTail = rawChunk.length > 120 ? rawChunk.slice(-120) : '';
+                        currentContent = (overlapTail ? overlapTail + " " : "") + currentContent.substring(splitIdx).trim();
                         chunkCount++;
 
                         // Inject Hierarchical Context Breadcrumbs
@@ -3921,35 +4051,33 @@
                             (currentBreadcrumbs.clause ? ` [CLAUSE: ${currentBreadcrumbs.clause}]` : '');
                         const contextualChunk = `${breadcrumbHeader}\n${rawChunk}`;
 
-                        const res = await fetch(`${API_BASE}/api/admin/ingest`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                            },
-                            body: JSON.stringify({
-                                standard_code: code,
-                                standard_name: name,
-                                section: currentBreadcrumbs.section || `Page ${i}`,
-                                clause: currentBreadcrumbs.clause || `Chunk ${chunkCount}`,
-                                content: contextualChunk,
-                                file_hash: fileHash,
-                                scope: scope,
-                                session_id: sessionId,
-                                is_temporary: scope === 'private_temp'
-                            })
+                        pendingChunks.push({
+                            section: currentBreadcrumbs.section || `Page ${i}`,
+                            clause: currentBreadcrumbs.clause || `Chunk ${chunkCount}`,
+                            content: contextualChunk
                         });
 
-                        const resData = await res.json();
-                        if (!res.ok || !resData.success) {
-                            throw new Error(resData.error || 'Server error during chunk upload');
+                        if (pendingChunks.length >= 15) {
+                            await flushChunkBatch();
+                            logBox.innerHTML = `<div>[3/4] Ingesting ${code}: Page ${i}/${totalPages} (${chunkCount} chunks committed)...</div>`;
                         }
-
-                        logBox.innerHTML = `<div>[3/4] Ingesting ${code}: Page ${i}/${totalPages} (Chunk #${chunkCount} saved)...</div>`;
                     }
                 }
 
-                logBox.innerHTML += `<div style="color:#34D399; font-weight:600;">✓ Ingested ${chunkCount} chunks + ${tableCount} structured tables successfully into D1!</div>`;
+                if (currentContent.trim().length > 0) {
+                    chunkCount++;
+                    const breadcrumbHeader = `[STANDARD: ${code}]` + 
+                        (currentBreadcrumbs.chapter ? ` [${currentBreadcrumbs.chapter}]` : '') +
+                        (currentBreadcrumbs.section ? ` [${currentBreadcrumbs.section}]` : '');
+                    pendingChunks.push({
+                        section: currentBreadcrumbs.section || `Page ${totalPages}`,
+                        clause: `Chunk ${chunkCount}`,
+                        content: `${breadcrumbHeader}\n${currentContent.trim()}`
+                    });
+                }
+                await flushChunkBatch();
+
+                logBox.innerHTML += `<div style="color:#34D399; font-weight:600;">✓ Ingested ${chunkCount} chunks + ${tableCount} structured tables successfully into D1 (Batch Mode)!</div>`;
                 const cleanCodeId = code.replace(/[^a-zA-Z0-9]/g, '_');
                 logBox.innerHTML += `<div id="train-status-${cleanCodeId}" style="color:#0070F2; font-weight:600; margin-top:8px; display:flex; align-items:center; gap:6px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin-icon"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
