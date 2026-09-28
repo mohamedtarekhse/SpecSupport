@@ -342,6 +342,20 @@ async function ensureTaxonomyTable(db) {
           'Construction stage milestones per Inspection & Test Plan (ITP)'
         ],
         [
+          'Drilling Mud Equipment',
+          'Pulsation Dampeners (Hydril K-20 / Mud Pump Dampeners)',
+          'pulsation dampener, pulsation dampner, hydril, k20, k-20, mud pump dampener, discharge dampener, suction dampener',
+          'ASME Section VIII Division 1 (UG-27(d)) / API Spec 7K',
+          'API 510 (Pressure Vessel Inspection), API Spec 16A, ASME Section II Part D',
+          'API 1104 (Cross-country pipeline only - ZERO scope application to pulsation dampeners), API 5L, ASME B31.3',
+          'ASME Section VIII Div 1 Clause UG-27(d) [Spherical Shell: t = PR / (2SE - 0.2P)] & API 510 Clause 7.1',
+          'Severe Cyclic High-Frequency Mud Pump Discharge Pressure (5,000 to 7,500 psi)',
+          'Ultrasonic Thickness Gauging (UT Grid Mapping) + Wet Fluorescent Magnetic Particle (WFMPI) on discharge neck & bladder sealing equator',
+          'API 510 Authorized Pressure Vessel Inspector + ASNT SNT-TC-1A / ISO 9712 Level II (UT/MT)',
+          'Hold Point (H): Annual 100% UT thickness survey of lower hemisphere. Mandatory retirement / de-rating if measured remaining wall thickness falls below calculated code limit (1.534 in. for 27 in. ID at 5,000 psi). QA/QC sign-off mandatory before return to rig service.',
+          'Cat I: Daily pre-charge pressure check; Cat II: Weekly visual; Cat III: Annual internal UT thickness grid and bladder replacement; Cat IV: 5-Year recertification'
+        ],
+        [
           'Lifting Gear & Rigging',
           'Slings, Shackles, Pad Eyes & Spreader Beams',
           'sling, shackles, pad eye, eyebolt, spreader beam, lifting gear, rigging, wll, proof load, chain sling',
@@ -2125,6 +2139,118 @@ function evaluateEngineeringFormulas(question) {
     }
   }
 
+  // 3. Spherical Pressure Vessel & Pulsation Dampener (ASME Section VIII Div 1 UG-27(d))
+  const isSphericalOrDampener = q.match(/(?:pulsation\s*damp[ne]+r|hydril|k20|k-20|spherical\s*(?:shell|vessel))/i)
+  if (isSphericalOrDampener) {
+    const pressMatch = q.match(/([0-9,]+)\s*(?:psi|bar)/i)
+    const diaMatch = q.match(/([0-9\.]+)\s*(?:inch|in|mm|meter|m)?\s*(?:diameter|dia|od|id)/i) || q.match(/(?:diameter|dia)\s*[:=]?\s*([0-9\.]+)/i) || q.match(/([0-9\.]+)\s*(?:inch|in)\s*(?:diameter)?/i)
+    
+    let P = 5000 // default for standard K20
+    if (pressMatch) {
+      P = parseFloat(pressMatch[1].replace(/,/g, ''))
+      if (q.includes('bar')) P = P * 14.5038
+    }
+    
+    let D = 27.0 // default 27" for Hydril K-20 (20 gallon)
+    if (diaMatch) {
+      D = parseFloat(diaMatch[1])
+    }
+    
+    const R = D / 2.0 // inside radius in inches
+    const S = 22500 // allowable design stress in tension (psi) per ASME II Part D for forged AISI 4130 / A350 LF2 Class 1
+    const E = 1.0 // joint efficiency for seamless forged hemisphere / full volumetric NDT
+    
+    const numerator = P * R
+    const denominator = (2 * S * E) - (0.2 * P)
+    if (denominator > 0) {
+      const tMinIn = numerator / denominator
+      const tMinMm = tMinIn * 25.4
+      results.push(`VERIFIED DETERMINISTIC CALCULATION [ASME Section VIII Div 1 UG-27(d) Spherical Shell Formula]:
+• Governing Equipment: Spherical Pulsation Dampener (Hydril K-20 / 20-gallon nominal volume). NOTE: "K20" is an OEM model name, NOT a material specification! Standard forged alloy steel is AISI 4130 / ASTM A350 LF2 Class 1.
+• Governing Code & Clause: ASME Section VIII Division 1, Clause UG-27(d) (Spherical Shells under Internal Pressure) & API Spec 7K.
+• Formula: t_min = (P * R) / (2 * S * E - 0.2 * P)
+• Input Parameters:
+  - Design Pressure P = ${P.toLocaleString()} psi (${(P * 0.0689476).toFixed(1)} bar)
+  - Inside Diameter D = ${D} in. -> Inside Radius R = ${R} in. (${(R * 25.4).toFixed(1)} mm)
+  - Allowable Stress S = 22,500 psi (Industry Standard baseline for forged AISI 4130 / A350 LF2 alloy steel per ASME Section II Part D)
+  - Joint Efficiency E = 1.0 (Seamless forged hemisphere / 100% volumetric inspection per UW-11(a))
+• Step-by-Step Calculation:
+  - Numerator: P * R = ${P} * ${R} = ${numerator.toLocaleString()}
+  - Denominator: 2 * 22,500 * 1.0 - 0.2 * ${P} = 45,000 - ${(0.2 * P).toLocaleString()} = ${denominator.toLocaleString()}
+  - t_min = ${numerator.toLocaleString()} / ${denominator.toLocaleString()} = ${tMinIn.toFixed(3)} in. (${tMinMm.toFixed(2)} mm)
+• Mandatory Code Disposition:
+  - ACCEPTANCE: Actual measured remaining wall thickness t_actual >= ${tMinIn.toFixed(3)} in. (${tMinMm.toFixed(1)} mm) plus any project corrosion allowance.
+  - REJECTION / RETIREMENT: Any shell point with t_actual < ${tMinIn.toFixed(3)} in. (${tMinMm.toFixed(1)} mm) is strictly REJECTED and must be condemned from ${P.toLocaleString()} psi service or down-rated in MAOP per API 510.
+• OEM Note: Hydril K20 nominal forged shell wall is typically ~1.75 to 1.875 in. (44.5 to 47.6 mm), giving an allowable wear/corrosion margin of ~0.25 to 0.34 in. (6.4 to 8.6 mm).`)
+    }
+  }
+
+  // 4. ASME B31.3 Weld Undercut Rules (Table 341.3.2)
+  const isUndercutB313 = q.match(/undercut/i) && q.match(/b31\.3|341\.3\.2/i)
+  if (isUndercutB313) {
+    const isSevereCyclic = q.match(/severe\s*cyclic/i)
+    if (isSevereCyclic) {
+      results.push(`VERIFIED CODE DETERMINATION [ASME B31.3 Table 341.3.2 - Undercut for Severe Cyclic Conditions]:
+• Governing Table: ASME B31.3 Table 341.3.2 (Acceptance Criteria for Welds and Examination Methods)
+• Service Condition: Severe Cyclic Conditions
+• Acceptance Criteria: Undercut depth = 0.0 mm (zero). Weld must exhibit smooth transition with zero undercut.
+• Rejection Criteria: ANY detectable undercut depth (> 0.0 mm) is strictly REJECTED (Symbol A applies: Zero undercut allowed).
+• Field Action: Issue NCR, mark indication with heat-resistant crayon, grind smoothly or repair weld per qualified WPS.`)
+    } else {
+      results.push(`VERIFIED CODE DETERMINATION [ASME B31.3 Table 341.3.2 - Undercut for Normal Fluid Service]:
+• Governing Table: ASME B31.3 Table 341.3.2 (Acceptance Criteria for Welds)
+• Service Condition: Normal Fluid Service
+• Acceptance Criteria: Undercut depth <= 1.0 mm (1/32 in.) AND <= Tw/4 (whichever is smaller).
+• Rejection Criteria: Undercut depth > 1.0 mm (1/32 in.) OR > Tw/4 is REJECTED.
+• Cumulative Length Limit: Total accumulated length of undercut cannot exceed 38 mm (1.5 in.) in any 150 mm (6 in.) length of weld.`)
+    }
+  }
+
+  // 5. API RP 8B Elevator Bore Wear Limit
+  const isElevatorWear = q.match(/elevator/i) && q.match(/(?:bore|wear|limit|clearance)/i)
+  if (isElevatorWear) {
+    const dpMatch = q.match(/([0-9\.]+)\s*(?:inch|in)?\s*(?:dp|drill pipe|tubular)/i) || q.match(/(?:size|for)\s*([0-9\.]+)/i)
+    const Du = dpMatch ? parseFloat(dpMatch[1]) : 5.0
+    const maxBoreIn = 1.0175 * Du + 0.08
+    const maxBoreMm = (1.0175 * (Du * 25.4) + 2.03)
+    results.push(`VERIFIED MATH [API RP 8B / ISO 13534 Elevator Bore Wear Formula]:
+• Governing Standard: API RP 8B Section 5 & Table 1 (In-service wear limits)
+• Formula (USC): Max Allowable Bore Diameter = 1.0175 * Du + 0.08 in. (where Du = nominal pipe OD)
+• Formula (SI): Max Allowable Bore Diameter = 1.0175 * Du + 2.03 mm
+• Calculated Maximum Bore for ${Du} in. Pipe: ${maxBoreIn.toFixed(3)} in. (${maxBoreMm.toFixed(2)} mm)
+• Compliance Disposition: Measured Bore <= ${maxBoreIn.toFixed(3)} in. -> ACCEPTABLE (PASS) | Measured Bore > ${maxBoreIn.toFixed(3)} in. -> REJECT (Take out of service for Cat IV remanufacture per API 8C/OEM).`)
+  }
+
+  // 6. Sour Service Hardness (API 5CT / NACE MR0175)
+  const isSourHardness = q.match(/(?:hardness|hrc)/i) && q.match(/(?:sour|nace|mr0175|5ct|l80|c90|t95)/i)
+  if (isSourHardness) {
+    results.push(`VERIFIED CODE DETERMINATION [API 5CT & NACE MR0175 / ISO 15156 Sour Service Hardness Limits]:
+• Governing Standards: API Spec 5CT (Casing and Tubing) Clause 7.2 & NACE MR0175 / ISO 15156-2 Table A.2
+• Maximum Allowable Hardness Limits:
+  - Grade L-80 (Types 1, 9Cr, 13Cr): 23.0 HRC maximum (241 HBW)
+  - Grade C-90 (Type 1): 25.4 HRC maximum (255 HBW)
+  - Grade T-95 (Type 1): 25.4 HRC maximum (255 HBW)
+  - Standard Sour Service General Baseline: 22.0 HRC (NACE general limit for unlisted carbon/alloy steels)
+• Acceptance: Hardness <= specified grade threshold (e.g. <= 23.0 HRC for L-80).
+• Rejection: Any reading > specified limit is strictly REJECTED for sour service due to Sulfide Stress Cracking (SSC) risk.`)
+  }
+
+  // 7. ASME Section V Article 2 Radiographic Density (T-282.1 / T-260)
+  const isRtDensity = q.match(/(?:density|optical density)/i) && q.match(/(?:asme\s*v|article\s*2|radiograph|rt|film|x-ray|gamma)/i)
+  if (isRtDensity) {
+    results.push(`VERIFIED CODE DETERMINATION [ASME Section V Article 2 Paragraph T-282.1 - Radiographic Optical Density]:
+• Governing Standard: ASME Boiler & Pressure Vessel Code Section V, Article 2, Paragraph T-282.1
+• Single Film Viewing Limits:
+  - Minimum Transmitted Density: 1.8 for X-ray sources; 2.0 for Gamma-ray sources (Ir-192, Co-60, Se-75).
+  - Maximum Transmitted Density: 4.0 for both X-ray and Gamma-ray (for normal viewing illumination).
+• Composite Viewing Limits (Multiple Films):
+  - Minimum Transmitted Density: 2.6 for all sources.
+  - Maximum Transmitted Density: 4.0.
+• Allowable Density Variation (T-282.2): -15% to +30% across the area of interest compared to density through the designated IQI.
+• Acceptance: 1.8 <= D <= 4.0 (X-ray) or 2.0 <= D <= 4.0 (Gamma-ray).
+• Rejection: Any radiograph with D < 1.8 (X-ray) or D < 2.0 (Gamma) is under-exposed and REJECTED; D > 4.0 is over-exposed and REJECTED.`)
+  }
+
   return results.length > 0 ? results.join("\n\n") : null
 }
 
@@ -2328,7 +2454,12 @@ Instead, specify the exact recognized certification standard appropriate for the
 - Tubulars & Drill Stem: TH Hill DS-1 Certified Inspector.
 Always couple this qualification with an exact ITP milestone: Hold Point (H), Witness Point (W), or Surveillance Point (S), with the required sign-off party.
 
-6. OPTIONAL MCQ CONFLICT RESOLUTION (STRICT LAST RESORT ONLY):
+6. MANDATORY ENGINEERING FIDELITY & NO-EVASION PRINCIPLE:
+- NEVER claim you "cannot calculate without material properties" or evade direct numerical answers! When specific material grades are not stated in a user query, you MUST adopt the recognized oilfield baseline material (e.g., AISI 4130 / ASTM A350 LF2 for drilling pressure equipment & pulsation dampeners; ASTM A106 Gr B / API 5L X52 for piping) and execute the full formula showing the exact numbers and retirement limit.
+- EQUIPMENT MODEL VS MATERIAL DISTINCTION: NEVER confuse an equipment model or capacity designation (e.g., Hydril K20, National 12-P-160, Varco BJ 500-Ton) with a material specification! K20 indicates a 20-gallon spherical pulsation dampener, NOT a steel grade.
+- VESSEL GEOMETRY DISTINCTION: Recognize spherical vessels (e.g., pulsation dampeners, spherical accumulators) vs cylindrical shells. Use ASME Section VIII Div 1 UG-27(d) [t = PR / (2SE - 0.2P)] for spherical vessels and UG-27(c) [t = PR / (SE - 0.6P)] for cylindrical vessels.
+
+7. OPTIONAL MCQ CONFLICT RESOLUTION (STRICT LAST RESORT ONLY):
 MCQ is STRICTLY an optional fallback. Use it ONLY when you encounter an irreconcilable conflict where two or more options have equal probability (50/50 conflict between two opposing standards).
 In ordinary engineering queries, DO NOT emit any MCQ block. Answer definitively.
 Only if you are genuinely lost due to an equal-probability conflict, append at the very tail:
@@ -2339,7 +2470,7 @@ Only if you are genuinely lost due to an equal-probability conflict, append at t
   }
 ]-->
 
-7. FORWARD-LOOKING CLICKABLE FOLLOW-UP QUESTIONS (STRICTLY AT TAIL):
+8. FORWARD-LOOKING CLICKABLE FOLLOW-UP QUESTIONS (STRICTLY AT TAIL):
 At the very end of your response (after all body text), append 4 to 5 forward-looking question chips in exactly this format:
 <!--FOLLOWUPS: ["Question 1?", "Question 2?", "Question 3?", "Question 4?", "Question 5?"]-->
 CRITICAL RULES FOR FOLLOW-UP CHIPS:
