@@ -2049,6 +2049,54 @@
             sendMessage(query);
         }
 
+        // Extract text from PDF.js items while strictly preserving 2D spatial layout and column alignments
+        function extractTextWithLayout(textContent) {
+            if (!textContent || !textContent.items || textContent.items.length === 0) return "";
+            
+            // Sort items vertically (descending Y from top to bottom), then horizontally (ascending X)
+            const items = textContent.items.slice().sort((a, b) => {
+                const yDiff = b.transform[5] - a.transform[5];
+                if (Math.abs(yDiff) > 3.5) return yDiff;
+                return a.transform[4] - b.transform[4];
+            });
+
+            const lines = [];
+            let currentLine = [];
+            let currentY = null;
+            let lastX = 0;
+
+            for (const item of items) {
+                const str = item.str;
+                if (!str && str !== "0") continue;
+                const x = item.transform[4];
+                const y = item.transform[5];
+
+                if (currentY === null || Math.abs(currentY - y) > 4) {
+                    if (currentLine.length > 0) {
+                        lines.push(currentLine.join(" "));
+                    }
+                    currentLine = [str];
+                    currentY = y;
+                    lastX = x + (item.width || (str.length * 6));
+                } else {
+                    const gap = x - lastX;
+                    if (gap > 18) {
+                        currentLine.push("    " + str); // Multi-space column delimiter
+                    } else if (gap > 2) {
+                        currentLine.push(str);
+                    } else {
+                        const prev = currentLine[currentLine.length - 1];
+                        currentLine[currentLine.length - 1] = prev + str;
+                    }
+                    lastX = x + (item.width || (str.length * 6));
+                }
+            }
+            if (currentLine.length > 0) {
+                lines.push(currentLine.join(" "));
+            }
+            return lines.join("\n");
+        }
+
         function extractMarkdownTables(text) {
             const tables = [];
             const tableRegex = /(?:\|[^\n]+\|\r?\n){2,}/g;
@@ -2125,7 +2173,7 @@
                     logBox.innerHTML += `<div style="color:#F59E0B;">⚠️ Incomplete index detected (${checkData.doc.chunk_count} chunks for ${pdf.numPages} pages). Resuming complete comprehension...</div>`;
                 }
 
-                logBox.innerHTML += `<div>[3/4] Parsing document pages (with On-Device OCR + Table-to-JSON)...</div>`;
+                logBox.innerHTML += `<div>[3/4] Parsing document pages (with 2D Spatial Layout + Table-to-JSON)...</div>`;
                 const code = document.getElementById('hub-std-code').value.trim() || file.name.replace('.pdf', '');
                 const name = document.getElementById('hub-std-name').value.trim() || file.name.replace('.pdf', '');
                 const scope = document.querySelector('input[name="hub-scope"]:checked').value;
@@ -2144,7 +2192,8 @@
                 for (let i = 1; i <= totalPages; i++) {
                     const page = await pdf.getPage(i);
                     const textContent = await page.getTextContent();
-                    let text = textContent.items.map(item => item.str).join(" ").trim();
+                    // 2D Spatial Layout Aware text reconstruction
+                    let text = extractTextWithLayout(textContent);
 
                     // 1. Zero-Cost Client-Side OCR Fallback for Scanned Pages
                     if (text.length < 25 && window.Tesseract) {

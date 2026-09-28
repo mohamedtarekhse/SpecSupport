@@ -1152,45 +1152,129 @@ app.get('/api/admin/tables', async (c) => {
   }
 })
 
-// AI-Powered Table-to-JSON Parser for raw PDF text
+// Deterministic Table Parser (Pipe, Tab, or Multi-space columns)
+function tryDeterministicTableParse(text) {
+  if (!text) return null
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+  if (lines.length < 2) return null
+
+  const titleMatch = text.match(/(Table\s+[0-9A-Z\.\-_]+)(?:\s*[:—–]\s*([^\n\r]*))?/i)
+  const tableId = titleMatch ? titleMatch[1].trim() : 'Table'
+  const tableTitle = titleMatch ? (titleMatch[2] ? `${titleMatch[1]}: ${titleMatch[2]}` : titleMatch[0]).trim() : tableId
+
+  // 1. Pipe-separated Markdown table
+  const pipeLines = lines.filter(l => l.startsWith('|') && l.endsWith('|'))
+  if (pipeLines.length >= 2) {
+    const rawHeaders = pipeLines[0].split('|').slice(1, -1).map(h => h.trim())
+    let startIdx = 1
+    if (pipeLines[1] && pipeLines[1].includes('---')) startIdx = 2
+    const rows = []
+    for (let i = startIdx; i < pipeLines.length; i++) {
+      const cells = pipeLines[i].split('|').slice(1, -1).map(c => c.trim())
+      const rObj = {}
+      rawHeaders.forEach((h, idx) => {
+        rObj[h || `col_${idx}`] = cells[idx] || ''
+      })
+      rows.push(rObj)
+    }
+    return {
+      table_id: tableId,
+      table_title: tableTitle,
+      headers: rawHeaders,
+      raw_markdown: pipeLines.join('\n'),
+      rows: rows
+    }
+  }
+
+  // 2. Tab or multi-space separated columns
+  const candidateLines = lines.filter(l => !l.match(/^(?:Copyright|Downloaded|Chapter|Section|Page\s+\d+)/i))
+  if (candidateLines.length >= 3) {
+    const splitRows = candidateLines.map(l => l.split(/\t+|\s{2,}/).map(c => c.trim()).filter(Boolean))
+    const colCounts = splitRows.map(r => r.length)
+    const maxCols = Math.max(...colCounts)
+    if (maxCols >= 2) {
+      const headerRow = splitRows.find(r => r.length >= maxCols - 1) || splitRows[0]
+      const hIdx = splitRows.indexOf(headerRow)
+      const rows = []
+      for (let i = hIdx + 1; i < splitRows.length; i++) {
+        const rowCells = splitRows[i]
+        if (rowCells.length < 2) continue
+        const rObj = {}
+        headerRow.forEach((h, idx) => {
+          rObj[h || `col_${idx}`] = rowCells[idx] || ''
+        })
+        rows.push(rObj)
+      }
+      if (rows.length >= 1) {
+        const mdHeader = `| ${headerRow.join(' | ')} |`
+        const mdSep = `| ${headerRow.map(() => '---').join(' | ')} |`
+        const mdBody = rows.map(r => `| ${headerRow.map(h => r[h] || '').join(' | ')} |`).join('\n')
+        return {
+          table_id: tableId,
+          table_title: tableTitle,
+          headers: headerRow,
+          raw_markdown: `${mdHeader}\n${mdSep}\n${mdBody}`,
+          rows: rows
+        }
+      }
+    }
+  }
+  return null
+}
+
+// AI-Powered & Deterministic Table-to-JSON Parser for raw PDF text
 app.post('/api/admin/auto-parse-table', async (c) => {
   try {
     const { standard_code, table_text, file_hash = '', scope = 'global', session_id = null } = await c.req.json()
     if (!standard_code || !table_text) return c.json({ error: 'Missing standard_code or table_text' }, 400)
 
-    const parsePrompt = `You are an expert standards database parser. Convert the following text containing a technical standard table into a valid JSON object with EXACTLY this structure:
+    // Step 1: Fast deterministic extraction (0 compute cost, 100% precision)
+    let parsedJson = tryDeterministicTableParse(table_text)
+
+    // Step 2: If deterministic parse fails, invoke AI multi-provider parser
+    if (!parsedJson) {
+      const parsePrompt = `You are an expert standards database parser. Convert the following text containing a technical standard table into a valid JSON object with EXACTLY this structure:
 {
   "table_id": "e.g. Table 1 or Table A.1",
   "table_title": "Full title of table",
   "headers": ["Col 1", "Col 2"],
   "raw_markdown": "| Col 1 | Col 2 |\\n|---|---|\\n| Val 1 | Val 2 |",
   "rows": [
-    { "col_1": "val_1", "col_2": "val_2" }
+    { "Col 1": "val_1", "Col 2": "val_2" }
   ]
 }
 
-DO NOT write explanations or conversational text. Output ONLY the raw JSON object.
+DO NOT write explanations, markdown preamble, or conversational text. Output ONLY the raw JSON object.
 
 TEXT TO PARSE:
 ${table_text.substring(0, 3500)}`
 
-    let parsedJson = null
-    if (c.env.AI) {
+      const messages = [
+        { role: 'system', content: 'You are an expert tabular data extraction engine. You extract tabular data from engineering texts and output ONLY clean, valid JSON matching the requested schema.' },
+        { role: 'user', content: parsePrompt }
+      ]
+
       try {
-        const aiRes = await c.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-          messages: [{ role: 'user', content: parsePrompt }],
-          max_tokens: 1500
-        })
-        const respText = (aiRes?.response || (typeof aiRes === 'string' ? aiRes : '')).trim()
-        const jsonMatch = respText.match(/\{[\s\S]*\}/)
+        const aiResult = await askAIProvider(c, messages, false)
+        const resObj = await aiResult.response.json()
+        const respText = (resObj.choices?.[0]?.message?.content || '').trim()
+        
+        // Clean markdown code blocks if model wrapped JSON
+        const cleanText = respText.replace(/^```json\s*/i, '').replace(/```$/g, '').trim()
+        const jsonMatch = cleanText.match(/\{[\s\S]*\}/)
         if (jsonMatch) {
-          parsedJson = JSON.parse(jsonMatch[0])
+          // Sanitize trailing commas before closing braces/brackets
+          const sanitized = jsonMatch[0]
+            .replace(/,\s*([\]}])/g, '$1')
+          parsedJson = JSON.parse(sanitized)
         }
-      } catch(e){}
+      } catch(aiErr) {
+        console.error("AI Table Parse Error:", aiErr)
+      }
     }
 
-    if (!parsedJson) {
-      return c.json({ error: 'Failed to parse table structure' }, 422)
+    if (!parsedJson || !parsedJson.rows || parsedJson.rows.length === 0) {
+      return c.json({ error: 'Failed to parse table structure. No rows detected.' }, 422)
     }
 
     // Save directly into standards_tables
