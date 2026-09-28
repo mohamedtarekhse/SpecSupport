@@ -356,6 +356,20 @@ async function ensureTaxonomyTable(db) {
           'Cat I: Daily pre-charge pressure check; Cat II: Weekly visual; Cat III: Annual internal UT thickness grid and bladder replacement; Cat IV: 5-Year recertification'
         ],
         [
+          'Drilling Structures',
+          'Masts, Derricks & Substructures',
+          'mast, derrick, substructure, api 4f, api rp 4f, api 4g, api rp 4g, crown block frame, racking board, mast leg, cat iii, cat iv, mast shoe',
+          'API Spec 4F / API RP 4G',
+          'AWS D1.1 (Structural Welding), AISC 360, API RP 9B',
+          'API 1104, ASME B31.3, API 5CT, API 6A',
+          'API Spec 4F Section 6 & API RP 4G Clause 6 & 8 (Straightness L/1000, 10% Leg Wall Loss, Cat I-IV Intervals)',
+          'Heavy Compressive Hook Loads, Dynamic Wind, Pipe Setback Overturning',
+          'Visual (VT), Ultrasonic Thickness (UT) Grid Mapping, Wet Fluorescent MPI on Mast Shoes and Raising Lugs',
+          'AWS Certified Welding Inspector (CWI) + ASNT SNT-TC-1A Level II MT/UT for Cat III; Registered Professional Engineer (PE) or OEM Technical Representative for Cat IV',
+          'Hold Point (H): Cat III 2-Year survey and Cat IV 10-Year overhaul. 100% NDT on critical primary load welds and mast leg straightness verification (delta <= L/1000 or <= 1/8 in.) before mast elevation and spud-in.',
+          'Cat I: Daily visual; Cat II: Weekly/rig-up; Cat III: 2 Years (730 days) thorough NDT; Cat IV: 10 Years land / 5 Years offshore complete teardown recertification'
+        ],
+        [
           'Lifting Gear & Rigging',
           'Slings, Shackles, Pad Eyes & Spreader Beams',
           'sling, shackles, pad eye, eyebolt, spreader beam, lifting gear, rigging, wll, proof load, chain sling',
@@ -2251,6 +2265,67 @@ function evaluateEngineeringFormulas(question) {
 • Rejection: Any radiograph with D < 1.8 (X-ray) or D < 2.0 (Gamma) is under-exposed and REJECTED; D > 4.0 is over-exposed and REJECTED.`)
   }
 
+  // 8. API Spec 4F / API RP 4G Mast Leg & Brace Straightness Tolerance (Clause 8.1)
+  const isMastStraightness = q.match(/(?:mast|derrick|substructure|leg|brace|girt)/i) && q.match(/(?:straightness|bow|sweep|deflection|tolerance|bent|bend)/i)
+  if (isMastStraightness) {
+    const lenMatch = q.match(/([0-9\.]+)\s*(?:meter|metre|m|ft|feet|in|inch|mm)?\s*(?:length|long|span|panel)/i) || q.match(/(?:length|panel|span)\s*[:=]?\s*([0-9\.]+)\s*(?:m|ft|mm)?/i)
+    let L_mm = 3000 // default 3m / ~10ft panel
+    if (lenMatch) {
+      let val = parseFloat(lenMatch[1])
+      if (q.includes('ft') || q.includes('feet')) L_mm = val * 304.8
+      else if (q.includes('inch') || q.includes('in')) L_mm = val * 25.4
+      else if (val < 50) L_mm = val * 1000 // meters to mm
+      else L_mm = val
+    }
+    const allowableLegMm = Math.min(L_mm / 1000, 3.2)
+    const allowableLegIn = allowableLegMm / 25.4
+    const allowableBraceMm = Math.min(L_mm / 500, 6.4)
+    const allowableBraceIn = allowableBraceMm / 25.4
+
+    results.push(`VERIFIED CODE DETERMINATION [API Spec 4F Section 6 & API RP 4G Clause 8.1 - Mast Member Straightness Limits]:
+• Governing Standards: API Spec 4F (Drilling Structures Specification) & API RP 4G (In-Service Inspection) Clause 8.1
+• Mast Leg Primary Load Columns:
+  - Straightness Tolerance Formula: Maximum allowable lateral deviation delta_max = L / 1000, not to exceed 3.2 mm (1/8 in.) per unsupported panel.
+  - Calculated Limit for L = ${(L_mm/1000).toFixed(2)} m (${(L_mm/25.4).toFixed(1)} in.): delta_max = ${allowableLegMm.toFixed(2)} mm (${allowableLegIn.toFixed(3)} in.).
+  - Acceptance: Measured bow/sweep <= ${allowableLegMm.toFixed(2)} mm (1/8 in.).
+  - Rejection: Any mast leg panel with lateral bow > L / 1000 or > 3.2 mm (1/8 in.) is strictly REJECTED.
+• Secondary Girts & Diagonal Braces (Clause 8.2):
+  - Tolerance Formula: delta_max = L / 500, not to exceed 6.4 mm (1/4 in.).
+  - Calculated Limit: ${allowableBraceMm.toFixed(2)} mm (${allowableBraceIn.toFixed(3)} in.).
+  - Rejection: Bow > L / 500 or > 6.4 mm is REJECTED.`)
+  }
+
+  // 9. API RP 4G Structural Member Corrosion Wall Loss (Clause 8.3)
+  const isMastCorrosion = q.match(/(?:mast|derrick|substructure|api\s*(?:rp\s*)?4[fg])/i) && q.match(/(?:corrosion|wall\s*loss|thinning|thickness\s*loss|wear\s*limit)/i)
+  if (isMastCorrosion) {
+    results.push(`VERIFIED CODE DETERMINATION [API RP 4G Clause 8.3 - Structural Member Corrosion Wall Loss Limits]:
+• Governing Standard: API RP 4G Clause 8.3 (Structural Member Wear and Corrosion Limits)
+• Primary Load-Bearing Members (Mast Main Legs, Substructure Main Load Girders):
+  - Maximum Allowable Wall Thickness Loss: 10% of nominal drawing thickness (t_actual >= 0.90 * t_nominal).
+  - Rejection: Any primary leg or main girder with wall loss > 10% is strictly REJECTED. Must be reinforced with an engineered sleeve approved per AWS D1.1 or derated by a Professional Engineer.
+• Secondary Framing Members (Girts, Braces, Diagonal Ties):
+  - Maximum Allowable Wall Loss: 15% of nominal thickness (t_actual >= 0.85 * t_nominal).
+  - Rejection: Wall loss > 15% is REJECTED.
+• Non-Structural Components (Walkways, Handrails, Ladders): Maximum allowable wall loss is 25%.`)
+  }
+
+  // 10. API RP 4G Category I - IV Inspection Schedule & Qualification
+  const is4GCat = q.match(/(?:api\s*(?:rp\s*)?4[fg]|drilling\s*structure)/i) && q.match(/(?:category|cat\s*(?:i|ii|iii|iv)|inspection\s*(?:interval|frequency)|overhaul)/i)
+  if (is4GCat) {
+    results.push(`VERIFIED CODE DETERMINATION [API RP 4G Clause 6 - Drilling Structure Inspection Categories & Frequencies]:
+• Governing Standard: API RP 4G Section 6 (Inspection Categories and Maintenance Intervals)
+• Category I (Daily): Visual observation during rig operations by rig operating crew (driller, toolpusher). Checks loose pins, missing cotters, excessive vibration, foundation settling.
+• Category II (Weekly / Rig-Up): Visual walk-around of all load-bearing members, mast raising lines, scoping cylinders, and locks by toolpusher or rig superintendent.
+• Category III (Periodic Thorough - Every 2 Years / 730 Operating Days):
+  - Thorough visual inspection + UT thickness mapping + MPI on critical primary load welds.
+  - Performed by: Qualified person possessing documented knowledge of primary load paths and structural failure modes.
+  - Rejection: Cracked welds, mast leg bow > L/1000, pin hole elongation > 1.6 mm (1/16 in.), or leg wall loss > 10%.
+• Category IV (Comprehensive Overhaul - Every 10 Years Land / 5 Years Offshore):
+  - Mast lowered, disassembled, blast-cleaned in critical joints, 100% NDT (WFMPI / UT per AWS D1.1 & ASNT Level II).
+  - Supervised by: Registered Professional Engineer (PE) or OEM Technical Representative.
+  - Mandatory sign-off: Formal Category IV Certificate of Inspection issued before return to service.`)
+  }
+
   return results.length > 0 ? results.join("\n\n") : null
 }
 
@@ -2438,6 +2513,7 @@ When comparing standards, strictly adhere to the Scope Parity Principle:
   * ROTARY & DRILLING TOOLS (Power Tongs, Slips, Rotary Tables, Mud Pumps, Kellys): Governed by API 7K / API Spec 7-1 vs. OEM specifications.
   * PROCESS & PIPELINE WELDING: Compare ASME B31.3 vs. API 1104 vs. AWS D1.1 vs. ISO 5817 (same joint/welding scope).
   * PRESSURE VESSELS: Compare ASME Section VIII Div 1 vs. Div 2 vs. PD 5500 vs. EN 13445.
+  * DRILLING STRUCTURES (Masts, Derricks, Substructures, Crown Frames): Compare API Spec 4F (design/wind) & API RP 4G (Categories I-IV, straightness, wear) vs. OEM Rig Overhaul Specs (Lee C. Moore, NOV Dreco, DSI, Bentec) vs. Contractor Standards. STRICTLY PROHIBIT API 1104, ASME B31.3, and API 5CT.
 - If only ONE international standard exists for that specific equipment (as is the case for Hoisting Tools under API RP 8B / ISO 13534), DO NOT invent an unrelated standard. Instead, contrast:
   [API Code Baseline] vs. [OEM Specification (e.g. NOV/Varco)] vs. [Company / Rig Contractor Specification]
   and highlight the EXACT DELTA (e.g., stricter wear limits, shorter Category IV overhaul frequency, mandatory NDT hold points).

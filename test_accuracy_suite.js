@@ -52,6 +52,36 @@ const TEST_CASES = [
       { desc: "States 1.8 min for X-ray and 2.0 min for Gamma", test: (ans) => /1\.8/i.test(ans) && /2\.0/i.test(ans) },
       { desc: "States 4.0 maximum density", test: (ans) => /4\.0/i.test(ans) }
     ]
+  },
+  {
+    id: 6,
+    name: "Mast Leg Straightness Tolerance (API Spec 4F / API RP 4G)",
+    question: "What is the maximum allowable straightness deviation or bow for a mast leg panel per API Spec 4F and API RP 4G?",
+    assertions: [
+      { desc: "Cites API Spec 4F or API RP 4G Clause 8.1", test: (ans) => /API\s*(?:Spec\s*)?4F|API\s*(?:RP\s*)?4G|8\.1/i.test(ans) },
+      { desc: "States L / 1000 limit and 3.2 mm (1/8 in) maximum", test: (ans) => /1000/i.test(ans) && /(?:3\.2\s*mm|1\/8\s*in)/i.test(ans) },
+      { desc: "Explicit rejection criteria (> L/1000 or > 1/8 in)", test: (ans) => /reject/i.test(ans) }
+    ]
+  },
+  {
+    id: 7,
+    name: "Mast Leg Corrosion Wall Loss Limit (API RP 4G Clause 8.3)",
+    question: "What is the maximum allowable corrosion wall loss for drilling mast primary legs per API RP 4G?",
+    assertions: [
+      { desc: "Cites API RP 4G Clause 8.3", test: (ans) => /API\s*(?:RP\s*)?4G|8\.3/i.test(ans) },
+      { desc: "States 10% maximum allowable wall loss (t >= 90% nominal)", test: (ans) => /10\s*%/i.test(ans) },
+      { desc: "Rejection threshold stated (> 10% loss is rejected)", test: (ans) => /reject/i.test(ans) }
+    ]
+  },
+  {
+    id: 8,
+    name: "Category IV Mast Overhaul Interval & Qualification (API RP 4G)",
+    question: "What is the mandatory inspection interval and personnel qualification for a Category IV drilling mast overhaul per API RP 4G?",
+    assertions: [
+      { desc: "States 10 years (or 5 years offshore) interval", test: (ans) => /10\s*year/i.test(ans) },
+      { desc: "Requires Professional Engineer (PE) or OEM Representative", test: (ans) => /Professional\s*Engineer|PE\b|OEM/i.test(ans) },
+      { desc: "Requires 100% NDT (MPI / UT)", test: (ans) => /NDT|MPI|UT|100\s*%/i.test(ans) }
+    ]
   }
 ];
 
