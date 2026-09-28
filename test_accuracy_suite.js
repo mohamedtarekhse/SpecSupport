@@ -102,6 +102,39 @@ const TEST_CASES = [
       { desc: "States 1/8 inch (3.2 mm) maximum variation", test: (ans) => /1\/8\s*in|3\.2\s*mm/i.test(ans) },
       { desc: "Explains prevention of uneven loading or racking", test: (ans) => /align|level|load|stress/i.test(ans) }
     ]
+  },
+  {
+    id: 11,
+    name: "Drilling Well Control Hard Shut-In & Kill Mud Weight (IADC / API 53)",
+    question: "What is the exact procedure for hard shut-in while drilling and how do you calculate Kill Mud Weight per IADC WellSharp and API Standard 53?",
+    assertions: [
+      { desc: "Cites API Standard 53 or IADC WellSharp", test: (ans) => /API\s*(?:Standard\s*|Std\s*|RP\s*)?53|IADC\s*WellSharp/i.test(ans) },
+      { desc: "Specifies hard shut-in sequence (space out, stop pumps, open HCR, close BOP)", test: (ans) => /space\s*out/i.test(ans) && /stop.*pump/i.test(ans) && /close.*(?:BOP|annular|ram)/i.test(ans) },
+      { desc: "Provides KMW formula (KMW = OMW + SIDPP / (0.052 * TVD))", test: (ans) => /0\.052/i.test(ans) && /SIDPP/i.test(ans) && /TVD/i.test(ans) },
+      { desc: "States acceptance/rejection criteria", test: (ans) => /accept|reject/i.test(ans) }
+    ]
+  },
+  {
+    id: 12,
+    name: "Cameron Type U BOP Ram Change & Bonnet Seal Criteria (OEM Manual)",
+    question: "What is the step by step procedure to change ram rubbers on a Cameron Type U BOP and what are the bonnet seal inspection criteria?",
+    assertions: [
+      { desc: "Cites Cameron Type U OEM Manual or API 16A", test: (ans) => /Cameron.*(?:Type\s*U|OEM)|API\s*16A/i.test(ans) },
+      { desc: "Details ram change sequence (bonnet open, T-slot slide, packer replacement)", test: (ans) => /bonnet/i.test(ans) && /T-slot|T-head|slide/i.test(ans) && /packer/i.test(ans) },
+      { desc: "Specifies bonnet seal inspection / zero pitting on sealing face", test: (ans) => /bonnet\s*seal/i.test(ans) && /(?:pit|pitting|scratch|scoot|taper|band)/i.test(ans) },
+      { desc: "States acceptance or rejection thresholds", test: (ans) => /accept|reject/i.test(ans) }
+    ]
+  },
+  {
+    id: 13,
+    name: "Hydril GK Annular BOP Element Replacement & Stripping Pressure (OEM Manual)",
+    question: "How do you replace the packing element on a Hydril GK Annular BOP and what is the recommended closing pressure for stripping?",
+    assertions: [
+      { desc: "Cites Hydril GK OEM Manual", test: (ans) => /Hydril\s*GK|Hydril.*OEM/i.test(ans) },
+      { desc: "Explains element replacement (head removal, lifting lugs, bowl cleaning)", test: (ans) => /head/i.test(ans) && /bowl/i.test(ans) && /packing\s*(?:element|unit)/i.test(ans) },
+      { desc: "Specifies stripping pressure reduction (400 to 700 psi)", test: (ans) => /(?:400|500|600|700)\s*psi/i.test(ans) },
+      { desc: "Prohibits hydrocarbon grease on packing unit", test: (ans) => /hydrocarbon|vegetable|mineral|grease/i.test(ans) }
+    ]
   }
 ];
 

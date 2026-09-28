@@ -1,0 +1,160 @@
+[STANDARD: IADC WELLSHARP / API STANDARD 53]
+[TITLE: Drilling Well Control Operational Manual & Well Kill Procedures]
+[EDITION: API Standard 53 5th Edition / IADC WellSharp 2024]
+[ARTICLE: Surface & Subsea BOP Operations, Kick Detection, Shut-In & Kill Methods]
+
+Clause 1.1 — Kick Detection Primary and Secondary Indicators
+During all drilling, tripping, circulating, and reaming operations, active well monitoring must be maintained continuously to detect formation fluid influx at the earliest possible moment. Primary kick indicators include an abrupt increase in mud pit volume (pit gain), an increase in return flow rate while pumping at a steady rate, flow from the well with the mud pumps stopped (flow check positive), and a pump pressure decrease accompanied by a pump stroke rate increase. Secondary kick indicators include drilling breaks (sudden ROP increase), torque and drag fluctuations, gas-cut, water-cut, or oil-cut mud, reduction in shale density, and sudden changes in the d-exponent. 
+ACCEPTANCE: Continuous monitoring active with pit level sensors calibrated within ±1 bbl and flow sensors calibrated within ±2% full scale; immediate flow check mandatory upon any positive indicator.
+REJECTION: Failing to perform an immediate flow check upon experiencing a pit gain exceeding 2 bbls or flow show increase is a critical safety violation requiring immediate supervisor intervention.
+ARABIC: مؤشرات الرفسة الأولية والثانوية (Primary and Secondary Kick Indicators).
+---
+
+Clause 2.1 — Hard Shut-In Procedure While Drilling (Surface BOP Installation)
+The Hard Shut-In method is the industry standard recommended practice per API Standard 53 and IADC WellSharp due to its minimized influx volume, simplified execution, and reduced total wellbore pressure compared to soft shut-in. Upon confirming a kick or positive flow check while rotary drilling, execute the following immediate sequence without delay: 
+1. Space out the drill string immediately by picking up off bottom until a tool joint is safely positioned above the rotary table and clear of the designated closing ram and annular BOP.
+2. Stop the rotary table (or top drive) and stop the mud pumps immediately.
+3. Verify that the remote choke and manual choke manifold valves are closed, and immediately open the hydraulic choke line valve (HCR valve).
+4. Close the designated primary shut-in device: close the Annular BOP (or Upper Pipe Ram if annular is out of service) using the remote BOP control panel on the drill floor.
+5. Notify the Rig Superintendent, Company Representative, and Toolpusher immediately.
+6. Install the drill pipe float valve / Kelly cock / dart valve if an inside BOP is required, and continuously record the Stabilized Shut-In Drill Pipe Pressure (SIDPP), Shut-In Casing Pressure (SICP), and Pit Gain at 1-minute intervals until pressures stabilize completely (typically 10 to 15 minutes).
+ACCEPTANCE: Complete shut-in executed within 60 seconds of positive kick confirmation, with zero leakage observed past BOP packing element and HCR valve holding zero pressure drop.
+REJECTION: Attempting to close the BOP over a tool joint or failing to open the HCR valve prior to closing the preventer is strictly prohibited and subject to immediate operational halt.
+ARABIC: إجراء الإغلاق الصلب أثناء الحفر (Hard Shut-In Procedure while Drilling).
+---
+
+Clause 2.2 — Soft Shut-In Procedure While Drilling
+The Soft Shut-In method is employed only on specific legacy rigs or weak formations where minimizing the initial water hammer / pressure surge pulse during valve closure is explicitly mandated by the well operator. The operational execution sequence is:
+1. Space out tool joint clear of all BOP rams and annular preventer.
+2. Stop rotary and shut down mud pumps.
+3. Open the hydraulic choke line valve (HCR valve) with the remote choke already set in the fully open position.
+4. Close the Annular BOP (or Pipe Ram).
+5. Slowly close the remote hydraulic choke until fully closed while continuously monitoring the casing pressure gauge to prevent exceeding the Maximum Allowable Annular Surface Pressure (MAASP).
+6. Record stabilized SIDPP, SICP, and Pit Gain once pressures reach steady-state equilibrium.
+ACCEPTANCE: Choke closed smoothly without exceeding MAASP at the casing shoe; total shut-in time within 120 seconds.
+REJECTION: Influx size allowed to double during extended soft shut-in closure (> 2 minutes) or casing pressure allowed to surge past casing shoe fracture pressure.
+ARABIC: إجراء الإغلاق المرن أثناء الحفر (Soft Shut-In Procedure).
+---
+
+Clause 2.3 — Shut-In Procedure While Tripping (Pipe in Hole)
+Taking a kick while tripping is among the highest-risk well control events because the drill pipe is disconnected and annular clearances fluctuate rapidly as pipe is pulled. If a kick is detected during tripping (trip tank gain, hole not taking correct displacement volume, or well flowing with pipe in slips):
+1. Immediately set the drill pipe slips on the rotary table and hold the string stationary.
+2. Install a full-opening safety valve (FOSV / TIW valve) in the fully open position onto the top tool joint connection, and immediately make it up hand-tight plus one turn with tongs.
+3. Close the FOSV valve immediately using the dedicated valve operating wrench (which must be kept on the rig floor at all times).
+4. Open the hydraulic choke line HCR valve.
+5. Close the Annular BOP (or Upper Pipe Ram).
+6. Make up the top drive or Kelly onto the top of the closed FOSV (or install an Inside BOP / Gray valve above the FOSV), open the FOSV to allow pressure transmission to the drill pipe gauge, and record stabilized SIDPP, SICP, and pit gain.
+ACCEPTANCE: FOSV stabbed and closed within 45 seconds of kick detection; zero leakage around thread connection.
+REJECTION: Attempting to stab an inside BOP / Gray non-return flapper valve into a flowing string instead of an open full-opening safety valve (FOSV) is strictly prohibited due to upward jetting fluid force.
+ARABIC: إجراء إغلاق البئر أثناء السحب والإنزال (Shut-In Procedure While Tripping).
+---
+
+Clause 3.1 — Mathematical Formulation of Kill Mud Weight (KMW)
+Once the well is shut in and drill string pressures have fully stabilized, the formation pore pressure is balanced by the hydrostatic pressure of the original mud weight (OMW) in the drill pipe plus the shut-in drill pipe pressure (SIDPP). The Shut-In Casing Pressure (SICP) reflects annular hydrostatic plus influx contamination and must not be used to calculate formation pressure when drill pipe is intact. The Kill Mud Weight (KMW) required to re-establish hydrostatic overbalance across true vertical depth (TVD) is calculated using the deterministic formula:
+KMW (ppg) = OMW (ppg) + [ SIDPP (psi) / (0.052 × TVD (ft)) ]
+In SI Metric units:
+KMW (kg/m³) = OMW (kg/m³) + [ (SIDPP (bar) × 1000) / (0.0981 × TVD (m)) ]
+ACCEPTANCE: Calculated KMW rounded up to the nearest 0.1 ppg (or 10 kg/m³), verified independently by both the Rig Superintendent and Drilling Engineer prior to transfer to suction pits.
+REJECTION: Adding arbitrary safety margins (> 0.5 ppg) to KMW that exceed the formation fracture gradient at the casing shoe (causing induced losses and underground blowout) is strictly rejected.
+ARABIC: حساب وزن طفلة قتل البئر (Kill Mud Weight Calculation).
+---
+
+Clause 3.2 — Initial Circulating Pressure (ICP) and Final Circulating Pressure (FCP)
+When commencing well circulation to remove an influx, the circulating pressure at the slow circulating pump rate (SCRP or kill rate) must balance formation pressure exactly. The Initial Circulating Pressure (ICP) represents the total system frictional loss at kill rate plus the shut-in drill pipe pressure:
+ICP (psi) = SIDPP (psi) + SCRP (psi)
+As the heavy kill mud weight (KMW) completely fills the drill string from surface to bit, the hydrostatic pressure of the kill mud balances formation pressure, reducing required drill pipe frictional pressure to the Final Circulating Pressure (FCP):
+FCP (psi) = SCRP (psi) × [ KMW (ppg) / OMW (ppg) ]
+ACCEPTANCE: ICP and FCP determined using recorded Slow Circulating Rate Pressures measured within the past 12 hours or after any mud density modification.
+REJECTION: Initiating well circulation using standard drilling pump rates instead of pre-recorded slow kill rates (SCRP: 20 to 40 SPM) is prohibited due to excessive choke backpressure and shoe fracture risk.
+ARABIC: ضغط التدوير الابتدائي والنهائي (Initial & Final Circulating Pressure).
+---
+
+Clause 3.3 — Maximum Allowable Annular Surface Pressure (MAASP)
+The Maximum Allowable Annular Surface Pressure (MAASP) is the maximum shut-in or circulating casing pressure permitted at surface without exceeding the fracture breakdown gradient of the formation at the casing shoe depth (the weakest point in the open hole). MAASP must be recalculated every time the mud weight in the well is changed using the formula:
+MAASP (psi) = [ Formation Fracture Gradient at Shoe (psi/ft) - (0.052 × Current Mud Weight (ppg)) ] × Casing Shoe TVD (ft)
+Equivalently from the Leak-Off Test (LOT) surface pressure:
+MAASP (psi) = Surface LOT Pressure (psi) - [ 0.052 × (Current Mud Weight - Base LOT Mud Weight) × Shoe TVD (ft) ]
+ACCEPTANCE: Actual measured SICP and choke operating pressure maintained strictly below MAASP throughout all kick circulation phases.
+REJECTION: Allowing casing pressure to exceed MAASP during kill circulation; if casing pressure approaches MAASP, choke adjustments must be made immediately to prevent catastrophic casing shoe breakdown.
+ARABIC: أقصى ضغط سطحي مسموح به في الفراغ الحلقي (MAASP Calculation).
+---
+
+Clause 4.1 — Driller's Method Kill Procedure: First Circulation
+The Driller's Method is the most reliable well control technique when kill weight mud cannot be mixed immediately or when operating in remote locations. It requires two complete circulations: the first to circulate the influx out of the annulus using original mud weight (OMW), and the second to circulate heavy kill mud weight (KMW). Execution of First Circulation:
+1. Crack open the remote choke, start the mud pump slowly, and bring pump speed up to the pre-selected Slow Circulating Rate (SCR).
+2. Adjust the remote choke to hold casing pressure equal to SICP until the pump reaches kill speed; once at kill speed, immediately observe the drill pipe pressure, which must equal the calculated ICP.
+3. Hold drill pipe pressure constant at ICP by adjusting the remote hydraulic choke throughout the entire time the influx is circulated out of the annulus.
+4. As gas expands near surface, casing pressure will rise rapidly while pit volume increases; do not adjust choke based on casing pressure; maintain drill pipe pressure strictly constant at ICP.
+5. Once influx reaches surface and gas is completely vented through the poor-boy mud gas separator, shut down the mud pump and close the choke simultaneously.
+6. Check shut-in pressures: SIDPP and SICP must now be equal (SIDPP = SICP), proving the annulus is clean of influx.
+ACCEPTANCE: Drill pipe pressure held within ±50 psi of calculated ICP; SIDPP equals SICP upon completion of first circulation.
+REJECTION: Choke operator chasing casing pressure instead of holding drill pipe pressure constant during gas expansion, causing secondary influxes or formation fracture.
+ARABIC: طريقة الحفار - التدويرة الأولى لإخراج الرفسة (Driller's Method: 1st Circulation).
+---
+
+Clause 4.2 — Driller's Method Kill Procedure: Second Circulation
+Once the kick influx has been completely circulated out and verified by SIDPP = SICP, the second circulation displaces the entire well volume with Kill Mud Weight (KMW):
+1. Mix sufficient volume of Kill Mud Weight (KMW) in the active suction pits (minimum 1.5 times the total wellbore volume).
+2. Open choke slightly, start mud pumps slowly up to kill speed (SCRP), and adjust choke to hold casing pressure constant at SICP while heavy mud travels from surface to drill bit.
+3. Construct a Drill Pipe Pressure Step-Down Chart: as KMW moves from surface to bit, drill pipe pressure must gradually decrease from ICP to FCP proportional to strokes pumped.
+4. Once KMW reaches the drill bit, record the drill pipe pressure, which must equal FCP.
+5. From the bit back to surface, hold drill pipe pressure constant at FCP by adjusting the choke until kill mud returns cleanly at the shale shaker.
+6. Stop pumps, close choke, and perform static flow check: both SIDPP and SICP must equal 0 psi.
+ACCEPTANCE: SIDPP = 0 psi and SICP = 0 psi; returns at flowline show uniform KMW with zero gas cut.
+REJECTION: Incomplete displacement leaving light mud pockets in the wellbore; well must not be opened until static balance is verified for a minimum 15-minute observation period.
+ARABIC: طريقة الحفار - التدويرة الثانية لضخ طفلة القتل (Driller's Method: 2nd Circulation).
+---
+
+Clause 5.1 — Wait and Weight Method (Engineer's Method) Kill Procedure
+The Wait and Weight (W&W) or Engineer's Method eliminates the second circulation by waiting until kill mud weight (KMW) is fully mixed before commencing circulation. It achieves well kill in a single circulation, generating lower peak surface casing pressures and lower shoe stress than the Driller's Method, making it preferred when shoe fracture margin is narrow.
+1. Immediately upon shut in, calculate KMW, ICP, FCP, and construct the drill pipe pressure step-down graph showing pressure reduction from ICP to FCP over surface-to-bit pump strokes.
+2. Mix complete KMW volume in active pits before starting pumps.
+3. Bring pumps up to kill speed while holding casing pressure constant at SICP until kill speed is reached.
+4. Follow the step-down table: adjust choke to reduce drill pipe pressure from ICP down to FCP as strokes accumulate from 0 to Bit Strokes.
+5. Once KMW reaches the bit, hold drill pipe pressure constant at FCP until KMW returns to surface.
+6. Shut down pumps, close choke, verify SIDPP = 0 psi and SICP = 0 psi.
+ACCEPTANCE: Single circulation kill completed with casing pressure staying continuously below MAASP.
+REJECTION: Attempting W&W method when weighting materials (barite) are insufficient to build full KMW volume, resulting in an unweighted mud column midway through circulation.
+ARABIC: طريقة الانتظار والوزن لقتل البئر (Wait and Weight Method).
+---
+
+Clause 6.1 — Volumetric Method and Lubricate-and-Bleed Operation
+When a well kicks while pipe is out of the hole, or when the drill string is plugged or off-bottom and cannot be circulated, gas will migrate upwards, causing surface pressures to escalate dangerously. The Volumetric Method controls gas migration without circulating by periodically bleeding calculated volumes of mud to maintain bottomhole pressure nearly constant between predefined upper and lower safety margins.
+Mathematical Formulation:
+Pressure Increment (psi) = Safety Margin (50 to 100 psi)
+Mud Volume to Bleed per Increment:
+ΔV (bbl) = ΔP (psi) / [ 0.052 × Mud Weight (ppg) × Annular Capacity Factor ]
+Once gas arrives at surface (indicated by rapid pressure rise without volume bleed), transition to the Lubricate-and-Bleed technique: pump high-density mud into the annulus, allow mud to fall through gas, and bleed dry gas through the choke until surface casing pressure drops to zero.
+ACCEPTANCE: Casing pressure held between defined limits; mud bled measured precisely in trip tank within ±0.25 bbl accuracy.
+REJECTION: Bleeding mud before gas has migrated and generated the required pressure increment, causing bottomhole pressure to decrease below formation pore pressure.
+ARABIC: الطريقة الحجمية والتزييت وتنفيس الغاز (Volumetric & Lubricate-and-Bleed Method).
+---
+
+Clause 7.1 — Bullheading Well Control Operation
+Bullheading is an emergency well control method wherein kill fluid is pumped directly down the casing, tubing, or drill string without circulation, intentionally forcing wellbore fluids and gas back into the formation. Bullheading is utilized when:
+1. Influx contains lethal concentrations of Hydrogen Sulfide (H2S) gas that cannot be safely processed at surface through the mud gas separator.
+2. Drill pipe is completely plugged or severed and volumetric migration poses an imminent blowout risk.
+3. Catastrophic total lost circulation prevents returning fluid to surface.
+Operational Execution:
+Pump kill fluid at a rate exceeding the upward gas migration rate (typically > 3 to 5 bpm). Monitor pump pressure continuously to ensure casing burst pressure is not exceeded.
+ACCEPTANCE: Gas successfully displaced into high-permeability formation; surface pressure drops to static hydrostatic balance.
+REJECTION: Exceeding 80% of casing burst rating or surface equipment pressure rating during bullheading injection.
+ARABIC: طريقة الحقن العنيف لقتل البئر (Bullheading Well Control Operation).
+---
+
+Clause 8.1 — API Standard 53 BOP Testing Frequencies and Procedures
+Per API Standard 53 (5th Edition), all blow-out prevention equipment installed on a surface wellhead must undergo rigorous pressure testing and function testing at mandatory intervals:
+1. Low Pressure Test: Mandatory 250 to 350 psi (1.7 to 2.4 MPa) for a minimum hold time of 5 minutes.
+2. High Pressure Test: Equal to the Rated Working Pressure (RWP) of the component (e.g., 5,000, 10,000, or 15,000 psi) for ram preventers, choke manifold, and choke valves. Annular preventers tested to 70% of RWP (or per operator policy). High pressure hold time: minimum 5 minutes on surface stacks (minimum 10 minutes on subsea).
+3. Test Frequency: Testing is mandatory (a) prior to spudding or prior to drilling out any casing string, (b) after any disconnect or repair of pressure-containing seals, (c) at intervals not to exceed 21 days for pressure tests, and (d) at intervals not to exceed 7 days for function tests of all operating rams and annulars.
+ACCEPTANCE: No visible leakage, and pressure decline over hold period must not exceed 5% of test pressure or 100 psi, whichever is less.
+REJECTION: Any pressure drop exceeding 5% or visible weeping at flanges, bonnet seals, or ram packing indicates test failure; equipment must be repaired and retested from zero.
+ARABIC: جدول واختبارات مانع الانفجار طبقاً لمواصفة API 53 (BOP Pressure Testing).
+---
+
+Clause 9.1 — Choke Manifold Alignment and Buffer Tank Management
+The choke manifold must be configured per API Standard 53 with a minimum of two chokes: one manual adjustable choke and one hydraulically controlled remote choke. The upstream valves on the primary choke line must remain locked open or strictly aligned according to the rig well control checklist. Choke lines must be as straight as possible, avoiding 90-degree elbows, utilizing targeted lead-filled blind tees at bends to prevent erosion from high-velocity sand-laden gas kicks. The Poor-Boy Mud Gas Separator (MGS) vent line must have a diameter of at least 8 to 12 inches to prevent backpressure blow-by through the liquid mud seal U-tube.
+ACCEPTANCE: Liquid mud seal height in MGS maintained to withstand minimum 10 to 15 psi gas backpressure; secondary choke lined up in standby readiness.
+REJECTION: Operating with both chokes isolated or operating an MGS with inadequate liquid seal height that allows gas breakout into the shaker house.
+ARABIC: ضبط مجمع الخوانق وفاصل الغاز (Choke Manifold & Mud Gas Separator).
+---

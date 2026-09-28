@@ -1,12 +1,12 @@
 {
   "system_name": "Inspecta Oil & Gas AI Assistant",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "active_git_branch": "final",
   "remote_repository": "https://github.com/mohamedtarekhse/SpecSupport.git",
   "production_worker": {
     "url": "https://inspection-api.mohamedtarekhse.workers.dev",
     "name": "inspection-api",
-    "last_deployed_version": "2a0e33cd-b5d4-4abc-912b-e590bd4c5c71",
+    "last_deployed_version": "8cb0214e-04fe-4b6a-965f-435a176ecef4",
     "bindings": {
       "d1_database": "inspection-db",
       "d1_database_id": "5e8696db-10ab-4eaf-92b0-de5f21a007f6",
@@ -25,17 +25,21 @@
     "API Spec 5CT",
     "API Spec 1104",
     "API Spec 16D",
+    "API Standard 53",
+    "IADC WellSharp Drilling Well Control Manual",
+    "OEM BOP Operations, Maintenance & Repair Manual (Cameron / Hydril / NOV Shaffer / Koomey)",
     "AWS D1.1",
     "ISO 3834-2"
   ],
   "benchmark_score": {
-    "total_assertions": 32,
-    "passed_assertions": 32,
+    "total_assertions": 44,
+    "passed_assertions": 44,
     "pass_rate_percentage": 100.0,
-    "last_verified_timestamp": "2026-09-28T17:57:01Z"
+    "last_verified_timestamp": "2026-09-28T19:27:36Z"
   },
   "ecc_methodology_status": {
     "cycle_definition": "plan -> test -> implement -> review -> verify -> remember -> improve",
-    "active_level": "Level 3 (Enterprise Harness Full Alignment)"
+    "active_level": "Level 3 (Enterprise Harness Full Alignment)",
+    "last_cycle_completed": "Cycle #2: Drilling Well Control & OEM BOP Manuals Ingestion and Verification"
   }
 }
