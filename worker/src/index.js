@@ -1926,7 +1926,7 @@ async function askAIProvider(c, messages, stream) {
       if (!c.env.AI) throw new Error("Cloudflare Workers AI binding 'AI' not found in environment.")
       const res = await c.env.AI.run(modelToUse, {
         messages: messages,
-        max_tokens: 1600,
+        max_tokens: 2200,
         temperature: 0.15
       })
       const text = res?.response || (typeof res === 'string' ? res : (res?.choices?.[0]?.message?.content || ''))

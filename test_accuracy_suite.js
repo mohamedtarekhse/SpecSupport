@@ -9,7 +9,7 @@ const TEST_CASES = [
       { desc: "Cites ASME Section VIII Division 1 UG-27(d) or API 7K", test: (ans) => /UG-27\(d\)|ASME.*VIII/i.test(ans) },
       { desc: "Provides numerical wall thickness ~1.53 in (39 mm)", test: (ans) => /1\.53|38\.9|39\.0/i.test(ans) },
       { desc: "Explicit acceptance criteria (>= 1.534 in)", test: (ans) => /accept/i.test(ans) && />=|greater|exceed/i.test(ans) },
-      { desc: "Explicit rejection criteria (< 1.534 in)", test: (ans) => /reject|condemn/i.test(ans) },
+      { desc: "Explicit rejection criteria (< 1.534 in)", test: (ans) => /reject|condemn|unacceptable|non-compliant|down-rated|not\s*permitted/i.test(ans) },
       { desc: "Does not cite prohibited API 1104 pipeline code", test: (ans) => !/API\s*1104/i.test(ans) }
     ]
   },
@@ -81,6 +81,26 @@ const TEST_CASES = [
       { desc: "States 10 years (or 5 years offshore) interval", test: (ans) => /10\s*year/i.test(ans) },
       { desc: "Requires Professional Engineer (PE) or OEM Representative", test: (ans) => /Professional\s*Engineer|PE\b|OEM/i.test(ans) },
       { desc: "Requires 100% NDT (MPI / UT)", test: (ans) => /NDT|MPI|UT|100\s*%/i.test(ans) }
+    ]
+  },
+  {
+    id: 9,
+    name: "Mast Raising Line Safety Factor (API Spec 4F Section 6)",
+    question: "What is the minimum safety factor for mast raising lines per API Spec 4F?",
+    assertions: [
+      { desc: "Cites API Spec 4F", test: (ans) => /API\s*(?:Spec\s*)?4F/i.test(ans) },
+      { desc: "States minimum safety factor of 3.0 (or 2.5)", test: (ans) => /3(?:\.0)?|2\.5/i.test(ans) },
+      { desc: "Technical explanation of dynamic raising forces", test: (ans) => /safety\s*factor|breaking\s*strength|load/i.test(ans) }
+    ]
+  },
+  {
+    id: 10,
+    name: "Substructure Mast Shoe Leveling Elevation Tolerance (API 4F / 4G)",
+    question: "What is the maximum allowable elevation variation across mast shoes during substructure leveling per API 4F and API RP 4G?",
+    assertions: [
+      { desc: "Cites API 4F or API RP 4G", test: (ans) => /API\s*(?:Spec\s*)?4F|API\s*(?:RP\s*)?4G/i.test(ans) },
+      { desc: "States 1/8 inch (3.2 mm) maximum variation", test: (ans) => /1\/8\s*in|3\.2\s*mm/i.test(ans) },
+      { desc: "Explains prevention of uneven loading or racking", test: (ans) => /align|level|load|stress/i.test(ans) }
     ]
   }
 ];
