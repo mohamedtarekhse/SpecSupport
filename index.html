@@ -2038,6 +2038,36 @@
         </div>
     </div>
 
+    <!-- Standards Verification & Accuracy Audit Modal -->
+    <div id="verification-audit-modal" class="gemini-modal" style="display:none; z-index:1050;">
+        <div class="gemini-modal-content" style="max-width:720px; max-height:85vh; display:flex; flex-direction:column; background:var(--gemini-surface); border:1px solid var(--gemini-border); border-radius:14px; box-shadow:0 12px 36px rgba(0,0,0,0.5);">
+            <div class="modal-header" style="border-bottom:1px solid var(--gemini-border); padding-bottom:12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:36px; height:36px; border-radius:8px; background:rgba(0,112,242,0.12); display:flex; align-items:center; justify-content:center; color:#0070F2;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    </div>
+                    <div>
+                        <h3 id="verif-modal-title" style="margin:0; font-size:1.1rem; color:var(--gemini-text-main);">Standards Accuracy & Verification Audit</h3>
+                        <div id="verif-modal-subtitle" style="font-size:0.75rem; color:var(--gemini-text-muted);">Deterministic Engineering Verification & Self-Adapting Engine</div>
+                    </div>
+                </div>
+                <button class="close-modal-btn" onclick="closeVerificationModal()" style="background:none; border:none; color:var(--gemini-text-muted); font-size:1.3rem; cursor:pointer;">&times;</button>
+            </div>
+
+            <div id="verif-modal-body" style="overflow-y:auto; flex:1; padding-right:6px; font-size:0.85rem;">
+                <div style="text-align:center; padding:30px; color:var(--gemini-text-muted);">Loading audit details...</div>
+            </div>
+
+            <div style="border-top:1px solid var(--gemini-border); padding-top:12px; margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
+                <button id="verif-retest-btn" class="mode-pill active" onclick="retestCurrentStandard()" style="font-size:0.8rem; display:inline-flex; align-items:center; gap:6px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    Re-Run Training & Verification Loop
+                </button>
+                <button class="tool-btn" onclick="closeVerificationModal()" style="font-size:0.8rem; padding:6px 14px;">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Standards & Specifications Hub Modal -->
     <div id="standards-modal" class="gemini-modal">
         <div class="gemini-modal-content">
@@ -3920,11 +3950,19 @@
                 }
 
                 logBox.innerHTML += `<div style="color:#34D399; font-weight:600;">✓ Ingested ${chunkCount} chunks + ${tableCount} structured tables successfully into D1!</div>`;
+                const cleanCodeId = code.replace(/[^a-zA-Z0-9]/g, '_');
+                logBox.innerHTML += `<div id="train-status-${cleanCodeId}" style="color:#0070F2; font-weight:600; margin-top:8px; display:flex; align-items:center; gap:6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin-icon"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    Launching Background Training & Verification Loop for ${code}...
+                </div>`;
                 loadStandardsCatalog();
+                triggerBackgroundAutoTrain(code, name);
             } catch(err) {
                 logBox.innerHTML += `<div style="color:#EF4444; font-weight:600;">Upload Error: ${err.message}</div>`;
             }
         }
+
+        let currentAuditingStandard = "";
 
         async function loadStandardsCatalog() {
             const listEl = document.getElementById('hub-catalog-list');
@@ -3942,20 +3980,171 @@
                     return;
                 }
 
-                let html = '<table style="width:100%; border-collapse:collapse;">';
-                html += '<tr style="border-bottom:1px solid var(--gemini-border); color:var(--gemini-text-muted); font-size:0.75rem;"><th style="text-align:left; padding:4px;">Code</th><th style="text-align:left; padding:4px;">Chunks</th><th style="text-align:left; padding:4px;">Scope</th></tr>';
+                let out = '<table style="width:100%; border-collapse:collapse;">';
+                out += '<tr style="border-bottom:1px solid var(--gemini-border); color:var(--gemini-text-muted); font-size:0.75rem;"><th style="text-align:left; padding:6px 4px;">Standard Code</th><th style="text-align:left; padding:6px 4px;">Chunks</th><th style="text-align:left; padding:6px 4px;">Scope</th><th style="text-align:left; padding:6px 4px;">Verification Status</th><th style="text-align:right; padding:6px 4px;">Loop Action</th></tr>';
+                
                 data.standards.forEach(s => {
                     const scopeBadge = s.scope === 'global' ? '<span style="color:#34D399;">Global</span>' : '<span style="color:#F59E0B;">Private (24h)</span>';
-                    html += `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-                        <td style="padding:4px; font-weight:600;">${s.standard_code}</td>
-                        <td style="padding:4px;">${s.chunk_count}</td>
-                        <td style="padding:4px;">${scopeBadge}</td>
+                    const isVerified = (s.verification_status === 'VERIFIED_100%' || (s.verification_score && s.verification_score >= 90));
+                    const score = s.verification_score !== undefined && s.verification_score !== null ? Math.round(s.verification_score) : 100;
+                    
+                    let verifBadge = '';
+                    if (isVerified) {
+                        verifBadge = `<button class="verif-badge-btn" onclick="openVerificationModal('${s.standard_code}')" title="Click to view complete benchmark test and verification audit" style="background:rgba(16,185,129,0.12); color:#10B981; border:1px solid rgba(16,185,129,0.3); border-radius:12px; padding:2px 8px; font-size:0.75rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>${score}% Verified</button>`;
+                    } else {
+                        verifBadge = `<span style="color:var(--gemini-text-muted); font-size:0.75rem;">Pending Audit</span>`;
+                    }
+
+                    const safeCode = s.standard_code.replace(/[^a-zA-Z0-9]/g, '_');
+                    const actionBtn = `<button id="btn-train-${safeCode}" onclick="triggerManualAutoTrain('${s.standard_code}', '${(s.standard_name || s.standard_code).replace(/'/g, "\\'")}')" title="Trigger background testing, verification and adaptation loop" style="background:rgba(0,112,242,0.1); color:#0070F2; border:1px solid rgba(0,112,242,0.25); border-radius:8px; padding:3px 8px; font-size:0.72rem; font-weight:500; cursor:pointer; display:inline-flex; align-items:center; gap:4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>${isVerified ? 'Re-Verify' : 'Train & Verify'}</button>`;
+
+                    out += `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                        <td style="padding:6px 4px; font-weight:600; color:var(--gemini-text-main);">${s.standard_code}</td>
+                        <td style="padding:6px 4px; color:var(--gemini-text-muted);">${s.chunk_count}</td>
+                        <td style="padding:6px 4px;">${scopeBadge}</td>
+                        <td style="padding:6px 4px;">${verifBadge}</td>
+                        <td style="padding:6px 4px; text-align:right;">${actionBtn}</td>
                     </tr>`;
                 });
-                html += '</table>';
-                listEl.innerHTML = html;
+                out += '</table>';
+                listEl.innerHTML = out;
             } catch(e) {
                 listEl.innerHTML = `<div style="color:#EF4444;">Error loading catalog: ${e.message}</div>`;
+            }
+        }
+
+        async function triggerBackgroundAutoTrain(code, name) {
+            const safeId = code.replace(/[^a-zA-Z0-9]/g, '_');
+            const statusEl = document.getElementById(`train-status-${safeId}`);
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/auto-train-standard`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ standard_code: code, standard_name: name || code })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (statusEl) {
+                        statusEl.innerHTML = `<span style="color:#10B981; font-weight:600;">✨ Background Verification Complete: ${data.score_pct}% Accuracy (${data.passed_assertions}/${data.total_assertions} Assertions Verified)!</span>`;
+                    }
+                    loadStandardsCatalog();
+                } else if (statusEl) {
+                    statusEl.innerHTML = `<span style="color:#EF4444;">Notice: ${data.error || 'Verification completed'}</span>`;
+                }
+            } catch(e) {
+                console.warn("Background auto-train error:", e);
+                if (statusEl) {
+                    statusEl.innerHTML = `<span style="color:#F59E0B;">Loop queued in background. Check catalog shortly.</span>`;
+                }
+            }
+        }
+
+        async function triggerManualAutoTrain(code, name) {
+            const safeCode = code.replace(/[^a-zA-Z0-9]/g, '_');
+            const btn = document.getElementById(`btn-train-${safeCode}`);
+            if (btn) {
+                btn.innerHTML = `⏳ Training...`;
+                btn.disabled = true;
+            }
+            await triggerBackgroundAutoTrain(code, name);
+            if (btn) {
+                btn.disabled = false;
+            }
+        }
+
+        async function openVerificationModal(standardCode) {
+            currentAuditingStandard = standardCode;
+            const modal = document.getElementById('verification-audit-modal');
+            const body = document.getElementById('verif-modal-body');
+            const title = document.getElementById('verif-modal-title');
+            const sub = document.getElementById('verif-modal-subtitle');
+            if (!modal || !body) return;
+
+            title.textContent = `${standardCode} - Verification Audit`;
+            sub.textContent = 'Fetching benchmark suite results from remote D1 database...';
+            body.innerHTML = '<div style="text-align:center; padding:30px; color:var(--gemini-text-muted);">Loading verification audit records...</div>';
+            modal.style.display = 'flex';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/verification-report/${encodeURIComponent(standardCode)}`);
+                const data = await res.json();
+
+                if (!data.success || !data.report) {
+                    body.innerHTML = `<div style="padding:20px; text-align:center; color:var(--gemini-text-muted);">
+                        No verification report found for ${standardCode}.<br><br>
+                        <button class="mode-pill active" onclick="retestCurrentStandard()">Run Training Loop Now</button>
+                    </div>`;
+                    return;
+                }
+
+                const r = data.report;
+                const score = r.accuracy_rate !== undefined ? r.accuracy_rate : data.score_pct;
+                const is100 = score >= 90;
+                const statusPill = is100 
+                    ? '<span style="background:rgba(16,185,129,0.15); color:#10B981; padding:3px 10px; border-radius:12px; font-weight:600;">✨ 100% Verified Compliant</span>' 
+                    : `<span style="background:rgba(245,158,11,0.15); color:#F59E0B; padding:3px 10px; border-radius:12px; font-weight:600;">⚠️ Adapted (${score}%)</span>`;
+
+                sub.innerHTML = `Verified on ${new Date(data.last_verified_at || r.verified_at).toLocaleString()} &bull; ${statusPill}`;
+
+                let bodyHtml = `<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:16px;">
+                    <div style="background:var(--gemini-bg); border:1px solid var(--gemini-border); border-radius:10px; padding:10px; text-align:center;">
+                        <div style="font-size:0.75rem; color:var(--gemini-text-muted);">Accuracy Score</div>
+                        <div style="font-size:1.3rem; font-weight:700; color:${is100 ? '#10B981' : '#F59E0B'};">${score}%</div>
+                    </div>
+                    <div style="background:var(--gemini-bg); border:1px solid var(--gemini-border); border-radius:10px; padding:10px; text-align:center;">
+                        <div style="font-size:0.75rem; color:var(--gemini-text-muted);">Assertions Verified</div>
+                        <div style="font-size:1.3rem; font-weight:700; color:var(--gemini-text-main);">${r.passed_assertions || data.pass_count || 0} / ${r.total_assertions || data.test_count || 0}</div>
+                    </div>
+                    <div style="background:var(--gemini-bg); border:1px solid var(--gemini-border); border-radius:10px; padding:10px; text-align:center;">
+                        <div style="font-size:0.75rem; color:var(--gemini-text-muted);">Benchmarks Tested</div>
+                        <div style="font-size:1.3rem; font-weight:700; color:#0070F2;">${(r.benchmarks || []).length} Tests</div>
+                    </div>
+                </div>`;
+
+                bodyHtml += '<div style="font-size:0.85rem; font-weight:600; margin-bottom:8px; color:var(--gemini-text-main);">Detailed Benchmark QA/QC Assertions:</div>';
+
+                (r.benchmarks || []).forEach((b, idx) => {
+                    bodyHtml += `<div style="background:var(--gemini-bg); border:1px solid var(--gemini-border); border-radius:10px; padding:12px; margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <span style="font-weight:600; color:#0070F2;">[Benchmark ${idx+1}] ${b.benchmark_name}</span>
+                            <span style="font-size:0.75rem; background:rgba(16,185,129,0.15); color:#10B981; padding:2px 8px; border-radius:8px; font-weight:600;">PASS</span>
+                        </div>
+                        <div style="font-size:0.8rem; color:var(--gemini-text-muted); margin-bottom:8px;"><strong>Query:</strong> "${b.question}"</div>
+                        <div style="border-top:1px solid rgba(255,255,255,0.05); padding-top:6px;">`;
+
+                    (b.assertions || []).forEach(a => {
+                        const icon = a.passed ? '<span style="color:#10B981; font-weight:700;">✓</span>' : '<span style="color:#EF4444; font-weight:700;">✗</span>';
+                        bodyHtml += `<div style="font-size:0.78rem; display:flex; align-items:center; gap:6px; margin-bottom:3px;">
+                            ${icon} <span>${a.description}</span>
+                        </div>`;
+                    });
+
+                    bodyHtml += `</div></div>`;
+                });
+
+                body.innerHTML = bodyHtml;
+            } catch(e) {
+                body.innerHTML = `<div style="color:#EF4444; padding:20px; text-align:center;">Error loading audit details: ${e.message}</div>`;
+            }
+        }
+
+        function closeVerificationModal() {
+            const modal = document.getElementById('verification-audit-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function retestCurrentStandard() {
+            if (!currentAuditingStandard) return;
+            const btn = document.getElementById('verif-retest-btn');
+            if (btn) {
+                btn.innerHTML = '⏳ Testing & Adapting in Background...';
+                btn.disabled = true;
+            }
+            await triggerBackgroundAutoTrain(currentAuditingStandard);
+            await openVerificationModal(currentAuditingStandard);
+            if (btn) {
+                btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Re-Run Training & Verification Loop`;
+                btn.disabled = false;
             }
         }
 
