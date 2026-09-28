@@ -1,0 +1,41 @@
+{
+  "system_name": "Inspecta Oil & Gas AI Assistant",
+  "version": "3.4.0",
+  "active_git_branch": "final",
+  "remote_repository": "https://github.com/mohamedtarekhse/SpecSupport.git",
+  "production_worker": {
+    "url": "https://inspection-api.mohamedtarekhse.workers.dev",
+    "name": "inspection-api",
+    "last_deployed_version": "2a0e33cd-b5d4-4abc-912b-e590bd4c5c71",
+    "bindings": {
+      "d1_database": "inspection-db",
+      "d1_database_id": "5e8696db-10ab-4eaf-92b0-de5f21a007f6",
+      "ai_binding": "env.AI"
+    }
+  },
+  "verified_standards": [
+    "ASME Section VIII Div 1",
+    "ASME B31.3",
+    "ASME B31.4",
+    "ASME B31.8",
+    "ASME Section V Article 2 & 4",
+    "API Spec 4F",
+    "API RP 4G",
+    "API RP 8B",
+    "API Spec 5CT",
+    "API Spec 1104",
+    "API Spec 16D",
+    "AWS D1.1",
+    "ISO 3834-2"
+  ],
+  "benchmark_score": {
+    "total_assertions": 32,
+    "passed_assertions": 32,
+    "pass_rate_percentage": 100.0,
+    "last_verified_timestamp": "2026-09-28T17:57:01Z"
+  },
+  "ecc_methodology_status": {
+    "cycle_definition": "plan -> test -> implement -> review -> verify -> remember -> improve",
+    "active_level": "Level 3 (Enterprise Harness Full Alignment)"
+  }
+}
