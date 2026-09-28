@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspecta Database Refiner Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0F1115;
+            --surface: #181B20;
+            --surface-hover: #22262E;
+            --border: #2D3139;
+            --text-main: #F3F4F6;
+            --text-muted: #9CA3AF;
+            --blue: #1A73E8;
+            --blue-hover: #1557B0;
+            --blue-light: #8AB4F8;
+            --green: #10B981;
+            --green-bg: rgba(16, 185, 129, 0.12);
+            --red: #EF4444;
+            --red-bg: rgba(239, 68, 68, 0.12);
+            --amber: #F59E0B;
+            --amber-bg: rgba(245, 158, 11, 0.12);
+            --purple: #8B5CF6;
+            --purple-bg: rgba(139, 92, 246, 0.12);
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        :root.light-mode {
+            --bg: #F8FAFC;
+            --surface: #FFFFFF;
+            --surface-hover: #F1F5F9;
+            --border: #E2E8F0;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --blue: #2563EB;
+            --blue-hover: #1D4ED8;
+            --blue-light: #1D4ED8;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .brand-sparkle {
+            font-size: 1.3rem;
+            color: var(--blue-light);
+        }
+
+        .brand-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+        }
+
+        .brand-badge {
+            background: var(--blue-light);
+            color: #0F1115;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--text-main);
+            background: var(--surface-hover);
+            border-color: var(--border);
+        }
+
+        .token-input-box {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 4px 8px;
+        }
+
+        .token-input-box input {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 0.8rem;
+            outline: none;
+            width: 140px;
+        }
+
+        .layout-container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Top Navigation Tabs */
+        .studio-tabs {
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            overflow-x: auto;
+        }
+
+        .studio-tab {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .studio-tab:hover {
+            color: var(--text-main);
+            background: var(--surface-hover);
+        }
+
+        .studio-tab.active {
+            color: #FFFFFF;
+            background: var(--blue);
+            box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
+        }
+
+        /* Controls / Action Bar */
+        .controls-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 18px;
+        }
+
+        .search-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .input-text, .select-box {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-text:focus, .select-box:focus {
+            border-color: var(--blue-light);
+        }
+
+        .btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--surface-hover);
+            border-color: var(--blue-light);
+        }
+
+        .btn-primary {
+            background: var(--blue);
+            border-color: var(--blue);
+            color: #FFF;
+        }
+
+        .btn-primary:hover {
+            background: var(--blue-hover);
+            border-color: var(--blue-hover);
+        }
+
+        .btn-danger {
+            background: var(--red-bg);
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .btn-danger:hover {
+            background: var(--red);
+            color: #FFF;
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 0.78rem;
+            border-radius: 6px;
+        }
+
+        /* Data Tables */
+        .table-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(0,0,0,0.15);
+            padding: 12px 14px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+            vertical-align: top;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.73rem;
+            font-weight: 600;
+        }
+
+        .badge-active { background: var(--green-bg); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-excluded { background: var(--red-bg); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-global { background: var(--blue-bg); color: var(--blue-light); border: 1px solid rgba(26, 115, 232, 0.3); }
+
+        .content-snippet {
+            max-width: 440px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            color: var(--text-main);
+            font-size: 0.82rem;
+            line-height: 1.4;
+        }
+
+        /* Pagination Bar */
+        .pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+        }
+
+        /* Modals & Drawers */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 640px;
+            padding: 24px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .modal-header h3 { margin: 0; font-size: 1.15rem; font-weight: 700; }
+        .close-modal { background: none; border: none; font-size: 1.4rem; color: var(--text-muted); cursor: pointer; }
+
+        .form-row {
+            margin-bottom: 14px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .form-input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 9px 12px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .form-input:focus { border-color: var(--blue-light); }
+        textarea.form-input { resize: vertical; min-height: 120px; line-height: 1.5; }
+
+        /* AI Rule Generator Card */
+        .ai-card {
+            background: linear-gradient(145deg, rgba(26, 115, 232, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .ai-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+
+        .prompt-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0 14px 0;
+        }
+
+        .prompt-pill {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .prompt-pill:hover {
+            color: var(--text-main);
+            border-color: var(--purple);
+            background: var(--purple-bg);
+        }
+
+        /* Schema Column Manager */
+        .schema-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .schema-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .schema-card-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            color: var(--blue-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .col-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+
+        .col-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+        }
+
+        .col-type {
+            color: var(--amber);
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        /* Notifications */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 18px;
+            color: var(--text-main);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 2000;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div style="display:flex; align-items:center; gap:16px;">
+            <a href="index.html" class="header-brand">
+                <span class="brand-sparkle">✦</span>
+                <span class="brand-title">Inspecta Studio</span>
+                <span class="brand-badge">Refiner</span>
+            </a>
+            <a href="index.html" class="nav-link">← Back to Inspector Chat</a>
+        </div>
+
+        <div class="header-actions">
+            <div class="token-input-box" title="Admin Token">
+                <span style="font-size:0.8rem;">🔑</span>
+                <input type="password" id="admin-token" placeholder="Admin Secret Token" onchange="saveToken(this.value)">
+            </div>
+            <button class="btn btn-sm" onclick="toggleTheme()">🌗</button>
+        </div>
+    </header>
+
+    <div class="layout-container">
+
+        <!-- Top Studio Tabs -->
+        <div class="studio-tabs">
+            <button class="studio-tab active" id="tab-chunks-btn" onclick="setStudioTab('chunks')">
+                <span>📚</span> Knowledge Chunks (Rows)
+            </button>
+            <button class="studio-tab" id="tab-taxonomy-btn" onclick="setStudioTab('taxonomy')">
+                <span>🏛️</span> Standards Taxonomy & AI Rules
+            </button>
+            <button class="studio-tab" id="tab-schema-btn" onclick="setStudioTab('schema')">
+                <span>🛠️</span> Schema & Dynamic Columns
+            </button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 1: 📚 KNOWLEDGE CHUNKS BROWSER         -->
+        <!-- ========================================== -->
+        <div id="studio-tab-chunks">
+            <div class="controls-bar">
+                <div class="search-group">
+                    <input type="text" id="chunk-search" class="input-text" style="width:240px;" placeholder="Search clause, text, or standard..." onkeydown="if(event.key==='Enter') loadChunks(1)">
+                    <select id="chunk-std-filter" class="select-box" onchange="loadChunks(1)">
+                        <option value="ALL">All Standards</option>
+                    </select>
+                    <select id="chunk-status-filter" class="select-box" onchange="loadChunks(1)">
+                        <option value="all">All Statuses</option>
+                        <option value="active">Active Only</option>
+                        <option value="excluded">Excluded Only</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="loadChunks(1)">🔍 Filter</button>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="openAddChunkModal()">➕ Add New Chunk (Row)</button>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:60px;">ID</th>
+                            <th style="width:140px;">Standard</th>
+                            <th style="width:160px;">Section / Clause</th>
+                            <th>Content Snippet</th>
+                            <th style="width:90px;">Status</th>
+                            <th style="width:170px; text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="chunks-tbody">
+                        <tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-muted);">Loading database chunks...</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="pagination-bar">
+                    <span style="color:var(--text-muted); font-size:0.82rem;" id="chunk-pagination-info">Showing 0 of 0 chunks</span>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-sm" id="chunk-prev-btn" onclick="prevChunkPage()">← Prev</button>
+                        <span id="chunk-page-num" style="display:flex; align-items:center; padding:0 8px; font-weight:600;">1</span>
+                        <button class="btn btn-sm" id="chunk-next-btn" onclick="nextChunkPage()">Next →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: 🏛️ TAXONOMY & AI RULE GENERATOR     -->
+        <!-- ========================================== -->
+        <div id="studio-tab-taxonomy" style="display:none;">
+            
+            <!-- AI Rule Generator Hero Card -->
+            <div class="ai-card">
+                <div class="ai-title">
+                    <span style="color:var(--purple);">✦</span>
+                    <span>AI-Powered Standards Governance Rule Generator</span>
+                </div>
+                <p style="color:var(--text-muted); font-size:0.84rem; margin:0 0 10px 0;">
+                    Type an equipment requirement or paste an excerpt from a contract/standard. The AI will extract governing codes, prohibited standards, SOP personnel qualifications, and hold points into a validated governance rule.
+                </p>
+
+                <div class="prompt-pills">
+                    <span class="prompt-pill" onclick="setAiPrompt('Rule for Subsea Wellhead Connectors & Tubing Spools governed by API 17D and API 6A PSL-3G, strictly prohibiting API 7K and ASME B31.3. Require Subsea Level 3 Technician and high pressure gas immersion test.')">🌊 Subsea Wellheads (API 17D)</span>
+                    <span class="prompt-pill" onclick="setAiPrompt('Rule for Drawworks & Rotary Power Tongs governed by API Spec 7K and API RP 7L, strictly prohibiting API RP 8B (elevators only). Require OEM Certified Technician and torque load-cell calibration witness point.')">⚙️ Rotary Power Tongs (API 7K)</span>
+                    <span class="prompt-pill" onclick="setAiPrompt('Rule for High-Yield Pipeline Girth Welds governed by API 1104 22nd Ed and ASME B31.4, strictly prohibiting ASME B31.3. Require AWS CWI / CSWIP 3.1 + ASNT Level II RT/AUT film interpreter.')">🔥 Pipeline Girth Welds (API 1104)</span>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-bottom:12px;">
+                    <textarea id="ai-rule-prompt" class="form-input" style="min-height:70px;" placeholder="Describe equipment requirements or paste specification snippet..."></textarea>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button class="btn btn-primary" id="btn-gen-rule" onclick="generateRuleWithAI()">
+                        <span>🤖 Generate Rule with AI</span>
+                    </button>
+                </div>
+
+                <!-- Live Generated Rule Preview / Editor -->
+                <div id="ai-rule-preview" style="display:none; margin-top:16px; background:var(--surface); border:1px solid var(--purple); border-radius:10px; padding:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-weight:700; color:var(--purple);">✓ Generated Rule Schema (Ready to Save)</span>
+                        <button class="btn btn-sm btn-primary" onclick="saveGeneratedTaxonomyRule()">Accept & Insert into Database</button>
+                    </div>
+                    <div id="ai-rule-form-fields" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:0.8rem;"></div>
+                </div>
+            </div>
+
+            <!-- Taxonomy Directory Controls -->
+            <div class="controls-bar">
+                <div class="search-group">
+                    <input type="text" id="tax-search" class="input-text" style="width:260px;" placeholder="Search equipment or standard..." oninput="filterTaxonomyTable()">
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="openAddTaxonomyModal()">➕ Add Manual Taxonomy Rule</button>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:180px;">Equipment Name</th>
+                            <th style="width:140px;">Category</th>
+                            <th style="width:140px;">Primary Standard</th>
+                            <th>Prohibited Standards</th>
+                            <th>SOP Qualification & Hold Point</th>
+                            <th style="width:90px;">Status</th>
+                            <th style="width:160px; text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="taxonomy-tbody">
+                        <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">Loading taxonomy rules...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: 🛠️ SCHEMA & DYNAMIC COLUMNS          -->
+        <!-- ========================================== -->
+        <div id="studio-tab-schema" style="display:none;">
+            <div class="controls-bar">
+                <div>
+                    <span style="font-weight:700; font-size:0.95rem;">Dynamic D1 Database Schema Manager</span>
+                    <div style="font-size:0.78rem; color:var(--text-muted);">Inspect live tables and add custom metadata columns on the fly.</div>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="openAddColumnModal()">➕ Add Column to Table</button>
+                </div>
+            </div>
+
+            <div class="schema-grid" id="schema-tables-grid">
+                <div style="color:var(--text-muted); padding:20px;">Loading database tables and columns...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODALS: ADD/EDIT CHUNK & TAXONOMY          -->
+    <!-- ========================================== -->
+
+    <!-- Chunk Modal -->
+    <div id="chunk-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="chunk-modal-title">Edit Knowledge Chunk</h3>
+                <button class="close-modal" onclick="closeModal('chunk-modal')">&times;</button>
+            </div>
+            <input type="hidden" id="edit-chunk-id">
+            <div class="form-row">
+                <label class="form-label">Standard Code (e.g. API RP 8B / ASME B31.3):</label>
+                <input type="text" id="edit-chunk-code" class="form-input" required>
+            </div>
+            <div class="form-row">
+                <label class="form-label">Standard Title / Name:</label>
+                <input type="text" id="edit-chunk-name" class="form-input">
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div class="form-row">
+                    <label class="form-label">Section Context:</label>
+                    <input type="text" id="edit-chunk-section" class="form-input">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">Clause / Paragraph Number:</label>
+                    <input type="text" id="edit-chunk-clause" class="form-input">
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label">Scope & Scope Policy:</label>
+                <select id="edit-chunk-scope" class="form-input">
+                    <option value="global">Global (Shared Knowledge)</option>
+                    <option value="company_shared">Company Shared</option>
+                    <option value="private_temp">Private Session Sandbox</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label class="form-label">Technical Standard Content (Clauses, Tables, Rules):</label>
+                <textarea id="edit-chunk-content" class="form-input" rows="8"></textarea>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+                <button class="btn" onclick="closeModal('chunk-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveChunk()">Save Chunk</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Taxonomy Modal -->
+    <div id="taxonomy-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="taxonomy-modal-title">Taxonomy Governance Rule</h3>
+                <button class="close-modal" onclick="closeModal('taxonomy-modal')">&times;</button>
+            </div>
+            <input type="hidden" id="edit-tax-id">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div class="form-row">
+                    <label class="form-label">Category / Discipline:</label>
+                    <input type="text" id="edit-tax-category" class="form-input" placeholder="e.g. Hoisting Equipment">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">Equipment Name:</label>
+                    <input type="text" id="edit-tax-name" class="form-input" placeholder="e.g. Elevators & Bails">
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label">Trigger Search Keywords (comma-separated):</label>
+                <input type="text" id="edit-tax-keywords" class="form-input" placeholder="elevator, bails, links, hoisting">
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div class="form-row">
+                    <label class="form-label">Primary Governing Standard:</label>
+                    <input type="text" id="edit-tax-primary" class="form-input" placeholder="API RP 8B / ISO 13534">
+                </div>
+                <div class="form-row">
+                    <label class="form-label">Companion Standards:</label>
+                    <input type="text" id="edit-tax-companion" class="form-input" placeholder="API Spec 8C, ISO 13535">
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label">Strictly Prohibited Standards (Zero Scope):</label>
+                <input type="text" id="edit-tax-prohibited" class="form-input" placeholder="API Spec 7K, API 6A, ASME B31.3">
+            </div>
+            <div class="form-row">
+                <label class="form-label">Governing Clause / Table Reference:</label>
+                <input type="text" id="edit-tax-clause" class="form-input" placeholder="Section 5 & Table 1">
+            </div>
+            <div class="form-row">
+                <label class="form-label">Mandatory SOP Personnel Qualification:</label>
+                <input type="text" id="edit-tax-personnel" class="form-input" placeholder="ASNT Level II MT/UT; OEM Specialist">
+            </div>
+            <div class="form-row">
+                <label class="form-label">Mandatory QA/QC Hold Point:</label>
+                <input type="text" id="edit-tax-holdpoint" class="form-input" placeholder="Hold Point (H) - Cat III/IV sign-off">
+            </div>
+            <div class="form-row">
+                <label class="form-label">Inspection Frequencies & Criteria:</label>
+                <input type="text" id="edit-tax-frequencies" class="form-input" placeholder="Cat I: Daily; Cat II: Weekly; Cat III: 6 Mos; Cat IV: 1-5 Yrs">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+                <button class="btn" onclick="closeModal('taxonomy-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveTaxonomyModalRule()">Save Rule</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Column Modal -->
+    <div id="column-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width:480px;">
+            <div class="modal-header">
+                <h3>Add Column (ALTER TABLE)</h3>
+                <button class="close-modal" onclick="closeModal('column-modal')">&times;</button>
+            </div>
+            <div class="form-row">
+                <label class="form-label">Target Database Table:</label>
+                <select id="col-target-table" class="form-input">
+                    <option value="standards_chunks">standards_chunks</option>
+                    <option value="standards_taxonomy">standards_taxonomy</option>
+                    <option value="standards_tables">standards_tables</option>
+                    <option value="oilfield_jargon">oilfield_jargon</option>
+                    <option value="standards_relationships">standards_relationships</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label class="form-label">New Column Name (e.g. defect_severity, revision_year):</label>
+                <input type="text" id="col-name" class="form-input" placeholder="e.g. revision_year">
+            </div>
+            <div class="form-row">
+                <label class="form-label">SQL Data Type:</label>
+                <select id="col-type" class="form-input">
+                    <option value="TEXT">TEXT (strings, notes)</option>
+                    <option value="INTEGER">INTEGER (numbers, booleans)</option>
+                    <option value="REAL">REAL (decimals, floats)</option>
+                    <option value="DATETIME">DATETIME (timestamps)</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label class="form-label">Default Value (Optional):</label>
+                <input type="text" id="col-default" class="form-input" placeholder="e.g. NULL or 0 or standard">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+                <button class="btn" onclick="closeModal('column-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitAddColumn()">Execute ALTER TABLE</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        const API_BASE = "https://inspection-api.mohamedtarekhse.workers.dev";
+        let currentChunkPage = 1;
+        let totalChunkPages = 1;
+        let allTaxonomyList = [];
+        let generatedAiRule = null;
+
+        // Startup Initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('inspecta_theme') || 'dark';
+            if (savedTheme === 'light') document.documentElement.classList.add('light-mode');
+            
+            const savedToken = localStorage.getItem('inspecta_admin_token') || '';
+            const tokenInput = document.getElementById('admin-token');
+            if (tokenInput && savedToken) tokenInput.value = savedToken;
+
+            loadChunks(1);
+            loadStandardsFilter();
+        });
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('light-mode');
+            localStorage.setItem('inspecta_theme', document.documentElement.classList.contains('light-mode') ? 'light' : 'dark');
+        }
+
+        function saveToken(val) {
+            localStorage.setItem('inspecta_admin_token', val.trim());
+            showToast("Admin token updated.");
+        }
+
+        function getAdminToken() {
+            return (document.getElementById('admin-token')?.value || localStorage.getItem('inspecta_admin_token') || '').trim();
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = 'block';
+            setTimeout(() => { t.style.display = 'none'; }, 3000);
+        }
+
+        function setStudioTab(tab) {
+            document.getElementById('tab-chunks-btn').classList.toggle('active', tab === 'chunks');
+            document.getElementById('tab-taxonomy-btn').classList.toggle('active', tab === 'taxonomy');
+            document.getElementById('tab-schema-btn').classList.toggle('active', tab === 'schema');
+
+            document.getElementById('studio-tab-chunks').style.display = tab === 'chunks' ? 'block' : 'none';
+            document.getElementById('studio-tab-taxonomy').style.display = tab === 'taxonomy' ? 'block' : 'none';
+            document.getElementById('studio-tab-schema').style.display = tab === 'schema' ? 'block' : 'none';
+
+            if (tab === 'chunks') loadChunks(currentChunkPage);
+            if (tab === 'taxonomy') loadTaxonomyTable();
+            if (tab === 'schema') loadSchemaViewer();
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // ==========================================
+        // 1. KNOWLEDGE CHUNKS BROWSER & CRUD
+        // ==========================================
+        async function loadStandardsFilter() {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/catalog`);
+                const data = await res.json();
+                const sel = document.getElementById('chunk-std-filter');
+                if (data.standards && sel) {
+                    data.standards.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.standard_code;
+                        opt.textContent = `${s.standard_code} (${s.chunk_count})`;
+                        sel.appendChild(opt);
+                    });
+                }
+            } catch(e){}
+        }
+
+        async function loadChunks(page = 1) {
+            currentChunkPage = page;
+            const search = document.getElementById('chunk-search').value.trim();
+            const std = document.getElementById('chunk-std-filter').value;
+            const status = document.getElementById('chunk-status-filter').value;
+
+            const tbody = document.getElementById('chunks-tbody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-muted);">Fetching chunks from Cloudflare D1...</td></tr>';
+
+            const params = new URLSearchParams({
+                page: page,
+                limit: 25,
+                search: search,
+                standard_code: std,
+                status: status
+            });
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/chunks?${params.toString()}`);
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                totalChunkPages = data.total_pages || 1;
+                document.getElementById('chunk-page-num').textContent = `${data.page} / ${totalChunkPages}`;
+                document.getElementById('chunk-pagination-info').textContent = `Showing ${data.chunks.length} of ${data.total} chunks (Page ${data.page})`;
+                document.getElementById('chunk-prev-btn').disabled = data.page <= 1;
+                document.getElementById('chunk-next-btn').disabled = data.page >= totalChunkPages;
+
+                if (data.chunks.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-muted);">No chunks match your search criteria.</td></tr>';
+                    return;
+                }
+
+                let html = '';
+                data.chunks.forEach(c => {
+                    const isEx = c.is_excluded === 1;
+                    const statusBadge = isEx ? '<span class="badge badge-excluded">Excluded</span>' : '<span class="badge badge-active">Active</span>';
+                    const toggleBtnText = isEx ? '👁️ Include' : '🚫 Exclude';
+                    const toggleBtnClass = isEx ? 'btn-sm' : 'btn-sm btn-danger';
+
+                    html += `<tr>
+                        <td style="font-family:var(--font-mono); color:var(--text-muted);">${c.id}</td>
+                        <td>
+                            <strong style="color:var(--blue-light);">${escapeHtml(c.standard_code)}</strong>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(c.standard_name || '')}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight:600;">${escapeHtml(c.clause || 'General')}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(c.section || '')}</div>
+                        </td>
+                        <td>
+                            <div class="content-snippet">${escapeHtml(c.content)}</div>
+                        </td>
+                        <td>${statusBadge}</td>
+                        <td style="text-align:right;">
+                            <div style="display:inline-flex; gap:6px;">
+                                <button class="btn btn-sm" onclick="openEditChunkModal(${c.id})">✏️ Edit</button>
+                                <button class="${toggleBtnClass}" onclick="toggleChunkExclude(${c.id})">${toggleBtnText}</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteChunk(${c.id})">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+            } catch(e) {
+                tbody.innerHTML = `<tr><td colspan="6" style="color:var(--red); text-align:center; padding:30px;">Error loading chunks: ${e.message}</td></tr>`;
+            }
+        }
+
+        function prevChunkPage() { if (currentChunkPage > 1) loadChunks(currentChunkPage - 1); }
+        function nextChunkPage() { if (currentChunkPage < totalChunkPages) loadChunks(currentChunkPage + 1); }
+
+        function openAddChunkModal() {
+            document.getElementById('chunk-modal-title').textContent = "Add New Knowledge Chunk (Row)";
+            document.getElementById('edit-chunk-id').value = "";
+            document.getElementById('edit-chunk-code').value = "";
+            document.getElementById('edit-chunk-name').value = "";
+            document.getElementById('edit-chunk-section').value = "";
+            document.getElementById('edit-chunk-clause').value = "";
+            document.getElementById('edit-chunk-content').value = "";
+            document.getElementById('edit-chunk-scope').value = "global";
+            document.getElementById('chunk-modal').style.display = 'flex';
+        }
+
+        async function openEditChunkModal(id) {
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/chunks?search=${id}`);
+                const data = await res.json();
+                const chunk = (data.chunks || []).find(c => c.id === id);
+                if (!chunk) return alert("Chunk not found.");
+
+                document.getElementById('chunk-modal-title').textContent = `Edit Knowledge Chunk #${chunk.id}`;
+                document.getElementById('edit-chunk-id').value = chunk.id;
+                document.getElementById('edit-chunk-code').value = chunk.standard_code || '';
+                document.getElementById('edit-chunk-name').value = chunk.standard_name || '';
+                document.getElementById('edit-chunk-section').value = chunk.section || '';
+                document.getElementById('edit-chunk-clause').value = chunk.clause || '';
+                document.getElementById('edit-chunk-content').value = chunk.content || '';
+                document.getElementById('edit-chunk-scope').value = chunk.scope || 'global';
+                document.getElementById('chunk-modal').style.display = 'flex';
+            } catch(e) {
+                alert("Error fetching chunk details: " + e.message);
+            }
+        }
+
+        async function saveChunk() {
+            const token = getAdminToken();
+            if (!token) return alert("Please enter your Admin Secret Token in the header.");
+
+            const id = document.getElementById('edit-chunk-id').value;
+            const code = document.getElementById('edit-chunk-code').value.trim();
+            const name = document.getElementById('edit-chunk-name').value.trim();
+            const section = document.getElementById('edit-chunk-section').value.trim();
+            const clause = document.getElementById('edit-chunk-clause').value.trim();
+            const content = document.getElementById('edit-chunk-content').value.trim();
+            const scope = document.getElementById('edit-chunk-scope').value;
+
+            if (!code || !content) return alert("Standard Code and Content are required.");
+
+            const url = id ? `${API_BASE}/api/admin/chunks/${id}` : `${API_BASE}/api/admin/chunks`;
+            const method = id ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ standard_code: code, standard_name: name, section, clause, content, scope })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(id ? "Chunk updated successfully!" : "New chunk created and embedded!");
+                    closeModal('chunk-modal');
+                    loadChunks(currentChunkPage);
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch(e) {
+                alert("Network Error: " + e.message);
+            }
+        }
+
+        async function toggleChunkExclude(id) {
+            const token = getAdminToken();
+            if (!token) return alert("Please enter your Admin Secret Token in the header.");
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/chunks/${id}/toggle-exclude`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.is_excluded === 1 ? "Chunk excluded from RAG answers." : "Chunk restored to active knowledge.");
+                    loadChunks(currentChunkPage);
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch(e) {
+                alert("Error: " + e.message);
+            }
+        }
+
+        async function deleteChunk(id) {
+            const token = getAdminToken();
+            if (!token) return alert("Please enter your Admin Secret Token in the header.");
+            if (!confirm(`Are you sure you want to permanently delete Chunk #${id}?`)) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/chunks/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast("Chunk deleted.");
+                    loadChunks(currentChunkPage);
+                } else {
+                    alert("Delete error: " + data.error);
+                }
+            } catch(e) {
+                alert("Error: " + e.message);
+            }
+        }
+
+        // ==========================================
+        // 2. STANDARDS TAXONOMY & AI RULE GENERATOR
+        // ==========================================
+        function setAiPrompt(text) {
+            document.getElementById('ai-rule-prompt').value = text;
+        }
+
+        async function generateRuleWithAI() {
+            const prompt = document.getElementById('ai-rule-prompt').value.trim();
+            if (!prompt) return alert("Please enter requirements or paste text snippet.");
+
+            const btn = document.getElementById('btn-gen-rule');
+            btn.disabled = true;
+            btn.innerHTML = `<span>⏳ Extracting Rule with GLM-5.3 AI...</span>`;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/ai-generate-rule`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+                const data = await res.json();
+
+                if (data.success && data.rule) {
+                    generatedAiRule = data.rule;
+                    renderAiRulePreview(data.rule);
+                    showToast("AI Rule generated successfully!");
+                } else {
+                    alert("AI Generation Error: " + (data.error || "Unable to extract rule."));
+                }
+            } catch(e) {
+                alert("Error: " + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>🤖 Generate Rule with AI</span>`;
+            }
+        }
+
+        function renderAiRulePreview(rule) {
+            const wrap = document.getElementById('ai-rule-preview');
+            const fieldsWrap = document.getElementById('ai-rule-form-fields');
+            wrap.style.display = 'block';
+
+            let html = '';
+            for (const [k, v] of Object.entries(rule)) {
+                html += `<div>
+                    <label style="font-weight:600; color:var(--text-muted); font-size:0.72rem; text-transform:uppercase;">${k.replace(/_/g, ' ')}</label>
+                    <input type="text" id="ai-field-${k}" class="form-input" style="padding:6px 10px; font-size:0.8rem;" value="${escapeHtml(v || '')}">
+                </div>`;
+            }
+            fieldsWrap.innerHTML = html;
+        }
+
+        async function saveGeneratedTaxonomyRule() {
+            const token = getAdminToken();
+            if (!token) return alert("Please enter Admin Secret Token in the header.");
+
+            const payload = {};
+            const keys = [
+                'equipment_category', 'equipment_name', 'keywords', 'primary_standard',
+                'companion_standards', 'prohibited_standards', 'governing_clause_table',
+                'default_service_condition', 'primary_ndt_method', 'sop_personnel_qualification',
+                'mandatory_hold_point', 'inspection_frequencies'
+            ];
+
+            keys.forEach(k => {
+                const el = document.getElementById(`ai-field-${k}`);
+                if (el) payload[k] = el.value.trim();
+            });
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/taxonomy`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast("Taxonomy Governance Rule saved to D1!");
+                    document.getElementById('ai-rule-preview').style.display = 'none';
+                    document.getElementById('ai-rule-prompt').value = '';
+                    loadTaxonomyTable();
+                } else {
+                    alert("Error saving rule: " + data.error);
+                }
+            } catch(e) {
+                alert("Error: " + e.message);
+            }
+        }
+
+        async function loadTaxonomyTable() {
+            const tbody = document.getElementById('taxonomy-tbody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">Loading taxonomy rules...</td></tr>';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/taxonomy`);
+                const data = await res.json();
+
+                if (data.success && Array.isArray(data.taxonomy)) {
+                    allTaxonomyList = data.taxonomy;
+                    renderTaxonomyTableRows(allTaxonomyList);
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--red); text-align:center; padding:30px;">Error: ${data.error}</td></tr>`;
+                }
+            } catch(e) {
+                tbody.innerHTML = `<tr><td colspan="7" style="color:var(--red); text-align:center; padding:30px;">Network Error: ${e.message}</td></tr>`;
+            }
+        }
+
+        function renderTaxonomyTableRows(list) {
+            const tbody = document.getElementById('taxonomy-tbody');
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">No taxonomy rules found.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            list.forEach(r => {
+                const isEx = r.is_excluded === 1;
+                const statusBadge = isEx ? '<span class="badge badge-excluded">Excluded</span>' : '<span class="badge badge-active">Active</span>';
+                const toggleText = isEx ? '👁️ Include' : '🚫 Exclude';
+                const toggleClass = isEx ? 'btn-sm' : 'btn-sm btn-danger';
+
+                html += `<tr>
+                    <td>
+                        <strong style="color:var(--text-main);">${escapeHtml(r.equipment_name)}</strong>
+                        <div style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono);">${escapeHtml(r.keywords)}</div>
+                    </td>
+                    <td><span class="badge badge-global">${escapeHtml(r.equipment_category)}</span></td>
+                    <td><strong style="color:var(--green);">${escapeHtml(r.primary_standard)}</strong></td>
+                    <td>
+                        <span style="color:var(--red); font-weight:600; font-size:0.75rem;">${escapeHtml(r.prohibited_standards || 'None')}</span>
+                    </td>
+                    <td>
+                        <div style="font-size:0.78rem;"><strong>Qual:</strong> ${escapeHtml(r.sop_personnel_qualification || 'Standard')}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);"><strong>Hold:</strong> ${escapeHtml(r.mandatory_hold_point || 'None')}</div>
+                    </td>
+                    <td>${statusBadge}</td>
+                    <td style="text-align:right;">
+                        <div style="display:inline-flex; gap:6px;">
+                            <button class="btn btn-sm" onclick="openEditTaxonomyModal(${r.id})">✏️ Edit</button>
+                            <button class="${toggleClass}" onclick="toggleTaxonomyExclude(${r.id})">${toggleText}</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteTaxonomyRule(${r.id})">🗑️</button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function filterTaxonomyTable() {
+            const q = document.getElementById('tax-search').value.toLowerCase().trim();
+            if (!q) return renderTaxonomyTableRows(allTaxonomyList);
+            const filtered = allTaxonomyList.filter(r => 
+                (r.equipment_name || '').toLowerCase().includes(q) ||
+                (r.equipment_category || '').toLowerCase().includes(q) ||
+                (r.primary_standard || '').toLowerCase().includes(q) ||
+                (r.keywords || '').toLowerCase().includes(q)
+            );
+            renderTaxonomyTableRows(filtered);
+        }
+
+        function openAddTaxonomyModal() {
+            document.getElementById('taxonomy-modal-title').textContent = "Add Manual Taxonomy Governance Rule";
+            document.getElementById('edit-tax-id').value = '';
+            document.getElementById('edit-tax-category').value = '';
+            document.getElementById('edit-tax-name').value = '';
+            document.getElementById('edit-tax-keywords').value = '';
+            document.getElementById('edit-tax-primary').value = '';
+            document.getElementById('edit-tax-companion').value = '';
+            document.getElementById('edit-tax-prohibited').value = '';
+            document.getElementById('edit-tax-clause').value = '';
+            document.getElementById('edit-tax-personnel').value = '';
+            document.getElementById('edit-tax-holdpoint').value = '';
+            document.getElementById('edit-tax-frequencies').value = '';
+            document.getElementById('taxonomy-modal').style.display = 'flex';
+        }
+
+        function openEditTaxonomyModal(id) {
+            const rule = allTaxonomyList.find(r => r.id === id);
+            if (!rule) return alert("Rule not found.");
+
+            document.getElementById('taxonomy-modal-title').textContent = `Edit Taxonomy Rule #${rule.id}`;
+            document.getElementById('edit-tax-id').value = rule.id;
+            document.getElementById('edit-tax-category').value = rule.equipment_category || '';
+            document.getElementById('edit-tax-name').value = rule.equipment_name || '';
+            document.getElementById('edit-tax-keywords').value = rule.keywords || '';
+            document.getElementById('edit-tax-primary').value = rule.primary_standard || '';
+            document.getElementById('edit-tax-companion').value = rule.companion_standards || '';
+            document.getElementById('edit-tax-prohibited').value = rule.prohibited_standards || '';
+            document.getElementById('edit-tax-clause').value = rule.governing_clause_table || '';
+            document.getElementById('edit-tax-personnel').value = rule.sop_personnel_qualification || '';
+            document.getElementById('edit-tax-holdpoint').value = rule.mandatory_hold_point || '';
+            document.getElementById('edit-tax-frequencies').value = rule.inspection_frequencies || '';
+            document.getElementById('taxonomy-modal').style.display = 'flex';
+        }
+
+        async function saveTaxonomyModalRule() {
+            const token = getAdminToken();
+            if (!token) return alert("Please enter Admin Secret Token.");
+
+            const id = document.getElementById('edit-tax-id').value;
+            const category = document.getElementById('edit-tax-category').value.trim();
+            const name = document.getElementById('edit-tax-name').value.trim();
+            const keywords = document.getElementById('edit-tax-keywords').value.trim();
+            const primary = document.getElementById('edit-tax-primary').value.trim();
+            const companion = document.getElementById('edit-tax-companion').value.trim();
+            const prohibited = document.getElementById('edit-tax-prohibited').value.trim();
+            const clause = document.getElementById('edit-tax-clause').value.trim();
+            const personnel = document.getElementById('edit-tax-personnel').value.trim();
+            const holdpoint = document.getElementById('edit-tax-holdpoint').value.trim();
+            const frequencies = document.getElementById('edit-tax-frequencies').value.trim();
+
+            if (!category || !name || !keywords || !primary) {
+                return alert("Category, Name, Keywords, and Primary Standard are required.");
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/taxonomy`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        id: id ? parseInt(id) : undefined,
+                        equipment_category: category,
+                        equipment_name: name,
+                        keywords: keywords,
+                        primary_standard: primary,
+                        companion_standards: companion,
+                        prohibited_standards: prohibited,
+                        governing_clause_table: clause,
+                        sop_personnel_qualification: personnel,
+                        mandatory_hold_point: holdpoint,
+                        inspection_frequencies: frequencies
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast("Rule saved successfully!");
+                    closeModal('taxonomy-modal');
+                    loadTaxonomyTable();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch(e) {
+                alert("Network Error: " + e.message);
+            }
+        }
+
+        async function toggleTaxonomyExclude(id) {
+            const token = getAdminToken();
+            if (!token) return alert("Please enter Admin Secret Token in header.");
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/taxonomy/${id}/toggle-exclude`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.is_excluded === 1 ? "Taxonomy Rule excluded." : "Taxonomy Rule active.");
+                    loadTaxonomyTable();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch(e) {
+                alert("Error: " + e.message);
+            }
+        }
+
+        async function deleteTaxonomyRule(id) {
+            const token = getAdminToken();
+            if (!token) return alert("Please enter Admin Secret Token in header.");
+            if (!confirm(`Are you sure you want to delete Taxonomy Rule #${id}?`)) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/taxonomy/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast("Taxonomy Rule deleted.");
+                    loadTaxonomyTable();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch(e) {
+                alert("Error: " + e.message);
+            }
+        }
+
+        // ==========================================
+        // 3. SCHEMA VIEWER & ADD COLUMN
+        // ==========================================
+        async function loadSchemaViewer() {
+            const grid = document.getElementById('schema-tables-grid');
+            grid.innerHTML = '<div style="color:var(--text-muted); padding:20px;">Inspecting database schemas...</div>';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/schema/columns`);
+                const data = await res.json();
+
+                if (data.success && data.tables) {
+                    let html = '';
+                    for (const [tbl, cols] of Object.entries(data.tables)) {
+                        html += `
+                        <div class="schema-card">
+                            <div class="schema-card-title">
+                                <span>📋 ${tbl}</span>
+                                <span style="font-size:0.75rem; color:var(--text-muted);">${cols.length} cols</span>
+                            </div>
+                            <div class="col-list">`;
+                        cols.forEach(c => {
+                            html += `
+                            <div class="col-item">
+                                <span>${c.name}</span>
+                                <span class="col-type">${c.type}</span>
+                            </div>`;
+                        });
+                        html += `
+                            </div>
+                        </div>`;
+                    }
+                    grid.innerHTML = html;
+                } else {
+                    grid.innerHTML = `<div style="color:var(--red);">Failed to inspect schema: ${data.error}</div>`;
+                }
+            } catch(e) {
+                grid.innerHTML = `<div style="color:var(--red);">Network Error: ${e.message}</div>`;
+            }
+        }
+
+        function openAddColumnModal() {
+            document.getElementById('col-name').value = '';
+            document.getElementById('col-default').value = '';
+            document.getElementById('column-modal').style.display = 'flex';
+        }
+
+        async function submitAddColumn() {
+            const token = getAdminToken();
+            if (!token) return alert("Please enter Admin Secret Token in header.");
+
+            const table = document.getElementById('col-target-table').value;
+            const colName = document.getElementById('col-name').value.trim();
+            const colType = document.getElementById('col-type').value;
+            const defVal = document.getElementById('col-default').value.trim();
+
+            if (!colName) return alert("Please specify a column name.");
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/schema/add-column`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        table_name: table,
+                        column_name: colName,
+                        data_type: colType,
+                        default_value: defVal || null
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message);
+                    closeModal('column-modal');
+                    loadSchemaViewer();
+                } else {
+                    alert("Error adding column: " + data.error);
+                }
+            } catch(e) {
+                alert("Network Error: " + e.message);
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+    </script>
+</body>
+</html>

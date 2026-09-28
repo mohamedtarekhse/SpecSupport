@@ -158,6 +158,9 @@ app.all('/api/admin/setup-db', async (c) => {
     if (!colNames.includes('expires_at')) {
       try { await c.env.DB.prepare(`ALTER TABLE standards_chunks ADD COLUMN expires_at DATETIME`).run() } catch(e){}
     }
+    if (!colNames.includes('is_excluded')) {
+      try { await c.env.DB.prepare(`ALTER TABLE standards_chunks ADD COLUMN is_excluded INTEGER DEFAULT 0`).run() } catch(e){}
+    }
 
     // 3. Standards Taxonomy & Equipment Categorization Governance Matrix
     await ensureTaxonomyTable(c.env.DB)
@@ -193,6 +196,17 @@ async function ensureTaxonomyTable(db) {
     `).run()
     try {
       await db.prepare(`CREATE INDEX IF NOT EXISTS idx_tax_equip ON standards_taxonomy(equipment_name)`).run()
+    } catch(e){}
+
+    try {
+      const taxCols = (await db.prepare(`PRAGMA table_info(standards_taxonomy)`).all()).results?.map(r => r.name) || []
+      if (!taxCols.includes('is_excluded')) {
+        await db.prepare(`ALTER TABLE standards_taxonomy ADD COLUMN is_excluded INTEGER DEFAULT 0`).run()
+      }
+      const chunkCols = (await db.prepare(`PRAGMA table_info(standards_chunks)`).all()).results?.map(r => r.name) || []
+      if (!chunkCols.includes('is_excluded')) {
+        await db.prepare(`ALTER TABLE standards_chunks ADD COLUMN is_excluded INTEGER DEFAULT 0`).run()
+      }
     } catch(e){}
 
     const countRes = await db.prepare(`SELECT count(*) as count FROM standards_taxonomy`).first()
@@ -528,6 +542,287 @@ app.post('/api/admin/refine-chunks', async (c) => {
       refined_count: refinedCount,
       message: `Refined and cleaned ${refinedCount} chunks in this batch.`
     })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// 📄 Paginated Chunk Browser & Filter
+app.get('/api/admin/chunks', async (c) => {
+  try {
+    const page = parseInt(c.req.query('page') || '1')
+    const limit = Math.min(parseInt(c.req.query('limit') || '25'), 100)
+    const offset = (page - 1) * limit
+    const search = c.req.query('search') || ''
+    const standard_code = c.req.query('standard_code') || ''
+    const status = c.req.query('status') || 'all'
+
+    let whereClauses = []
+    let params = []
+
+    if (standard_code && standard_code !== 'ALL') {
+      whereClauses.push('standard_code = ?')
+      params.push(standard_code)
+    }
+
+    if (status === 'active') {
+      whereClauses.push('(is_excluded = 0 OR is_excluded IS NULL)')
+    } else if (status === 'excluded') {
+      whereClauses.push('is_excluded = 1')
+    }
+
+    if (search) {
+      whereClauses.push('(standard_code LIKE ? OR section LIKE ? OR clause LIKE ? OR content LIKE ?)')
+      const sParam = `%${search}%`
+      params.push(sParam, sParam, sParam, sParam)
+    }
+
+    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : ''
+
+    const countRes = await c.env.DB.prepare(`SELECT count(*) as count FROM standards_chunks ${whereSql}`).bind(...params).first()
+    const total = countRes ? countRes.count : 0
+
+    const { results } = await c.env.DB.prepare(`
+      SELECT id, standard_code, standard_name, section, clause, content, scope, organization, is_excluded, created_at
+      FROM standards_chunks
+      ${whereSql}
+      ORDER BY id DESC
+      LIMIT ? OFFSET ?
+    `).bind(...params, limit, offset).all()
+
+    return c.json({
+      success: true,
+      chunks: results || [],
+      total,
+      page,
+      limit,
+      total_pages: Math.ceil(total / limit)
+    })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// ➕ Add New Chunk (Row)
+app.post('/api/admin/chunks', async (c) => {
+  const token = c.req.header('Authorization')?.split(' ')[1]
+  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  try {
+    const { standard_code, standard_name, section, clause, content, scope = 'global', organization = 'INTERNATIONAL' } = await c.req.json()
+    if (!standard_code || !content) return c.json({ error: 'Missing standard_code or content' }, 400)
+
+    let embJson = null
+    if (c.env.AI) {
+      try {
+        const embRes = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [content.substring(0, 1000)] })
+        embJson = JSON.stringify(embRes.data?.[0] || embRes?.[0] || [])
+      } catch(e){}
+    }
+
+    const res = await c.env.DB.prepare(`
+      INSERT INTO standards_chunks (standard_code, standard_name, section, clause, content, embedding, scope, organization, is_excluded)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+    `).bind(standard_code, standard_name || standard_code, section || '', clause || '', content, embJson, scope, organization).run()
+
+    return c.json({ success: true, id: res.meta?.last_row_id })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// ✏️ Edit Chunk (Row)
+app.put('/api/admin/chunks/:id', async (c) => {
+  const token = c.req.header('Authorization')?.split(' ')[1]
+  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  try {
+    const id = c.req.param('id')
+    const { standard_code, standard_name, section, clause, content, scope, is_excluded } = await c.req.json()
+
+    await c.env.DB.prepare(`
+      UPDATE standards_chunks SET
+        standard_code = COALESCE(?, standard_code),
+        standard_name = COALESCE(?, standard_name),
+        section = COALESCE(?, section),
+        clause = COALESCE(?, clause),
+        content = COALESCE(?, content),
+        scope = COALESCE(?, scope),
+        is_excluded = COALESCE(?, is_excluded)
+      WHERE id = ?
+    `).bind(
+      standard_code !== undefined ? standard_code : null,
+      standard_name !== undefined ? standard_name : null,
+      section !== undefined ? section : null,
+      clause !== undefined ? clause : null,
+      content !== undefined ? content : null,
+      scope !== undefined ? scope : null,
+      is_excluded !== undefined ? is_excluded : null,
+      id
+    ).run()
+
+    return c.json({ success: true })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// 🗑️ Delete Chunk (Row)
+app.delete('/api/admin/chunks/:id', async (c) => {
+  const token = c.req.header('Authorization')?.split(' ')[1]
+  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  try {
+    const id = c.req.param('id')
+    await c.env.DB.prepare(`DELETE FROM standards_chunks WHERE id = ?`).bind(id).run()
+    return c.json({ success: true })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// 🚫 Exclude / Include Toggle for Chunks
+app.post('/api/admin/chunks/:id/toggle-exclude', async (c) => {
+  const token = c.req.header('Authorization')?.split(' ')[1]
+  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  try {
+    const id = c.req.param('id')
+    await c.env.DB.prepare(`
+      UPDATE standards_chunks SET is_excluded = CASE WHEN is_excluded = 1 THEN 0 ELSE 1 END WHERE id = ?
+    `).bind(id).run()
+    const updated = await c.env.DB.prepare(`SELECT is_excluded FROM standards_chunks WHERE id = ?`).bind(id).first()
+    return c.json({ success: true, is_excluded: updated?.is_excluded })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// 🚫 Exclude / Include Toggle for Taxonomy Rules
+app.post('/api/admin/taxonomy/:id/toggle-exclude', async (c) => {
+  const token = c.req.header('Authorization')?.split(' ')[1]
+  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  try {
+    const id = c.req.param('id')
+    await c.env.DB.prepare(`
+      UPDATE standards_taxonomy SET is_excluded = CASE WHEN is_excluded = 1 THEN 0 ELSE 1 END WHERE id = ?
+    `).bind(id).run()
+    const updated = await c.env.DB.prepare(`SELECT is_excluded FROM standards_taxonomy WHERE id = ?`).bind(id).first()
+    return c.json({ success: true, is_excluded: updated?.is_excluded })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// 📋 Dynamic Table Columns Schema Inspector
+app.get('/api/admin/schema/columns', async (c) => {
+  try {
+    const tables = ['standards_chunks', 'standards_taxonomy', 'standards_tables', 'oilfield_jargon', 'standards_relationships']
+    const schemaMap = {}
+    for (const t of tables) {
+      try {
+        const info = await c.env.DB.prepare(`PRAGMA table_info(${t})`).all()
+        schemaMap[t] = (info.results || []).map(r => ({ name: r.name, type: r.type, notnull: r.notnull, dflt_value: r.dflt_value }))
+      } catch(e){}
+    }
+    return c.json({ success: true, tables: schemaMap })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// ➕ Add Column to Table Dynamically
+app.post('/api/admin/schema/add-column', async (c) => {
+  const token = c.req.header('Authorization')?.split(' ')[1]
+  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  try {
+    const { table_name, column_name, data_type = 'TEXT', default_value = null } = await c.req.json()
+    
+    const allowedTables = ['standards_chunks', 'standards_taxonomy', 'standards_tables', 'oilfield_jargon', 'standards_relationships']
+    if (!allowedTables.includes(table_name)) {
+      return c.json({ error: `Invalid table. Allowed: ${allowedTables.join(', ')}` }, 400)
+    }
+
+    if (!/^[a-zA-Z][a-zA-Z0-9_]{1,40}$/.test(column_name)) {
+      return c.json({ error: 'Invalid column name. Must start with a letter and contain only alphanumeric and underscore characters (max 40 chars).' }, 400)
+    }
+
+    const allowedTypes = ['TEXT', 'INTEGER', 'REAL', 'BLOB', 'DATETIME']
+    const colType = allowedTypes.includes(data_type.toUpperCase()) ? data_type.toUpperCase() : 'TEXT'
+
+    const tableInfo = await c.env.DB.prepare(`PRAGMA table_info(${table_name})`).all()
+    const existingCols = (tableInfo.results || []).map(c => c.name.toLowerCase())
+    if (existingCols.includes(column_name.toLowerCase())) {
+      return c.json({ error: `Column '${column_name}' already exists on table '${table_name}'.` }, 409)
+    }
+
+    let alterSql = `ALTER TABLE ${table_name} ADD COLUMN ${column_name} ${colType}`
+    if (default_value !== null && default_value !== undefined && default_value !== '') {
+      alterSql += ` DEFAULT '${default_value.toString().replace(/'/g, "''")}'`
+    }
+
+    await c.env.DB.prepare(alterSql).run()
+
+    return c.json({ 
+      success: true, 
+      message: `Column '${column_name}' (${colType}) successfully added to '${table_name}'.` 
+    })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// 🤖 AI-Powered Rule Generator
+app.post('/api/admin/ai-generate-rule', async (c) => {
+  try {
+    const { prompt, source_text } = await c.req.json()
+    if (!prompt && !source_text) return c.json({ error: 'Missing prompt or source_text' }, 400)
+
+    const systemInstructions = `You are an expert Oil & Gas QA/QC Standards Architect. 
+Given a user requirement or engineering text, extract/generate a structured Equipment Taxonomy & Governance Rule.
+The output MUST be a valid JSON object matching EXACTLY this schema:
+{
+  "equipment_category": "e.g. Hoisting Equipment, Well Control Equipment, Drill Stem Elements, Rotary & Drilling Tools, Pressure Piping & Process Welds, Pressure Vessels",
+  "equipment_name": "Specific equipment name, e.g. Variable Bore Rams (VBR)",
+  "keywords": "Comma-separated lowercase search trigger words, e.g. vbr, variable bore ram, bop ram",
+  "primary_standard": "The exact international standard that legally governs, e.g. API Standard 53",
+  "companion_standards": "Companion manufacturing or design codes, e.g. API Spec 16A, API Spec 16D",
+  "prohibited_standards": "Out-of-scope standards that should NEVER govern this equipment, e.g. API Spec 7K, ASME B31.3",
+  "governing_clause_table": "Exact clause or table reference, e.g. API Standard 53 Section 6.5 & Table 3",
+  "default_service_condition": "e.g. HPHT Drilling / Sour Service (H2S)",
+  "primary_ndt_method": "e.g. Visual (VT) + Wet Fluorescent MPI + Hydrostatic Stump Test",
+  "sop_personnel_qualification": "Exact cross-disciplinary certification, e.g. IADC WellSharp / IWCF Level 4 + OEM Pressure Control Technician",
+  "mandatory_hold_point": "Exact QA/QC hold point, e.g. Hold Point (H) - 100% RWP Hydrostatic Pressure Test witnessed by Operator",
+  "inspection_frequencies": "e.g. Daily function test; 14-day pressure cycle; 5-year OEM remanufacture"
+}
+
+DO NOT output markdown ticks or conversational text. Output ONLY the raw JSON object.`
+
+    const userContent = `USER REQUIREMENT:\n${prompt || ''}\n\nTECHNICAL REFERENCE / SPECIFICATION EXCERPT:\n${(source_text || '').substring(0, 3000)}`
+
+    let generatedRule = null
+    let rawText = ''
+    try {
+      const { response } = await askAIProvider(c, [
+        { role: 'system', content: systemInstructions },
+        { role: 'user', content: userContent }
+      ], false)
+      const jsonResp = await response.json()
+      rawText = jsonResp?.choices?.[0]?.message?.content || jsonResp?.response || ''
+      if (typeof rawText === 'object' && rawText !== null) {
+        generatedRule = rawText
+      } else if (typeof rawText === 'string') {
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          let cleanJsonStr = jsonMatch[0].replace(/^```json\s*/i, '').replace(/```$/g, '').trim()
+          generatedRule = JSON.parse(cleanJsonStr)
+        }
+      }
+    } catch(e) {
+      console.error("AI rule generation error:", e)
+    }
+
+    if (!generatedRule) {
+      return c.json({ error: 'Failed to generate structured rule from AI.', raw_text: rawText }, 422)
+    }
+
+    return c.json({ success: true, rule: generatedRule })
   } catch(e) {
     return c.json({ error: e.message }, 500)
   }
@@ -1244,6 +1539,7 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
              prohibited_standards, governing_clause_table, default_service_condition, 
              primary_ndt_method, sop_personnel_qualification, mandatory_hold_point, inspection_frequencies
       FROM standards_taxonomy
+      WHERE (is_excluded = 0 OR is_excluded IS NULL)
     `).all()
 
     if (taxRules && taxRules.length > 0) {
@@ -1486,6 +1782,7 @@ ${rulesSection}
             SELECT id, standard_code, standard_name, section, clause, content, scope, organization 
             FROM standards_chunks 
             WHERE (clause LIKE ? OR section LIKE ? OR content LIKE ?)
+              AND (is_excluded = 0 OR is_excluded IS NULL)
             LIMIT 3
           `
           const param = `%${ent.value}%`
@@ -1547,6 +1844,7 @@ ${rulesSection}
       SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization 
       FROM standards_chunks 
       WHERE (scope = 'global' OR scope IS NULL OR (scope = 'private_temp' AND session_id = ?))
+        AND (is_excluded = 0 OR is_excluded IS NULL)
     `
     let params = [session_id]
 
