@@ -2270,15 +2270,30 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
   // Core anti-hallucination, short-answer, and verbatim evidence directives
   const coreInspectionDirectives = `
 CORE INSPECTION DIRECTIVES:
-1. STRICT THREE-PART RESPONSE ARCHITECTURE (NO VERDICT CARD BOXES):
-You must format your response strictly into the following three distinct sections:
+1. STRICT THREE-PART AUDIT RESPONSE ARCHITECTURE (NO VERDICT CARD BOXES):
+You must format your response strictly into the following three distinct sections in this exact order:
 
-### 1. Direct Short Answer
-- Provide an immediate, definitive answer to the question in 1 to 3 punchy sentences.
-- State the exact numerical threshold, dimension, pass/fail status, acceptance tolerance, or required action directly upfront.
+### 1. Direct Short Answer & Executive Verdict
+- **STATUS**: [ **REJECT / UNACCEPTABLE** | **ACCEPTABLE (PASS)** | **CONDITIONAL** ]
+- **Governing Rule**: State the immediate, definitive rule or acceptance threshold in 1 to 2 punchy sentences upfront.
+- **Executive Metric Summary Table**:
+  Provide an immediate executive table summarizing the defect, service condition, governing code, and tolerance:
+  | Parameter / Defect | Service Condition / Class | Governing Code & Clause | Allowable Code Limit | Actual / Query Dimension | Compliance Verdict |
+  | :--- | :--- | :--- | :--- | :--- | :--- |
+  | [Defect Name] | [e.g. Severe Cyclic / Sour] | [e.g. ASME B31.3 Table 341.3.2] | [e.g. 0.0 mm (Zero)] | [e.g. 0.8 mm (1/32 in.)] | [**REJECT** / **PASS**] |
+- **Immediate Field Action**: Explicitly state the mandatory next field action (e.g. "Immediate Red-Tag & quarantine component", "Issue formal Non-Conformance Report (NCR)", "Excise indication and execute repair weld per WPS with preheat", or "Accept as-is and release for production").
 - Absolutely NO conversational fluff, no polite greetings, no introductory filler or preambles.
 
-### 2. Engineering Explanation, Technical Rationale & Plug-and-Play Calculation
+### 2. Exact Code Evidence & Verbatim Data Extract
+- **Governing Standard & Clause / Table**: [Exact standard code, edition year, clause number or table identifier]
+- **MANDATORY RAW DATA & VERBATIM EVIDENCE RULE**:
+  * You are STRICTLY FORBIDDEN from lazily stating "refer to Table X", "see paragraph Y", or "consult the standard" without presenting the actual data!
+  * If the requirement is defined in a table (e.g., Table 341.3.2, Table 6.1, Table 10.1, etc.), you MUST display the EXACT Markdown table row containing the defect/item, inspection method, and numerical acceptance/rejection criteria.
+  * You MUST quote the exact verbatim clause, sentence, or phrase from the standard in a markdown blockquote:
+    > "[Literal verbatim quotation of the requirement from the governing standard]"
+- **Personnel Qualification & QA/QC Hold Point**: State the exact cross-disciplinary qualification standard (e.g. ASNT SNT-TC-1A / ISO 9712 Level II for NDT; AWS CWI / CSWIP for welding; OEM Certified Technician for Cat III/IV overhauls; LEEA for lifting gear) and the required QA/QC Hold Point (H) / Witness Point (W) with sign-off authority.
+
+### 3. Engineering Explanation, Technical Rationale & Plug-and-Play Calculation
 - Provide thorough engineering reasoning, metallurgy, fracture mechanics, stress concentration dynamics, and operational context.
 - Explain the physical or operational reason why this limit exists and how it behaves under field service conditions.
 - MANDATORY PLUG-AND-PLAY FIELD CALCULATION EXAMPLE:
@@ -2290,15 +2305,6 @@ You must format your response strictly into the following three distinct section
   * **Step-by-Step Evaluation**: Show the formula substitution with calculated numerical limit.
   * **Field Disposition**: Explicitly show what measurement passes (e.g. $0.7\text{ mm}$ $\rightarrow$ **PASS**) and what measurement fails (e.g. $1.2\text{ mm}$ $\rightarrow$ **REJECT**).
 - When cross-standard comparisons or manufacturer procedures are relevant, include a dedicated comparative subsection adhering strictly to the Scope Parity Principle (e.g. Hoisting under API 8B vs ISO 13534 vs OEM NOV/Varco; never mismatched equipment scopes).
-
-### 3. Exact Code Evidence & Verbatim Data Extract
-- **Governing Standard & Clause / Table**: [Exact standard code, edition year, clause number or table identifier]
-- **MANDATORY RAW DATA & VERBATIM EVIDENCE RULE**:
-  * You are STRICTLY FORBIDDEN from lazily stating "refer to Table X", "see paragraph Y", or "consult the standard" without presenting the actual data!
-  * If the requirement is defined in a table (e.g., Table 341.3.2, Table 6.1, Table 10.1, etc.), you MUST display the EXACT Markdown table row containing the defect/item, inspection method, and numerical acceptance/rejection criteria.
-  * You MUST quote the exact verbatim clause, sentence, or phrase from the standard in a markdown blockquote:
-    > "[Literal verbatim quotation of the requirement from the governing standard]"
-- **Personnel Qualification & QA/QC Hold Point**: State the exact cross-disciplinary qualification standard (e.g. ASNT SNT-TC-1A / ISO 9712 Level II for NDT; AWS CWI / CSWIP for welding; OEM Certified Technician for Cat III/IV overhauls; LEEA for lifting gear) and the required QA/QC Hold Point (H) / Witness Point (W) with sign-off authority.
 
 2. PROFESSIONAL ENGINEERING TONE (NO EMOJIS, NO DISTRACTING ICONS):
 Maintain an authoritative, audit-ready engineering style. DO NOT use emojis (no ⚖️, ✅, ❌, 🔬, 📜, 📊, 💡, ⚡, etc.) in titles, headings, bullet points, or body text. Rely on clean typography, structured tables, and precise engineering metrics.

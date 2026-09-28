@@ -28,7 +28,7 @@
             --gemini-card-bg: #1E1F20;
             --gemini-card-border: #303134;
             --gemini-gradient: linear-gradient(74deg, #4285F4 0%, #9B72CB 25%, #D96570 50%, #9B72CB 75%, #4285F4 100%);
-            --max-width: 860px;
+            --max-width: 1360px;
 
             /* SAP Blue Horizon Theme Palette */
             --sap-blue: #0070F2;
@@ -864,12 +864,17 @@
             padding: 0 20px 24px 20px;
             box-sizing: border-box;
             position: absolute; bottom: 0;
+            left: 50%; transform: translateX(-50%);
             transition: all 0.3s ease;
             z-index: 50;
         }
 
         .state-greeting #input-container {
-            position: relative; bottom: auto; padding: 0;
+            position: relative; bottom: auto;
+            left: auto; transform: none;
+            padding: 0 20px 28px 20px;
+            width: 100%; max-width: var(--max-width);
+            margin: 0 auto;
         }
 
         .gemini-pill-box {
@@ -1062,6 +1067,59 @@
             }
             .prompt-card { min-width: 220px; scroll-snap-align: start; }
         }
+
+        /* Desktop PC View - Full Length Chat Box & Expansive Workspace */
+        @media (min-width: 1024px) {
+            :root {
+                --max-width: 1440px;
+            }
+            #input-container {
+                width: calc(100% - 64px);
+                max-width: 1440px;
+                padding: 0 0 24px 0;
+            }
+            .state-greeting #input-container {
+                width: calc(100% - 64px);
+                max-width: 1440px;
+                padding: 0 0 28px 0;
+            }
+            #chat-window {
+                width: calc(100% - 64px);
+                max-width: 1440px;
+            }
+            #greeting-area {
+                width: calc(100% - 64px);
+                max-width: 1440px;
+            }
+            .prompt-cards-grid {
+                max-width: 1440px;
+            }
+        }
+        @media (min-width: 1600px) {
+            :root {
+                --max-width: 1560px;
+            }
+            #input-container {
+                width: calc(100% - 80px);
+                max-width: 1560px;
+            }
+            .state-greeting #input-container {
+                width: calc(100% - 80px);
+                max-width: 1560px;
+            }
+            #chat-window {
+                width: calc(100% - 80px);
+                max-width: 1560px;
+            }
+            #greeting-area {
+                width: calc(100% - 80px);
+                max-width: 1560px;
+            }
+            .prompt-cards-grid {
+                max-width: 1560px;
+            }
+        }
+
         /* Gemini-Clone Line SVG System */
         .gemini-svg {
             width: 18px; height: 18px;
