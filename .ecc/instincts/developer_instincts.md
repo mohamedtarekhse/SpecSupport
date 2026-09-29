@@ -28,3 +28,7 @@ These instincts represent hard-won operational patterns discovered and codified 
 ### Instinct 6: Client-Side Batch Ingestion Buffering
 - **Context:** Ingesting large PDFs (300+ pages) requires chunk batching to prevent saturating D1 roundtrips.
 - **Instinct:** Ensure the batch buffer (`let pendingChunks = []`) and its transactional flush function (`flushChunkBatch`) are properly declared in the upload scope before the page loop, with an explicit post-loop tail flush to guarantee zero orphaned chunks.
+
+### Instinct 7: Universal RAG Execution & Standard-Scoped Source Citation Guard
+- **Context:** Bypassing chunk retrieval in non-standards modes or performing blind single-keyword table searches causes accidental cross-standard contamination (e.g. `API RP 8B Table 1` being attached to questions about welding, masts, or casing).
+- **Instinct:** Always run the vector/clause RAG pipeline across all modes, infer `detectedStd` early from equipment keywords, give matching standard chunks a strong candidate ranking boost (`-2000`), and strictly prohibit unconstrained table queries across `standards_tables` when `detectedStd` is missing.

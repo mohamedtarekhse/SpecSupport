@@ -3312,6 +3312,45 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
   let sources = []
   let systemPrompt = ""
 
+  // Intelligent Governing Standard Detection
+  let detectedStd = null
+  const stdMatch = question.match(/(ASME\s*(?:VIII|Section\s*VIII|B31\.3|B31\.4|B31\.8|V|IX)|API\s*(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5CT|RP\s*5C1|5C1|1104|16D|16A|7K|RP\s*2X|2X|RP\s*7G-2|7G-2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:3834-2|13534))/i)
+  if (stdMatch) {
+    detectedStd = stdMatch[1].replace(/Section\s*/i, '').trim().toUpperCase()
+  } else if (standard_filter && standard_filter !== 'ALL' && standard_filter !== '🌐 GENERAL AI') {
+    detectedStd = standard_filter.trim().toUpperCase()
+  } else {
+    if (/\b(?:mast|derrick|substructure|crown\s*frame|raising\s*line|shoe\s*elevation)\b/i.test(question)) {
+      detectedStd = '4G'
+    } else if (/\b(?:pulsation\s*dampener|pressure\s*vessel|spherical\s*shell|ug-27|uw-12|relief\s*valve)\b/i.test(question)) {
+      detectedStd = 'ASME VIII'
+    } else if (/\b(?:process\s*piping|b31\.3|severe\s*cyclic|undercut\s*depth)\b/i.test(question)) {
+      detectedStd = 'B31.3'
+    } else if (/\b(?:liquid\s*pipeline|slurry\s*pipeline|b31\.4)\b/i.test(question)) {
+      detectedStd = 'B31.4'
+    } else if (/\b(?:gas\s*transmission|gas\s*pipeline|distribution\s*piping|b31\.8)\b/i.test(question)) {
+      detectedStd = 'B31.8'
+    } else if (/\b(?:radiograph|optical\s*density|x-ray|gamma-ray|iqi|t-260|ultrasonic|angle\s*beam|dac\s*curve|t-4xx)\b/i.test(question)) {
+      detectedStd = 'ASME V'
+    } else if (/\b(?:casing|tubing|drift\s*mandrel|l-80|p-110|c-90|t-95)\b/i.test(question)) {
+      detectedStd = '5CT'
+    } else if (/\b(?:drill\s*pipe|drill\s*stem|tool\s*joint|hwdp|drill\s*collar|premium\s*class)\b/i.test(question)) {
+      detectedStd = '7G-2'
+    } else if (/\b(?:shut-in|well\s*control|kick|kill\s*mud|sidpp|sicp|bop\s*stack|annular\s*bop|pipe\s*ram|hcr|choke\s*manifold|iadc)\b/i.test(question)) {
+      detectedStd = 'IADC'
+    } else if (/\b(?:cameron|type\s*u|ram\s*rubbers?|bonnet\s*seal)\b/i.test(question)) {
+      detectedStd = 'OEM BOP'
+    } else if (/\b(?:hydril|gk\s*annular|packing\s*unit|stripping\s*pressure)\b/i.test(question)) {
+      detectedStd = 'OEM BOP'
+    } else if (/\b(?:pipeline\s*weld|cross-country|api\s*1104|burn-through)\b/i.test(question)) {
+      detectedStd = '1104'
+    } else if (/\b(?:structural\s*weld|visual\s*weld|cwi|aws\s*d1\.1|aws\s*b1\.11)\b/i.test(question)) {
+      detectedStd = 'AWS'
+    } else if (/\b(?:elevator|elevator\s*bore|bails?|links?|hoisting|traveling\s*block)\b/i.test(question)) {
+      detectedStd = '8B'
+    }
+  }
+
   // Core anti-hallucination, dynamic response, and verbatim evidence directives
   const coreInspectionDirectives = `
 CORE INSPECTION DIRECTIVES:
@@ -3401,69 +3440,37 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
 `
 
   // ==========================================
-  // MODE 1: 🌐 WEB INTELLIGENCE MODE (DEFAULT)
+  // UNIFIED RAG RETRIEVAL (DATABASE-FIRST ENGINE)
   // ==========================================
-  if (mode === 'web') {
-    systemPrompt = `You are Inspecta Web Intelligence, a premier oil & gas, QA/QC, and non-destructive testing expert powered by 320B GLM-5.3-Flash.
-You are currently operating in 'Web Mode' (broad engineering and scientific knowledge).
-Answer the user's question with uncompromising technical accuracy, citing real international standards (API, ASME, AWS, ISO, NACE) and engineering physics.
+  // 1. Exact Alphanumeric Clause & Standard Entity Extraction
+  const detectedEntities = extractAlphanumericEntities(question)
+  let exactMatches = []
 
-${coreInspectionDirectives}
-
-${rulesSection}
-`
-  }
-  // ==========================================
-  // MODE 2: 💡 ASK AN EXPERT (OEM & FIELD SOP)
-  // ==========================================
-  else if (mode === 'expert') {
-    systemPrompt = `You are a Senior Level III QA/QC & Oilfield Equipment Reliability Expert with 30+ years of rig-floor and manufacturing experience.
-Your specialty is combining legal codes (API, ASME) with OEM Manufacturer Procedures (NOV, Cameron, Hydril, Baker Hughes) and hard-won field practical wisdom.
-
-${coreInspectionDirectives}
-
-ADDITIONAL EXPERT PRACTICAL CONTENT:
-- OEM Specifics & Technical Bulletins (e.g. NOV hoisting wear limits, Cameron BOP grease purge, Hydril rubber elongation).
-- Field Failure Hotspots (Where It Actually Breaks: 2-3 stress concentrations where fatigue cracks initiate 90% of the time).
-- The Veteran Inspector's Trap (false indications, permeability shifts, practical rigsite precautions).
-- Step-by-Step Field SOP (exact measuring tool, cleaning procedure, NDT technique, and disposition).
-
-${rulesSection}
-`
-  }
-  // ==========================================
-  // MODE 3: 📚 STANDARDS (STRICT RAG DATABASE)
-  // ==========================================
-  else {
-    // 1. Exact Alphanumeric Clause & Standard Entity Extraction
-    const detectedEntities = extractAlphanumericEntities(question)
-    let exactMatches = []
-
-    if (detectedEntities.length > 0) {
-      for (const ent of detectedEntities) {
-        try {
-          const sql = `
-            SELECT id, standard_code, standard_name, section, clause, content, scope, organization 
-            FROM standards_chunks 
-            WHERE (clause LIKE ? OR section LIKE ? OR content LIKE ?)
-              AND (is_excluded = 0 OR is_excluded IS NULL)
-            LIMIT 3
-          `
-          const param = `%${ent.value}%`
-          const { results: exactRes } = await c.env.DB.prepare(sql).bind(param, param, param).all()
-          if (exactRes && exactRes.length > 0) {
-            exactMatches.push(...exactRes)
-          }
-        } catch(e){}
-      }
-    }
-
-    // 2. HyDE Query Expansion (Bypass if explicit clause or table ID is present to save 1s latency)
-    let searchQuestion = question;
-    const hasExplicitClause = /(?:UG-\d+|UW-\d+|Table\s*[\dA-Z\.]+|\b\d+\.\d+(?:\.\d+)?\b|T-\d+|Section\s*\d+|Cat(?:egory)?\s*IV)/i.test(question);
-    if (!hasExplicitClause) {
+  if (detectedEntities.length > 0) {
+    for (const ent of detectedEntities) {
       try {
-        const cachedHyde = await c.env.DB.prepare('SELECT hyde_text FROM hyde_cache WHERE question = ?').bind(question).first('hyde_text');
+        const sql = `
+          SELECT id, standard_code, standard_name, section, clause, content, scope, organization 
+          FROM standards_chunks 
+          WHERE (clause LIKE ? OR section LIKE ? OR content LIKE ?)
+            AND (is_excluded = 0 OR is_excluded IS NULL)
+          LIMIT 3
+        `
+        const param = `%${ent.value}%`
+        const { results: exactRes } = await c.env.DB.prepare(sql).bind(param, param, param).all()
+        if (exactRes && exactRes.length > 0) {
+          exactMatches.push(...exactRes)
+        }
+      } catch(e){}
+    }
+  }
+
+  // 2. HyDE Query Expansion (Bypass if explicit clause or table ID is present to save 1s latency)
+  let searchQuestion = question;
+  const hasExplicitClause = /(?:UG-\d+|UW-\d+|Table\s*[\dA-Z\.]+|\b\d+\.\d+(?:\.\d+)?\b|T-\d+|Section\s*\d+|Cat(?:egory)?\s*IV)/i.test(question);
+  if (!hasExplicitClause) {
+    try {
+      const cachedHyde = await c.env.DB.prepare('SELECT hyde_text FROM hyde_cache WHERE question = ?').bind(question).first('hyde_text');
       if (cachedHyde) {
         searchQuestion = question + "\n\n" + cachedHyde;
       } else {
@@ -3486,136 +3493,166 @@ ${rulesSection}
         }
       }
     } catch(e) {}
+  }
+
+  // 3. Dense Vector Embedding
+  let questionEmbedding = []
+  try {
+    const aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [searchQuestion] })
+    questionEmbedding = aiResp.data?.[0] ?? aiResp?.[0] ?? []
+  } catch(e) {}
+
+  // 4. BM25 Full Text Search
+  let bm25Scores = {};
+  try {
+    const ftsTerm = question.replace(/[^a-zA-Z0-9 ]/g, "").split(" ").filter(w => w.length > 2).join(" OR ");
+    if (ftsTerm) {
+      const { results: ftsRes } = await c.env.DB.prepare(`SELECT rowid, bm25(standards_fts) as bm25_score FROM standards_fts WHERE standards_fts MATCH ?`).bind(ftsTerm).all();
+      ftsRes.sort((a,b) => a.bm25_score - b.bm25_score);
+      ftsRes.forEach((r, rank) => { bm25Scores[r.rowid] = rank; });
     }
+  } catch(e) {}
 
-    // 3. Dense Vector Embedding
-    let questionEmbedding = []
-    try {
-      const aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [searchQuestion] })
-      questionEmbedding = aiResp.data?.[0] ?? aiResp?.[0] ?? []
-    } catch(e) {}
+  // 5. Multi-Tier Scoped SQL Query: Global + Shared Company + Session Sandbox
+  let query = `
+    SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization 
+    FROM standards_chunks 
+    WHERE (scope = 'global' OR scope IS NULL OR (scope = 'private_temp' AND session_id = ?))
+      AND (is_excluded = 0 OR is_excluded IS NULL)
+  `
+  let params = [session_id]
 
-    // 4. BM25 Full Text Search
-    let bm25Scores = {};
-    try {
-      const ftsTerm = question.replace(/[^a-zA-Z0-9 ]/g, "").split(" ").filter(w => w.length > 2).join(" OR ");
-      if (ftsTerm) {
-        const { results: ftsRes } = await c.env.DB.prepare(`SELECT rowid, bm25(standards_fts) as bm25_score FROM standards_fts WHERE standards_fts MATCH ?`).bind(ftsTerm).all();
-        ftsRes.sort((a,b) => a.bm25_score - b.bm25_score);
-        ftsRes.forEach((r, rank) => { bm25Scores[r.rowid] = rank; });
+  if (standard_filter && standard_filter !== 'ALL' && standard_filter !== '🌐 GENERAL AI') {
+    query += ` AND standard_code = ?`
+    params.push(standard_filter)
+  }
+
+  const { results } = await c.env.DB.prepare(query).bind(...params).all()
+  let candidates = results || []
+  // Candidate filtering for high-scale Worker CPU protection
+  if (candidates.length > 80) {
+    const queryToks = question.match(/[0-9a-zA-Z\.\-_/]+/g) || []
+    const ranked = candidates.map(c => {
+      const bRank = bm25Scores[c.id] !== undefined ? bm25Scores[c.id] : 9999;
+      const cLower = ((c.clause || '') + ' ' + (c.content || '')).toLowerCase();
+      const hasDirectMatch = queryToks.some(tok => tok.length >= 3 && cLower.includes(tok.toLowerCase()));
+      const stdBoost = (detectedStd && c.standard_code && c.standard_code.toUpperCase().includes(detectedStd)) ? -2000 : 0;
+      return { chunk: c, rankScore: stdBoost + (hasDirectMatch ? -500 : 0) + bRank };
+    });
+    ranked.sort((a, b) => a.rankScore - b.rankScore);
+    candidates = ranked.slice(0, 60).map(r => r.chunk);
+  }
+  let scoredChunks = candidates.map(row => {
+    let emb = []
+    try { 
+      if (row.embedding) {
+        const parsed = JSON.parse(row.embedding)
+        if (Array.isArray(parsed)) emb = parsed
       }
-    } catch(e) {}
+    } catch(e){}
+    let score = (emb.length > 0 && Array.isArray(questionEmbedding) && questionEmbedding.length > 0) ? cosineSimilarity(questionEmbedding, emb) : -1
+    return { ...row, vector_score: score }
+  })
 
-    // 5. Multi-Tier Scoped SQL Query: Global + Shared Company + Session Sandbox
-    let query = `
-      SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization 
-      FROM standards_chunks 
-      WHERE (scope = 'global' OR scope IS NULL OR (scope = 'private_temp' AND session_id = ?))
-        AND (is_excluded = 0 OR is_excluded IS NULL)
-    `
-    let params = [session_id]
+  scoredChunks.sort((a, b) => b.vector_score - a.vector_score)
+  scoredChunks.forEach((chunk, rank) => { chunk.vector_rank = rank; })
 
-    if (standard_filter && standard_filter !== 'ALL' && standard_filter !== '🌐 GENERAL AI') {
-      query += ` AND standard_code = ?`
-      params.push(standard_filter)
-    }
+  // Reciprocal Rank Fusion (RRF)
+  const k = 60;
+  scoredChunks.forEach(chunk => {
+    const vScore = 1 / (k + chunk.vector_rank + 1);
+    const bRank = bm25Scores[chunk.id] !== undefined ? bm25Scores[chunk.id] : 1000;
+    const bScore = 1 / (k + bRank + 1);
+    chunk.rrf_score = vScore + bScore;
+  })
 
-    const { results } = await c.env.DB.prepare(query).bind(...params).all()
-    let candidates = results || []
-    // Candidate filtering for high-scale Worker CPU protection
-    if (candidates.length > 80) {
-      const queryToks = question.match(/[0-9a-zA-Z\.\-_/]+/g) || []
-      const ranked = candidates.map(c => {
-        const bRank = bm25Scores[c.id] !== undefined ? bm25Scores[c.id] : 9999;
-        const cLower = ((c.clause || '') + ' ' + (c.content || '')).toLowerCase();
-        const hasDirectMatch = queryToks.some(tok => tok.length >= 3 && cLower.includes(tok.toLowerCase()));
-        return { chunk: c, rankScore: (hasDirectMatch ? -500 : 0) + bRank };
-      });
-      ranked.sort((a, b) => a.rankScore - b.rankScore);
-      candidates = ranked.slice(0, 60).map(r => r.chunk);
-    }
-    let scoredChunks = candidates.map(row => {
-      let emb = []
-      try { 
-        if (row.embedding) {
-          const parsed = JSON.parse(row.embedding)
-          if (Array.isArray(parsed)) emb = parsed
+  // ColBERT-Style Sub-Token Late Interaction Scoring
+  const queryTokens = question.match(/[0-9a-zA-Z\.\-_/]+/g) || []
+  scoredChunks.forEach(chunk => {
+    let tokenBoost = 0
+    const contentLower = (chunk.clause + " " + chunk.content).toLowerCase()
+    for (const tok of queryTokens) {
+      if (tok.length >= 3 && contentLower.includes(tok.toLowerCase())) {
+        if (/\d/.test(tok) || tok.includes('.')) {
+          tokenBoost += 0.35
+        } else {
+          tokenBoost += 0.05
         }
-      } catch(e){}
-      let score = (emb.length > 0 && Array.isArray(questionEmbedding) && questionEmbedding.length > 0) ? cosineSimilarity(questionEmbedding, emb) : -1
-      return { ...row, vector_score: score }
-    })
-
-    scoredChunks.sort((a, b) => b.vector_score - a.vector_score)
-    scoredChunks.forEach((chunk, rank) => { chunk.vector_rank = rank; })
-
-    // Reciprocal Rank Fusion (RRF)
-    const k = 60;
-    scoredChunks.forEach(chunk => {
-      const vScore = 1 / (k + chunk.vector_rank + 1);
-      const bRank = bm25Scores[chunk.id] !== undefined ? bm25Scores[chunk.id] : 1000;
-      const bScore = 1 / (k + bRank + 1);
-      chunk.rrf_score = vScore + bScore;
-    })
-
-    // ColBERT-Style Sub-Token Late Interaction Scoring
-    // Matches exact alphanumeric codes (e.g., 341.3.2, UW-12, 1/32", 12mm) directly
-    const queryTokens = question.match(/[0-9a-zA-Z\.\-_/]+/g) || []
-    scoredChunks.forEach(chunk => {
-      let tokenBoost = 0
-      const contentLower = (chunk.clause + " " + chunk.content).toLowerCase()
-      for (const tok of queryTokens) {
-        if (tok.length >= 3 && contentLower.includes(tok.toLowerCase())) {
-          if (/\d/.test(tok) || tok.includes('.')) {
-            tokenBoost += 0.35 // Strong boost for exact alphanumeric clause / dimension tokens
-          } else {
-            tokenBoost += 0.05
-          }
-        }
       }
-      chunk.final_retrieval_score = chunk.rrf_score + tokenBoost
+    }
+    const stdMatchBoost = (detectedStd && chunk.standard_code && chunk.standard_code.toUpperCase().includes(detectedStd)) ? 0.40 : 0;
+    chunk.final_retrieval_score = chunk.rrf_score + tokenBoost + stdMatchBoost
+  })
+
+  scoredChunks.sort((a, b) => b.final_retrieval_score - a.final_retrieval_score)
+
+  // Merge exact alphanumeric clause matches to top with maximum priority
+  const combinedChunks = []
+  const seenIds = new Set()
+
+  exactMatches.forEach(m => {
+    if (!seenIds.has(m.id)) {
+      seenIds.add(m.id)
+      combinedChunks.push({ ...m, is_exact_clause_hit: true })
+    }
+  })
+
+  scoredChunks.forEach(c => {
+    if (!seenIds.has(c.id)) {
+      seenIds.add(c.id)
+      combinedChunks.push(c)
+    }
+  })
+
+  // Only consider genuinely relevant chunks
+  const validChunks = combinedChunks.filter(c => c.is_exact_clause_hit || c.vector_score >= 0.25 || c.final_retrieval_score >= 0.30)
+  const topChunks = validChunks.slice(0, 5)
+
+  let contextText = ""
+  let hasPrivateSpec = false
+  topChunks.forEach((chunk, idx) => {
+    if (chunk.scope === 'private_temp' || chunk.scope === 'company_shared') hasPrivateSpec = true
+    const exactTag = chunk.is_exact_clause_hit ? " [EXACT CLAUSE MATCH]" : ""
+    contextText += `[Source ${idx+1}${exactTag}] Standard: ${chunk.standard_code} | Clause: ${chunk.clause}\n${chunk.content}\n\n`
+    sources.push({ 
+      standard: chunk.standard_code, 
+      clause: chunk.clause,
+      verified_db: true,
+      chunk_id: chunk.id
     })
+  })
 
-    scoredChunks.sort((a, b) => b.final_retrieval_score - a.final_retrieval_score)
+  const overrideNotice = hasPrivateSpec ? `\n[HIERARCHICAL GOVERNANCE OVERRIDE ACTIVE]: A company-specific procedure or project specification is loaded in context. COMPANY PROCEDURES TAKE ABSOLUTE PRECEDENCE OVER GENERAL CODES. If the company spec mandates stricter limits, enforce them!\n` : ""
+  const contextBlock = contextText ? `\nCONTEXT SOURCES:\n${contextText}\n` : ""
 
-    // Merge exact alphanumeric clause matches to top with maximum priority
-    const combinedChunks = []
-    const seenIds = new Set()
+  // ==========================================
+  // PERSONA ASSEMBLY BASED ON MODE
+  // ==========================================
+  if (mode === 'web') {
+    systemPrompt = `You are Inspecta Web Intelligence, a premier oil & gas, QA/QC, and non-destructive testing expert powered by 320B GLM-5.3-Flash.
+You are currently operating in 'Web Mode' (broad engineering and scientific knowledge).
+Answer the user's question with uncompromising technical accuracy, citing real international standards (API, ASME, AWS, ISO, NACE) and engineering physics.
+${contextBlock}
+${coreInspectionDirectives}
+${rulesSection}
+`
+  } else if (mode === 'expert') {
+    systemPrompt = `You are a Senior Level III QA/QC & Oilfield Equipment Reliability Expert with 30+ years of rig-floor and manufacturing experience.
+Your specialty is combining legal codes (API, ASME) with OEM Manufacturer Procedures (NOV, Cameron, Hydril, Baker Hughes) and hard-won field practical wisdom.
+${contextBlock}
+${coreInspectionDirectives}
 
-    exactMatches.forEach(m => {
-      if (!seenIds.has(m.id)) {
-        seenIds.add(m.id)
-        combinedChunks.push({ ...m, is_exact_clause_hit: true })
-      }
-    })
+ADDITIONAL EXPERT PRACTICAL CONTENT:
+- OEM Specifics & Technical Bulletins (e.g. NOV hoisting wear limits, Cameron BOP grease purge, Hydril rubber elongation).
+- Field Failure Hotspots (Where It Actually Breaks: 2-3 stress concentrations where fatigue cracks initiate 90% of the time).
+- The Veteran Inspector's Trap (false indications, permeability shifts, practical rigsite precautions).
+- Step-by-Step Field SOP (exact measuring tool, cleaning procedure, NDT technique, and disposition).
 
-    scoredChunks.forEach(c => {
-      if (!seenIds.has(c.id)) {
-        seenIds.add(c.id)
-        combinedChunks.push(c)
-      }
-    })
-
-    const topChunks = combinedChunks.slice(0, 5)
-
-    let contextText = ""
-    let hasPrivateSpec = false
-    topChunks.forEach((chunk, idx) => {
-      if (chunk.scope === 'private_temp' || chunk.scope === 'company_shared') hasPrivateSpec = true
-      const exactTag = chunk.is_exact_clause_hit ? " [EXACT CLAUSE MATCH]" : ""
-      contextText += `[Source ${idx+1}${exactTag}] Standard: ${chunk.standard_code} | Clause: ${chunk.clause}\n${chunk.content}\n\n`
-      sources.push({ 
-        standard: chunk.standard_code, 
-        clause: chunk.clause,
-        verified_db: true,
-        chunk_id: chunk.id
-      })
-    })
-
-    const overrideNotice = hasPrivateSpec ? `\n[HIERARCHICAL GOVERNANCE OVERRIDE ACTIVE]: A company-specific procedure or project specification is loaded in context. COMPANY PROCEDURES TAKE ABSOLUTE PRECEDENCE OVER GENERAL CODES. If the company spec mandates stricter limits, enforce them!\n` : ""
-
-    // Database-First with Web Fallback
-    if (topChunks.length === 0 || (!topChunks[0].is_exact_clause_hit && topChunks[0].vector_score < 0.25)) {
+${rulesSection}
+`
+  } else {
+    // Mode 3: Standards Mode (Strict Code Baseline)
+    if (topChunks.length === 0) {
       systemPrompt = `You are an expert oil and gas inspection engineer.
 The user asked about a clause or standard requirement that is NOT currently indexed in the local database.
 Perform a Database-First Web Refinement:
@@ -3642,26 +3679,21 @@ ${contextText}
     }
   }
 
-  // Structured Table-to-JSON Enrichment (Standard-Scoped & Domain-Filtered)
+  // ==========================================
+  // STRUCTURED TABLE-TO-JSON ENRICHMENT (DOMAIN-GUARDED)
+  // ==========================================
   try {
     const qLower = question.toLowerCase()
     let tableHits = []
 
-    let detectedStd = null
-    const stdMatch = question.match(/(ASME\s*(?:VIII|Section\s*VIII|B31\.3|B31\.4|B31\.8|V)|API\s*(?:Standard\s*53|RP\s*53|53|RP\s*4G|4F|RP\s*8B|5CT|1104|16D|16A|7K|RP\s*2X|RP\s*5C1|RP\s*7G-2)|IADC(?:\s*WellSharp)?|Cameron|Hydril|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*3834-2)/i)
-    if (stdMatch) {
-      detectedStd = stdMatch[1].replace(/Section\s*/i, '').trim().toUpperCase()
-    } else if (standard_filter && standard_filter !== 'ALL' && standard_filter !== '🌐 GENERAL AI') {
-      detectedStd = standard_filter.trim().toUpperCase()
-    }
-    
+    // Explicit Table ID Match (e.g. Table 341.3.2, Table 1, Table A.1)
     const tableMatch = qLower.match(/table\s+([0-9a-z\.\-_]+)/i)
     if (tableMatch) {
       let tblQuery = `
         SELECT standard_code, table_id, table_title, raw_markdown, structured_json 
         FROM standards_tables 
-        WHERE (table_id LIKE ? OR standard_code LIKE ?)`
-      let tblParams = [`%${tableMatch[1]}%`, `%${tableMatch[1]}%`]
+        WHERE table_id LIKE ?`
+      let tblParams = [`%${tableMatch[1]}%`]
       if (detectedStd) {
         tblQuery += ` AND standard_code LIKE ?`
         tblParams.push(`%${detectedStd}%`)
@@ -3671,21 +3703,19 @@ ${contextText}
       if (results && results.length > 0) tableHits.push(...results)
     }
     
-    if (tableHits.length === 0) {
-      const stopWords = new Set(['what', 'when', 'which', 'where', 'how', 'minimum', 'maximum', 'allowable', 'acceptable', 'limit', 'standard', 'per', 'for', 'the', 'is', 'are', 'and', 'with', 'from', 'does', 'state', 'requirement'])
-      const meaningfulKeywords = qLower.split(/[^a-z0-9\.\-_]+/i).filter(w => w.length > 3 && !stopWords.has(w)).slice(0, 4)
+    // ONLY search tables by keyword IF detectedStd is KNOWN!
+    // NEVER search blindly across all standards without detectedStd!
+    if (tableHits.length === 0 && detectedStd) {
+      const stopWords = new Set(['what', 'when', 'which', 'where', 'how', 'minimum', 'maximum', 'allowable', 'acceptable', 'limit', 'standard', 'per', 'for', 'the', 'is', 'are', 'and', 'with', 'from', 'does', 'state', 'requirement', 'inspection', 'inspect', 'maintenance', 'procedure', 'equipment', 'general', 'table'])
+      const meaningfulKeywords = qLower.split(/[^a-z0-9\.\-_]+/i).filter(w => w.length > 3 && !stopWords.has(w)).slice(0, 3)
       for (const kw of meaningfulKeywords) {
         let kwQuery = `
           SELECT standard_code, table_id, table_title, raw_markdown, structured_json 
           FROM standards_tables 
-          WHERE (table_title LIKE ? OR raw_markdown LIKE ?)`
-        let kwParams = [`%${kw}%`, `%${kw}%`]
-        if (detectedStd) {
-          kwQuery += ` AND standard_code LIKE ?`
-          kwParams.push(`%${detectedStd}%`)
-        }
-        kwQuery += ` LIMIT 1`
-        const { results } = await c.env.DB.prepare(kwQuery).bind(...kwParams).all()
+          WHERE (table_title LIKE ? OR raw_markdown LIKE ?)
+            AND standard_code LIKE ?
+          LIMIT 1`
+        const { results } = await c.env.DB.prepare(kwQuery).bind(`%${kw}%`, `%${kw}%`, `%${detectedStd}%`).all()
         if (results && results.length > 0) {
           tableHits.push(...results)
           break

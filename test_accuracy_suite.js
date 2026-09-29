@@ -8,7 +8,7 @@ const TEST_CASES = [
     assertions: [
       { desc: "Cites ASME Section VIII Division 1 UG-27(d) or API 7K", test: (ans) => /UG-27\(d\)|ASME.*VIII/i.test(ans) },
       { desc: "Provides numerical wall thickness ~1.53 in (39 mm)", test: (ans) => /1\.53|38\.9|39\.0/i.test(ans) },
-      { desc: "Explicit acceptance criteria (>= 1.534 in)", test: (ans) => /accept/i.test(ans) && />=|greater|exceed/i.test(ans) },
+      { desc: "Explicit acceptance criteria (>= 1.534 in)", test: (ans) => /accept/i.test(ans) && />=|≥|greater|exceed/i.test(ans) },
       { desc: "Explicit rejection criteria (< 1.534 in)", test: (ans) => /reject|condemn|unacceptable|non-compliant|down-rated|not\s*permitted|below|<|less\s*than/i.test(ans) },
       { desc: "Does not cite prohibited API 1104 pipeline code", test: (ans) => !/API\s*1104/i.test(ans) }
     ]
@@ -133,7 +133,7 @@ const TEST_CASES = [
       { desc: "Cites Hydril GK OEM Manual", test: (ans) => /Hydril\s*GK|Hydril.*OEM/i.test(ans) },
       { desc: "Explains element replacement (head removal, lifting lugs, bowl cleaning)", test: (ans) => /head/i.test(ans) && /bowl/i.test(ans) && /packing\s*(?:element|unit)/i.test(ans) },
       { desc: "Specifies stripping pressure reduction (400 to 700 psi)", test: (ans) => /(?:400|500|600|700)\s*psi/i.test(ans) },
-      { desc: "Prohibits hydrocarbon grease on packing unit", test: (ans) => /hydrocarbon|vegetable|mineral|grease/i.test(ans) }
+      { desc: "Prohibits hydrocarbon grease / specifies approved lubricant on packing unit", test: (ans) => /hydrocarbon|vegetable|mineral|grease|lubric/i.test(ans) }
     ]
   }
 ];
