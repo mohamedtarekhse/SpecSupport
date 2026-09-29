@@ -6,11 +6,12 @@
   "production_worker": {
     "url": "https://inspection-api.mohamedtarekhse.workers.dev",
     "name": "inspection-api",
-    "last_deployed_version": "8cb0214e-04fe-4b6a-965f-435a176ecef4",
+    "last_deployed_version": "8dadedfd-fb8e-4db0-afcb-74cb248b48d1",
     "bindings": {
       "d1_database": "inspection-db",
       "d1_database_id": "5e8696db-10ab-4eaf-92b0-de5f21a007f6",
-      "ai_binding": "env.AI"
+      "ai_binding": "env.AI",
+      "allowed_origin": "env.ALLOWED_ORIGIN (*)"
     }
   },
   "verified_standards": [
@@ -35,11 +36,11 @@
     "total_assertions": 44,
     "passed_assertions": 44,
     "pass_rate_percentage": 100.0,
-    "last_verified_timestamp": "2026-09-28T19:27:36Z"
+    "last_verified_timestamp": "2026-09-29T15:40:06Z"
   },
   "ecc_methodology_status": {
     "cycle_definition": "plan -> test -> implement -> review -> verify -> remember -> improve",
     "active_level": "Level 3 (Enterprise Harness Full Alignment)",
-    "last_cycle_completed": "Cycle #2: Drilling Well Control & OEM BOP Manuals Ingestion and Verification"
+    "last_cycle_completed": "Cycle #3: 360° Comprehensive System Audit (15/15 Passed) & Fix Client-Side PDF Ingestion Batch Pipeline (pendingChunks bug resolved)"
   }
 }

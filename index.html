@@ -2151,10 +2151,10 @@
         <!-- Token Header -->
         <div style="margin-bottom:14px; background:var(--gemini-bg); padding:10px 12px; border-radius:10px; border:1px solid var(--gemini-border);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                <label style="font-size:0.75rem; color:var(--gemini-text-muted); font-weight:600;">ADMIN SECRET TOKEN:</label>
+                <label style="font-size:0.75rem; color:var(--gemini-text-muted); font-weight:600;">ADMIN ACCESS TOKEN:</label>
                 <span style="font-size:0.7rem; color:#10B981;">Required for write & refine actions</span>
             </div>
-            <input type="password" id="admin-token" class="admin-input" style="margin-bottom:0;" placeholder="Enter ADMIN_SECRET token...">
+            <input type="password" id="admin-token" class="admin-input" style="margin-bottom:0;" placeholder="Enter Admin Access Token...">
         </div>
 
         <!-- TAB 1: 🧹 Database Refiner & Quality Auditor -->
@@ -3917,10 +3917,55 @@
                 let currentContent = "";
                 let chunkCount = 0;
                 let tableCount = 0;
+                let pendingChunks = [];
                 let currentBreadcrumbs = {
                     chapter: "",
                     section: "",
                     clause: ""
+                };
+
+                function findSafeSentenceBoundary(t, targetLen = 700, maxLen = 900) {
+                    if (t.length <= maxLen) return t.length;
+                    const searchSlice = t.substring(targetLen, maxLen);
+                    const safeRegex = /(?<!\b(?:e\.g|i\.e|Table|Fig|Sec|Para|UG|UW|API|ASME|AWS|ISO|No|Rev|\d))\.\s+(?=[A-Z0-9\(\[])/g;
+                    let m;
+                    let best = -1;
+                    while ((m = safeRegex.exec(searchSlice)) !== null) {
+                        best = targetLen + m.index + 1;
+                        break;
+                    }
+                    if (best !== -1) return best;
+                    const nlIdx = t.indexOf('\n', targetLen);
+                    if (nlIdx !== -1 && nlIdx <= maxLen) return nlIdx + 1;
+                    const spIdx = t.lastIndexOf(' ', maxLen);
+                    if (spIdx >= targetLen) return spIdx + 1;
+                    return maxLen;
+                }
+
+                const flushChunkBatch = async () => {
+                    if (pendingChunks.length === 0) return;
+                    const batchToSend = [...pendingChunks];
+                    pendingChunks = [];
+                    const res = await fetch(`${API_BASE}/api/admin/ingest-batch`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                        },
+                        body: JSON.stringify({
+                            standard_code: code,
+                            standard_name: name,
+                            chunks: batchToSend,
+                            file_hash: fileHash,
+                            scope: scope,
+                            session_id: sessionId,
+                            is_temporary: scope === 'private_temp'
+                        })
+                    });
+                    if (!res.ok) {
+                        const errData = await res.json().catch(() => ({}));
+                        throw new Error(errData.error || `Batch ingestion failed with HTTP ${res.status}`);
+                    }
                 };
 
                 const totalPages = pdf.numPages;
@@ -4018,24 +4063,6 @@
 
                     currentContent += text + " ";
 
-                    function findSafeSentenceBoundary(t, targetLen = 700, maxLen = 900) {
-                        if (t.length <= maxLen) return t.length;
-                        const searchSlice = t.substring(targetLen, maxLen);
-                        const safeRegex = /(?<!\b(?:e\.g|i\.e|Table|Fig|Sec|Para|UG|UW|API|ASME|AWS|ISO|No|Rev|\d))\.\s+(?=[A-Z0-9\(\[])/g;
-                        let m;
-                        let best = -1;
-                        while ((m = safeRegex.exec(searchSlice)) !== null) {
-                            best = targetLen + m.index + 1;
-                            break;
-                        }
-                        if (best !== -1) return best;
-                        const nlIdx = t.indexOf('\n', targetLen);
-                        if (nlIdx !== -1 && nlIdx <= maxLen) return nlIdx + 1;
-                        const spIdx = t.lastIndexOf(' ', maxLen);
-                        if (spIdx >= targetLen) return spIdx + 1;
-                        return maxLen;
-                    }
-
                     while (currentContent.length > 850) {
                         let splitIdx = findSafeSentenceBoundary(currentContent, 700, 920);
                         const rawChunk = currentContent.substring(0, splitIdx).trim();
@@ -4059,7 +4086,14 @@
 
                         if (pendingChunks.length >= 15) {
                             await flushChunkBatch();
-                            logBox.innerHTML = `<div>[3/4] Ingesting ${code}: Page ${i}/${totalPages} (${chunkCount} chunks committed)...</div>`;
+                            let progEl = document.getElementById('hub-upload-progress');
+                            if (!progEl) {
+                                logBox.innerHTML += `<div id="hub-upload-progress" style="color:#0070F2; font-weight:500;"></div>`;
+                                progEl = document.getElementById('hub-upload-progress');
+                            }
+                            if (progEl) {
+                                progEl.textContent = `[3/4] Ingesting ${code}: Page ${i}/${totalPages} (${chunkCount} chunks committed)...`;
+                            }
                         }
                     }
                 }

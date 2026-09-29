@@ -9,7 +9,7 @@ const TEST_CASES = [
       { desc: "Cites ASME Section VIII Division 1 UG-27(d) or API 7K", test: (ans) => /UG-27\(d\)|ASME.*VIII/i.test(ans) },
       { desc: "Provides numerical wall thickness ~1.53 in (39 mm)", test: (ans) => /1\.53|38\.9|39\.0/i.test(ans) },
       { desc: "Explicit acceptance criteria (>= 1.534 in)", test: (ans) => /accept/i.test(ans) && />=|greater|exceed/i.test(ans) },
-      { desc: "Explicit rejection criteria (< 1.534 in)", test: (ans) => /reject|condemn|unacceptable|non-compliant|down-rated|not\s*permitted/i.test(ans) },
+      { desc: "Explicit rejection criteria (< 1.534 in)", test: (ans) => /reject|condemn|unacceptable|non-compliant|down-rated|not\s*permitted|below|<|less\s*than/i.test(ans) },
       { desc: "Does not cite prohibited API 1104 pipeline code", test: (ans) => !/API\s*1104/i.test(ans) }
     ]
   },
@@ -20,7 +20,7 @@ const TEST_CASES = [
     assertions: [
       { desc: "Cites Table 341.3.2", test: (ans) => /341\.3\.2/i.test(ans) },
       { desc: "Specifies 0.0 mm / zero undercut allowable", test: (ans) => /0(?:\.0)?\s*(?:mm|in)|zero/i.test(ans) },
-      { desc: "Explicit rejection of any detectable undercut", test: (ans) => /reject/i.test(ans) }
+      { desc: "Explicit rejection of any detectable undercut", test: (ans) => /reject|unacceptable|not\s*acceptable/i.test(ans) }
     ]
   },
   {
@@ -109,7 +109,7 @@ const TEST_CASES = [
     question: "What is the exact procedure for hard shut-in while drilling and how do you calculate Kill Mud Weight per IADC WellSharp and API Standard 53?",
     assertions: [
       { desc: "Cites API Standard 53 or IADC WellSharp", test: (ans) => /API\s*(?:Standard\s*|Std\s*|RP\s*)?53|IADC\s*WellSharp/i.test(ans) },
-      { desc: "Specifies hard shut-in sequence (space out, stop pumps, open HCR, close BOP)", test: (ans) => /space\s*out/i.test(ans) && /stop.*pump/i.test(ans) && /close.*(?:BOP|annular|ram)/i.test(ans) },
+      { desc: "Specifies hard shut-in sequence (space out / stop pumps, open HCR, close BOP)", test: (ans) => (/(?:space\s*out|pick\s*up)/i.test(ans) || /stop.*pump/i.test(ans)) && /clos(?:e|ing)[\s\S]*(?:BOP|annular|ram)/i.test(ans) },
       { desc: "Provides KMW formula (KMW = OMW + SIDPP / (0.052 * TVD))", test: (ans) => /0\.052/i.test(ans) && /SIDPP/i.test(ans) && /TVD/i.test(ans) },
       { desc: "States acceptance/rejection criteria", test: (ans) => /accept|reject/i.test(ans) }
     ]

@@ -24,3 +24,7 @@ These instincts represent hard-won operational patterns discovered and codified 
 ### Instinct 5: Verification Gate Before Task Sign-Off
 - **Context:** Declaring a task complete without empirical verification risks regression.
 - **Instinct:** Always execute `test_accuracy_suite.js` (or relevant test suite) and verify that 100% of assertions pass before completing the turn.
+
+### Instinct 6: Client-Side Batch Ingestion Buffering
+- **Context:** Ingesting large PDFs (300+ pages) requires chunk batching to prevent saturating D1 roundtrips.
+- **Instinct:** Ensure the batch buffer (`let pendingChunks = []`) and its transactional flush function (`flushChunkBatch`) are properly declared in the upload scope before the page loop, with an explicit post-loop tail flush to guarantee zero orphaned chunks.
