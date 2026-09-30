@@ -1481,6 +1481,114 @@ app.get('/api/admin/chunks/export', async (c) => {
   }
 })
 
+// =========================================================
+// 🛰️ LOCASPEC™ ENTERPRISE OFFLINE RIG ENGINE ENDPOINTS
+// =========================================================
+
+function isLocaSpecKeyValid(cleanKey) {
+  if (!cleanKey) return false
+  return cleanKey.startsWith('LOCASPEC-ENT-') || 
+         cleanKey.startsWith('LOCASPEC-PRO-') ||
+         cleanKey === 'LOCASPEC-ENTERPRISE-PRO-2026' || 
+         cleanKey === 'LOCASPEC-PRO-FIELD-2026' ||
+         cleanKey === 'SPEC-OFFLINE-VIP-2026' ||
+         cleanKey === 'ARAMCO-RIG-SPEC-2026' ||
+         cleanKey === 'ADNOC-OFFSHORE-2026' ||
+         cleanKey === 'INSPECTA-VIP'
+}
+
+// 🔑 Verify Paid Subscription / License Key for LocaSpec Offline Access
+app.post('/api/locaspec/verify-license', async (c) => {
+  try {
+    const { license_key } = await c.req.json()
+    if (!license_key) return c.json({ valid: false, error: 'License key is required' }, 400)
+
+    const cleanKey = license_key.trim().toUpperCase()
+    const isEnterprise = cleanKey.startsWith('LOCASPEC-ENT-') || 
+                         cleanKey === 'LOCASPEC-ENTERPRISE-PRO-2026' || 
+                         cleanKey === 'SPEC-OFFLINE-VIP-2026' ||
+                         cleanKey === 'ARAMCO-RIG-SPEC-2026' ||
+                         cleanKey === 'ADNOC-OFFSHORE-2026' ||
+                         cleanKey === 'INSPECTA-VIP'
+
+    const isPro = cleanKey.startsWith('LOCASPEC-PRO-') || cleanKey === 'LOCASPEC-PRO-FIELD-2026'
+
+    if (isEnterprise || isPro) {
+      return c.json({
+        valid: true,
+        tier: isEnterprise ? 'Enterprise Rig Suite (Unlimited Offline)' : 'Field Inspector Pro',
+        offline_access: true,
+        license_key: cleanKey,
+        company: isEnterprise ? 'Energy Enterprise Client' : 'Individual Level III Inspector',
+        expires_at: '2027-12-31',
+        features: [
+          'Full Offline LocaSpec Rig Engine (0-byte internet)',
+          'Local IndexedDB Vector & Full-Text Search',
+          'All 35 Drilling, Production & NDT Standards',
+          'Offline Non-Conformance Report (NCR) Generator',
+          'Offline Defect Computer Vision Analysis'
+        ]
+      })
+    }
+
+    return c.json({
+      valid: false,
+      error: 'Invalid or expired license key. Please upgrade to an active enterprise subscription.'
+    }, 403)
+  } catch(e) {
+    return c.json({ valid: false, error: e.message }, 500)
+  }
+})
+
+// 📦 Download LocaSpec Offline Sync Bundle (Paid Clients Only)
+app.get('/api/locaspec/bundle', async (c) => {
+  try {
+    const authHeader = c.req.header('Authorization') || ''
+    const licenseKey = c.req.query('license_key') || authHeader.replace(/^Bearer\s+/i, '').trim()
+    const cleanKey = (licenseKey || '').trim().toUpperCase()
+
+    const isAuthorized = isLocaSpecKeyValid(cleanKey) || (authHeader && isStudioAuthorized(c))
+
+    if (!isAuthorized) {
+      return c.json({
+        error: 'Unauthorized: LocaSpec™ Field Offline Engine is an Enterprise Paid Feature. Please provide an active license key.'
+      }, 403)
+    }
+
+    const packageType = c.req.query('package') || 'all'
+    let whereSql = 'WHERE (is_excluded = 0 OR is_excluded IS NULL)'
+
+    if (packageType === 'drilling') {
+      whereSql += " AND (standard_code LIKE '%4G%' OR standard_code LIKE '%8B%' OR standard_code LIKE '%7G%' OR standard_code LIKE '%5CT%' OR standard_code LIKE '%IADC%' OR standard_code LIKE '%OEM%' OR standard_code LIKE '%DS-1%' OR standard_code LIKE '%53%' OR standard_code LIKE '%16%')"
+    } else if (packageType === 'pipeline') {
+      whereSql += " AND (standard_code LIKE '%B31%' OR standard_code LIKE '%510%' OR standard_code LIKE '%570%' OR standard_code LIKE '%1104%' OR standard_code LIKE '%VIII%')"
+    } else if (packageType === 'quality') {
+      whereSql += " AND (standard_code LIKE '%ASME V%' OR standard_code LIKE '%D1.1%' OR standard_code LIKE '%B1.11%' OR standard_code LIKE '%3834%' OR standard_code LIKE '%2X%')"
+    }
+
+    const { results } = await c.env.DB.prepare(`
+      SELECT id, standard_code, standard_name, section, clause, content
+      FROM standards_chunks
+      ${whereSql}
+      ORDER BY standard_code ASC, id ASC
+      LIMIT 6000
+    `).all()
+
+    const chunks = results || []
+
+    return c.json({
+      success: true,
+      locaspec_version: '2.5.0-offline',
+      synced_at: new Date().toISOString(),
+      package: packageType,
+      total_chunks: chunks.length,
+      chunks: chunks
+    })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
 // 🚫 Exclude / Include Toggle for Taxonomy Rules
 app.post('/api/admin/taxonomy/:id/toggle-exclude', async (c) => {
   const token = c.req.header('Authorization')?.split(' ')[1]
