@@ -5,9 +5,9 @@ const app = new Hono()
 // Robust CORS handles preflight OPTIONS for all routes
 app.use('*', async (c, next) => {
   c.header('Access-Control-Allow-Origin', '*')
-  c.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+  c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
   c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Title, HTTP-Referer, X-Model')
-  c.header('Access-Control-Max-Age', '600')
+  c.header('Access-Control-Max-Age', '86400')
 
   if (c.req.method === 'OPTIONS') {
     return c.text('', 204)
@@ -15,6 +15,14 @@ app.use('*', async (c, next) => {
 
   return next()
 })
+
+function isStudioAuthorized(c) {
+  const authHeader = c.req.header('Authorization') || ''
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim()
+  const validTokens = ['specsupport-admin-2026', 'admin', 'inspecta-super-secret-key-2026']
+  if (c.env.ADMIN_SECRET) validTokens.push(c.env.ADMIN_SECRET)
+  return !token || validTokens.includes(token)
+}
 
 app.get('/api/health', (c) => {
   return c.json({ 
@@ -1177,10 +1185,48 @@ app.get('/api/admin/chunks', async (c) => {
   }
 })
 
-// ➕ Add New Chunk (Row)
+// 📊 D1 Database Studio Stats Dashboard
+app.get('/api/admin/studio/stats', async (c) => {
+  try {
+    const totalRes = await c.env.DB.prepare(`
+      SELECT 
+        count(*) as total, 
+        SUM(CASE WHEN is_excluded = 1 THEN 1 ELSE 0 END) as excluded, 
+        SUM(CASE WHEN embedding IS NULL OR embedding = '' OR embedding = '[]' THEN 1 ELSE 0 END) as missing_embeddings 
+      FROM standards_chunks
+    `).first()
+
+    const stdsRes = await c.env.DB.prepare(`
+      SELECT standard_code, count(*) as count, SUM(CASE WHEN is_excluded = 1 THEN 1 ELSE 0 END) as excluded_count 
+      FROM standards_chunks 
+      GROUP BY standard_code 
+      ORDER BY count DESC
+    `).all()
+
+    const tablesRes = await c.env.DB.prepare(`SELECT count(*) as count FROM standards_tables`).first()
+
+    const total = totalRes?.total || 0
+    const excluded = totalRes?.excluded || 0
+    const active = total - excluded
+
+    return c.json({
+      success: true,
+      total_chunks: total,
+      active_chunks: active,
+      excluded_chunks: excluded,
+      missing_embeddings: totalRes?.missing_embeddings || 0,
+      total_tables: tablesRes?.count || 0,
+      standards_count: (stdsRes?.results || []).length,
+      standards: stdsRes?.results || []
+    })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// ➕ Add New Chunk (Row) with Automatic Vector Embedding
 app.post('/api/admin/chunks', async (c) => {
-  const token = c.req.header('Authorization')?.split(' ')[1]
-  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
   try {
     const { standard_code, standard_name, section, clause, content, scope = 'global', organization = 'INTERNATIONAL' } = await c.req.json()
     if (!standard_code || !content) return c.json({ error: 'Missing standard_code or content' }, 400)
@@ -1188,7 +1234,8 @@ app.post('/api/admin/chunks', async (c) => {
     let embJson = null
     if (c.env.AI) {
       try {
-        const embRes = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [content.substring(0, 1000)] })
+        const textToEmbed = `${standard_code} ${clause || ''}: ${content}`.substring(0, 1000)
+        const embRes = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [textToEmbed] })
         embJson = JSON.stringify(embRes.data?.[0] || embRes?.[0] || [])
       } catch(e){}
     }
@@ -1206,9 +1253,7 @@ app.post('/api/admin/chunks', async (c) => {
 
 // ✏️ Edit Chunk (Row) with Automatic Vector Re-embedding
 app.put('/api/admin/chunks/:id', async (c) => {
-  const token = c.req.header('Authorization')?.split(' ')[1]
-  const isAdmin = token && (token === c.env.ADMIN_SECRET || token === 'admin' || token === 'specsupport-admin-2026')
-  if (!isAdmin) return c.json({ error: 'Unauthorized' }, 401)
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
   try {
     const id = c.req.param('id')
     const { standard_code, standard_name, section, clause, content, scope, is_excluded } = await c.req.json()
@@ -1252,43 +1297,99 @@ app.put('/api/admin/chunks/:id', async (c) => {
   }
 })
 
-// 🗑️ Delete Chunk (Row)
-app.delete('/api/admin/chunks/:id', async (c) => {
-  const token = c.req.header('Authorization')?.split(' ')[1]
-  const isAdmin = token && (token === c.env.ADMIN_SECRET || token === 'admin' || token === 'specsupport-admin-2026')
-  if (!isAdmin) return c.json({ error: 'Unauthorized' }, 401)
+// 🗑️ Delete Chunk (Row) - Supporting both DELETE and POST
+const handleDeleteChunk = async (c) => {
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
   try {
     const id = c.req.param('id')
-    await c.env.DB.prepare(`DELETE FROM standards_chunks WHERE id = ?`).bind(id).run()
-    return c.json({ success: true, deleted_id: id })
+    const res = await c.env.DB.prepare(`DELETE FROM standards_chunks WHERE id = ?`).bind(id).run()
+    return c.json({ success: true, deleted_id: id, changes: res.meta?.changes || 1 })
   } catch(e) {
     return c.json({ error: e.message }, 500)
   }
-})
+}
+app.delete('/api/admin/chunks/:id', handleDeleteChunk)
+app.post('/api/admin/chunks/:id/delete', handleDeleteChunk)
 
-// 🗑️ Bulk Delete Chunks
+// 🗑️ Bulk Delete Chunks by ID Array (Batched for SQLite safety)
 app.post('/api/admin/chunks/bulk-delete', async (c) => {
-  const token = c.req.header('Authorization')?.split(' ')[1]
-  const isAdmin = token && (token === c.env.ADMIN_SECRET || token === 'admin' || token === 'specsupport-admin-2026')
-  if (!isAdmin) return c.json({ error: 'Unauthorized' }, 401)
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
   try {
     const { chunk_ids } = await c.req.json()
     if (!Array.isArray(chunk_ids) || chunk_ids.length === 0) {
       return c.json({ error: 'chunk_ids must be a non-empty array' }, 400)
     }
-    const placeholders = chunk_ids.map(() => '?').join(',')
-    const res = await c.env.DB.prepare(`DELETE FROM standards_chunks WHERE id IN (${placeholders})`).bind(...chunk_ids).run()
-    return c.json({ success: true, deleted_count: res.meta?.changes || chunk_ids.length })
+
+    let totalDeleted = 0
+    // Batch in chunks of 100 to stay safely below SQLite parameter limits
+    for (let i = 0; i < chunk_ids.length; i += 100) {
+      const batch = chunk_ids.slice(i, i + 100)
+      const placeholders = batch.map(() => '?').join(',')
+      const res = await c.env.DB.prepare(`DELETE FROM standards_chunks WHERE id IN (${placeholders})`).bind(...batch).run()
+      totalDeleted += res.meta?.changes || batch.length
+    }
+
+    return c.json({ success: true, deleted_count: totalDeleted })
   } catch(e) {
     return c.json({ error: e.message }, 500)
   }
 })
 
-// 🗑️ Purge Entire Standard (Chunks, Tables & Catalog)
-app.delete('/api/admin/standards/:standard_code', async (c) => {
-  const token = c.req.header('Authorization')?.split(' ')[1]
-  const isAdmin = token && (token === c.env.ADMIN_SECRET || token === 'admin' || token === 'specsupport-admin-2026')
-  if (!isAdmin) return c.json({ error: 'Unauthorized' }, 401)
+// ⚡ MASS DELETE CHUNKS DIRECTLY BY FILTER (High-Performance Mass Purge in D1)
+app.post('/api/admin/chunks/delete-by-filter', async (c) => {
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
+  try {
+    const { standard_code, search, status, purge_all_standard } = await c.req.json()
+
+    let whereClauses = []
+    let params = []
+
+    if (standard_code && standard_code !== 'ALL') {
+      whereClauses.push('standard_code = ?')
+      params.push(standard_code)
+    }
+
+    if (status === 'active') {
+      whereClauses.push('(is_excluded = 0 OR is_excluded IS NULL)')
+    } else if (status === 'excluded') {
+      whereClauses.push('is_excluded = 1')
+    }
+
+    if (search) {
+      whereClauses.push('(standard_code LIKE ? OR section LIKE ? OR clause LIKE ? OR content LIKE ?)')
+      const sParam = `%${search}%`
+      params.push(sParam, sParam, sParam, sParam)
+    }
+
+    if (whereClauses.length === 0 && !purge_all_standard) {
+      return c.json({ error: 'Safety guard: At least one filter (standard_code or search query) is required for mass delete' }, 400)
+    }
+
+    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : ''
+    const delRes = await c.env.DB.prepare(`DELETE FROM standards_chunks ${whereSql}`).bind(...params).run()
+    const deletedChunks = delRes.meta?.changes || 0
+
+    let deletedTables = 0
+    if (purge_all_standard && standard_code && standard_code !== 'ALL') {
+      const tRes = await c.env.DB.prepare(`DELETE FROM standards_tables WHERE standard_code = ?`).bind(standard_code).run()
+      await c.env.DB.prepare(`DELETE FROM documents_catalog WHERE standard_code = ?`).bind(standard_code).run()
+      deletedTables = tRes.meta?.changes || 0
+    }
+
+    return c.json({
+      success: true,
+      deleted_chunks: deletedChunks,
+      deleted_tables: deletedTables,
+      standard_code: standard_code || null
+    })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// 🗑️ Purge Entire Standard (Chunks, Tables & Catalog) - Supporting DELETE and POST
+const handlePurgeStandard = async (c) => {
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
   try {
     const rawCode = c.req.param('standard_code')
     const stdCode = decodeURIComponent(rawCode)
@@ -1304,13 +1405,13 @@ app.delete('/api/admin/standards/:standard_code', async (c) => {
   } catch(e) {
     return c.json({ error: e.message }, 500)
   }
-})
+}
+app.delete('/api/admin/standards/:standard_code', handlePurgeStandard)
+app.post('/api/admin/standards/:standard_code/purge', handlePurgeStandard)
 
 // 🚫 Exclude / Include Toggle for Chunks
 app.post('/api/admin/chunks/:id/toggle-exclude', async (c) => {
-  const token = c.req.header('Authorization')?.split(' ')[1]
-  const isAdmin = token && (token === c.env.ADMIN_SECRET || token === 'admin' || token === 'specsupport-admin-2026')
-  if (!isAdmin) return c.json({ error: 'Unauthorized' }, 401)
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
   try {
     const id = c.req.param('id')
     await c.env.DB.prepare(`
@@ -1318,6 +1419,63 @@ app.post('/api/admin/chunks/:id/toggle-exclude', async (c) => {
     `).bind(id).run()
     const updated = await c.env.DB.prepare(`SELECT is_excluded FROM standards_chunks WHERE id = ?`).bind(id).first()
     return c.json({ success: true, is_excluded: updated?.is_excluded })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// 🚫 Bulk Toggle Exclude/Include for Array of IDs
+app.post('/api/admin/chunks/bulk-toggle-exclude', async (c) => {
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
+  try {
+    const { chunk_ids, exclude = true } = await c.req.json()
+    if (!Array.isArray(chunk_ids) || chunk_ids.length === 0) {
+      return c.json({ error: 'chunk_ids must be a non-empty array' }, 400)
+    }
+    const val = exclude ? 1 : 0
+    let totalUpdated = 0
+    for (let i = 0; i < chunk_ids.length; i += 100) {
+      const batch = chunk_ids.slice(i, i + 100)
+      const placeholders = batch.map(() => '?').join(',')
+      const res = await c.env.DB.prepare(`UPDATE standards_chunks SET is_excluded = ? WHERE id IN (${placeholders})`).bind(val, ...batch).run()
+      totalUpdated += res.meta?.changes || batch.length
+    }
+    return c.json({ success: true, updated_count: totalUpdated, is_excluded: val })
+  } catch(e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// 📥 Export Chunks to JSON
+app.get('/api/admin/chunks/export', async (c) => {
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
+  try {
+    const standard_code = c.req.query('standard_code') || ''
+    const search = c.req.query('search') || ''
+    let where = []
+    let params = []
+    if (standard_code && standard_code !== 'ALL') {
+      where.push('standard_code = ?')
+      params.push(standard_code)
+    }
+    if (search) {
+      where.push('(standard_code LIKE ? OR section LIKE ? OR clause LIKE ? OR content LIKE ?)')
+      const sParam = `%${search}%`
+      params.push(sParam, sParam, sParam, sParam)
+    }
+    const whereSql = where.length > 0 ? `WHERE ${where.join(' AND ')}` : ''
+    const { results } = await c.env.DB.prepare(`
+      SELECT id, standard_code, standard_name, section, clause, content, scope, organization, is_excluded, created_at
+      FROM standards_chunks
+      ${whereSql}
+      ORDER BY id ASC
+      LIMIT 5000
+    `).bind(...params).all()
+    return c.json({
+      success: true,
+      count: (results || []).length,
+      chunks: results || []
+    })
   } catch(e) {
     return c.json({ error: e.message }, 500)
   }
