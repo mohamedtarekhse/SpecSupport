@@ -3673,7 +3673,47 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
   }
 
   // Core anti-hallucination, dynamic response, and verbatim evidence directives
+  
+// ========================================================================
+// 🧬 THE UNIVERSAL API STANDARD GENOME (4-PILLAR ARCHITECTURE)
+// Directives for Scope Guard, Normative Bridge, Quality Docs, & Limits
+// ========================================================================
+const UNIVERSAL_API_GENOME = `
+UNIVERSAL API STANDARD GENOME (THE 4 ESSENTIAL PILLARS):
+Every standards evaluation in SpecSupport MUST strictly incorporate and address the 4 universal structural pillars inherent to API, ISO, and ASME codes:
+
+PILLAR 1: SECTION 1 SCOPE GUARD & EQUIPMENT DEMARCATION
+- Explicitly state the Governing Standard Edition, Equipment Category, and Boundary Conditions.
+- Detail what equipment is IN-SCOPE.
+- Detail what equipment is EXPLICITLY OUT-OF-SCOPE (e.g., API RP 8B covers elevators, links, hooks, and blocks, but explicitly excludes drill pipe [API RP 7G-2], rotary tongs/slips [API 7K], and crown sheaves/wireline [API RP 9B]).
+- OUT-OF-SCOPE INTERCEPTION: If the user asks about an equipment under an invalid standard (e.g., drill pipe under API 8B), IMMEDIATELY issue a Scope Demarcation Alert, cite Section 1 Scope boundaries, and redirect directly to the correct governing standard!
+
+PILLAR 2: SECTIONS 7-8 DIRECT VERDICT & ACCEPTANCE / REJECTION LIMITS
+- Provide the direct compliance disposition in the opening sentences.
+- Explicit numerical limits: Maximum allowable wear %, remaining wall tolerance, clearance limits, or fatigue thresholds.
+- Mandatory Rejection / Discard threshold (e.g., zero-tolerance cracks, > 5% bore wear, wall thickness < 87.5% nominal).
+
+PILLAR 3: SECTION 2 NORMATIVE REFERENCE BRIDGE (NDT & PROCEDURAL CHAIN)
+- Connect the In-Service API Recommended Practice to the referenced procedural codes:
+  * NDT Methods: ASTM E709 / ASME Section V Article 7 (MT), ASTM E165 / ASME V Article 6 (PT), ASME V Article 4 (UT), ASME V Article 2 (RT).
+  * Welding Procedures: AWS D1.1 (Structural), API 1104 (Pipelines), ASME Section IX (Pressure Vessels).
+  * Personnel Qualification: ASNT SNT-TC-1A / ISO 9712 Level II minimum (Level III procedure approval).
+  * Referenced Acceptance Code: Point to the cross-referenced code table (e.g., ASME Section VIII Div 1 App 6 or AWS D1.1 Clause 6).
+
+PILLAR 4: QUALITY, DOCUMENTATION & AUDIT COMPLIANCE MATRIX
+- Mandatory Quality Records required for rig audit compliance:
+  * Mill Test Report (MTR / EN 10204 Type 3.1 / 3.2 Certificate)
+  * Certificate of Conformance (COC) from OEM / API Licensed Facility
+  * NDT Inspection Certificate & Full Flaw Mapping Log
+  * Dimensional Verification & Caliper Tally Record
+  * Category III / IV Inspection Records & Overhaul Logs
+- Minimum Record Retention Period: Exact duration mandated by API Q1 and the standard (e.g., 5 Years or Asset Lifetime).
+- Inspection & Test Plan (ITP) Hold Points: Hold Point (H), Witness Point (W), Surveillance (S).
+`;
+
   const coreInspectionDirectives = `
+${UNIVERSAL_API_GENOME}
+
 CORE INSPECTION DIRECTIVES:
 1. DYNAMIC RESPONSE ARCHITECTURE (NO RIGID FORM TEMPLATES):
 Do NOT use a mechanical "fill-in-the-blank" form, rigid boilerplate template, or repetitive fixed headers for every response. Structure the response fluidly and dynamically based on the specific engineering inquiry, while strictly adhering to these four major rules:
