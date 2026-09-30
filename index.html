@@ -186,6 +186,27 @@
             border-color: var(--gemini-border);
         }
 
+        #sidebar-toggle-btn {
+            background: var(--gemini-surface);
+            border: 1px solid var(--gemini-border);
+            border-radius: 8px;
+            width: 36px; height: 36px;
+            color: var(--gemini-text-muted);
+            margin-right: 6px;
+            flex-shrink: 0;
+        }
+
+        body.rtl #sidebar-toggle-btn {
+            margin-right: 0;
+            margin-left: 6px;
+        }
+
+        #sidebar-toggle-btn:hover {
+            background: var(--gemini-surface-hover);
+            color: var(--gemini-text-main);
+            border-color: var(--sap-blue-soft-border);
+        }
+
         /* Main View Container */
         #app-container {
             flex: 1; display: flex; flex-direction: column; align-items: center;
@@ -839,6 +860,9 @@
             font-size: 0.9rem;
             margin-bottom: 20px;
         }
+        .state-greeting #gemini-status-container {
+            display: none !important;
+        }
         .status-dots {
             display: flex; gap: 5px; align-items: center;
         }
@@ -867,6 +891,9 @@
             left: 50%; transform: translateX(-50%);
             transition: all 0.3s ease;
             z-index: 50;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
         }
 
         .state-greeting #input-container {
@@ -875,9 +902,15 @@
             padding: 0 20px 28px 20px;
             width: 100%; max-width: var(--max-width);
             margin: 0 auto;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
         }
 
         .gemini-pill-box {
+            width: 100% !important;
+            max-width: 920px;
+            box-sizing: border-box;
             background: var(--gemini-surface);
             border: 1px solid var(--gemini-border);
             border-radius: 32px;
@@ -946,8 +979,11 @@
         }
 
         .gemini-disclaimer {
+            width: 100% !important;
+            max-width: 920px;
             text-align: center; font-size: 0.73rem;
             color: var(--gemini-text-muted); margin-top: 8px;
+            box-sizing: border-box;
         }
 
         /* Modals: Defect Vision & Standards Hub */
@@ -1990,6 +2026,7 @@
             border-radius: 10px;
             background: var(--gemini-bg);
             overflow: hidden;
+            flex-shrink: 0;
             transition: border-color 0.15s ease;
         }
 
@@ -2047,7 +2084,7 @@
         }
 
         .pillar-section.collapsed .pillar-content {
-            display: none;
+            display: none !important;
         }
 
         .pillar-content {
@@ -2055,6 +2092,7 @@
             display: flex;
             flex-direction: column;
             gap: 2px;
+            overflow: visible;
         }
 
         .std-item-row {
@@ -2065,6 +2103,9 @@
             border-radius: 7px;
             cursor: pointer;
             transition: background 0.15s ease;
+            flex-shrink: 0;
+            min-height: 38px;
+            box-sizing: border-box;
         }
 
         .std-item-row:hover {
@@ -2357,7 +2398,7 @@
     <!-- Header Navigation Bar -->
     <header>
         <div class="header-left">
-            <button class="icon-btn" id="sidebar-toggle-btn" title="Toggle Sources & Standards Panel" onclick="toggleSourcesSidebar()" style="margin-right: 4px;">
+            <button class="icon-btn" id="sidebar-toggle-btn" title="Toggle Sources & Standards Panel" onclick="toggleSourcesSidebar()">
                 <svg class="gemini-svg" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
             </button>
             <a href="#" class="logo-title" onclick="resetChat(); return false;">
