@@ -1,19 +1,76 @@
 {
+  "id": "/?source=pwa",
   "name": "SpecSupport — Oil & Gas Standards AI & LocaSpec™ Rig Engine",
   "short_name": "SpecSupport",
   "description": "Zero-hallucination standards verification and 100% offline LocaSpec™ rig engine for remote oilfield and manufacturing operations.",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui", "browser"],
   "background_color": "#0F172A",
   "theme_color": "#0070F2",
   "orientation": "any",
   "categories": ["business", "productivity", "utilities"],
+  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230070F2'/><path d='M30 50L45 65L75 35' stroke='white' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' fill='none'/><circle cx='70' cy='28' r='5' fill='%2300E676'/></svg>",
-      "sizes": "192x192 512x512",
-      "type": "image/svg+xml",
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230070F2'/><path d='M30 50L45 65L75 35' stroke='white' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' fill='none'/><circle cx='70' cy='28' r='5' fill='%2300E676'/></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "LocaSpec Offline Rig",
+      "short_name": "LocaSpec Rig",
+      "description": "Launch 100% offline standards verification engine",
+      "url": "./index.html?mode=locaspec",
+      "icons": [
+        {
+          "src": "./icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Standards & Specs Hub",
+      "short_name": "Standards Hub",
+      "description": "Search and ingest oil & gas engineering standards",
+      "url": "./index.html?mode=standards",
+      "icons": [
+        {
+          "src": "./icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Defect Vision AI",
+      "short_name": "Defect Vision",
+      "description": "On-device weld and corrosion defect inspection",
+      "url": "./index.html?mode=vision",
+      "icons": [
+        {
+          "src": "./icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }

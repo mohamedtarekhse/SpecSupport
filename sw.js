@@ -3,11 +3,13 @@
 // Enables 100% offline app shell execution on remote desert rigs & offshore platforms
 // =========================================================================
 
-const CACHE_NAME = 'specsupport-locaspec-v2.5';
+const CACHE_NAME = 'specsupport-locaspec-v2.6';
 const APP_SHELL = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
