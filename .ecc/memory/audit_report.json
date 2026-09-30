@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-30T01:51:27.557Z",
+  "timestamp": "2026-09-30T01:53:15.091Z",
   "categories": {
     "SECURITY": [
       {
@@ -31,7 +31,7 @@
       {
         "checkName": "Single-File HTML Complexity",
         "status": "WARN",
-        "details": "index.html is 285.4 KB across 5952 lines.",
+        "details": "index.html is 296.2 KB across 6200 lines.",
         "recommendation": "Consider extracting shared CSS / JS modules to improve maintainability."
       },
       {

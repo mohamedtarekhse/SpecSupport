@@ -37,7 +37,9 @@ const requiredIds = [
   'app-container',
   'greeting-area',
   'chat-window',
-  'user-input'
+  'user-input',
+  'mobile-menu-btn',
+  'mobile-nav-drawer'
 ];
 
 requiredIds.forEach(id => {
