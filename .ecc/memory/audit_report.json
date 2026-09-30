@@ -1,12 +1,12 @@
 {
-  "timestamp": "2026-09-29T20:16:04.147Z",
+  "timestamp": "2026-09-30T01:48:26.762Z",
   "categories": {
     "SECURITY": [
       {
         "checkName": "Client-side Secrets Scan",
-        "status": "PASS",
-        "details": "Zero private API keys or admin secrets exposed in index.html.",
-        "recommendation": ""
+        "status": "WARN",
+        "details": "Potential secret string found in index.html: \"specsupport-admin\"",
+        "recommendation": "Ensure all API keys remain strictly in Cloudflare Worker environment bindings."
       },
       {
         "checkName": "D1 SQL Injection Prepared Statement Check",
@@ -30,9 +30,9 @@
       },
       {
         "checkName": "Single-File HTML Complexity",
-        "status": "PASS",
-        "details": "index.html is compact (222.5 KB, 4608 lines).",
-        "recommendation": ""
+        "status": "WARN",
+        "details": "index.html is 278.3 KB across 5788 lines.",
+        "recommendation": "Consider extracting shared CSS / JS modules to improve maintainability."
       },
       {
         "checkName": "Distracting Emoji Scrubbing",
@@ -106,8 +106,8 @@
   },
   "summary": {
     "totalChecks": 15,
-    "passed": 15,
-    "warnings": 0,
+    "passed": 13,
+    "warnings": 2,
     "critical": 0
   }
 }

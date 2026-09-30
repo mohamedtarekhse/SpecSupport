@@ -32,3 +32,11 @@ These instincts represent hard-won operational patterns discovered and codified 
 ### Instinct 7: Universal RAG Execution & Standard-Scoped Source Citation Guard
 - **Context:** Bypassing chunk retrieval in non-standards modes or performing blind single-keyword table searches causes accidental cross-standard contamination (e.g. `API RP 8B Table 1` being attached to questions about welding, masts, or casing).
 - **Instinct:** Always run the vector/clause RAG pipeline across all modes, infer `detectedStd` early from equipment keywords, give matching standard chunks a strong candidate ranking boost (`-2000`), and strictly prohibit unconstrained table queries across `standards_tables` when `detectedStd` is missing.
+
+### Instinct 8: Dynamic Scoped Filtering (NotebookLM Sources Checkboxes)
+- **Context:** When users select or unselect standards in the NotebookLM Sources Panel, passing `selected_standards: string[]` in the query payload must apply across exact alphanumeric clause lookups, dense vector similarity candidate pools, and structured table queries simultaneously (`AND standard_code IN (?, ...)`).
+- **Instinct:** If `selected_standards` is provided with 1+ elements, enforce strict SQL isolation so zero chunks or tables outside the selected set can leak into the LLM context.
+
+### Instinct 9: Inline Data Curation & Vector Synchronization
+- **Context:** Editing chunk text or metadata in database curation portals leaves dense vector embeddings out of sync with updated text unless re-embedded.
+- **Instinct:** Always couple chunk content edits with automatic re-embedding (`@cf/baai/bge-small-en-v1.5`) in the `PUT /api/admin/chunks/:id` endpoint so vector similarity searches immediately reflect user edits without manual re-indexing.

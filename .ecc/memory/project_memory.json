@@ -1,12 +1,12 @@
 {
   "system_name": "Inspecta Oil & Gas AI Assistant",
-  "version": "3.5.0",
+  "version": "4.0.0",
   "active_git_branch": "final",
   "remote_repository": "https://github.com/mohamedtarekhse/SpecSupport.git",
   "production_worker": {
     "url": "https://inspection-api.mohamedtarekhse.workers.dev",
     "name": "inspection-api",
-    "last_deployed_version": "116d5753-9e8d-496e-bd34-a7ae7daf947a",
+    "last_deployed_version": "0e31bb98-cc61-4606-8caa-1899653a5a24",
     "bindings": {
       "d1_database": "inspection-db",
       "d1_database_id": "5e8696db-10ab-4eaf-92b0-de5f21a007f6",
@@ -24,23 +24,50 @@
     "API RP 4G",
     "API RP 8B",
     "API Spec 5CT",
+    "API RP 5C1",
+    "API RP 7G-2",
+    "API RP 2X",
     "API Spec 1104",
     "API Spec 16D",
     "API Standard 53",
     "IADC WellSharp Drilling Well Control Manual",
     "OEM BOP Operations, Maintenance & Repair Manual (Cameron / Hydril / NOV Shaffer / Koomey)",
     "AWS D1.1",
-    "ISO 3834-2"
+    "AWS B1.11",
+    "ISO 3834-2",
+    "ISO 13534"
+  ],
+  "drilling_pillars": [
+    {
+      "id": "operations",
+      "name": "Operations & Well Control",
+      "standards": ["API RP 4G", "API RP 5C1", "IADC WellSharp", "OEM BOP"]
+    },
+    {
+      "id": "maintenance",
+      "name": "Maintenance & Inspection",
+      "standards": ["API RP 8B", "API RP 7G-2", "ASME V Article 2", "ASME V Article 4", "API RP 2X", "AWS B1.11", "API 510", "API 570"]
+    },
+    {
+      "id": "asset_qa",
+      "name": "Asset & Quality Assurance",
+      "standards": ["API Spec 4F", "API Spec 8C", "API 5CT", "ISO 3834-2", "AWS D1.1", "ASME VIII", "ASME B31.3", "ASME B31.4", "ASME B31.8", "API 1104"]
+    },
+    {
+      "id": "safety",
+      "name": "Safety & Well Control",
+      "standards": ["API Std 53", "API Spec 16D", "DS-1"]
+    }
   ],
   "benchmark_score": {
     "total_assertions": 44,
     "passed_assertions": 44,
     "pass_rate_percentage": 100.0,
-    "last_verified_timestamp": "2026-09-29T20:16:00Z"
+    "last_verified_timestamp": "2026-09-30T04:47:00Z"
   },
   "ecc_methodology_status": {
     "cycle_definition": "plan -> test -> implement -> review -> verify -> remember -> improve",
     "active_level": "Level 3 (Enterprise Harness Full Alignment)",
-    "last_cycle_completed": "Cycle #4: Fix Spurious API RP 8B Source Citations (Unified RAG across all modes, pruned 99 junk tables from D1, hoisted intelligent domain standard detection, candidate standard-match boost, and UI source deduplication)"
+    "last_cycle_completed": "Cycle #5: Major NotebookLM Sources Panel & Knowledge Base Curation Portal Overhaul. Includes 4-Pillar Drilling Standards Categorization (Operations, Maintenance & Inspection, Asset & Quality Assurance, Safety & Well Control), live checkbox-scoping in RAG queries, inline chunk editing with real-time vector re-embedding via @cf/baai/bge-small-en-v1.5, bulk chunk deletion, and standard purging."
   }
 }
