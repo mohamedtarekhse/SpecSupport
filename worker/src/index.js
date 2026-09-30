@@ -1138,6 +1138,7 @@ app.get('/api/admin/chunks', async (c) => {
     const search = c.req.query('search') || ''
     const standard_code = c.req.query('standard_code') || ''
     const status = c.req.query('status') || 'all'
+    const pillar = c.req.query('pillar') || c.req.query('pillar_type') || ''
 
     let whereClauses = []
     let params = []
@@ -1145,6 +1146,11 @@ app.get('/api/admin/chunks', async (c) => {
     if (standard_code && standard_code !== 'ALL') {
       whereClauses.push('standard_code = ?')
       params.push(standard_code)
+    }
+
+    if (pillar && pillar !== 'all') {
+      whereClauses.push('pillar_type = ?')
+      params.push(pillar)
     }
 
     if (status === 'active') {
@@ -1165,7 +1171,9 @@ app.get('/api/admin/chunks', async (c) => {
     const total = countRes ? countRes.count : 0
 
     const { results } = await c.env.DB.prepare(`
-      SELECT id, standard_code, standard_name, section, clause, content, scope, organization, is_excluded, created_at
+      SELECT id, standard_code, standard_name, section, clause, content, scope, organization, is_excluded,
+             pillar_type, in_scope, out_of_scope, acceptance_limits, rejection_limits, normative_refs, qa_docs,
+             created_at
       FROM standards_chunks
       ${whereSql}
       ORDER BY id DESC
@@ -1203,6 +1211,13 @@ app.get('/api/admin/studio/stats', async (c) => {
       ORDER BY count DESC
     `).all()
 
+    const genomeRes = await c.env.DB.prepare(`
+      SELECT pillar_type, count(*) as count, SUM(CASE WHEN is_excluded = 1 THEN 1 ELSE 0 END) as excluded_count
+      FROM standards_chunks
+      GROUP BY pillar_type
+      ORDER BY count DESC
+    `).all()
+
     const tablesRes = await c.env.DB.prepare(`SELECT count(*) as count FROM standards_tables`).first()
 
     const total = totalRes?.total || 0
@@ -1217,7 +1232,8 @@ app.get('/api/admin/studio/stats', async (c) => {
       missing_embeddings: totalRes?.missing_embeddings || 0,
       total_tables: tablesRes?.count || 0,
       standards_count: (stdsRes?.results || []).length,
-      standards: stdsRes?.results || []
+      standards: stdsRes?.results || [],
+      genome_pillars: genomeRes?.results || []
     })
   } catch(e) {
     return c.json({ error: e.message }, 500)
@@ -1481,6 +1497,268 @@ app.get('/api/admin/chunks/export', async (c) => {
   }
 })
 
+
+// =========================================================
+// 🧬 THE UNIVERSAL API STANDARD GENOME DATABASE REFINER
+// =========================================================
+
+function classifyChunkWorker(chunk) {
+  const content = (chunk.content || '').toLowerCase();
+  const clause = (chunk.clause || '').toLowerCase();
+  const section = (chunk.section || '').toLowerCase();
+
+  // 1. Detect TOC or Publisher Noise
+  const dotMatches = content.match(/(?:\.\s*){3,}\s*\d+/g) || [];
+  const isPublisherNoise = /black plate|all rights reserved|printed in usa|supersedes|american institute of steel/i.test(content) && content.length < 500;
+  const isToc = dotMatches.length >= 2 || (content.includes('table of contents') && dotMatches.length >= 1) || (clause.includes('prelim') || section.includes('prelim'));
+
+  if (isToc || isPublisherNoise) {
+    return {
+      pillar_type: 'TOC_NOISE',
+      is_excluded: 1,
+      in_scope: null,
+      out_of_scope: null,
+      acceptance_limits: null,
+      rejection_limits: null,
+      normative_refs: null,
+      qa_docs: null
+    };
+  }
+
+  // 2. Detect Scope & Demarcation (Pillar 1)
+  if (clause.includes('scope') || section.includes('scope') || content.includes('this specification covers') || content.includes('this recommended practice covers') || content.includes('equipment covered') || clause.includes('1.1') || clause.includes('1.2')) {
+    let inScope = null;
+    let outScope = null;
+    if (content.includes('covers') || content.includes('applicable to')) {
+      inScope = chunk.content.slice(0, 180).replace(/\n/g, ' ').trim();
+    }
+    if (content.includes('not cover') || content.includes('excluded') || content.includes('does not apply')) {
+      outScope = 'Excluded auxiliary items noted in clause';
+    }
+    return {
+      pillar_type: 'SCOPE',
+      is_excluded: 0,
+      in_scope: inScope,
+      out_of_scope: outScope,
+      acceptance_limits: null,
+      rejection_limits: null,
+      normative_refs: null,
+      qa_docs: null
+    };
+  }
+
+  // 3. Detect Discard & Acceptance Limits (Pillar 2 / Sections 7-8)
+  const hasAcceptance = /acceptance criteria|acceptance:|acceptance limits|pass criteria|قبول/i.test(content);
+  const hasRejection = /rejection criteria|rejection:|reject:|discard criteria|wear limit|undertolerance|maximum allowable|minimum wall|رفض/i.test(content);
+  
+  if (hasAcceptance || hasRejection || clause.includes('discard') || clause.includes('wear') || clause.includes('tolerance') || section.includes('discard') || section.includes('wear')) {
+    let lines = chunk.content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    let acc = lines.find(l => /ACCEPTANCE|Acceptance:|Acceptance Criteria|قبول/i.test(l)) || null;
+    let rej = lines.find(l => /REJECTION|Reject:|Rejection Criteria|Discard|رفض/i.test(l)) || null;
+
+    if (!acc && hasAcceptance) acc = 'Referenced in clause specification';
+    if (!rej && hasRejection) rej = 'Exceeding dimensional tolerance or fatigue cracking mandates discard';
+
+    return {
+      pillar_type: 'DISCARD_LIMITS',
+      is_excluded: 0,
+      in_scope: null,
+      out_of_scope: null,
+      acceptance_limits: acc ? acc.slice(0, 200) : null,
+      rejection_limits: rej ? rej.slice(0, 200) : null,
+      normative_refs: null,
+      qa_docs: null
+    };
+  }
+
+  // 4. Detect Normative References & NDT (Pillar 3 / Section 2)
+  if (clause.includes('normative') || section.includes('normative') || clause.includes('reference') || section.includes('reference') || /astm e|asme section v|aws d1\.1|iso 9712|snt-tc-1a|api rp 2x/i.test(content)) {
+    const refs = [];
+    if (/astm\s*e\s*\d+/i.test(content)) refs.push('ASTM NDT Spec');
+    if (/asme\s*(?:sec(?:tion)?\s*)?v\b/i.test(content)) refs.push('ASME Section V');
+    if (/aws\s*d1\.1/i.test(content)) refs.push('AWS D1.1');
+    if (/asnt|snt-tc-1a|iso\s*9712/i.test(content)) refs.push('ASNT SNT-TC-1A / ISO 9712');
+    if (/api\s*1104/i.test(content)) refs.push('API 1104');
+    if (/asme\s*(?:sec(?:tion)?\s*)?viii/i.test(content)) refs.push('ASME Section VIII');
+
+    return {
+      pillar_type: 'NORMATIVE_REF',
+      is_excluded: 0,
+      in_scope: null,
+      out_of_scope: null,
+      acceptance_limits: null,
+      rejection_limits: null,
+      normative_refs: refs.join(', ') || 'Referenced Code',
+      qa_docs: null
+    };
+  }
+
+  // 5. Detect Quality, Documentation & Records (Pillar 4 / Section 9-10)
+  if (/quality|documentation|mill test report|\bmtr\b|certificate of conformance|\bcoc\b|record retention|traceability|marking|stencil|serial number|inspection certificate/i.test(content)) {
+    let docs = [];
+    if (/mtr|mill test/i.test(content)) docs.push('MTR (EN 10204 3.1/3.2)');
+    if (/coc|conformance/i.test(content)) docs.push('Certificate of Conformance (COC)');
+    if (/ndt|inspection report/i.test(content)) docs.push('NDT Inspection Report');
+    if (/retention|retain/i.test(content)) docs.push('5-Yr / Asset Lifetime Retention');
+
+    return {
+      pillar_type: 'QUALITY_DOCS',
+      is_excluded: 0,
+      in_scope: null,
+      out_of_scope: null,
+      acceptance_limits: null,
+      rejection_limits: null,
+      normative_refs: null,
+      qa_docs: docs.join(', ') || 'QA Audit Documentation'
+    };
+  }
+
+  // 6. Detect Table / Annex (Pillar 7)
+  if (/^table\s*\d+/i.test(clause) || /^table\s*\d+/i.test(section) || /^annex\s*[a-z]/i.test(clause) || /^appendix/i.test(section)) {
+    return {
+      pillar_type: 'TABLE_ANNEX',
+      is_excluded: 0,
+      in_scope: null,
+      out_of_scope: null,
+      acceptance_limits: null,
+      rejection_limits: null,
+      normative_refs: null,
+      qa_docs: null
+    };
+  }
+
+  // 7. Detect Inspection & Overhaul Procedure (Pillar 5 / Category I-IV)
+  if (/category\s*(?:i|ii|iii|iv)|cat\s*(?:i|ii|iii|iv)|overhaul|disassembly|assembly|inspection procedure|running practice/i.test(content) || /procedure|maintenance/i.test(clause)) {
+    return {
+      pillar_type: 'PROCEDURE',
+      is_excluded: 0,
+      in_scope: null,
+      out_of_scope: null,
+      acceptance_limits: null,
+      rejection_limits: null,
+      normative_refs: null,
+      qa_docs: null
+    };
+  }
+
+  return {
+    pillar_type: 'GENERAL',
+    is_excluded: 0,
+    in_scope: null,
+    out_of_scope: null,
+    acceptance_limits: null,
+    rejection_limits: null,
+    normative_refs: null,
+    qa_docs: null
+  };
+}
+
+// 📊 Get Genome Classification Stats from D1
+app.get('/api/admin/genome-stats', async (c) => {
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401);
+  try {
+    const { results } = await c.env.DB.prepare(`
+      SELECT 
+        COALESCE(pillar_type, 'GENERAL') as pillar_type,
+        count(*) as count,
+        sum(CASE WHEN is_excluded = 1 THEN 1 ELSE 0 END) as excluded_count
+      FROM standards_chunks
+      GROUP BY pillar_type
+      ORDER BY count DESC
+    `).all();
+
+    const totalRes = await c.env.DB.prepare('SELECT count(*) as total FROM standards_chunks').first();
+
+    return c.json({
+      success: true,
+      total_chunks: totalRes?.total || 0,
+      pillars: results || []
+    });
+  } catch(e) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
+// ⚡ Batch Refine D1 Database using Universal API Genome
+app.post('/api/admin/refine-genome', async (c) => {
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401);
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const batchSize = Math.min(body.batch_size || 500, 1000);
+    const offset = body.offset || 0;
+
+    // Fetch unrefined or next batch of chunks
+    const { results } = await c.env.DB.prepare(`
+      SELECT id, standard_code, section, clause, content
+      FROM standards_chunks
+      ORDER BY id ASC
+      LIMIT ? OFFSET ?
+    `).bind(batchSize, offset).all();
+
+    const chunks = results || [];
+    if (chunks.length === 0) {
+      return c.json({ success: true, processed: 0, has_more: false, message: 'All chunks refined.' });
+    }
+
+    // Execute updates in batch statements
+    const updateStatements = [];
+    const stats = {
+      SCOPE: 0,
+      DISCARD_LIMITS: 0,
+      NORMATIVE_REF: 0,
+      QUALITY_DOCS: 0,
+      PROCEDURE: 0,
+      TABLE_ANNEX: 0,
+      TOC_NOISE: 0,
+      GENERAL: 0
+    };
+
+    for (const chunk of chunks) {
+      const cls = classifyChunkWorker(chunk);
+      stats[cls.pillar_type] = (stats[cls.pillar_type] || 0) + 1;
+
+      updateStatements.push(
+        c.env.DB.prepare(`
+          UPDATE standards_chunks
+          SET pillar_type = ?,
+              is_excluded = CASE WHEN ? = 1 THEN 1 ELSE is_excluded END,
+              in_scope = ?,
+              out_of_scope = ?,
+              acceptance_limits = ?,
+              rejection_limits = ?,
+              normative_refs = ?,
+              qa_docs = ?
+          WHERE id = ?
+        `).bind(
+          cls.pillar_type,
+          cls.is_excluded,
+          cls.in_scope,
+          cls.out_of_scope,
+          cls.acceptance_limits,
+          cls.rejection_limits,
+          cls.normative_refs,
+          cls.qa_docs,
+          chunk.id
+        )
+      );
+    }
+
+    // Run batch update in D1
+    await c.env.DB.batch(updateStatements);
+
+    return c.json({
+      success: true,
+      processed: chunks.length,
+      offset: offset,
+      next_offset: offset + chunks.length,
+      has_more: chunks.length === batchSize,
+      batch_stats: stats
+    });
+  } catch(e) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
 // =========================================================
 // 🛰️ LOCASPEC™ ENTERPRISE OFFLINE RIG ENGINE ENDPOINTS
 // =========================================================
@@ -1567,7 +1845,7 @@ app.get('/api/locaspec/bundle', async (c) => {
     }
 
     const { results } = await c.env.DB.prepare(`
-      SELECT id, standard_code, standard_name, section, clause, content
+      SELECT id, standard_code, standard_name, section, clause, content, pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs
       FROM standards_chunks
       ${whereSql}
       ORDER BY standard_code ASC, id ASC
