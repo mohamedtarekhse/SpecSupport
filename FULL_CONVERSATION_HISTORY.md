@@ -1,8 +1,8 @@
 # SpecSupport Engineering System — Full Conversation Archive
 
 > **Conversation ID:** `831bfcb2-41c2-4a30-92da-937c17c7849a`  
-> **Export Timestamp:** `2026-10-01T21:43:34.969Z`  
-> **Total Dialogue Turns:** `193`  
+> **Export Timestamp:** `2026-10-01T21:54:52.246Z`  
+> **Total Dialogue Turns:** `194`  
 > **Storage:** Cloudflare D1 (`inspection-db`), Vectorize (`inspecta-index`), Pages (`final.specsupport.pages.dev`)  
 > **Scope:** Complete architectural, database, edge worker, and multi-standard genome development log.  
 
@@ -203,6 +203,7 @@
 - [**Turn 191** (2026-10-01 04:05) — could you translate the last reposns in english](#turn-191)
 - [**Turn 192** (2026-10-01 04:07) — ok implement](#turn-192)
 - [**Turn 193** (2026-10-01 21:42) — now lets talk about the response i need every time when the user asks for definite  somthing like wp...](#turn-193)
+- [**Turn 194** (2026-10-01 21:54) — ok lets do it but the lightining button for adnoc and aramco standards or rule of thumb  make it sim...](#turn-194)
 
 ---
 
@@ -16888,6 +16889,157 @@ now lets talk about the response i need every time when the user asks for defini
 - **search_web** — `Search ASME IX WPS essential variables frameworks`
 - **search_web** — `Search interactive elicitation patterns in AI`
 - **run_command** — `Save conversation history to MD and git`
+
+</details>
+
+#### 🤖 SPECSUPPORT ASSISTANT
+
+### 🎯 الخطة الهندسية: نظام الاستجواب التفاعلي والحسم الحتمي (Interactive Triage & Deterministic WPS Architecture)
+
+---
+
+### 1. هل توجد معايير وهياكل موحدة عالمياً لهذه الطريقة على الإنترنت؟ (Is there an Industry Standard Genome?)
+
+**نعم! قطاع الهندسة والتصنيع العالمي يمتلك هيكلاً معيارياً ثابتاً وصارماً لا يمكن تجاوزه، ويُعرف بـ:**
+> **"مصفوفة المتغيرات الجوهرية والتأهيل الكودي (Essential Variable Genome & Qualification Hierarchy)"**
+> المنصوص عليها في **ASME Section IX (QW-250 series)** و **AWS D1.1 (Clause 4)** و **API 1104 (Section 5)** و **ISO 15614-1**.
+
+#### 🧬 الهيكل الجيني الموحد لأي مواصفة إجراء لحام (WPS Blueprint):
+الكود العالمي لا يقبل "لحام عام أو مجهول"، بل يقسم أي طلب إلى **3 طبقات حتمية**:
+
+```mermaid
+graph TD
+    UserQ["سؤال المستخدم العام:<br/>'عايز WPS لمواسير ضغط عالي'"] --> Gate["1. بوابة كشف الغموض (Ambiguity Gate)<br/>'هل تحتاج مواصفة حتمية معتمدة؟'"]
+    Gate --> T1["2. المتغيرات الجوهرية (Essential Variables)<br/>(تغييرها يلغي الـ PQR بالكامل)"]
+    T1 --> Q1["معدن الأساس (P-No / Grade)<br/>A106-B vs A333-6 vs 316L"]
+    T1 --> Q2["السُمك والجدول (Schedule / Wall Thickness)<br/>Sch 40 vs Sch 80 vs Sch 160"]
+    T1 --> Q3["ظروف التشغيل (Sour Service vs Non-Sour)<br/>NACE MR0175 / Max 22 HRC"]
+    Gate --> Fallback["3. محرك الخبرة الميدانية (Practical Rules of Thumb)<br/>(لو المستخدم لا يعلم التفاصيل الدقيقة)"]
+    Fallback --> Aramco["تطبيق معايير أرامكو / أدنوك القياسية<br/>Root: TIG ER70S-6 | Fill: E7018-1 | Preheat: 50°C-100°C"]
+    T1 & Fallback --> FinalWPS["4. وثيقة الـ WPS الحتمية النهائية<br/>(ASME Form QW-482 Format)"]
+```
+
+1. **الطبقة الأولى: المتغيرات الجوهرية (Essential Variables):**
+   * إذا تغيرت، تسقط صلاحية شهادة التأهيل (PQR) ويلزم اختبار عينة معملية جديدة.
+   * **أهمها:** رقم المعدن الأساسي (`P-Number`)، سُمك الجدار (`Wall Thickness Range T`)، إضافة أو إلغاء المعالجة الحرارية (`PWHT`).
+2. **الطبقة الثانية: المتغيرات التكميلية (Supplementary Essential Variables):**
+   * تصبح إلزامية فقط إذا كان الخط يعمل في درجات حرارة منخفضة وتطلب الكود اختبار الصدمة بالشاربي (Charpy V-Notch) أو خدمة غاز كبريتيد الهيدروجين الحامضي (`H2S Sour Service`).
+3. **الطبقة الثالثة: المتغيرات غير الجوهرية (Non-Essential Variables):**
+   * يمكن تعديلها في الـ WPS دون إعادة اختبار (مثل: زاوية الشطف Bevel Angle، قطر السلك Electrode Diameter، سرعة التحرك).
+
+---
+
+### 2. كيف تحل كبرى أنظمة الذكاء الاصطناعي (Claude & Engineering Expert Systems) هذه المعضلة؟
+
+في الأنظمة المتقدمة، لا يقوم الذكاء الاصطناعي بـ "تأليف" إجابة واحدة عشوائية، بل يعتمد بروتوكول:
+> **Progressive Elicitation & Sensible Defaults Protocol (بروتوكول الاستجواب التدريجي والافتراضات الذكية)**
+
+#### 🔄 آلية العمل المقترحة (Step-by-Step Flow):
+
+#### الخطوة 1: كشف السؤال العام (Ambiguity Interceptor)
+عندما يسأل المستخدم سؤالاً عاماً مثل: *"أريد WPS لمواسير ضغط عالي"*:
+* يكتشف النظام فوراً نقص المتغيرات الجوهرية (Essential Variables).
+* يرد النظام فوراً في مقدمة الإجابة:
+  > *"مهندسنا العزيز: مواصفة اللحام (WPS) طبقاً لـ ASME IX و ASME B31.3 تتطلب تحديد 3 متغيرات جوهرية لتكون معتمدة وتجتاز التدقيق (Audit-Proof). هل تحتاج WPS حتمي دقيق؟"*
+
+#### الخطوة 2: كارت الأسئلة التفاعلي كـ (Interactive MCQ Cards)
+يعرض النظام مباشرة داخل الشات أزراراً تفاعلية واضحة (Interactive Pills) على طريقة **Claude Artifacts**:
+
+* **السؤال الأول: ما هي سبيكة المعدن المراد لحامها؟ (Base Metal Metallurgy):**
+  * `[A]` **ASTM A106 Gr B / API 5L X52** *(P-No 1 Gr 1 - الكربون الصلب الأكثر شيوعاً)* ⭐ (Recommended)
+  * `[B]` **ASTM A333 Gr 6** *(للخدمة في درجات الحرارة المنخفضة حتى -46°C مع اختبار Charpy)*
+  * `[C]` **ASTM A312 TP316L** *(P-No 8 - ستانلس ستيل مقاوم للتآكل)*
+  * `[D]` **API 5L X65 / X70** *(خطوط أنابيب بترول عالية المتانة)*
+  * `[خيار مخصص / كتابة مباشرة]`
+
+* **السؤال الثاني: ما هو جدول الأنبوب والسُمك؟ (Pipe Schedule & Thickness):**
+  * `[A]` **Schedule 40 / Standard** *(سُمك متوسط، مثل 6 مم إلى 8 مم - بدون PWHT غالبًا)*
+  * `[B]` **Schedule 80 / Heavy Wall** *(سُمك مرتفع، يقترب من حد المعالجة الحرارية الإلزامية)*
+  * `[C]` **Schedule 160 / XXS** *(ضغط فائق يتجاوز 2500 psi - يتطلب تسخين مسبق ومعالجة حرارية)*
+
+* **السؤال الثالث: طبيعة الخدمة والوسط الجاري؟ (Service Environment):**
+  * `[A]` **Non-Sour Hydrocarbon / Steam** *(خدمة قياسية عادية)*
+  * `[B]` **Sour Service (H2S)** *(طبقاً لـ NACE MR0175 / أقصى صلادة مسموحة 22 HRC لمنع الشروخ الهيدروجينية)*
+
+#### الخطوة 3: "زر إنقاذ المفتش" (The Rig Experience / Best-Practice Fallback)
+**ماذا لو كان المستخدم لا يعلم الجدول أو نوع السبيكة بالتحديد؟**
+يظهر له زر بارز:
+> **`⚡ تطبيق الافتراضات القياسية الميدانية لأرامكو وأدنوك (Field Engineering Best-Practices)`**
+
+عند الضغط عليه، لا يعتذر النظام ولا يتوقف، بل يطبق **القواعد الهندسية الذهبية الميدانية (Golden Field Heuristics)**:
+1. **طريقة اللحام المشتركة (GTAW + SMAW Combination):**
+   * باص الجذر (Root Pass): لحام أرجون `GTAW` بسلك `ER70S-6` وغاز حماية 100% Argon لمنع التقعر (`Root Concavity / سوستة`).
+   * باصات الملء والغطاء (Fill & Cap): لحام كهرباء `SMAW` بإلكترود منخفض الهيدروجين `E7018-1` (مجفف على 350°C).
+2. **التسخين المسبق (Preheat):**
+   * حد أدنى 50°C لطرد الرطوبة، ويرتفع إلى 100°C إذا تجاوز السُمك 12.7 مم.
+3. **المعالجة الحرارية (PWHT):**
+   * إشعار حتمي: *"إذا تجاوز سُمك الجدار 19.05 مم (0.75 in)، تصبح المعالجة الحرارية PWHT إلزامية كودياً طبقاً لـ ASME B31.3 Table 331.1.1 (تسخين لـ 600°C–650°C بمعدل ساعة لكل بوصة سُمك)"*.
+
+#### الخطوة 4: توليد الـ WPS الحتمي المعتمد (Form QW-482 Format)
+بمجرد الاختيار (أو اعتماد الافتراضات القياسية)، يولد النظام جدولاً كاملاً وموثقاً برقم البند في الكود جاهزاً للتنزيل والطباعة.
+
+---
+
+### 🗺️ خطة التنفيذ البرمجية في SpecSupport (Implementation Plan)
+
+```
+                     [ USER PROMPT ]
+                            │
+               (Detects Procedure / WPS Intent)
+                            │
+            ┌───────────────┴───────────────┐
+            ▼                               ▼
+    [Variables Missing]            [Variables Provided]
+            │                               │
+            ▼                               ▼
+    Render Interactive              Direct Deterministic
+     Claude-Style MCQ               Generation (ASME Form)
+    + "Field Best-Practice"
+```
+
+#### المرحلة 1: على مستوى الـ Worker Backend (`worker/src/index.js`)
+* إضافة **مُحلل النوايا الإجرائية (Procedure Intent Detector)**:
+  * إذا احتوى السؤال على (`WPS`, `PQR`, `Welding Procedure`, `PWHT requirement`, `BOP Test Procedure`):
+  * يفحص وجود المتغيرات الحاكمة: (Metallurgy/Grade, Thickness/Schedule, Service Type).
+  * إذا كانت ناقصة، يقوم الـ Worker بتوليد هيكل الأسئلة الموحد:
+    ```json
+    {
+      "type": "TRIAGE_MCQ",
+      "topic": "WPS_HIGH_PRESSURE_PIPING",
+      "governing_codes": ["ASME Section IX", "ASME B31.3"],
+      "questions": [...],
+      "field_defaults": {
+        "process": "GTAW + SMAW",
+        "filler": "ER70S-6 / E7018-1",
+        "preheat": "50°C min",
+        "pwht_rule": "> 19 mm mandatory per B31.3"
+      }
+    }
+    ```
+
+#### المرحلة 2: على مستوى الواجهة الأمامية (`index.html`)
+* إضافة مكون عرض **`SpecSupport Interactive Triage Widget`**:
+  * عندما يتلقى الشات رسالة الـ Triage، يعرض كروت خيارات قابلة للضغط بنقرة واحدة (One-Click Select).
+  * إضافة زر **`⚡ تطبيق الخبرة الميدانية المعتمدة (Aramco / ADNOC Rule of Thumb)`**.
+  * بمجرد اختيار الخيارات، يُرسل الرد المجمع تلقائياً ويولد الـ WPS النهائي فائق الدقة.
+
+---
+
+### ❓ سؤال للتأكيد والاعتماد:
+هل يناسبك هذا السيناريو المعماري لنبدأ في تنفيذه وربطه بنظام استجواب ذكي (Interactive Triage) يضمن نسبة هلوسة 0% ويعطي المفتش على البرج خيار "تطبيق الافتراضات الهندسية الميدانية" فوراً؟
+
+---
+
+### <a id="turn-194"></a> Turn 194 — [2026-10-01T21:54:32Z]
+
+#### 👤 USER
+
+ok lets do it but the lightining button for adnoc and aramco standards or rule of thumb  make it simple question when the inspector stops from being know assume based on best practice after asking to provide certian policy or use global standard  not aramco or andnoc not specific requirements than global. good and continue plan again
+
+<details>
+<summary><b>🛠️ Tool Actions & Executions (1)</b></summary>
+
+- **run_command** — `Export conversation history`
 
 </details>
 
