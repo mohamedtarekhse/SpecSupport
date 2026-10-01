@@ -1,7 +1,7 @@
 # SpecSupport Engineering System — Full Conversation Archive
 
 > **Conversation ID:** `831bfcb2-41c2-4a30-92da-937c17c7849a`  
-> **Export Timestamp:** `2026-10-01T22:02:10.611Z`  
+> **Export Timestamp:** `2026-10-01T22:03:59.822Z`  
 > **Total Dialogue Turns:** `194`  
 > **Storage:** Cloudflare D1 (`inspection-db`), Vectorize (`inspecta-index`), Pages (`final.specsupport.pages.dev`)  
 > **Scope:** Complete architectural, database, edge worker, and multi-standard genome development log.  
@@ -17037,7 +17037,7 @@ graph TD
 ok lets do it but the lightining button for adnoc and aramco standards or rule of thumb  make it simple question when the inspector stops from being know assume based on best practice after asking to provide certian policy or use global standard  not aramco or andnoc not specific requirements than global. good and continue plan again
 
 <details>
-<summary><b>🛠️ Tool Actions & Executions (62)</b></summary>
+<summary><b>🛠️ Tool Actions & Executions (71)</b></summary>
 
 - **run_command** — `Export conversation history`
 - **run_command** — `Git commit and push archive`
@@ -17101,6 +17101,15 @@ ok lets do it but the lightining button for adnoc and aramco standards or rule o
 - **manage_task** — `Check WPS task status`
 - **view_file** — `Check test output`
 - **run_command** — `Export conversation history to markdown`
+- **run_command** — `Git commit and push`
+- **run_command** — `Check recent commits`
+- **run_command** — `Deploy Pages site`
+- **manage_task** — `Check pages deploy status`
+- **view_file** — `View pages deploy log`
+- **view_file** — `Check pages deploy result`
+- **view_file** — `Check upload progress`
+- **view_file** — `View pages deploy result`
+- **run_command** — `Export conversation to markdown`
 
 </details>
 
