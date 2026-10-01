@@ -1,8 +1,8 @@
 # SpecSupport Engineering System — Full Conversation Archive
 
 > **Conversation ID:** `831bfcb2-41c2-4a30-92da-937c17c7849a`  
-> **Export Timestamp:** `2026-10-01T22:53:59.234Z`  
-> **Total Dialogue Turns:** `199`  
+> **Export Timestamp:** `2026-10-01T23:01:04.343Z`  
+> **Total Dialogue Turns:** `200`  
 > **Storage:** Cloudflare D1 (`inspection-db`), Vectorize (`inspecta-index`), Pages (`final.specsupport.pages.dev`)  
 > **Scope:** Complete architectural, database, edge worker, and multi-standard genome development log.  
 
@@ -209,6 +209,7 @@
 - [**Turn 197** (2026-10-01 22:17) — check thhis fitting of the website in the window check and give me the problem and find root caused...](#turn-197)
 - [**Turn 198** (2026-10-01 22:35) — cehck last 3 repsonses and retrive the last good  working ui and find root cause nad solve it](#turn-198)
 - [**Turn 199** (2026-10-01 22:49) — i need to add form of wps asme viii or asme xi so when i request wps  if fills inside this form](#turn-199)
+- [**Turn 200** (2026-10-01 22:58) — index:5262 LocaSpec SW Active with scope: https://final.specsupport.pages.dev/ index:5168 Spe...](#turn-200)
 
 ---
 
@@ -17879,7 +17880,7 @@ We restored the clean baseline from `abbed39` and applied targeted fixes via [sc
 i need to add form of wps asme viii or asme xi so when i request wps  if fills inside this form
 
 <details>
-<summary><b>🛠️ Tool Actions & Executions (30)</b></summary>
+<summary><b>🛠️ Tool Actions & Executions (34)</b></summary>
 
 - **run_command** — `Search WPS generator`
 - **run_command** — `Grep QW-482`
@@ -17908,6 +17909,226 @@ i need to add form of wps asme viii or asme xi so when i request wps  if fills i
 - **view_file** — `View worker package.json`
 - **run_command** — `Deploy Cloudflare Worker`
 - **manage_task** — `Check worker deploy task`
+- **run_command** — `Deploy Pages final`
+- **manage_task** — `Check deployment task`
+- **run_command** — `Export conversation history`
+- **run_command** — `Git status check`
+- **run_command** — `Git add files`
+- **run_command** — `Git commit QW-482`
+- **run_command** — `Git push origin final`
+
+</details>
+
+#### 🤖 SPECSUPPORT ASSISTANT
+
+### 📑 Official ASME Section IX Form QW-482 Integration Complete
+
+We have implemented an official auto-filling **ASME Boiler & Pressure Vessel Code Section IX Form QW-482** engine. Now, whenever you request a Welding Procedure Specification (WPS)—whether for **ASME Section VIII Div 1/2 (Pressure Vessels)**, **ASME Section XI (Nuclear / In-Service Repairs)**, or **ASME B31.3 (Process Piping)**—the system dynamically populates the official ASME form fields and presents it both inline and in an interactive viewer.
+
+---
+
+### 1. Architecture & Workflow
+
+```mermaid
+flowchart TD
+    UserQuery["Inspector requests WPS<br/>(e.g., SA-516 Gr 70 for ASME VIII or ASME XI Repair)"] --> WorkerAI["Cloudflare Worker AI Engine<br/>(ASME IX Form QW-482 Protocol)"]
+    WorkerAI --> MetricsExtraction["Generates Structured WPS &<br/>Embedded Machine-Readable Metrics Block"]
+    MetricsExtraction --> FrontendParser["Frontend parseWpsData() Engine<br/>Extracts QW-402 through QW-410 Variables"]
+    FrontendParser --> FormRender["Official ASME Form QW-482 Document<br/>(Boxes, Headers, Pass Schedule, Sign-off Block)"]
+    FormRender --> UserActions{"Inspector Actions"}
+    UserActions --> Action1["📑 View Official ASME Form QW-482 (Modal)"]
+    UserActions --> Action2["🖨️ Print / Save as PDF (Formal Certificate)"]
+    UserActions --> Action3["📝 Download Word Form (.doc)"]
+```
+
+---
+
+### 2. What Was Added & Implemented
+
+#### A. Backend Prompt & Auto-Fill Directives ([worker/src/index.js](file:///c:/Users/MT/Desktop/inspect%20support/worker/src/index.js#L4870))
+- **Broadened Scope**: Detects queries for `ASME VIII`, `ASME XI`, `ASME IX`, `Form QW-482`, pressure vessel steels (`SA-516 Gr 70`, `SA-537`, `SA-106`, `SA-333`, `316L`, `P-No 1`, `P-No 8`), and wall thicknesses.
+- **Form QW-482 Output Directive**:
+  Instructs the AI model to generate technical values strictly structured according to all 10 mandatory sections of ASME Section IX:
+  1. **Header & Identification**: WPS No., Rev, Supporting PQR No., Process, Type.
+  2. **JOINTS (QW-402)**: Joint Design, Backing, Root Opening, Root Face, Groove Angle, Backgouging.
+  3. **BASE METALS (QW-403)**: P-No. & Group No. ranges, Base Metal Spec, Thickness Range Qualified (Groove & Fillet) per QW-451.1.
+  4. **FILLER METALS (QW-404)**: SFA Spec, AWS Classification, F-No., A-No., Sizes, Deposited Thickness.
+  5. **POSITIONS (QW-405)**: Position of Groove, Progression (Uphill/Downhill), Fillet.
+  6. **PREHEAT (QW-406)**: Minimum Preheat per Table 330.1.1 / ASME VIII, Maximum Interpass, Preheat Maintenance.
+  7. **PWHT (QW-407)**: Temperature Range & Holding Time per ASME VIII UCS-56 or ASME XI Article IWA-4000.
+  8. **SHIELDING GAS (QW-408)**: Gas type, mixture, flow rate, backing gas.
+  9. **ELECTRICAL CHARACTERISTICS (QW-409)**: Pass schedule with Amps, Volts, Travel Speed, and Max Heat Input ($\text{kJ/mm}$).
+  10. **TECHNIQUE (QW-410)**: String/Weave bead, Gas Cup Size, Cleaning Method, Multiple Passes per side.
+  11. **NDE & Hold Points**: Visual Examination (AWS B1.11 / UW-35) + 100% RT (ASME V Art. 2 / UW-51) or UT (ASME V Art. 4).
+  12. **Machine-Readable Tag**: Emits `<!--WPS_METRICS: {...}-->` for instant frontend parsing.
+
+---
+
+#### B. Official ASME Form QW-482 Layout ([index.html](file:///c:/Users/MT/Desktop/inspect%20support/index.html#L4230))
+Inside [index.html](file:///c:/Users/MT/Desktop/inspect%20support/index.html), we created an exact replica of the official ASME Form QW-482:
+
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                          SPECSUPPORT ENGINEERING QUALITY ASSURANCE SYSTEM                             │
+│               FORM QW-482 SUGGESTED FORMAT FOR WELDING PROCEDURE SPECIFICATIONS (WPS)                  │
+│                        (See QW-200.1, Section IX, ASME Boiler and Pressure Vessel Code)                │
+├───────────────────────────────────┬───────────────────────────────────┬────────────────────────────────┤
+│ Company: SpecSupport Certified QA │ WPS Number: WPS-ASME-VIII-2026-01 │ Revision: Rev. 0               │
+│ Governing Code: ASME VIII & IX    │ Supporting PQR: PQR-ASME-2026-01  │ Date: October 2, 2026          │
+│ Welding Process: GTAW + SMAW      │ Type(s): Manual                   │ Status: VERIFIED PASS          │
+├───────────────────────────────────┴───────────────────────────────────┴────────────────────────────────┤
+│ JOINTS (QW-402)                               │ BASE METALS (QW-403)                                   │
+│  - Joint Design: Single V-Groove (Bevel 60°)   │  - Material Spec: SA-516 Gr. 70 (Plate)                │
+│  - Backing: No (Open Root)                     │  - P-No. 1, Group 2 to P-No. 1, Group 2                │
+│  - Root Opening (Gap): 2.0 - 3.2 mm            │  - Thickness Range (Groove): 1.5 mm to 38.1 mm         │
+│  - Root Face (Land): 1.5 - 2.5 mm              │  - Pipe Diameter Range: All Diameters (NPS 2" & up)    │
+├────────────────────────────────────────────────┴────────────────────────────────────────────────────────┤
+│ FILLER METALS (QW-404)                                                                                 │
+│  - Process 1 (Root): SFA 5.18 ER70S-6 | F-No. 6 | A-No. 1 | Dia: 2.4 mm | Dep. Thk: 3.5 mm max        │
+│  - Process 2 (Fill/Cap): SFA 5.1 E7018-1 H4R | F-No. 4 | A-No. 1 | Dia: 3.2 & 4.0 mm | Dep: 34.6 mm max │
+├───────────────────────────────────┬───────────────────────────────────┬────────────────────────────────┤
+│ POSITIONS (QW-405)                │ PREHEAT (QW-406)                  │ PWHT (QW-407)                  │
+│  - Groove: 6G (All Positions)     │  - Min Preheat: 95°C (200°F)      │  - Temp: 595°C - 650°C         │
+│  - Progression: [✓] Uphill        │  - Max Interpass: 230°C (450°F)   │  - Time: 1 hr / 25 mm (1 in)   │
+├───────────────────────────────────┴───────────────────────────────────┴────────────────────────────────┤
+│ ELECTRICAL PASS SCHEDULE (QW-409) & TECHNIQUE (QW-410)                                                 │
+│  Root: GTAW | ER70S-6 | DCEN | 80-110 A | 10-14 V | 60-90 mm/min | Max 1.2 kJ/mm                       │
+│  Fill: SMAW | E7018-1 | DCEP | 110-145 A | 21-25 V | 100-140 mm/min | Max 1.8 kJ/mm                    │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ QUALITY VERIFICATION & AUTHORIZED INSPECTOR (AI) SIGN-OFF BLOCK                                        │
+│  Prepared By: CSWIP 3.1 / Welding Eng. | Approved: IWE / QA Manager | Witness: Authorized Inspector   │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+#### C. Response Toolbar & Modal Actions
+- **Dedicated Button**: Any response containing a WPS automatically renders:
+  ```html
+  <button class="tool-btn wps-form-btn" onclick="openWpsFormModal(...)">📑 ASME Form QW-482</button>
+  ```
+- **Live Modal (`#wps-form-modal`)**:
+  Clicking the button opens the full-screen modal showing the official ASME Form QW-482 filled with the data from the query.
+- **Export Integration**:
+  - `🖨️ Print Form (PDF)` / `📄 Export PDF`: Automatically renders and prints the authentic ASME Form QW-482 document with signature blocks.
+  - `📝 Export Word`: Generates a fully editable Microsoft Word document (`.doc`) with the complete ASME Form QW-482 table hierarchy.
+
+---
+
+### 3. Verification & Live Deployment
+
+1. **Automated Unit Tests ([scripts/test_wps_form_qw482.js](file:///c:/Users/MT/Desktop/inspect%20support/scripts/test_wps_form_qw482.js))**:
+   - Tested parsing with ASME Section VIII `SA-516 Gr 70` Pressure Vessel Plate WPS.
+   - Extracted 100% of variables with zero missing fields.
+   - Generated $17,570\text{ characters}$ of compliant ASME Section IX Form QW-482 HTML.
+   - Test result: **ALL WPS FORM QW-482 VERIFICATION TESTS PASSED**.
+
+2. **Deployments**:
+   - **Cloudflare Worker**: Live at `https://inspection-api.mohamedtarekhse.workers.dev` (Version ID: `2adbc060-b7dd-48bd-b612-bcf193280994`).
+   - **Cloudflare Pages**: Live at [https://final.specsupport.pages.dev](https://final.specsupport.pages.dev).
+
+3. **Git & Conversation Archive**:
+   - Committed as `eea7224`: `feat: add official ASME Section IX Form QW-482 auto-filling engine for ASME VIII and XI WPS requests`.
+   - Pushed to `origin final`.
+   - Full conversation synced to [FULL_CONVERSATION_HISTORY.md](file:///c:/Users/MT/Desktop/inspect%20support/FULL_CONVERSATION_HISTORY.md).
+
+---
+
+### <a id="turn-200"></a> Turn 200 — [2026-10-01T22:58:50Z]
+
+#### 👤 USER
+
+(index):5262 [LocaSpec SW] Active with scope: https://final.specsupport.pages.dev/
+(index):5168 [SpecSupport PWA] beforeinstallprompt captured successfully.
+(index):1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+(index):8671 Uncaught (in promise) ReferenceError: populateCuratorStandardsFilter is not defined
+    at initNotebookLMSidebar ((index):8671:13)
+(index):6659 Uncaught TypeError: Cannot read properties of undefined (reading 'trim')
+    at extract ((index):6659:33)
+    at parseWpsData ((index):6690:28)
+    at openWpsFormModal ((index):6993:29)
+    at HTMLButtonElement.onclick ((index):1:1)
+(index):6659 Uncaught TypeError: Cannot read properties of undefined (reading 'trim')
+    at extract ((index):6659:33)
+    at parseWpsData ((index):6690:28)
+    at openWpsFormModal ((index):6993:29)
+    at HTMLButtonElement.onclick ((index):1:1)
+(index):6659 Uncaught TypeError: Cannot read properties of undefined (reading 'trim')
+    at extract ((index):6659:33)
+    at parseWpsData ((index):6690:28)
+    at openWpsFormModal ((index):6993:29)
+    at HTMLButtonElement.onclick ((index):1:1)
+(index):6659 Uncaught TypeError: Cannot read properties of undefined (reading 'trim')
+    at extract ((index):6659:33)
+    at parseWpsData ((index):6690:28)
+    at openWpsFormModal ((index):6993:29)
+    at HTMLButtonElement.onclick ((index):1:1)
+(index):6659 Uncaught TypeError: Cannot read properties of undefined (reading 'trim')
+    at extract ((index):6659:33)
+    at parseWpsData ((index):6690:28)
+    at openWpsFormModal ((index):6993:29)
+    at HTMLButtonElement.onclick ((index):1:1)
+(index):6659 Uncaught TypeError: Cannot read properties of undefined (reading 'trim')
+    at extract ((index):6659:33)
+    at parseWpsData ((index):6690:28)
+    at prepareDocumentData ((index):7067:33)
+    at exportToPdf ((index):7198:75)
+    at HTMLButtonElement.onclick ((index):1:1)
+(index):6659 Uncaught TypeError: Cannot read properties of undefined (reading 'trim')
+    at extract ((index):6659:33)
+    at parseWpsData ((index):6690:28)
+    at prepareDocumentData ((index):7067:33)
+    at exportToPdf ((index):7198:75)
+    at HTMLButtonElement.onclick ((index):1:1)
+(index):6659 Uncaught TypeError: Cannot read properties of undefined (reading 'trim')
+    at extract ((index):6659:33)
+    at parseWpsData ((index):6690:28)
+    at prepareDocumentData ((index):7067:33)
+    at exportToPdf ((index):7198:75)
+    at HTMLButtonElement.onclick ((index):1:1)
+(index):6659 Uncaught TypeError: Cannot read properties of undefined (reading 'trim')
+    at extract ((index):6659:33)
+    at parseWpsData ((index):6690:28)
+    at prepareDocumentData ((index):7067:33)
+    at exportToPdf ((index):7198:75)
+    at HTMLButtonElement.onclick ((index):1:1)
+(index):6659 Uncaught TypeError: Cannot read properties of undefined (reading 'trim')
+    at extract ((index):6659:33)
+    at parseWpsData ((index):6690:28)
+    at prepareDocumentData ((index):7067:33)
+    at exportToPdf ((index):7198:75)
+    at HTMLButtonElement.onclick ((index):1:1)
+(index):6659 Uncaught TypeError: Cannot read properties of undefined (reading 'trim')
+    at extract ((index):6659:33)
+    at parseWpsData ((index):6690:28)
+    at prepareDocumentData ((index):7067:33)
+    at exportToPdf ((index):7198:75)
+    at HTMLButtonElement.onclick ((index):1:1)
+(index):6659 Uncaught TypeError: Cannot read properties of undefined (reading 'trim')
+    at extract ((index):6659:33)
+    at parseWpsData ((index):6690:28)
+    at prepareDocumentData ((index):7067:33)
+    at exportToPdf ((index):7198:75)
+    at HTMLButtonElement.onclick ((index):1:1)
+
+<details>
+<summary><b>🛠️ Tool Actions & Executions (18)</b></summary>
+
+- **run_command** — `Grep populateCuratorStandardsFilter`
+- **view_file** — `View initNotebookLMSidebar`
+- **run_command** — `Search git history for function`
+- **run_command** — `View old definition`
+- **view_file** — `View extract function`
+- **view_file** — `View parseWpsData`
+- **write_to_file** — `Create console error fix script`
+- **run_command** — `Run console error fix script`
+- **run_command** — `Run verification and tests`
+- **run_command** — `Test parseWpsData edge cases`
+- **view_file** — `View wpsNumber regex`
+- **replace_file_content** — `Update wpsNumber extraction`
+- **view_file** — `View lines 6665-6680`
+- **replace_file_content** — `Fix const data declaration`
+- **run_command** — `Verify after fix`
 - **run_command** — `Deploy Pages final`
 - **manage_task** — `Check deployment task`
 - **run_command** — `Export conversation history`
