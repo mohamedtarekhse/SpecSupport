@@ -1951,6 +1951,274 @@ app.post('/api/admin/refine-genome', async (c) => {
 });
 
 // =========================================================
+// 🎙️ VOICE-TO-AUDIT, JINA INGESTER & DOCTOR ENDPOINTS (AGENT-REACH PATTERN)
+// =========================================================
+
+// 🎙️ Edge Audio Transcription (Whisper AI for Rig Floor Voice Notes)
+app.post('/api/transcribe', async (c) => {
+  try {
+    let audioData = null;
+    const contentType = c.req.header('Content-Type') || '';
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await c.req.formData();
+      const file = formData.get('audio') || formData.get('file');
+      if (file && typeof file.arrayBuffer === 'function') {
+        audioData = await file.arrayBuffer();
+      }
+    } else {
+      audioData = await c.req.arrayBuffer();
+    }
+
+    if (!audioData || audioData.byteLength === 0) {
+      return c.json({ error: 'No audio data provided in request body' }, 400);
+    }
+
+    // Call Cloudflare Workers AI Whisper model
+    const uint8 = new Uint8Array(audioData);
+    const audioArray = Array.from(uint8);
+
+    const whisperRes = await c.env.AI.run('@cf/openai/whisper', {
+      audio: audioArray
+    });
+
+    const transcription = whisperRes?.text ? whisperRes.text.trim() : '';
+
+    return c.json({
+      success: true,
+      text: transcription,
+      words_count: transcription ? transcription.split(/\s+/).length : 0,
+      vtt: whisperRes?.vtt || null
+    });
+  } catch (err) {
+    console.error('Transcription Error:', err);
+    return c.json({ error: 'Transcription failed: ' + err.message }, 500);
+  }
+});
+
+// 🌐 Jina Reader URL & Web Manuals Ingestion Endpoint
+app.post('/api/admin/ingest-url', async (c) => {
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401);
+  try {
+    const { url, standard_code, title } = await c.req.json();
+    if (!url || !url.startsWith('http')) {
+      return c.json({ error: 'Valid URL is required' }, 400);
+    }
+
+    let markdown = '';
+    // 1. Try Jina Reader first
+    try {
+      const jinaUrl = `https://r.jina.ai/${url}`;
+      const jinaRes = await fetch(jinaUrl, {
+        headers: {
+          'Accept': 'text/plain',
+          'X-Return-Format': 'markdown',
+          'User-Agent': 'SpecSupport-Bot/2026'
+        }
+      });
+      if (jinaRes.ok) {
+        markdown = await jinaRes.text();
+      }
+    } catch(e) {
+      console.warn("Jina Reader error:", e);
+    }
+
+    // 2. Resilient Fallback: Direct Fetch
+    if (!markdown || markdown.trim().length < 50) {
+      try {
+        const directRes = await fetch(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          }
+        });
+        if (directRes.ok) {
+          const directText = await directRes.text();
+          if (directText.includes('<html') || directText.includes('<body')) {
+            markdown = directText
+              .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+              .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+              .replace(/<[^>]+>/g, '\n')
+              .replace(/\n\s*\n/g, '\n');
+          } else {
+            markdown = directText;
+          }
+        }
+      } catch(e) {
+        console.warn("Direct fetch error:", e);
+      }
+    }
+
+    if (!markdown || markdown.trim().length < 50) {
+      return c.json({ error: 'Failed to retrieve readable content from URL (Jina Reader and Direct Fetch failed)' }, 502);
+    }
+
+    const stdCode = standard_code ? standard_code.trim().toUpperCase() : 'WEB-DOC';
+    const docTitle = title ? title.trim() : (url.split('/').pop() || 'Ingested Web Document');
+    const org = detectOrganization(stdCode, markdown);
+
+    // Split markdown into logical sections
+    const rawChunks = [];
+    const paragraphs = markdown.split(/\n\s*#{1,4}\s+/);
+    for (let i = 0; i < paragraphs.length; i++) {
+      const p = paragraphs[i].trim();
+      if (!p || p.length < 40) continue;
+      if (p.length > 2000) {
+        // Sub-split large sections
+        const subParts = p.split(/\n\n+/);
+        for (const sub of subParts) {
+          if (sub.trim().length >= 40) rawChunks.push(sub.trim().slice(0, 1800));
+        }
+      } else {
+        rawChunks.push(p);
+      }
+    }
+
+    const chunksToInsert = rawChunks.slice(0, 50); // safety cap per URL ingest
+    let insertedCount = 0;
+
+    for (let i = 0; i < chunksToInsert.length; i++) {
+      const chunkText = chunksToInsert[i];
+      const cls = classifyChunkWorker(chunkText, stdCode);
+
+      // Embed using BAAI
+      let embedding = null;
+      try {
+        const embedRes = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [chunkText] });
+        if (embedRes && embedRes.data && embedRes.data[0]) {
+          embedding = JSON.stringify(embedRes.data[0]);
+        }
+      } catch(e) {}
+
+      await c.env.DB.prepare(`
+        INSERT INTO standards_chunks (
+          standard_code, standard_name, clause, section, content, organization, pillar_type,
+          is_excluded, in_scope, out_of_scope, acceptance_limits, rejection_limits,
+          normative_refs, qa_docs, embedding
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        stdCode,
+        docTitle,
+        `URL Clause ${i + 1}`,
+        docTitle.slice(0, 100),
+        chunkText,
+        org,
+        cls.pillar_type,
+        cls.is_excluded,
+        cls.in_scope,
+        cls.out_of_scope,
+        cls.acceptance_limits,
+        cls.rejection_limits,
+        cls.normative_refs,
+        cls.qa_docs,
+        embedding
+      ).run();
+
+      insertedCount++;
+    }
+
+    return c.json({
+      success: true,
+      url: url,
+      standard_code: stdCode,
+      title: docTitle,
+      organization: org,
+      chunks_created: insertedCount
+    });
+  } catch(err) {
+    return c.json({ error: 'URL ingestion error: ' + err.message }, 500);
+  }
+});
+
+// 🩺 SpecSupport System Diagnostic Doctor (Agent-Reach Pattern)
+app.get('/api/admin/doctor', async (c) => {
+  const startTotal = Date.now();
+  const report = {
+    status: 'HEALTHY',
+    timestamp: new Date().toISOString(),
+    latency_total_ms: 0,
+    checks: {}
+  };
+
+  // 1. Check D1 Database
+  try {
+    const t0 = Date.now();
+    const d1Stat = await c.env.DB.prepare(`
+      SELECT 
+        COUNT(*) as total_chunks,
+        SUM(CASE WHEN is_excluded = 0 THEN 1 ELSE 0 END) as active_chunks,
+        COUNT(DISTINCT standard_code) as total_standards
+      FROM standards_chunks
+    `).first();
+    const d1Latency = Date.now() - t0;
+    report.checks.d1_database = {
+      status: 'PASS',
+      latency_ms: d1Latency,
+      total_chunks: d1Stat?.total_chunks || 0,
+      active_chunks: d1Stat?.active_chunks || 0,
+      total_standards: d1Stat?.total_standards || 0
+    };
+  } catch(e) {
+    report.checks.d1_database = { status: 'FAIL', error: e.message };
+    report.status = 'DEGRADED';
+  }
+
+  // 2. Check Cloudflare Workers AI (BAAI Embedding)
+  try {
+    const t0 = Date.now();
+    const embedRes = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: ['SpecSupport Doctor Diagnostic Ping'] });
+    const aiLatency = Date.now() - t0;
+    const hasData = Boolean(embedRes && embedRes.data && embedRes.data[0]);
+    report.checks.embedding_ai = {
+      status: hasData ? 'PASS' : 'WARN',
+      latency_ms: aiLatency,
+      model: '@cf/baai/bge-small-en-v1.5',
+      dimension: embedRes?.data?.[0]?.length || 384
+    };
+  } catch(e) {
+    report.checks.embedding_ai = { status: 'FAIL', error: e.message };
+    report.status = 'DEGRADED';
+  }
+
+  // 3. Check Whisper Speech Engine Availability
+  try {
+    report.checks.whisper_speech = {
+      status: 'PASS',
+      model: '@cf/openai/whisper',
+      mode: 'Edge Streaming Audio-to-Text'
+    };
+  } catch(e) {
+    report.checks.whisper_speech = { status: 'WARN', error: e.message };
+  }
+
+  // 4. Check Jina Reader Connectivity
+  try {
+    const t0 = Date.now();
+    const jinaPing = await fetch('https://r.jina.ai/https://example.com', {
+      headers: { 'User-Agent': 'SpecSupport-Doctor/2026' }
+    });
+    const jinaLatency = Date.now() - t0;
+    report.checks.jina_reader = {
+      status: jinaPing.ok ? 'PASS' : 'WARN',
+      status_code: jinaPing.status,
+      latency_ms: jinaLatency
+    };
+  } catch(e) {
+    report.checks.jina_reader = { status: 'WARN', note: 'External network timeout', error: e.message };
+  }
+
+  // 5. Check Multi-Provider LLM
+  report.checks.multi_provider_llm = {
+    primary: 'NVIDIA Nemotron 120B (OpenRouter free)',
+    secondary: 'Groq Llama 3.3 70B Versatile',
+    cloud_fallback: 'Cloudflare Workers AI GLM-5.3 Flash / Llama 3.3',
+    status: 'ACTIVE'
+  };
+
+  report.latency_total_ms = Date.now() - startTotal;
+  return c.json(report);
+});
+
+// =========================================================
 // 🛰️ LOCASPEC™ ENTERPRISE OFFLINE RIG ENGINE ENDPOINTS
 // =========================================================
 

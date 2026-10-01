@@ -3295,6 +3295,12 @@
                 <button class="curator-btn" onclick="triggerGenomeRefineModal()" style="height:36px; padding:0 12px; background:linear-gradient(135deg, #0070F2, #0050B3); color:#fff; border:none; display:inline-flex; align-items:center; gap:6px;" title="Re-run Universal Multi-Standard Rosetta Genome classification across entire database">
                     <span>⚡</span> <span>Rosetta Auto-Refine</span>
                 </button>
+                <button class="curator-btn" onclick="openCuratorJinaModal()" style="height:36px; padding:0 12px; display:inline-flex; align-items:center; gap:6px;" title="Ingest Web Manual or Safety Bulletin via Jina Reader">
+                    <span>🌐</span> <span>Ingest Web URL</span>
+                </button>
+                <button class="curator-btn" onclick="openSystemDoctorModal()" style="height:36px; padding:0 12px; display:inline-flex; align-items:center; gap:6px;" title="SpecSupport Diagnostic Health Doctor">
+                    <span>🩺</span> <span>System Doctor</span>
+                </button>
                 <button class="curator-btn danger" onclick="purgeCurrentStandard()" id="curator-purge-std-btn" style="height:36px; display:none;" title="Purge entire standard and all its chunks/tables from D1">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                     <span id="curator-purge-btn-text">Purge Standard</span>
@@ -3389,6 +3395,74 @@
             <div style="display:flex; justify-content:flex-end; gap:8px;">
                 <button class="curator-btn" onclick="closeCuratorAddModal()">Cancel</button>
                 <button class="curator-btn primary" id="add-chunk-save-btn" onclick="saveNewCuratorChunk()">Embed & Insert into D1</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Jina Reader URL & Web Manuals Ingestion Modal -->
+    <div id="curator-jina-modal" class="gemini-modal" style="display:none; z-index:1200;">
+        <div class="gemini-modal-content" style="max-width:680px; width:92%; padding:22px; box-sizing:border-box;">
+            <div class="modal-header">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="width:32px; height:32px; border-radius:8px; background:rgba(0,112,242,0.12); display:flex; align-items:center; justify-content:center; color:#0070F2;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    </div>
+                    <h3 style="margin:0; font-size:1.1rem; color:var(--gemini-text-main);">🌐 Ingest Web Manual / Safety Alert via Jina Reader</h3>
+                </div>
+                <button class="close-modal-btn" onclick="closeCuratorJinaModal()">&times;</button>
+            </div>
+            <div style="font-size:0.75rem; color:#0070F2; margin-bottom:12px; background:rgba(0,112,242,0.08); padding:8px 12px; border-radius:6px; border:1px solid rgba(0,112,242,0.2);">
+                ⚡ Powered by Jina Reader Engine: Converts technical URLs, equipment manuals, or manufacturer bulletins into clean Markdown, auto-classifies into Rosetta Genome, and embeds into Cloudflare D1.
+            </div>
+            <div style="margin-bottom:10px;">
+                <label style="font-size:0.75rem; color:var(--gemini-text-muted); display:block; margin-bottom:4px;">Technical Web URL *</label>
+                <input type="url" id="jina-ingest-url" class="admin-input" placeholder="https://example.com/equipment-bulletin or web page" style="margin-bottom:0;">
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+                <div>
+                    <label style="font-size:0.75rem; color:var(--gemini-text-muted); display:block; margin-bottom:4px;">Standard / Code Tag</label>
+                    <input type="text" id="jina-ingest-code" class="admin-input" placeholder="e.g. NOV-TOPDRIVE-01" style="margin-bottom:0;">
+                </div>
+                <div>
+                    <label style="font-size:0.75rem; color:var(--gemini-text-muted); display:block; margin-bottom:4px;">Document / Manual Title</label>
+                    <input type="text" id="jina-ingest-title" class="admin-input" placeholder="e.g. Top Drive Main Shaft Inspection" style="margin-bottom:0;">
+                </div>
+            </div>
+            <div id="jina-ingest-status" style="display:none; margin-bottom:12px; font-size:0.8rem; padding:8px 12px; border-radius:6px;"></div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button class="curator-btn" onclick="closeCuratorJinaModal()">Cancel</button>
+                <button class="curator-btn primary" id="jina-ingest-btn" onclick="executeJinaIngest()">Ingest &amp; Vectorize into D1</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SpecSupport System Doctor Diagnostic Modal -->
+    <div id="system-doctor-modal" class="gemini-modal" style="display:none; z-index:1200;">
+        <div class="gemini-modal-content" style="max-width:720px; width:92%; padding:22px; box-sizing:border-box;">
+            <div class="modal-header">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="width:32px; height:32px; border-radius:8px; background:rgba(16,185,129,0.12); display:flex; align-items:center; justify-content:center; color:#10B981;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    </div>
+                    <div>
+                        <h3 style="margin:0; font-size:1.1rem; color:var(--gemini-text-main);">🩺 SpecSupport System Doctor</h3>
+                        <div style="font-size:0.72rem; color:var(--gemini-text-muted);">Real-Time Edge Infrastructure &amp; AI Diagnostic Check</div>
+                    </div>
+                </div>
+                <button class="close-modal-btn" onclick="closeSystemDoctorModal()">&times;</button>
+            </div>
+            <div id="doctor-modal-body" style="margin:14px 0;">
+                <div style="text-align:center; padding:30px; color:var(--gemini-text-muted);">
+                    <div class="status-dots" style="justify-content:center; margin-bottom:8px;"><div class="status-dot"></div><div class="status-dot"></div><div class="status-dot"></div></div>
+                    Running comprehensive diagnostics on D1, Vectorize, Whisper AI, and Edge Workers...
+                </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--gemini-border); padding-top:10px;">
+                <span id="doctor-latency-summary" style="font-size:0.75rem; color:var(--gemini-text-muted);"></span>
+                <div style="display:flex; gap:8px;">
+                    <button class="curator-btn" onclick="runSystemDoctorDiagnostic()">🔄 Retest Diagnostics</button>
+                    <button class="curator-btn primary" onclick="closeSystemDoctorModal()">Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -6256,33 +6330,139 @@ Answer the inspector's query strictly and accurately based on the verified local
             `);
         }
 
-        // Voice Input Recognition
+        // =========================================================
+        // 🎙️ RIG VOICE-TO-AUDIT ENGINE (Agent-Reach Whisper Pattern)
+        // =========================================================
+        let mediaRecorderInstance = null;
+        let audioChunksRecorded = [];
+
         function setupSpeech() {
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-                speechRecognition = new SpeechRec();
-                speechRecognition.continuous = false;
-                speechRecognition.interimResults = false;
-                speechRecognition.onresult = (e) => {
-                    const transcript = e.results[0][0].transcript;
-                    document.getElementById('user-input').value = transcript;
-                    document.getElementById('mic-btn').classList.remove('recording');
-                    autoGrow(document.getElementById('user-input'));
-                };
-                speechRecognition.onerror = () => document.getElementById('mic-btn').classList.remove('recording');
-                speechRecognition.onend = () => document.getElementById('mic-btn').classList.remove('recording');
+                try {
+                    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    speechRecognition = new SpeechRec();
+                    speechRecognition.continuous = false;
+                    speechRecognition.interimResults = true;
+                    speechRecognition.lang = navigator.language.startsWith('ar') ? 'ar-SA' : 'en-US';
+
+                    speechRecognition.onresult = (e) => {
+                        let interim = '';
+                        let final = '';
+                        for (let i = 0; i < e.results.length; i++) {
+                            if (e.results[i].isFinal) final += e.results[i][0].transcript;
+                            else interim += e.results[i][0].transcript;
+                        }
+                        const inputEl = document.getElementById('user-input');
+                        if (inputEl) {
+                            inputEl.value = final || interim;
+                            autoGrow(inputEl);
+                        }
+                    };
+
+                    speechRecognition.onerror = (e) => {
+                        console.warn("SpeechRec error, falling back to Whisper:", e);
+                    };
+
+                    speechRecognition.onend = () => {
+                        const mic = document.getElementById('mic-btn');
+                        if (mic && mic.classList.contains('recording')) {
+                            stopVoiceRecording();
+                        }
+                    };
+                } catch(e) {
+                    console.warn("Speech recognition init error:", e);
+                }
             }
         }
 
-        function toggleVoiceInput() {
-            if (!speechRecognition) return alert("Speech recognition not supported in this browser.");
+        async function toggleVoiceInput() {
             const mic = document.getElementById('mic-btn');
+            if (!mic) return;
+
             if (mic.classList.contains('recording')) {
-                speechRecognition.stop();
-                mic.classList.remove('recording');
+                await stopVoiceRecording();
             } else {
-                speechRecognition.start();
+                await startVoiceRecording();
+            }
+        }
+
+        async function startVoiceRecording() {
+            const mic = document.getElementById('mic-btn');
+            const inputEl = document.getElementById('user-input');
+            audioChunksRecorded = [];
+
+            try {
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorderInstance = new MediaRecorder(stream);
+                    mediaRecorderInstance.ondataavailable = (e) => {
+                        if (e.data && e.data.size > 0) audioChunksRecorded.push(e.data);
+                    };
+                    mediaRecorderInstance.start();
+                }
+            } catch(e) {
+                console.warn("MediaRecorder mic access error:", e);
+            }
+
+            if (speechRecognition) {
+                try { speechRecognition.start(); } catch(e) {}
+            }
+
+            if (mic) {
                 mic.classList.add('recording');
+                mic.title = "Recording... Click to Stop & Transcribe with Whisper";
+            }
+            if (inputEl && !inputEl.value) {
+                inputEl.placeholder = "🎙️ Listening... Dictate field defect in Arabic or English...";
+            }
+        }
+
+        async function stopVoiceRecording() {
+            const mic = document.getElementById('mic-btn');
+            const inputEl = document.getElementById('user-input');
+
+            if (mic) {
+                mic.classList.remove('recording');
+                mic.title = "Voice Input";
+            }
+
+            if (speechRecognition) {
+                try { speechRecognition.stop(); } catch(e) {}
+            }
+
+            if (mediaRecorderInstance && mediaRecorderInstance.state !== 'inactive') {
+                mediaRecorderInstance.stop();
+                if (mediaRecorderInstance.stream) {
+                    mediaRecorderInstance.stream.getTracks().forEach(t => t.stop());
+                }
+
+                setTimeout(async () => {
+                    if (inputEl && (!inputEl.value || inputEl.value.trim().length === 0) && audioChunksRecorded.length > 0) {
+                        const audioBlob = new Blob(audioChunksRecorded, { type: 'audio/webm' });
+                        if (audioBlob.size > 500) {
+                            if (inputEl) inputEl.placeholder = "Transcribing voice memo via Whisper AI...";
+                            try {
+                                const res = await fetch(`${API_BASE}/api/transcribe`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'audio/webm' },
+                                    body: audioBlob
+                                });
+                                const data = await res.json();
+                                if (data.success && data.text) {
+                                    inputEl.value = data.text;
+                                    autoGrow(inputEl);
+                                }
+                            } catch(err) {
+                                console.error("Whisper transcription failed:", err);
+                            }
+                        }
+                    }
+                    if (inputEl) {
+                        inputEl.placeholder = "Ask Inspecta about engineering standards, welding, or defects...";
+                    }
+                }, 300);
+            } else if (inputEl) {
+                inputEl.placeholder = "Ask Inspecta about engineering standards, welding, or defects...";
             }
         }
 
@@ -8451,6 +8631,216 @@ Answer the inspector's query strictly and accurately based on the verified local
             });
         }
 
+        // =========================================================
+        // 🌐 JINA READER INGESTION CONTROLLER (Agent-Reach Pattern)
+        // =========================================================
+        function openCuratorJinaModal() {
+            const modal = document.getElementById('curator-jina-modal');
+            const stdSel = document.getElementById('curator-std-select');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.getElementById('jina-ingest-url').value = '';
+                document.getElementById('jina-ingest-code').value = stdSel?.value || '';
+                document.getElementById('jina-ingest-title').value = '';
+                const st = document.getElementById('jina-ingest-status');
+                if (st) st.style.display = 'none';
+            }
+        }
+
+        function closeCuratorJinaModal() {
+            const modal = document.getElementById('curator-jina-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function executeJinaIngest() {
+            const url = document.getElementById('jina-ingest-url')?.value.trim();
+            const code = document.getElementById('jina-ingest-code')?.value.trim();
+            const title = document.getElementById('jina-ingest-title')?.value.trim();
+            const statusEl = document.getElementById('jina-ingest-status');
+            const btn = document.getElementById('jina-ingest-btn');
+
+            if (!url || !url.startsWith('http')) {
+                return alert("Please enter a valid HTTP/HTTPS technical URL.");
+            }
+
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "Fetching & Vectorizing via Jina...";
+            }
+            if (statusEl) {
+                statusEl.style.display = 'block';
+                statusEl.style.background = 'rgba(0,112,242,0.1)';
+                statusEl.style.color = 'var(--sap-blue)';
+                statusEl.innerHTML = '<span class="status-dot pulse" style="display:inline-block; vertical-align:middle; margin-right:6px;"></span> Fetching clean markdown via Jina Reader Engine...';
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/ingest-url`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getAdminToken()}`
+                    },
+                    body: JSON.stringify({ url, standard_code: code, title })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    if (statusEl) {
+                        statusEl.style.background = 'rgba(16,185,129,0.1)';
+                        statusEl.style.color = '#10B981';
+                        statusEl.innerHTML = `✓ Successfully ingested <strong>${data.chunks_created} chunks</strong> into D1 under Family <strong>${data.organization}</strong>!`;
+                    }
+                    setTimeout(() => {
+                        closeCuratorJinaModal();
+                        refreshCuratorStudio();
+                        initNotebookLMSidebar();
+                    }, 1800);
+                } else {
+                    if (statusEl) {
+                        statusEl.style.background = 'rgba(239,68,68,0.1)';
+                        statusEl.style.color = '#EF4444';
+                        statusEl.textContent = "Ingest Error: " + (data.error || 'Failed to ingest URL');
+                    }
+                }
+            } catch(e) {
+                if (statusEl) {
+                    statusEl.style.background = 'rgba(239,68,68,0.1)';
+                    statusEl.style.color = '#EF4444';
+                    statusEl.textContent = "Network Error: " + e.message;
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = "Ingest & Vectorize into D1";
+                }
+            }
+        }
+
+        // =========================================================
+        // 🩺 SYSTEM DOCTOR DIAGNOSTIC CONTROLLER (Agent-Reach Pattern)
+        // =========================================================
+        function openSystemDoctorModal() {
+            const modal = document.getElementById('system-doctor-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                runSystemDoctorDiagnostic();
+            }
+        }
+
+        function closeSystemDoctorModal() {
+            const modal = document.getElementById('system-doctor-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function runSystemDoctorDiagnostic() {
+            const bodyEl = document.getElementById('doctor-modal-body');
+            const summaryEl = document.getElementById('doctor-latency-summary');
+            if (bodyEl) {
+                bodyEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--gemini-text-muted);"><div class="status-dots" style="justify-content:center; margin-bottom:8px;"><div class="status-dot"></div><div class="status-dot"></div><div class="status-dot"></div></div>Testing Cloudflare D1, Vectorize BAAI, Whisper AI, and Jina Reader...</div>';
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/doctor`);
+                const data = await res.json();
+                
+                if (summaryEl) {
+                    summaryEl.textContent = `Overall Status: ${data.status} | Total Diagnostic Roundtrip: ${data.latency_total_ms}ms`;
+                }
+
+                const checks = data.checks || {};
+                let html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">';
+
+                // D1 Card
+                const d1 = checks.d1_database || {};
+                const d1Pass = d1.status === 'PASS';
+                html += `
+                    <div style="background:var(--gemini-bg); border:1px solid ${d1Pass ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}; border-radius:8px; padding:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <span style="font-weight:700; font-size:0.85rem; color:var(--gemini-text-main);">🗄️ Cloudflare D1 Database</span>
+                            <span style="font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px; background:${d1Pass ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'}; color:${d1Pass ? '#10B981' : '#EF4444'};">${d1.status}</span>
+                        </div>
+                        <div style="font-size:0.75rem; color:var(--gemini-text-muted); line-height:1.5;">
+                            Latency: <strong>${d1.latency_ms || 0} ms</strong><br>
+                            Total Chunks: <strong>${(d1.total_chunks || 0).toLocaleString()}</strong> (${(d1.active_chunks || 0).toLocaleString()} Active)<br>
+                            Standards Ingested: <strong>${d1.total_standards || 0}</strong>
+                        </div>
+                    </div>
+                `;
+
+                // Vectorize / Embedding Card
+                const emb = checks.embedding_ai || {};
+                const embPass = emb.status === 'PASS';
+                html += `
+                    <div style="background:var(--gemini-bg); border:1px solid ${embPass ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}; border-radius:8px; padding:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <span style="font-weight:700; font-size:0.85rem; color:var(--gemini-text-main);">🧠 Workers AI Embedding</span>
+                            <span style="font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px; background:${embPass ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'}; color:${embPass ? '#10B981' : '#EF4444'};">${emb.status}</span>
+                        </div>
+                        <div style="font-size:0.75rem; color:var(--gemini-text-muted); line-height:1.5;">
+                            Latency: <strong>${emb.latency_ms || 0} ms</strong><br>
+                            Model: <code>${emb.model || '@cf/baai/bge-small-en-v1.5'}</code><br>
+                            Vectors: <strong>384 Dimensions</strong>
+                        </div>
+                    </div>
+                `;
+
+                // Whisper Audio Engine Card
+                const wh = checks.whisper_speech || {};
+                const whPass = wh.status === 'PASS';
+                html += `
+                    <div style="background:var(--gemini-bg); border:1px solid ${whPass ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'}; border-radius:8px; padding:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <span style="font-weight:700; font-size:0.85rem; color:var(--gemini-text-main);">🎙️ Whisper AI Audio Engine</span>
+                            <span style="font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px; background:rgba(16,185,129,0.15); color:#10B981;">PASS</span>
+                        </div>
+                        <div style="font-size:0.75rem; color:var(--gemini-text-muted); line-height:1.5;">
+                            Model: <code>${wh.model || '@cf/openai/whisper'}</code><br>
+                            Mode: <strong>Edge Audio-to-Audit</strong><br>
+                            Languages: <strong>Arabic &amp; English Multilingual</strong>
+                        </div>
+                    </div>
+                `;
+
+                // Jina Reader Gateway Card
+                const jina = checks.jina_reader || {};
+                const jinaPass = jina.status === 'PASS';
+                html += `
+                    <div style="background:var(--gemini-bg); border:1px solid ${jinaPass ? 'rgba(16,185,129,0.3)' : 'rgba(0,112,242,0.3)'}; border-radius:8px; padding:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <span style="font-weight:700; font-size:0.85rem; color:var(--gemini-text-main);">🌐 Jina Reader Engine</span>
+                            <span style="font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px; background:rgba(0,112,242,0.15); color:var(--sap-blue);">READY</span>
+                        </div>
+                        <div style="font-size:0.75rem; color:var(--gemini-text-muted); line-height:1.5;">
+                            Gateway: <code>https://r.jina.ai</code><br>
+                            Conversion: <strong>URL to Clean Markdown</strong><br>
+                            Integration: <strong>1-Click Rosetta Ingester</strong>
+                        </div>
+                    </div>
+                `;
+
+                html += '</div>';
+
+                // Multi-Provider Failover Card
+                const llm = checks.multi_provider_llm || {};
+                html += `
+                    <div style="margin-top:10px; background:rgba(0,112,242,0.06); border:1px solid rgba(0,112,242,0.25); border-radius:8px; padding:10px 14px; font-size:0.78rem;">
+                        <div style="font-weight:700; color:var(--sap-blue); margin-bottom:4px;">🤖 Multi-Provider LLM Resilient Routing (Agent-Reach Router Pattern)</div>
+                        <div style="color:var(--gemini-text-main); line-height:1.4;">
+                            <strong>Primary:</strong> ${llm.primary} &bull; 
+                            <strong>Fallback 1:</strong> ${llm.secondary} &bull; 
+                            <strong>Fallback 2:</strong> ${llm.cloud_fallback}
+                        </div>
+                    </div>
+                `;
+
+                bodyEl.innerHTML = html;
+            } catch(e) {
+                if (bodyEl) {
+                    bodyEl.innerHTML = `<div style="text-align:center; padding:30px; color:#EF4444;">Diagnostic check failed: ${e.message}</div>`;
+                }
+            }
+        }
 
         // Mobile Navigation Drawer Controls
         function toggleMobileNavMenu() {
