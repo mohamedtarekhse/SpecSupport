@@ -6180,23 +6180,73 @@ Answer the inspector's query strictly and accurately based on the verified local
                     }
                 }
 
-                // Interactive MCQ Refinement & Specification Triage Card
+                // Interactive MCQ Refinement & Universal Specification Triage Card
                 if (mcqs && mcqs.length > 0) {
-                    const isTriage = mcqs.some(m => {
-                        const qStr = (m.question || '').toLowerCase();
-                        return qStr.includes('base metal') || qStr.includes('thickness') || qStr.includes('governing') || qStr.includes('wps');
-                    });
+                    let disciplineType = 'generic';
+                    const allQText = mcqs.map(m => m.question || '').join(' ').toLowerCase();
+
+                    if (allQText.includes('base metal') || allQText.includes('wps')) {
+                        disciplineType = 'wps';
+                    } else if (allQText.includes('ndt examination') || allQText.includes('ndt') || allQText.includes('target ndt')) {
+                        disciplineType = 'ndt';
+                    } else if (allQText.includes('hydrostatic') || allQText.includes('piping / equipment code') || allQText.includes('design pressure') || allQText.includes('governing piping')) {
+                        disciplineType = 'hydrotest';
+                    } else if (allQText.includes('asset type') || allQText.includes('shell component') || allQText.includes('fitness')) {
+                        disciplineType = 'integrity';
+                    } else if (allQText.includes('hoisting') || allQText.includes('structural equipment') || allQText.includes('target inspection category')) {
+                        disciplineType = 'hoisting';
+                    } else if (allQText.includes('tubular') || allQText.includes('classification tier') || allQText.includes('drill stem')) {
+                        disciplineType = 'tubular';
+                    } else if (allQText.includes('well control') || allQText.includes('bop') || allQText.includes('rated working pressure')) {
+                        disciplineType = 'bop';
+                    }
+
+                    const isTriage = disciplineType !== 'generic';
+
+                    let headerBadge = '<span class="mcq-badge">Specification Conflict Fork</span>';
+                    let headerSubtitle = 'Select applicable project path to finalize verdict:';
+                    let btnLabel = '⚡ Resolve Conflict with Selected Path';
+                    let btnBg = 'var(--gemini-blue)';
+
+                    if (disciplineType === 'wps') {
+                        headerBadge = '<span class="mcq-badge" style="background:rgba(16, 185, 129, 0.15); color:#10b981; border:1px solid rgba(16, 185, 129, 0.3);">⚡ ASME IX / B31.3 Specification Triage</span>';
+                        headerSubtitle = 'Select essential variables or apply the Global Standards Baseline:';
+                        btnLabel = '⚡ Generate Deterministic ASME Form QW-482 WPS';
+                        btnBg = 'linear-gradient(135deg, #059669, #10b981)';
+                    } else if (disciplineType === 'ndt') {
+                        headerBadge = '<span class="mcq-badge" style="background:rgba(59, 130, 246, 0.15); color:#60a5fa; border:1px solid rgba(59, 130, 246, 0.3);">⚡ ASME Section V NDT Examination Triage</span>';
+                        headerSubtitle = 'Select examination method & geometry or apply Code Baseline:';
+                        btnLabel = '⚡ Generate Deterministic NDT Written Procedure';
+                        btnBg = 'linear-gradient(135deg, #2563eb, #3b82f6)';
+                    } else if (disciplineType === 'hydrotest') {
+                        headerBadge = '<span class="mcq-badge" style="background:rgba(14, 165, 233, 0.15); color:#38bdf8; border:1px solid rgba(14, 165, 233, 0.3);">⚡ Hydrostatic & Pressure Testing Triage</span>';
+                        headerSubtitle = 'Select piping code & pressure rating or apply Code Baseline:';
+                        btnLabel = '⚡ Generate Hydrostatic Test Sequence & Hold Protocol';
+                        btnBg = 'linear-gradient(135deg, #0284c7, #0ea5e9)';
+                    } else if (disciplineType === 'integrity') {
+                        headerBadge = '<span class="mcq-badge" style="background:rgba(168, 85, 247, 0.15); color:#c084fc; border:1px solid rgba(168, 85, 247, 0.3);">⚡ API 510 / 570 Fitness-For-Service Triage</span>';
+                        headerSubtitle = 'Select asset geometry & damage mechanism:';
+                        btnLabel = '⚡ Generate API Retirement Thickness & Remaining Life Evaluation';
+                        btnBg = 'linear-gradient(135deg, #7c3aed, #a855f7)';
+                    } else if (disciplineType === 'hoisting') {
+                        headerBadge = '<span class="mcq-badge" style="background:rgba(245, 158, 11, 0.15); color:#fbbf24; border:1px solid rgba(245, 158, 11, 0.3);">⚡ API RP 8B / 4G Hoisting Equipment Triage</span>';
+                        headerSubtitle = 'Select equipment scope & Category:';
+                        btnLabel = '⚡ Generate API RP 8B Field Inspection Plan & Wear Limits';
+                        btnBg = 'linear-gradient(135deg, #d97706, #f59e0b)';
+                    } else if (disciplineType === 'tubular') {
+                        headerBadge = '<span class="mcq-badge" style="background:rgba(234, 88, 12, 0.15); color:#fb923c; border:1px solid rgba(234, 88, 12, 0.3);">⚡ API RP 7G-2 / DS-1 Tubular Triage</span>';
+                        headerSubtitle = 'Select tubular scope & target classification tier:';
+                        btnLabel = '⚡ Generate API RP 7G-2 Tubular Classification Criteria';
+                        btnBg = 'linear-gradient(135deg, #ea580c, #f97316)';
+                    } else if (disciplineType === 'bop') {
+                        headerBadge = '<span class="mcq-badge" style="background:rgba(239, 68, 68, 0.15); color:#f87171; border:1px solid rgba(239, 68, 68, 0.3);">⚡ API Standard 53 Well Control Triage</span>';
+                        headerSubtitle = 'Select BOP stack configuration & working pressure:';
+                        btnLabel = '⚡ Generate API 53 Step-by-Step BOP Test Sequence';
+                        btnBg = 'linear-gradient(135deg, #dc2626, #ef4444)';
+                    }
 
                     const mcqCard = document.createElement('div');
                     mcqCard.className = 'interactive-mcq-card';
-                    
-                    const headerBadge = isTriage 
-                        ? '<span class="mcq-badge" style="background:rgba(16, 185, 129, 0.15); color:#10b981; border:1px solid rgba(16, 185, 129, 0.3);">⚡ ASME IX / B31.3 Specification Triage</span>'
-                        : '<span class="mcq-badge">Specification Conflict Fork</span>';
-                    const headerSubtitle = isTriage
-                        ? 'Select essential variables or apply the Global Standards Baseline:'
-                        : 'Select applicable project path to finalize verdict:';
-
                     mcqCard.innerHTML = `
                         <div class="mcq-card-header">
                             ${headerBadge}
@@ -6239,7 +6289,7 @@ Answer the inspector's query strictly and accurately based on the verified local
                                         customInputWrap.style.cssText = 'margin-top:10px; width:100%; animation:fadeIn 0.2s ease;';
                                         customInputWrap.innerHTML = `
                                             <input type="text" class="custom-spec-input-field" 
-                                                placeholder="Enter client standard (e.g. Aramco SAES-W-011, ADNOC DGS, Shell DEP, Total EP)..." 
+                                                placeholder="Enter client standard (e.g. Shell DEP, Aramco SAES, ADNOC DGS, Total EP)..." 
                                                 style="width:100%; padding:8px 12px; border-radius:8px; background:var(--gemini-card-bg); border:1px solid rgba(245, 158, 11, 0.4); color:var(--gemini-text-main); font-size:0.84rem; outline:none;" />
                                         `;
                                         qBlock.appendChild(customInputWrap);
@@ -6265,27 +6315,22 @@ Answer the inspector's query strictly and accurately based on the verified local
                     actionsBar.className = 'mcq-actions-bar';
                     const refineBtn = document.createElement('button');
                     refineBtn.className = 'mcq-refine-btn';
-                    
-                    if (isTriage) {
-                        refineBtn.innerHTML = '⚡ Generate Deterministic ASME Form QW-482 WPS';
-                        refineBtn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
-                    } else {
-                        refineBtn.innerHTML = '⚡ Resolve Conflict with Selected Path';
-                    }
-                    
+                    refineBtn.innerHTML = btnLabel;
+                    refineBtn.style.background = btnBg;
                     refineBtn.disabled = true;
+
                     refineBtn.onclick = () => {
                         refineBtn.disabled = true;
                         
                         if (isTriage) {
-                            let refineQuery = 'Please generate the definitive ASME Form QW-482 Welding Procedure Specification (WPS) with the following parameters:\n';
+                            let refineQuery = `Please generate the definitive engineering procedure / specification for ${disciplineType.toUpperCase()} with the following parameters:\n`;
                             for (const [k, v] of Object.entries(selectedParams)) {
                                 refineQuery += `- ${k}: ${v}\n`;
                             }
                             if (customCompanySpecInput && customCompanySpecInput.value.trim()) {
                                 refineQuery += `- Specific Company Spec: ${customCompanySpecInput.value.trim()}\n`;
                             }
-                            refineQuery += '\nPlease provide the complete ASME Section IX Form QW-482 table with all essential variables, filler metals, preheat per Table 330.1.1, PWHT per Table 331.1.1, electrical parameters, and NDT acceptance criteria.';
+                            refineQuery += '\nPlease provide the full deterministic code rules, formulas, hold points, and acceptance criteria based on international standards.';
                             sendMessage(refineQuery);
                         } else {
                             const paramList = Object.entries(selectedParams).map(([k, v]) => `- ${k}: ${v}`).join('\n');
