@@ -1,0 +1,11 @@
+{
+  "name": "specsupport-workspace",
+  "version": "1.0.0",
+  "description": "SpecSupport & LocaSpec Enterprise Engineering Assistant Workspace",
+  "scripts": {
+    "export-chat": "node scripts/export_conversation_to_md.js",
+    "export-history": "node scripts/export_conversation_to_md.js"
+  },
+  "author": "Mohamed Tarek",
+  "license": "UNLICENSED"
+}
