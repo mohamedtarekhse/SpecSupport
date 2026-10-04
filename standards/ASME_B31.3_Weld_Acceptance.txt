@@ -118,3 +118,26 @@ When random examination reveals a defect, two additional welds of the same type 
 ACCEPTANCE: No additional defects in progressive sample.
 REJECTION: Defect in progressive sample → 100% examination of that welder's work required. Welder may be disqualified.
 ---
+
+[CLAUSE: Table 330.1.1 — Preheat Temperature Requirements]
+Minimum preheat temperatures for welding piping components:
+- P-No. 1 (Carbon Steels: ASTM A106 Gr B, A53, API 5L):
+  * For nominal wall thickness ≤ 25 mm (1.0 in) and tensile strength ≤ 490 MPa: 10°C (50°F) minimum.
+  * For nominal wall thickness > 25 mm (1.0 in) or carbon equivalent > 0.43%: 95°C (200°F) minimum preheat.
+- P-No. 3, 4 (Low alloy Cr-Mo steels): 150°C to 175°C (300°F to 350°F) minimum preheat.
+- Maximum interpass temperature for carbon steel: 230°C (450°F) to preserve HAZ toughness.
+ACCEPTANCE: Preheat temperature measured with contact pyrometer or Tempilstik within 75 mm (3 in) of joint prior to welding.
+REJECTION: Welding commenced below specified minimum preheat or exceeding maximum interpass temperature.
+---
+
+[CLAUSE: Table 331.1.1 — Postweld Heat Treatment (PWHT) Requirements]
+Mandatory postweld heat treatment conditions and holding requirements:
+- P-No. 1 Base Metals (Carbon Steel Piping):
+  * PWHT is mandatory for nominal wall thickness exceeding 19.05 mm (0.75 in / 3/4 in).
+  * PWHT holding temperature range: 595°C to 650°C (1100°F to 1200°F).
+  * Holding time: 1 hour per 25 mm (1 in) of thickness, minimum hold time 15 minutes.
+  * Heating and cooling rates above 315°C (600°F): maximum 335°C/hr divided by thickness in inches.
+- PWHT Exemption: P-No. 1 piping with wall thickness ≤ 19.05 mm (0.75 in) is exempt from PWHT provided minimum preheat per Table 330.1.1 is applied.
+ACCEPTANCE: Calibrated chart recorder showing continuous temperature log within 595°C-650°C for full required holding duration.
+REJECTION: Incomplete holding time, temperature exceeding 650°C, or failure to perform PWHT on thickness > 19.05 mm.
+---

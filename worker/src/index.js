@@ -3689,31 +3689,58 @@ async function askAIProvider(c, messages, stream) {
       }
     }
 
-    // HTTP Provider runner with streaming capability (Groq / OpenRouter)
+    // HTTP Provider runner with streaming, timeouts, jitter & circuit breakers
     const runHttpProvider = async (providerName, key, url, modelToUse, maxTokens = null) => {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${key}`,
-          "Content-Type": "application/json",
-          ...(providerName === 'openrouter' && { "HTTP-Referer": "https://specsupport.pages.dev", "X-Title": "Inspecta" })
-        },
-        body: JSON.stringify({
-          model: modelToUse,
-          messages: messages,
-          temperature: 0.15,
-          stream: Boolean(stream),
-          ...(maxTokens && { max_tokens: maxTokens })
-        })
-      })
-
-      if (response.status === 429) throw new Error("Rate Limit Exceeded")
-      if (!response.ok) {
-        const errText = await response.text()
-        if (response.status === 401) throw new Error(`Invalid API Key for ${providerName}`)
-        throw new Error(`HTTP ${response.status}: ${errText}`)
+      if (!canAttemptProvider(providerName)) {
+        throw new Error(`[Circuit Breaker OPEN] ${providerName} is temporarily suspended due to consecutive failures.`);
       }
-      return { response: stream ? response.body : response, model: modelToUse, provider: providerName, isStream: Boolean(stream) }
+
+      // Strict 5,000ms timeout per upstream provider to guarantee zero hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          signal: controller.signal,
+          headers: {
+            "Authorization": `Bearer ${key}`,
+            "Content-Type": "application/json",
+            ...(providerName === 'openrouter' && { "HTTP-Referer": "https://specsupport.pages.dev", "X-Title": "Inspecta" })
+          },
+          body: JSON.stringify({
+            model: modelToUse,
+            messages: messages,
+            temperature: 0.15,
+            stream: Boolean(stream),
+            ...(maxTokens && { max_tokens: maxTokens })
+          })
+        });
+
+        clearTimeout(timeoutId);
+
+        if (response.status === 429) {
+          recordProviderFailure(providerName, "Rate Limit (429)");
+          // Exponential backoff with jitter for transient retries
+          const jitter = Math.floor(Math.random() * 200);
+          await new Promise(r => setTimeout(r, 300 + jitter));
+          throw new Error("Rate Limit Exceeded (429)");
+        }
+
+        if (!response.ok) {
+          recordProviderFailure(providerName, `HTTP ${response.status}`);
+          const errText = await response.text();
+          if (response.status === 401) throw new Error(`Invalid API Key for ${providerName}`);
+          throw new Error(`HTTP ${response.status}: ${errText}`);
+        }
+
+        recordProviderSuccess(providerName);
+        return { response: stream ? response.body : response, model: modelToUse, provider: providerName, isStream: Boolean(stream) };
+      } catch (err) {
+        clearTimeout(timeoutId);
+        recordProviderFailure(providerName, err.name === 'AbortError' ? 'Timeout (5000ms)' : err.message);
+        throw err;
+      }
     }
 
     // 1. Cloudflare Workers AI active (Default)

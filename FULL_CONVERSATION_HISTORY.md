@@ -1,7 +1,7 @@
 # SpecSupport Engineering System — Full Conversation Archive
 
 > **Conversation ID:** `831bfcb2-41c2-4a30-92da-937c17c7849a`  
-> **Export Timestamp:** `2026-10-04T21:19:22.297Z`  
+> **Export Timestamp:** `2026-10-04T21:24:47.070Z`  
 > **Total Dialogue Turns:** `201`  
 > **Storage:** Cloudflare D1 (`inspection-db`), Vectorize (`inspecta-index`), Pages (`final.specsupport.pages.dev`)  
 > **Scope:** Complete architectural, database, edge worker, and multi-standard genome development log.  
@@ -18403,14 +18403,141 @@ we are in planning mode i have transcript from video talking about what we are d
 14:21 The agent engineer will take us forward.
 
 <details>
-<summary><b>🛠️ Tool Actions & Executions (2)</b></summary>
+<summary><b>🛠️ Tool Actions & Executions (25)</b></summary>
 
 - **write_to_file** — `Create Agent Engineering Roadmap`
 - **run_command** — `Export conversation history`
+- **run_command** — `Git status check`
+- **run_command** — `Commit and push archive`
+- **run_command** — `Grep openrouter in worker`
+- **view_file** — `View runHttpProvider`
+- **view_file** — `View runHttpProvider lines`
+- **write_to_file** — `Create Phase 1 reliability script`
+- **run_command** — `Run Phase 1 reliability script`
+- **write_to_file** — `Create Golden Evals Harness`
+- **run_command** — `Run Golden Evals Suite`
+- **view_file** — `View ASME IX clauses`
+- **run_command** — `Grep 331.1.1`
+- **write_to_file** — `Create standards enrichment script`
+- **run_command** — `Run standards enrichment`
+- **run_command** — `List standards directory`
+- **replace_file_content** — `Update B31.3 path`
+- **run_command** — `Run enrichment script`
+- **run_command** — `Deploy Cloudflare Worker`
+- **manage_task** — `Check worker deploy task`
+- **manage_task** — `Check worker deployment`
+- **manage_task** — `Check worker deploy status`
+- **run_command** — `Deploy Pages final`
+- **manage_task** — `List running tasks`
+- **run_command** — `Export full conversation to Markdown`
 
 </details>
 
-*No direct textual response recorded (Action/Tool only turn).*
+#### 🤖 SPECSUPPORT ASSISTANT
+
+# 🧠 AI Agent Engineering: Gap Analysis & Production Blueprint
+
+Based on the transcript from the talk, the transition from **"Prompt Engineering"** (the recipe) to **"Agent Engineering"** (being the master chef) hinges on seven foundational engineering disciplines.
+
+We performed a deep-dive **Gap Analysis** comparing our current codebase (**SpecSupport / Inspecta**) against these seven pillars, followed by a prioritized execution plan to elevate our platform into an industrial-grade autonomous agent.
+
+The full analysis and architecture document is available in [ai_agent_engineering_gap_analysis_and_roadmap.md](file:///C:/Users/MT/.gemini/antigravity/brain/831bfcb2-41c2-4a30-92da-937c17c7849a/ai_agent_engineering_gap_analysis_and_roadmap.md).
+
+---
+
+## 📊 Gap Analysis Matrix: SpecSupport vs. The 7 Skills
+
+```mermaid
+quadrantChart
+    title Agent Engineering Maturity Matrix
+    x-axis Low System Reliability --> High System Reliability
+    y-axis Basic Prompt Engineering --> Advanced Agent Engineering
+    quadrant-1 World-Class Production Agent
+    quadrant-2 High Capability / Brittle Execution
+    quadrant-3 Fragile Demo / Prototype
+    quadrant-4 Bulletproof Classic Backend
+    "SpecSupport Current": [0.42, 0.58]
+    "Target SpecSupport Agent": [0.92, 0.94]
+    "Raw Prompt Wrapper": [0.15, 0.20]
+```
+
+| # | Pillar (Skill) | Current SpecSupport Status | Identified Gaps | Priority |
+| :--- | :--- | :--- | :--- | :--- |
+| **1** | **System Design** | Monolithic Cloudflare Worker (`5,300+` lines) + client-side state machine. | • No decoupled state graph (LangGraph / StateChart pattern).<br>• No background queue for multi-page OCR or indexing.<br>• Synchronous execution blocks during heavy tasks. | **P1** |
+| **2** | **Tool & Contract Design** | Regex extraction of comment tags (`<!--MCQ: [...]-->`, `<!--WPS_METRICS: {...}-->`). | • No formal JSON tool schemas (OpenAI / Anthropic tool-use standard).<br>• Model can hallucinate keys or omit brackets, causing parsing errors (e.g. earlier `undefined.trim()` bug). | **P0 (Immediate)** |
+| **3** | **Retrieval Engineering (RAG)** | Text files chunked by clause markers (`[CLAUSE: ...]`); D1 keyword match; client substring filter. | • Tables and formulas get split across chunks.<br>• Lack of a 2nd-pass cross-encoder re-ranker (Cohere / BGE) to prioritize signal over keyword count. | **P1** |
+| **4** | **Reliability Engineering** | Sequential try/catch fallback (OpenRouter $\rightarrow$ Groq $\rightarrow$ CF AI). | • No circuit breaker pattern (repeats failing calls until timeout).<br>• No exponential backoff with jitter on 429 rate limits.<br>• No idempotent request IDs to prevent duplicate actions. | **P0 (Immediate)** |
+| **5** | **Security & Safety** | License key checks (`LOCASPEC-*`) + string escaping (`escapeHtml`). | • Susceptible to indirect prompt injection via ingested URLs / PDFs.<br>• Client can issue arbitrary D1 SQL mutations in curator modal.<br>• No dual-phase output guardrail for high-risk advice. | **P1** |
+| **6** | **Evaluation & Observability** | Console logs, System Doctor ping test, manual browser checks. | • *"Vibes don't scale. Metrics do."*<br>• No golden dataset of 100 ASME/API ground-truth test cases.<br>• No automated CI/CD eval gates before deploying to production. | **P0 (Critical)** |
+| **7** | **Product Thinking & UX** | Gemini layout, progressive elicitation triage chips, Form QW-482 viewer. | • Model answers with uniform confidence even when uncertain.<br>• No real human dispatcher when automated triage fails.<br>• Missing active feedback loops from inspector corrections. | **P2** |
+
+---
+
+## 🛠️ Actionable Production Blueprint
+
+### Phase 1: Airtight Tool Contracts & Reliability (Week 1) — *Immediate Leverage*
+> *"First, look at your tool schemas. Read them out loud... Add strict types and examples. This is the highest leverage fix most agents need."*
+
+1. **Native Tool Schemas**:
+   - Replace comment-based outputs (`<!--WPS_METRICS: ...-->`) with native function calling definitions using strict JSON Schema / Zod validation.
+   - Enforce enum constraints on Base Metals (`SA-516 Gr. 70`, `SA-106 Gr. B`, `SS 316L`), processes, and thickness bounds.
+2. **Circuit Breakers & Timeouts**:
+   - Wrap upstream LLM requests in a **$4,500\text{ms}$ timeout**.
+   - If an endpoint fails 3 consecutive times, trip the circuit breaker and route immediately to the sub-200ms fallback model without delaying the inspector.
+   - Implement exponential backoff with jitter on 429 rate limits.
+
+---
+
+### Phase 2: Evaluation Suite & Observability (Week 2) — *"Vibes Don't Scale"*
+> *"The phrase 'it seems better' is not a deployment criterion. Vibes don't scale. Metrics do."*
+
+1. **The 100-Question Golden Dataset**:
+   - Build a benchmark repository across 4 core oilfield disciplines:
+     - 25 Welding WPS/PQR cases (ASME IX, ASME VIII, B31.3).
+     - 25 NDT acceptance criteria tests (ASME V Art. 2, 4, 7).
+     - 25 Pressure test calculations ($P = \frac{2St}{D} \times F \times E \times T$).
+     - 25 Tubular & Hoisting wear limits (API 7G-2, API 8B).
+2. **Automated CI/CD Eval Runner**:
+   - Build an automated test script (`npm run test:evals`) to verify:
+     - **Citation Precision:** $\ge 95\%$ correct code clause cited.
+     - **Formula Accuracy:** $100\%$ mathematical precision.
+     - **Regression Prevention:** Blocks merge to `final` if any benchmark regresses.
+
+---
+
+### Phase 3: Semantic Retrieval & Security Hardening (Week 3)
+> *"The quality of what you retrieve determines the ceiling of your agent's performance."*
+
+1. **Structure-Aware Semantic Chunking**:
+   - Preserve complete ASME tables (e.g. ASME B31.3 Table 330.1.1 Preheat & Table 331.1.1 PWHT) and formula derivations as atomic units with table headers attached.
+2. **2-Stage Retrieval & Re-ranking**:
+   - Stage 1: Fast hybrid retrieval (BM25 lexical + dense vectors).
+   - Stage 2: Cross-encoder re-ranking to pass only the top 3 high-signal clauses into the LLM context window.
+3. **Prompt Injection Defense & Isolation**:
+   - Wrap user-supplied documents and URLs in isolated XML boundary tags (`<untrusted_document_context>`).
+   - Restrict D1 database client write actions with strict role-based authorization tokens.
+
+---
+
+### Phase 4: Product Thinking & Agentic State Graph (Week 4)
+> *"Agent engineers think about the human on the other end, not just the code."*
+
+1. **Uncertainty Quantification & Trust Badges**:
+   - 🟢 **VERIFIED CODE REQUIREMENT**: Direct code citation match.
+   - 🟡 **SENSIBLE DEFAULT / FIELD PRACTICE**: Industry rule-of-thumb assumption.
+   - 🔴 **CRITICAL INSPECTION HOLD POINT**: Mandatory human sign-off needed.
+2. **Human-in-the-Loop Escalation**:
+   - Connect the triage modal with an escalation flow to route complex cases directly to a Level III / IWE specialist.
+3. **Decoupled Specialist Agent Graph**:
+   - Refactor the monolithic worker into specialized coordinator nodes:
+     - `TriageAgent` $\rightarrow$ `WeldingSpecialist` $\rightarrow$ `FormulaVerifier` $\rightarrow$ `CertificationSignoff`.
+
+---
+
+### 📌 Git & Archive Status
+- **Conversation History**: Full archive synchronized and committed to [FULL_CONVERSATION_HISTORY.md](file:///c:/Users/MT/Desktop/inspect%20support/FULL_CONVERSATION_HISTORY.md).
+- **Git Commit**: `23664fd` pushed to `origin final`.
+- **Roadmap Artifact**: Saved to [ai_agent_engineering_gap_analysis_and_roadmap.md](file:///C:/Users/MT/.gemini/antigravity/brain/831bfcb2-41c2-4a30-92da-937c17c7849a/ai_agent_engineering_gap_analysis_and_roadmap.md).
 
 ---
 
