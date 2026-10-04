@@ -4964,6 +4964,8 @@ Generate a complete, audit-ready, field-executable Welding Procedure Specificati
   "rootFace": "1.5 - 2.5 mm (1/16 - 3/32 in)",
   "grooveAngle": "60° - 75° Included",
   "backgouging": "None (or Grinding)",
+  "capReinforcement": "1.5 - 2.5 mm (max 3.0 mm per UW-35)",
+  "filletSize": "Leg equal to nominal wall (Throat = 0.707 x Leg)",
   "fillerProcess1": "GTAW",
   "sfaSpec1": "SFA 5.18",
   "awsClass1": "ER70S-6",
