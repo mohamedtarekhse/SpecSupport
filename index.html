@@ -6368,7 +6368,7 @@ Answer the inspector's query strictly and accurately based on the verified local
             if (role === 'ai') {
                 // 1. Clean any stray question headings from the text so body is purely technical
                 let cleanText = text
-                    .replace(/###\s*❓?\s*(?:Clarifying|Follow-up|Suggested|Potential)\s*Questions[\s\S]*?(?=\n###|\n\*\*Detailed|\n\*\*Quality|\n\*\*1\.|\n\*\*The Code|$)/gi, '')
+                    .replace(/###\s*❓?\s*(?:Clarifying|Follow-up|Suggested|Potential)\s*Questions[\s\S]*?(?=\n###|\n##|\n#[^#]|\n\*\*[A-Z]|\n[0-9]+\.\s+[A-Z]|$)/gi, '')
                     .replace(/<!--[\s\S]*?-->/g, '')
                     .trim();
 

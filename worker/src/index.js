@@ -3659,7 +3659,7 @@ async function askAIProvider(c, messages, stream) {
       if (stream) {
         const streamResp = await c.env.AI.run(modelToUse, {
           messages: messages,
-          max_tokens: 2200,
+          max_tokens: 4096,
           temperature: 0.15,
           stream: true
         })
@@ -3667,7 +3667,7 @@ async function askAIProvider(c, messages, stream) {
       }
       const res = await c.env.AI.run(modelToUse, {
         messages: messages,
-        max_tokens: 2200,
+        max_tokens: 4096,
         temperature: 0.15
       })
       const text = res?.response || (typeof res === 'string' ? res : (res?.choices?.[0]?.message?.content || ''))
@@ -3690,14 +3690,14 @@ async function askAIProvider(c, messages, stream) {
     }
 
     // HTTP Provider runner with streaming, timeouts, jitter & circuit breakers
-    const runHttpProvider = async (providerName, key, url, modelToUse, maxTokens = null) => {
+    const runHttpProvider = async (providerName, key, url, modelToUse, maxTokens = 4096) => {
       if (!canAttemptProvider(providerName)) {
         throw new Error(`[Circuit Breaker OPEN] ${providerName} is temporarily suspended due to consecutive failures.`);
       }
 
       // Strict 5,000ms timeout per upstream provider to guarantee zero hanging
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
 
       try {
         const response = await fetch(url, {
@@ -3738,7 +3738,7 @@ async function askAIProvider(c, messages, stream) {
         return { response: stream ? response.body : response, model: modelToUse, provider: providerName, isStream: Boolean(stream) };
       } catch (err) {
         clearTimeout(timeoutId);
-        recordProviderFailure(providerName, err.name === 'AbortError' ? 'Timeout (5000ms)' : err.message);
+        recordProviderFailure(providerName, err.name === 'AbortError' ? 'Timeout (20000ms)' : err.message);
         throw err;
       }
     }
@@ -3762,7 +3762,7 @@ async function askAIProvider(c, messages, stream) {
 
       if (groqKey) {
         try {
-          return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', 'llama-3.1-70b-versatile', 1000)
+          return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', 'llama-3.1-70b-versatile', 4096)
         } catch (e) {
           lastError = `Groq: ${e.message}`
         }
@@ -3781,7 +3781,7 @@ async function askAIProvider(c, messages, stream) {
         const groqModels = ['llama-3.1-70b-versatile', 'llama3-8b-8192']
         for (const m of groqModels) {
           try {
-            return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', m, 1000)
+            return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', m, 4096)
           } catch (e) {
             lastError = `Groq (${m}): ${e.message}`
             if (e.message.includes("Invalid API Key")) throw e
@@ -3821,7 +3821,7 @@ async function askAIProvider(c, messages, stream) {
       }
       if (groqKey) {
         try {
-          return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', 'llama-3.1-70b-versatile', 1000)
+          return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', 'llama-3.1-70b-versatile', 4096)
         } catch (e) {
           lastError = `Groq: ${e.message}`
         }
@@ -5332,7 +5332,8 @@ app.post('/api/ask', async (c) => {
     answer = answer.replace(/<!--[\s\S]*?-->/g, '').trim()
 
     // 4. Strip any dead question lists from the body of the response so they don't pollute the body
-    answer = answer.replace(/###\s*❓?\s*(?:Clarifying|Follow-up|Suggested|Potential)\s*Questions[\s\S]*?(?=\n###|\n\*\*Detailed|\n\*\*Quality|\n\*\*1\.|\n\*\*The Code|$)/gi, '').trim()
+    // Safe question cleanup without greedy end-of-text truncation
+    answer = answer.replace(/###\s*❓?\s*(?:Clarifying|Follow-up|Suggested|Potential)\s*Questions[\s\S]*?(?=\n###|\n##|\n#[^#]|\n\*\*[A-Z]|\n[0-9]+\.\s+[A-Z]|$)/gi, '').trim()
 
     // Extract MCQ questions ONLY if model explicitly flagged an equal-probability conflict
     // (MCQ is strictly an optional last resort tool)
