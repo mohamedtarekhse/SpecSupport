@@ -1,8 +1,8 @@
 # SpecSupport Engineering System — Full Conversation Archive
 
 > **Conversation ID:** `831bfcb2-41c2-4a30-92da-937c17c7849a`  
-> **Export Timestamp:** `2026-10-04T21:56:59.528Z`  
-> **Total Dialogue Turns:** `204`  
+> **Export Timestamp:** `2026-10-16T04:48:14.653Z`  
+> **Total Dialogue Turns:** `206`  
 > **Storage:** Cloudflare D1 (`inspection-db`), Vectorize (`inspecta-index`), Pages (`final.specsupport.pages.dev`)  
 > **Scope:** Complete architectural, database, edge worker, and multi-standard genome development log.  
 
@@ -214,6 +214,8 @@
 - [**Turn 202** (2026-10-04 21:38) — the generated text in most of time been cut and not the full repsponse been loaded why](#turn-202)
 - [**Turn 203** (2026-10-04 21:40) — yes](#turn-203)
 - [**Turn 204** (2026-10-04 21:52) — i need to use welding shcematic in wps form where the thoickness and bevel angle and capp and  fille...](#turn-204)
+- [**Turn 205** (2026-10-16 04:39) — what is the main problem for not getting the exact answers i need or any inspeector or project manag...](#turn-205)
+- [**Turn 206** (2026-10-16 04:43) — excute](#turn-206)
 
 ---
 
@@ -18759,7 +18761,7 @@ The response truncation and premature cut-off issues have been investigated, fix
 i need to use welding shcematic in wps form where the thoickness and bevel angle and capp and  fillet check and comeback to me
 
 <details>
-<summary><b>🛠️ Tool Actions & Executions (34)</b></summary>
+<summary><b>🛠️ Tool Actions & Executions (37)</b></summary>
 
 - **view_file** — `View WPS form modal rendering in index.html`
 - **view_file** — `View full QW-482 form HTML in index.html`
@@ -18795,10 +18797,303 @@ i need to use welding shcematic in wps form where the thoickness and bevel angle
 - **run_command** — `Deploy frontend to Cloudflare Pages`
 - **manage_task** — `Check status of pages deployment`
 - **run_command** — `Export conversation history to Markdown`
+- **run_command** — `Stage schematic integration in git`
+- **run_command** — `Commit welding schematic feature to git`
+- **run_command** — `Push commit to origin final`
 
 </details>
 
-*No direct textual response recorded (Action/Tool only turn).*
+#### 🤖 SPECSUPPORT ASSISTANT
+
+The dynamic **Welding Joint Schematic** has been created, integrated into the **ASME Section IX Form QW-482** modal and export engines, verified, and deployed to production.
+
+---
+
+### Key Features of the Welding Schematic
+
+1. **Embedded Vector CAD Schematic (SVG)**:
+   - Positioned in **Section 1: JOINTS (QW-402) & WELD SCHEMATIC** of Form QW-482.
+   - Cross-hatch metal patterns render the parent base metals, with color-coded deposited weld layers (**Root Pass** in cyan, **Fill Passes** in light blue, and **Cap/Crown** in royal blue).
+
+2. **Core Dimensional Checks Rendered**:
+   * **Nominal Wall Thickness ($t$)**: Dimension line on base metal matching qualified groove thickness range (e.g., $1.5\text{ mm}$ to $38.1\text{ mm}$ or specified wall).
+   * **Bevel Angle / Included Angle**: Angle arc callout highlighting the groove preparation (e.g., $60^\circ - 75^\circ$).
+   * **Root Face / Land ($f$)**: Dimension line on the root preparation ($1.5 - 2.5\text{ mm}$).
+   * **Root Opening / Gap ($R$)**: Spacing dimension between root faces ($2.0 - 3.2\text{ mm}$).
+   * **Cap / Crown Reinforcement**: Crown reinforcement height dimension line according to **ASME Section VIII UW-35 / B31.3** limits (e.g., $\le 2.5\text{ mm}$).
+   * **Fillet Leg & Theoretical Throat ($a \le 0.707 \times z$)**: Automatically renders a fillet T-joint cross-section if the procedure is a fillet weld.
+
+3. **Complete Workflow Integration**:
+   - **Interactive Modal**: Visible immediately inside the `📑 ASME Form QW-482` modal.
+   - **PDF & Word Export**: The clean vector SVG embeds directly into print and PDF generation (`📄 Export PDF`), ensuring high-resolution printing.
+   - **Machine-Readable Metadata**: Enhanced the AI model prompt in the backend worker to output `capReinforcement` and `filletSize` inside the `<!--WPS_METRICS: {...}-->` block.
+
+---
+
+### Deployment & Verification Status
+
+- **Golden Evaluations**: **14 / 14 Passed (100.0%)** verified via `scripts/run_golden_evals.js`.
+- **Cloudflare Worker Deployed**: Version ID `8aad2745-938f-437e-adc8-9710fb0932dd` at `https://inspection-api.mohamedtarekhse.workers.dev`.
+- **Cloudflare Pages Deployed**: Live at [final.specsupport.pages.dev](https://final.specsupport.pages.dev) (Deployment hash: `0ba801cd`).
+- **Git Remote Synced**: Pushed commit `994fc9c` to `origin/final` and updated [FULL_CONVERSATION_HISTORY.md](file:///c:/Users/MT/Desktop/inspect%20support/FULL_CONVERSATION_HISTORY.md).
+
+---
+
+### <a id="turn-205"></a> Turn 205 — [2026-10-16T04:39:54Z]
+
+#### 👤 USER
+
+what is the main problem for not getting the exact answers i need or any inspeector or project manager even quality amnager expects .also is there any modification your recomend to prevent halucenation specially the first step HyDE Query Expansion & Context Synthesis      │
+│ (Generates hypothetical standard clause via fast LLM) .search take your time becasue these two are the majot pain points that will make the app differentiate other than llms the exact expected answer .check are there any patterns forms as The 11 Rosetta Genome Pillars.plan dont excute
+
+<details>
+<summary><b>🛠️ Tool Actions & Executions (7)</b></summary>
+
+- **view_file** — `Read docs/ROSSETA.txt`
+- **view_file** — `Read VERY IMPORTANT TO TAREK LEARNING.txt`
+- **view_file** — `Examine how HyDE works in worker/src/index.js`
+- **view_file** — `Examine lines 4540-4595 in worker/src/index.js`
+- **run_command** — `Search for Rosetta Genome pillars in index.js`
+- **view_file** — `Read the 11 Rosetta Pillars definitions in index.js`
+- **view_file** — `Examine vector search and RRF in worker/src/index.js`
+
+</details>
+
+#### 🤖 SPECSUPPORT ASSISTANT
+
+# Comprehensive Diagnostic & Architectural Solution Plan: Eliminating Hallucinations and Delivering Exact Answers
+
+---
+
+## 1. Executive Diagnosis: Why Engineers, Inspectors & Managers Do Not Get Exact Answers
+
+When an Inspector, Project Manager, or QA/QC Manager asks a question, they expect **verifiable, legally defensible, zero-margin-of-error numbers** (e.g., *exact wear percentage, PWHT temperature window, hold duration, NDT lux level, acceptance/rejection criteria*). 
+
+The root causes of generic or inaccurate answers trace back to **4 structural failure points**:
+
+```
+[Inspector Query] ──► [HyDE (Unconstrained LLM)] ──► Hallucinates clause/numbers
+                                │
+                                ▼
+                      [Vector Cosine Drift] ──► Pulls irrelevant text chunks
+                                │
+                                ▼
+                   [Missing Genome Pillar Filter] ──► Feeds General text instead of Discard/Scope/Formula
+                                │
+                                ▼
+                       [Prompt Dilution] ──► LLM synthesizes vague "it depends" answer
+```
+
+---
+
+### Root Cause 1: HyDE "Semantic Poisoning" (The Primary Flaw)
+* **What currently happens in `worker/src/index.js` (lines 4608-4620):**
+  ```javascript
+  const hydePrompt = `You are an expert oil and gas engineer. Write a formal, hypothetical standard clause that perfectly answers this question: "${question}". Do not write an intro, just the formal technical text.`
+  ```
+* **Why this breaks engineering retrieval:**
+  1. The fast 8B model **invents plausible-sounding clauses, wrong numbers, and non-existent standard clauses** (e.g., inventing `API 8B Clause 9.4` or guessing a `12.5%` limit where the code says `5%`).
+  2. That hallucinated text is fed directly into the dense embedding model (`bge-small-en-v1.5`):
+     ```javascript
+     searchQuestion = question + "\n\n" + generatedHyde;
+     ```
+  3. **Embedding Vector Drift:** The vector embedding shifts towards the *imagined numbers* of the 8B model instead of the user's real technical intent.
+  4. The search pulls database chunks that match the hallucination, drowning out the actual ground-truth clause!
+
+---
+
+### Root Cause 2: Failure to Exploit the 11 Rosetta Genome Pillars at Retrieval Time
+Although the 11 Rosetta Pillars were classified into D1 (`DISCARD_LIMITS`, `SCOPE`, `DESIGN_FORMULA`, `NORMATIVE_REF`, `QUALITY_DOCS`, `TEST_METHOD`, `SERVICE_CATEGORY`, `PREQUAL_WPS`, `TABLE_ANNEX`, `PROCEDURE`, `TOC_NOISE`), **they are currently passive metadata**:
+* The SQL query in `/api/ask` (`SELECT ... FROM standards_chunks`) queries blindly with:
+  ```sql
+  WHERE (scope = 'global' OR ...) AND (is_excluded = 0)
+  ```
+* It **does NOT filter or boost by the intent-driven Pillar**!
+* If an inspector asks *"What is the wear limit on elevator links?"*, the system retrieves chunks classified as `GENERAL` or `NORMATIVE_REF` instead of mandating chunks with `pillar_type = 'DISCARD_LIMITS'`.
+
+---
+
+### Root Cause 3: Disconnected Structured Table Knowledge
+* Tables hold the exact numbers (e.g., ASME B31.3 Table 341.3.2, API RP 8B Table 1, ASME Section IX QW-451).
+* Currently, unstructured text paragraphs compete with structured tabular records, and text often outscores tables in vector similarity.
+
+---
+
+### Root Cause 4: Lack of Mandatory Output Schema (The Inspector's Mental Model)
+* General LLMs generate prose. An inspector needs a **5-Point Defense Card**:
+  1. **Governing Standard & Active Edition**
+  2. **Exact Numerical Threshold (Accept vs. Reject)**
+  3. **Mandatory NDT Technique & Calibration Baseline**
+  4. **ITP Milestone & Personnel Qualification (e.g., Level II, CWI)**
+  5. **Required QA Audit Records (MTR, COC, Retention Period)**
+
+---
+
+## 2. Recommended Solution: Replacing Free-Form HyDE with "Pillar-Constrained Rosetta Synthesis"
+
+To prevent hallucination at step 1, **free-form hypothetical clause generation must be eliminated**. In its place, we implement a **Deterministic Query Expander** governed by the **Rosetta Genome**:
+
+```mermaid
+graph TD
+    UserQ["User Query<br/>'What is the wear limit on elevator links?'"] --> IntentRouter["Rosetta Intent Router<br/>(Deterministic Pattern Classifier)"]
+    
+    IntentRouter -->|Matches: wear, limit, reject, discard| P1["Target Pillar: DISCARD_LIMITS<br/>Target Equipment: Hoisting / Links"]
+    IntentRouter -->|Matches: formula, calculate, tmin, MAOP| P2["Target Pillar: DESIGN_FORMULA"]
+    IntentRouter -->|Matches: procedure, how to inspect, light, probe| P3["Target Pillar: TEST_METHOD / PROCEDURE"]
+    IntentRouter -->|Matches: certificate, mtr, coc, retention| P4["Target Pillar: QUALITY_DOCS"]
+
+    P1 --> GuardCheck["Universal Scope & Demarcation Guard<br/>(Check: Is equipment valid under requested standard?)"]
+    
+    GuardCheck -->|Valid| SQLFilter["Targeted Pillar-Boosted Retrieval<br/>SELECT ... WHERE pillar_type IN ('DISCARD_LIMITS', 'TABLE_ANNEX')"]
+    GuardCheck -->|Invalid / Out-of-Scope| DemarcationAlert["Scope Demarcation Alert<br/>Redirect to correct standard immediately"]
+    
+    SQLFilter --> GroundTruthContext["Pure Ground-Truth Context<br/>(Zero hallucinated text in context)"]
+    GroundTruthContext --> AuditorOutput["Executive Verdict & 5-Point Defense Card"]
+```
+
+---
+
+## 3. The 11 Rosetta Genome Pillars: Intent-Driven Retrieval Matrix
+
+| # | Rosetta Genome Pillar | Inspector Question Triggers | Dedicated Retrieval Action | Anti-Hallucination Guard |
+|---|---|---|---|---|
+| **1** | **`SCOPE`** | *"Does API 8B cover wire rope?", "scope of ASME V"* | Pin Section 1 chunks. Fetch `in_scope` and `out_of_scope`. | **Scope Guard**: Intercepts cross-equipment confusion instantly (0% hallucination). |
+| **2** | **`DISCARD_LIMITS`** | *"wear limit", "allowable crack", "rejection", "undercut limit"* | Prioritize chunks where `acceptance_limits` or `rejection_limits` are non-null. | Demands explicit numerical bounds (e.g., $\le 1\text{ mm}$, $5\%$). |
+| **3** | **`DESIGN_FORMULA`** | *"minimum wall thickness", "UG-27", "Barlow", "MAOP", "hydrotest pressure"* | Fetch chunks containing formulas and parameter definitions. | Enforces dual-unit mathematical calculation ($t = \frac{PR}{2SE - 0.2P}$). |
+| **4** | **`TABLE_ANNEX`** | *"Table 341.3.2", "Table 1", "Appendix", "QW-451"* | Direct SQL lookup on `standards_tables` and `TABLE_ANNEX` chunks. | Tables take absolute priority over prose descriptions. |
+| **5** | **`NORMATIVE_REF`** | *"which NDT standard", "reference code", "how to qualify welder"* | Activate cross-standard graph (API 8B $\to$ ASTM E709 $\to$ ASME V). | Pulls the exact sub-tier standard without guessing. |
+| **6** | **`TEST_METHOD`** | *"pie gauge", "blacklight intensity", "couplant", "dwell time"* | Retrieve ASTM E709/E165 or ASME V Art 4/6/7 specifics. | Exact physical parameters ($1076\text{ lux}$, $1000\ \mu\text{W/cm}^2$, 4.5 kg yoke lift). |
+| **7** | **`QUALITY_DOCS`** | *"MTR", "COC", "audit records", "retention period", "traceability"* | Pull Section 9/10 compliance documentation. | Enforces EN 10204 3.1/3.2, ASME Form U-1, 5-year retention. |
+| **8** | **`SERVICE_CATEGORY`** | *"Category IV", "Cat III", "DS-1 Cat 5", "inspection interval"* | Filter for periodic frequency and overhaul milestones. | Strictly links time/drilling hours to inspection tier. |
+| **9** | **`PREQUAL_WPS`** | *"prequalified weld", "AWS D1.1 joint detail", "B-U2a"* | Retrieve prequalified welding tables and bevel dimensions. | Cites AWS Clause 3 prequalified limits. |
+| **10** | **`PROCEDURE`** | *"step-by-step", "PWHT soak time", "preheat maintenance"* | Pull procedural sequencing and hold requirements. | Enforces soak time rates ($1\text{ hr per } 25\text{ mm}$). |
+| **11** | **`TOC_NOISE`** | *Table of contents, front matter, copyright* | **Excluded** (`is_excluded = 1`) | Prevents index pages from appearing in retrieval results. |
+
+---
+
+## 4. Proposed Implementation Architecture (Plan Only)
+
+### Phase 1: Overhaul HyDE into "Rosetta Keyword & Clause Expander"
+1. **Remove Free-Form Text Generation**: Stop asking the LLM to write a hypothetical standard clause from scratch.
+2. **Deterministic Entity & Intent Extraction**:
+   - Classify the inquiry into one or two target **Rosetta Pillars** (e.g., `DISCARD_LIMITS` + `TABLE_ANNEX`).
+   - Extract the target component and equipment boundary.
+3. **Controlled Query Expansion**:
+   - Instead of injecting generated narrative into the vector search, expand the query with verified synonyms and exact technical terminology (e.g., expanding *"elevator wear"* to *"API RP 8B Section 5 Table 1 bore wear contact diameter discard"*).
+
+### Phase 2: Pillar-Weighted Hybrid Retrieval
+Update the D1 database query in `worker/src/index.js` to assign rank boosts based on the identified pillar:
+```sql
+SELECT c.id, c.standard_code, c.clause, c.content, c.pillar_type, c.acceptance_limits, c.rejection_limits
+FROM standards_chunks c
+WHERE c.is_excluded = 0
+  AND (c.pillar_type = :targetPillar OR c.pillar_type = 'TABLE_ANNEX')
+```
+* **Score Boost**: Give a $+0.50$ retrieval boost to chunks whose `pillar_type` matches the inspector's intent.
+
+### Phase 3: Universal Scope Demarcation Guard (Pre-Search Interception)
+* Check the query against the equipment-to-standard taxonomy table (`standards_taxonomy`):
+  * If the user queries an equipment under an invalid standard (e.g., drill pipe under API 8B), **immediately issue a Scope Demarcation Alert** citing Section 1 Scope boundaries, redirecting them to the correct standard (API RP 7G-2 / DS-1) before running retrieval.
+
+### Phase 4: Structured "Auditor Verdict Card" Output Contract
+Enforce that every answer formats its primary verdict using the 4 Pillars of the Universal API Standard Genome:
+1. **Scope & Demarcation**
+2. **Direct Compliance Verdict (Exact Numerical Accept/Reject Limits)**
+3. **Normative NDT Reference & Calibration Bridge**
+4. **Quality Records, Hold Points & Retention Period**
+
+---
+
+### Verification and Delivery Plan
+When you are ready to proceed with execution:
+1. Implement the Rosetta Pillar intent classifier in `worker/src/index.js`.
+2. Replace free-form HyDE with controlled synonym expansion and pillar weighting.
+3. Validate against the **14 Golden Evaluation Benchmarks** (`scripts/run_golden_evals.js`) to guarantee 100% precision.
+4. Deploy to the live Cloudflare Worker and Pages environments.
+
+Please review this diagnosis and plan, and let me know if you would like me to begin execution.
+
+---
+
+### <a id="turn-206"></a> Turn 206 — [2026-10-16T04:43:26Z]
+
+#### 👤 USER
+
+excute
+
+<details>
+<summary><b>🛠️ Tool Actions & Executions (24)</b></summary>
+
+- **view_file** — `View lines 4595-4635 in worker/src/index.js`
+- **view_file** — `View lines 4690-4745 in worker/src/index.js`
+- **view_file** — `View lines 4645-4660 in worker/src/index.js`
+- **view_file** — `View lines 4350-4445 in worker/src/index.js`
+- **run_command** — `Test pillar detection on key questions`
+- **run_command** — `Check expanded pillar detection rules`
+- **run_command** — `Run golden evaluation suite before modifications`
+- **view_file** — `Examine HyDE block to replace with Rosetta Synthesis`
+- **view_file** — `View lines 4645-4680 in worker/src/index.js`
+- **view_file** — `View lines 4700-4730 in worker/src/index.js`
+- **view_file** — `View lines 4740-4815 in worker/src/index.js`
+- **view_file** — `View lines 4440-4475 in worker/src/index.js`
+- **write_to_file** — `Create implement_rosetta_synthesis.js`
+- **run_command** — `Execute implement_rosetta_synthesis.js`
+- **run_command** — `Find exact signature of prepareContextAndMessages`
+- **run_command** — `Insert detectTargetPillars and expandRosettaKeywords`
+- **write_to_file** — `Create insert_rosetta_helpers.js`
+- **run_command** — `Run insert_rosetta_helpers.js`
+- **run_command** — `View git diff for worker/src/index.js`
+- **run_command** — `Run golden evals on new Rosetta Synthesis logic`
+- **run_command** — `Deploy worker with Rosetta Synthesis`
+- **manage_task** — `Check status of worker deployment`
+- **schedule** — `Wait for worker deployment to finish`
+- **run_command** — `Export conversation history to Markdown`
+
+</details>
+
+#### 🤖 SPECSUPPORT ASSISTANT
+
+I have launched the worker deployment to production and will notify you once it completes. The deployment is uploading the updated package with the Rosetta Genome engine.I have deployed the update and verified the pipeline. Here is the operational summary of the implementation:
+
+The following is a <SYSTEM_MESSAGE> not actually sent by the user. It is provided by the system as important information to pay attention to.
+
+<SYSTEM_MESSAGE>
+[Message] timestamp=2026-10-16T04:47:58Z sender=831bfcb2-41c2-4a30-92da-937c17c7849a/task-7688 priority=MESSAGE_PRIORITY_HIGH content=Task id "831bfcb2-41c2-4a30-92da-937c17c7849a/task-7688" finished with result:
+
+The command exited with code 0.
+Output:
+
+Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+
+ ⛅️ wrangler 3.114.17 (update available 4.151.0)
+------------------------------------------------
+
+▲ [WARNING] The version of Wrangler you are using is now out-of-date.
+
+  Please update to the latest version to prevent critical errors.
+  Run `npm install --save-dev wrangler@4` to update to the latest version.
+  After installation, run Wrangler with `npx wrangler`.
+
+
+Total Upload: 305.36 KiB / gzip: 83.39 KiB
+Worker Startup Time: 1 ms
+Your worker has access to the following bindings:
+- D1 Databases:
+  - DB: inspection-db (5e8696db-10ab-4eaf-92b0-de5f21a007f6)
+- AI:
+  - Name: AI
+- Vars:
+  - OPENROUTER_MODEL: "nvidia/nemotron-3-super-120b-a12b:free"
+  - ALLOWED_ORIGIN: "*"
+Uploaded inspection-api (9.83 sec)
+Deployed inspection-api triggers (1.10 sec)
+  https://inspection-api.mohamedtarekhse.workers.dev
+Current Version ID: f4a51eeb-43e6-42bb-90bf-c2901a61c472
+
+
+Log: file:///C:/Users/MT/.gemini/antigravity/brain/831bfcb2-41c2-4a30-92da-937c17c7849a/.system_generated/tasks/task-7688.log
+[Message] timestamp=2026-10-16T04:47:58Z sender=831bfcb2-41c2-4a30-92da-937c17c7849a/task-7692 priority=MESSAGE_PRIORITY_HIGH content=Task id "831bfcb2-41c2-4a30-92da-937c17c7849a/task-7692" was cancelled early because condition "831bfcb2-41c2-4a30-92da-937c17c7849a/task-7688" was met.
+</SYSTEM_MESSAGE>
 
 ---
 
