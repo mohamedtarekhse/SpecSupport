@@ -4523,17 +4523,27 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
   let detectedStd = null
   const stdMatch = question.match(/(ASME\s*(?:VIII|Section\s*VIII|B31\.3|B31\.4|B31\.8|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5\s*CT|RP\s*5C1|5\s*C1|1104|16\s*D|16\s*A|7\s*K|RP\s*2X|2X|RP\s*7G-2|7\s*G-?2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:3834-2|13534))/i)
   if (stdMatch) {
-    let raw = (stdMatch[1] || stdMatch[0]).replace(/Section\s*/i, '').replace(/\s+/g, '').trim().toUpperCase();
-    if (raw === '16D') raw = '16D';
-    if (raw === '16A') raw = '16A';
-    if (raw === '5CT') raw = '5CT';
-    if (raw === '5C1') raw = '5C1';
-    if (raw === '7G2' || raw === '7G-2') raw = '7G-2';
-    if (raw === '8B') raw = '8B';
-    if (raw === '7K') raw = '7K';
-    if (raw === '4F') raw = '4F';
-    if (raw === '4G') raw = '4G';
-    if (raw === '53') raw = '53';
+    let raw = (stdMatch[1] || stdMatch[0]).replace(/Section\s*/i, '').trim().toUpperCase();
+    raw = raw.replace(/\s+/g, ' ');
+    if (raw === '16 D' || raw === '16D' || raw === 'API 16D') raw = '16D';
+    if (raw === '16 A' || raw === '16A' || raw === 'API 16A') raw = '16A';
+    if (raw === '5 CT' || raw === '5CT' || raw === 'API 5CT') raw = '5CT';
+    if (raw === '5 C1' || raw === '5C1' || raw === 'API 5C1') raw = '5C1';
+    if (raw === '7 G 2' || raw === '7 G-2' || raw === '7G-2' || raw === '7G2') raw = '7G-2';
+    if (raw === '8 B' || raw === '8B' || raw === 'API 8B') raw = '8B';
+    if (raw === '7 K' || raw === '7K' || raw === 'API 7K') raw = '7K';
+    if (raw === '4 F' || raw === '4F' || raw === 'API 4F') raw = '4F';
+    if (raw === '4 G' || raw === '4G' || raw === 'API 4G') raw = '4G';
+    if (raw === '53' || raw === 'API 53') raw = '53';
+    if (raw === 'ASME IX' || raw === 'ASMEIX') raw = 'ASME IX';
+    if (raw === 'ASME VIII' || raw === 'ASMEVIII') raw = 'ASME VIII';
+    if (raw === 'ASME V' || raw === 'ASMEV') raw = 'ASME V';
+    if (raw === 'ASME B31.3' || raw === 'ASMEB31.3' || raw === 'B31.3') raw = 'B31.3';
+    if (raw === 'ASME B31.4' || raw === 'ASMEB31.4' || raw === 'B31.4') raw = 'B31.4';
+    if (raw === 'ASME B31.8' || raw === 'ASMEB31.8' || raw === 'B31.8') raw = 'B31.8';
+    if (raw === 'AWS D1.1' || raw === 'AWSD1.1') raw = 'AWS D1.1';
+    if (raw === 'AWS B1.11' || raw === 'AWSB1.11') raw = 'AWS B1.11';
+    if (raw === 'ISO 3834-2' || raw === 'ISO3834-2') raw = 'ISO 3834';
     detectedStd = raw;
   } else if (standard_filter && standard_filter !== 'ALL' && standard_filter !== '🌐 GENERAL AI') {
     detectedStd = standard_filter.trim().toUpperCase()
@@ -4566,6 +4576,8 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
       detectedStd = 'AWS'
     } else if (/\b(?:elevator|elevator\s*bore|bails?|links?|hoisting|traveling\s*block)\b/i.test(question)) {
       detectedStd = '8B'
+    } else if (/\b(?:wps|pqr|welder\s*qual|welding\s*procedure|p-no|f-no|a-no|qw-\d+|dissimilar\s*weld|grade\s*50.*4130|4130.*grade\s*50)\b/i.test(question)) {
+      detectedStd = 'ASME IX'
     }
   }
 
@@ -4742,12 +4754,18 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
 
   // 4. BM25 Full Text Search
   let bm25Scores = {};
+  let ftsMatchedIds = [];
   try {
     const ftsTerm = question.replace(/[^a-zA-Z0-9 ]/g, "").split(" ").filter(w => w.length > 2).join(" OR ");
     if (ftsTerm) {
-      const { results: ftsRes } = await c.env.DB.prepare(`SELECT rowid, bm25(standards_fts) as bm25_score FROM standards_fts WHERE standards_fts MATCH ?`).bind(ftsTerm).all();
-      ftsRes.sort((a,b) => a.bm25_score - b.bm25_score);
-      ftsRes.forEach((r, rank) => { bm25Scores[r.rowid] = rank; });
+      const { results: ftsRes } = await c.env.DB.prepare(`SELECT rowid, bm25(standards_fts) as bm25_score FROM standards_fts WHERE standards_fts MATCH ? LIMIT 100`).bind(ftsTerm).all();
+      if (ftsRes && ftsRes.length > 0) {
+        ftsRes.sort((a,b) => a.bm25_score - b.bm25_score);
+        ftsRes.forEach((r, rank) => { 
+          bm25Scores[r.rowid] = rank;
+          ftsMatchedIds.push(r.rowid);
+        });
+      }
     }
   } catch(e) {}
 
@@ -4768,6 +4786,21 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   } else if (standard_filter && standard_filter !== 'ALL' && standard_filter !== '🌐 GENERAL AI') {
     query += ` AND standard_code = ?`
     params.push(standard_filter)
+  } else if (detectedStd) {
+    if (ftsMatchedIds.length > 0) {
+      const placeholders = ftsMatchedIds.slice(0, 50).map(() => '?').join(',')
+      query += ` AND (standard_code LIKE ? OR id IN (${placeholders})) LIMIT 120`
+      params.push(`%${detectedStd}%`, ...ftsMatchedIds.slice(0, 50))
+    } else {
+      query += ` AND standard_code LIKE ? LIMIT 120`
+      params.push(`%${detectedStd}%`)
+    }
+  } else if (ftsMatchedIds.length > 0) {
+    const placeholders = ftsMatchedIds.slice(0, 80).map(() => '?').join(',')
+    query += ` AND id IN (${placeholders}) LIMIT 80`
+    params.push(...ftsMatchedIds.slice(0, 80))
+  } else {
+    query += ` LIMIT 80`
   }
 
   const { results } = await c.env.DB.prepare(query).bind(...params).all()
