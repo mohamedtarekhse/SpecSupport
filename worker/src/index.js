@@ -4521,9 +4521,20 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
 
   // Intelligent Governing Standard Detection
   let detectedStd = null
-  const stdMatch = question.match(/(ASME\s*(?:VIII|Section\s*VIII|B31\.3|B31\.4|B31\.8|V|IX)|API\s*(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5CT|RP\s*5C1|5C1|1104|16D|16A|7K|RP\s*2X|2X|RP\s*7G-2|7G-2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:3834-2|13534))/i)
+  const stdMatch = question.match(/(ASME\s*(?:VIII|Section\s*VIII|B31\.3|B31\.4|B31\.8|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5\s*CT|RP\s*5C1|5\s*C1|1104|16\s*D|16\s*A|7\s*K|RP\s*2X|2X|RP\s*7G-2|7\s*G-?2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:3834-2|13534))/i)
   if (stdMatch) {
-    detectedStd = stdMatch[1].replace(/Section\s*/i, '').trim().toUpperCase()
+    let raw = (stdMatch[1] || stdMatch[0]).replace(/Section\s*/i, '').replace(/\s+/g, '').trim().toUpperCase();
+    if (raw === '16D') raw = '16D';
+    if (raw === '16A') raw = '16A';
+    if (raw === '5CT') raw = '5CT';
+    if (raw === '5C1') raw = '5C1';
+    if (raw === '7G2' || raw === '7G-2') raw = '7G-2';
+    if (raw === '8B') raw = '8B';
+    if (raw === '7K') raw = '7K';
+    if (raw === '4F') raw = '4F';
+    if (raw === '4G') raw = '4G';
+    if (raw === '53') raw = '53';
+    detectedStd = raw;
   } else if (standard_filter && standard_filter !== 'ALL' && standard_filter !== '🌐 GENERAL AI') {
     detectedStd = standard_filter.trim().toUpperCase()
   } else {
@@ -4849,7 +4860,11 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   })
 
   // Only consider genuinely relevant chunks
-  const validChunks = combinedChunks.filter(c => c.is_exact_clause_hit || c.vector_score >= 0.25 || c.final_retrieval_score >= 0.30)
+  let validChunks = combinedChunks.filter(c => c.is_exact_clause_hit || c.vector_score >= 0.25 || c.final_retrieval_score >= 0.30)
+  if (validChunks.length === 0 && combinedChunks.length > 0) {
+    // Context starvation fallback: never pass empty context if database candidates exist
+    validChunks = combinedChunks.slice(0, 3);
+  }
   const topChunks = validChunks.slice(0, 5)
 
   let contextText = ""
@@ -4875,7 +4890,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   })
 
   const overrideNotice = hasPrivateSpec ? `\n[HIERARCHICAL GOVERNANCE OVERRIDE ACTIVE]: A company-specific procedure or project specification is loaded in context. COMPANY PROCEDURES TAKE ABSOLUTE PRECEDENCE OVER GENERAL CODES. If the company spec mandates stricter limits, enforce them!\n` : ""
-  const contextBlock = contextText ? `\nCONTEXT SOURCES:\n${contextText}\n` : ""
+  let contextBlock = contextText ? `\nCONTEXT SOURCES:\n${contextText}\n` : `\n[ATTENTION: No verified database chunks were matched for this specific query. Do NOT invent fictional clause numbers or hallucinate thresholds. State clearly what information or parameters are needed from the inspector.]\n`
 
   // ==========================================
   // PERSONA ASSEMBLY BASED ON MODE
