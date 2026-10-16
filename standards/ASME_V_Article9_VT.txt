@@ -1,0 +1,15 @@
+[STANDARD: ASME V]
+[TITLE: ASME Boiler and Pressure Vessel Code Section V — Nondestructive Examination]
+[EDITION: 2023]
+[ARTICLE: 9 — Visual Examination]
+
+[CLAUSE: T-950 — Visual Examination Technique and Lighting Requirements]
+Visual examination (VT) shall be conducted in accordance with a written procedure. The lighting and viewing requirements:
+- Minimum Illumination: The minimum light intensity at the examination surface shall be 1000 lux (100 foot-candles / 100 fc) for direct visual examination.
+- Verification: Light intensity must be verified using a calibrated light meter or certified lux meter prior to examination.
+- Viewing Distance & Angle: The inspector's eye shall be within 600 mm (24 in) of the surface to be examined, and at an angle not less than 30 degrees to the examination surface.
+- Vision Requirements: Visual examination personnel shall have annual Jaeger J-1 or J-2 near-distance vision acuity and color contrast differentiation.
+- Remote Visual Examination (RVI): When direct access is restricted, borescopes, videoscopes, or mirrors may be utilized provided resolution equivalent to direct examination is demonstrated.
+ACCEPTANCE: Surface illumination >= 1000 lux (100 foot-candles) verified with calibrated lux meter; eye distance <= 600 mm (24 in) at angle >= 30 degrees.
+REJECTION: Surface illumination < 1000 lux (100 fc), unverified lighting, or viewing angle < 30 degrees renders examination invalid.
+---

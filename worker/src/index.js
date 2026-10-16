@@ -1604,7 +1604,7 @@ function classifyChunkWorker(chunk) {
 
   // 1. Detect TOC or Publisher Noise / Repository Metadata
   const dotMatches = content.match(/(?:\.\s*){3,}\s*\d+/g) || [];
-  const isPublisherNoise = /black plate|all rights reserved|printed in usa|supersedes|american institute of steel/i.test(content) && content.length < 500;
+  const isPublisherNoise = (/black plate|all rights reserved|printed in usa|supersedes|american institute of steel|ihs markit|licensee=|provided by ihs|not for resale|t h h i l l/i.test(content) && !/acceptance criteria|tolerance|thickness|psi|weld|defect|crack|allowable/i.test(content)) || content.trim().length < 40;
   const isRepoMetadata = stdCode.includes('AGENT-REACH') || /star history|github\.com|foxmail|twitter-cli|rdt-cli/i.test(content);
   const isNeboshPdf = stdCode.includes('nebosh') || /pdfcoffee/i.test(stdCode);
   const isToc = dotMatches.length >= 2 || (content.includes('table of contents') && dotMatches.length >= 1) || (clause.includes('prelim') || section.includes('prelim'));
@@ -1916,6 +1916,11 @@ app.post('/api/admin/refine-genome', async (c) => {
       stats[cls.pillar_type] = (stats[cls.pillar_type] || 0) + 1;
       orgStats[cls.organization] = (orgStats[cls.organization] || 0) + 1;
 
+      let updatedContent = chunk.content || '';
+      if (!updatedContent.startsWith('[STANDARD:')) {
+        updatedContent = `[STANDARD: ${chunk.standard_code}] [SECTION: ${chunk.section || 'General'}] [CLAUSE: ${chunk.clause || 'General'}]\n${updatedContent}`;
+      }
+
       updateStatements.push(
         c.env.DB.prepare(`
           UPDATE standards_chunks
@@ -1927,7 +1932,8 @@ app.post('/api/admin/refine-genome', async (c) => {
               acceptance_limits = ?,
               rejection_limits = ?,
               normative_refs = ?,
-              qa_docs = ?
+              qa_docs = ?,
+              content = ?
           WHERE id = ?
         `).bind(
           cls.organization,
@@ -1939,6 +1945,7 @@ app.post('/api/admin/refine-genome', async (c) => {
           cls.rejection_limits,
           cls.normative_refs,
           cls.qa_docs,
+          updatedContent,
           chunk.id
         )
       );
@@ -3342,12 +3349,31 @@ app.post('/api/admin/ingest-batch', async (c) => {
       }
     } catch(e) {}
 
-    // Prepare batch statements for D1
+    // Prepare batch statements for D1 with Rosetta Genome Columns
     const stmts = chunks.map((ch, idx) => {
       const emb = embeddings[idx] || '[]'
+      const cls = classifyChunkWorker({
+        standard_code,
+        section: ch.section || 'General',
+        clause: ch.clause || `Clause ${idx + 1}`,
+        content: ch.content
+      })
+      const effectivePillar = ch.pillar_type || cls.pillar_type || 'GENERAL'
+      const effectiveOrg = ch.organization || cls.organization || organization
+      const effectiveAcc = ch.acceptance_limits !== undefined ? ch.acceptance_limits : cls.acceptance_limits
+      const effectiveRej = ch.rejection_limits !== undefined ? ch.rejection_limits : cls.rejection_limits
+      const effectiveNorm = ch.normative_refs !== undefined ? ch.normative_refs : cls.normative_refs
+      const effectiveQa = ch.qa_docs !== undefined ? ch.qa_docs : cls.qa_docs
+      const effectiveInScope = ch.in_scope !== undefined ? ch.in_scope : cls.in_scope
+      const effectiveOutScope = ch.out_of_scope !== undefined ? ch.out_of_scope : cls.out_of_scope
+      const effectiveExcluded = ch.is_excluded !== undefined ? ch.is_excluded : (cls.is_excluded || 0)
+
       return c.env.DB.prepare(
-        `INSERT INTO standards_chunks (standard_code, standard_name, section, clause, content, embedding, scope, organization, session_id, expires_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO standards_chunks (
+           standard_code, standard_name, section, clause, content, embedding, scope, organization, session_id, expires_at,
+           pillar_type, is_excluded, in_scope, out_of_scope, acceptance_limits, rejection_limits, normative_refs, qa_docs
+         )
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(
         standard_code,
         standard_name || standard_code,
@@ -3356,9 +3382,17 @@ app.post('/api/admin/ingest-batch', async (c) => {
         ch.content,
         emb,
         effectiveScope,
-        organization,
+        effectiveOrg,
         session_id,
-        expiresAt
+        expiresAt,
+        effectivePillar,
+        effectiveExcluded,
+        effectiveInScope,
+        effectiveOutScope,
+        effectiveAcc,
+        effectiveRej,
+        effectiveNorm,
+        effectiveQa
       )
     })
 
