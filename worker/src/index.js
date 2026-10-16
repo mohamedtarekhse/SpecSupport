@@ -1602,12 +1602,14 @@ function classifyChunkWorker(chunk) {
   const org = detectOrganization(stdCode, content);
   const rosetta = resolveRosettaBridge(org, stdCode, content);
 
-  // 1. Detect TOC or Publisher Noise
+  // 1. Detect TOC or Publisher Noise / Repository Metadata
   const dotMatches = content.match(/(?:\.\s*){3,}\s*\d+/g) || [];
   const isPublisherNoise = /black plate|all rights reserved|printed in usa|supersedes|american institute of steel/i.test(content) && content.length < 500;
+  const isRepoMetadata = stdCode.includes('AGENT-REACH') || /star history|github\.com|foxmail|twitter-cli|rdt-cli/i.test(content);
+  const isNeboshPdf = stdCode.includes('nebosh') || /pdfcoffee/i.test(stdCode);
   const isToc = dotMatches.length >= 2 || (content.includes('table of contents') && dotMatches.length >= 1) || (clause.includes('prelim') || section.includes('prelim'));
 
-  if (isToc || isPublisherNoise) {
+  if (isToc || isPublisherNoise || isRepoMetadata || isNeboshPdf) {
     return {
       organization: org,
       pillar_type: 'TOC_NOISE',
@@ -1621,24 +1623,30 @@ function classifyChunkWorker(chunk) {
     };
   }
 
-  // 2. Detect Engineering Design Formulas (ASME UG-27, 304.1.2, Barlow, MAOP)
-  const isDesignFormula = /ug-27|304\.1\.2|clause 401|para 841|t\s*=\s*(?:pr|pd)|p\s*=\s*2st\/d|maop|smys|hoop stress|joint efficiency\s*[eE]\b/i.test(content) || /formula|equation|wall thickness calculation/i.test(clause);
+  // 2. Detect Engineering Design Formulas (ASME UG-27, 304.1.2, Barlow, MAOP, AISC Buckling, Derrick Wind Reactions)
+  const isDesignFormula = /ug-27|304\.1\.2|clause 401|para 841|t\s*=\s*(?:pr|pd)|p\s*=\s*2st\/d|maop|smys|hoop stress|joint efficiency\s*[eE]\b|buckling load|elastic story shear|tie-down clamp load|wind moment|derrick reaction|factor-of-safety/i.test(content) || /formula|equation|wall thickness calculation/i.test(clause);
   if (isDesignFormula) {
+    let accForm = 'Design verification per engineering calculation formula';
+    if (/ug-27/i.test(content)) accForm = 't = PR / (2SE - 0.2P) for spherical or PR / (SE - 0.6P) for cylindrical shells';
+    else if (/barlow|p\s*=\s*2st\/d/i.test(content)) accForm = 'Barlow formula: P = 2St / D x F design factor';
+    else if (/story shear|buckling/i.test(content)) accForm = 'AISC critical column buckling limit per Chapter C / Section 8.2';
+    else if (/clamp load|wind/i.test(content)) accForm = 'API 4F nominal factor-of-safety against overturning >= 1.5';
+
     return {
       organization: org,
       pillar_type: 'DESIGN_FORMULA',
       is_excluded: 0,
-      in_scope: null,
+      in_scope: 'Mathematical design calculation and structural stress limits',
       out_of_scope: null,
-      acceptance_limits: 'Design limit calculated per formula: t = PR/(2SE - 0.2P) or Barlow P = 2St/D',
-      rejection_limits: 'Thickness below calculated code minimum mandates derating or immediate replacement',
+      acceptance_limits: accForm,
+      rejection_limits: 'Operating stress or measured thickness failing calculated code minimum mandates derating or repair',
       normative_refs: rosetta,
       qa_docs: 'Design Calculation Sheet verified by Registered PE / AI'
     };
   }
 
   // 3. Detect Empirical NDT Test Method (ASTM E709, E165, E114, E94, Pie Gauge, Light intensity)
-  const isTestMethod = org === 'ASTM' || /astm e|test method|apparatus|magnetic field indicator|pie gauge|castrol strip|gauss meter|blacklight intensity|1000\s*(?:µw|uw)\/cm|1076\s*lux|100\s*fc|dwell time/i.test(content) || /examination technique|transducer frequency/i.test(clause);
+  const isTestMethod = org === 'ASTM' || /astm e|test method|apparatus|magnetic field indicator|pie gauge|castrol strip|gauss meter|blacklight intensity|1000\s*(?:µw|uw)\/cm|1076\s*lux|100\s*fc|dwell time|transducer frequency|refracted angle/i.test(content) || /examination technique/i.test(clause);
   if (isTestMethod && !/acceptance criteria|rejection/i.test(content)) {
     return {
       organization: org,
@@ -1646,7 +1654,7 @@ function classifyChunkWorker(chunk) {
       is_excluded: 0,
       in_scope: 'Physical examination & calibration protocol',
       out_of_scope: 'Acceptance thresholds deferred to product specification',
-      acceptance_limits: 'Proper field strength verified via Pie Gauge (min 3 lines visible) & Light >= 1076 lux',
+      acceptance_limits: 'Proper field strength verified via Pie Gauge (min 3 lines visible) & Light >= 1076 lux (100 fc)',
       rejection_limits: 'Examination invalid if light < 1076 lux or field intensity inadequate',
       normative_refs: rosetta,
       qa_docs: 'Equipment Calibration Certificate (annual) & Daily verification log'
@@ -1669,41 +1677,44 @@ function classifyChunkWorker(chunk) {
     };
   }
 
-  // 5. Detect Prequalified WPS (AWS D1.1 Clause 3)
-  const isPrequalWPS = org === 'AWS' && (/clause 3|prequalified|prequalification|preheat table|b-u2a|tc-u4a|c-u2a/i.test(content) || /prequal/i.test(clause));
+  // 5. Detect Prequalified WPS (AWS D1.1 Clause 3, ASME IX Form QW-482)
+  const isPrequalWPS = (org === 'AWS' || org === 'ASME') && (/clause 3|prequalified|prequalification|preheat table|b-u2a|tc-u4a|c-u2a|qw-482|qw-451|qw-461|p-number|f-number/i.test(content) || /prequal|wps format/i.test(clause));
   if (isPrequalWPS) {
     return {
       organization: org,
       pillar_type: 'PREQUAL_WPS',
       is_excluded: 0,
-      in_scope: 'Prequalified welding joint details exempt from qualification testing',
-      out_of_scope: 'Non-standard joints require formal PQR qualification testing',
-      acceptance_limits: 'Joint dimensions, root opening, and bevel angle conforming to AWS D1.1 figures',
-      rejection_limits: 'Deviations exceeding fabrication tolerances mandate PQR testing',
+      in_scope: 'Prequalified welding joint details & procedure qualification ranges',
+      out_of_scope: 'Non-standard joints or essential variable deviations mandate PQR testing',
+      acceptance_limits: 'Joint dimensions, root opening, bevel angle conforming to AWS D1.1 / ASME IX limits',
+      rejection_limits: 'Deviations exceeding fabrication tolerances mandate procedure requalification',
       normative_refs: rosetta,
-      qa_docs: 'Written Prequalified WPS Document'
+      qa_docs: 'Certified Form QW-482 / Prequalified WPS Document'
     };
   }
 
-  // 6. Detect Discard, Wear & Acceptance Limits (Sections 7-8, UW-51/52, AWS Table 6.1, DS-1 Wear)
+  // 6. Detect Discard, Wear & Acceptance Limits (Sections 7-8, UW-51/52, AWS Table 6.1, DS-1 Tubular Wear, API 8B Table 1)
   const hasAcceptance = /acceptance criteria|acceptance:|acceptance limits|pass criteria|allowable indication|uw-51|uw-52|table 6\.1|table 6\.2|قبول/i.test(content);
-  const hasRejection = /rejection criteria|rejection:|reject:|discard criteria|wear limit|undertolerance|maximum allowable|minimum wall|crack.*reject|class 2|class 3|scrap|condemn|رفض/i.test(content);
+  const hasRejection = /rejection criteria|rejection:|reject:|discard criteria|wear limit|undertolerance|maximum allowable|minimum wall|crack.*reject|class 2|class 3|scrap|condemn|flatness.*gap|shoulder gap|shall not exceed|0\.002|رفض/i.test(content);
+  const hasTubularWear = (org === 'DS-1 / IADC' || stdCode.includes('7G-2') || stdCode.includes('5CT')) && /wall|bevel|shoulder|drift|od gaging|remaining wall|80%|70%/i.test(content);
   
-  if (hasAcceptance || hasRejection || clause.includes('discard') || clause.includes('wear') || clause.includes('tolerance') || section.includes('discard') || section.includes('wear') || /uw-51|uw-52|table 6\.1/i.test(content)) {
+  if (hasAcceptance || hasRejection || hasTubularWear || clause.includes('discard') || clause.includes('wear') || clause.includes('tolerance') || section.includes('discard') || section.includes('wear') || /uw-51|uw-52|table 6\.1|table 1/i.test(content)) {
     let lines = chunk.content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     let acc = lines.find(l => /ACCEPTANCE|Acceptance:|Acceptance Criteria|allowable|قبول/i.test(l)) || null;
     let rej = lines.find(l => /REJECTION|Reject:|Rejection Criteria|Discard|scrap|condemn|رفض/i.test(l)) || null;
 
-    if (!acc && hasAcceptance) {
+    if (!acc) {
       if (org === 'ASME') acc = 'ASME UW-51/52: Cracks, lack of fusion/penetration prohibited; elongated indication <= 6mm (t <= 19mm)';
       else if (org === 'AWS') acc = 'AWS Table 6.1: Visual undercut <= 1/32 in. (1 mm); zero cracks; zero porosity >= 5/32 in.';
-      else if (org === 'DS-1 / IADC') acc = 'DS-1 Premium: Remaining wall >= 80% nominal; Tool Joint bevel wear within tolerance';
-      else acc = 'Acceptable within specified tolerance envelope per clause';
+      else if (org === 'DS-1 / IADC') acc = 'DS-1 Premium: Remaining wall >= 80% nominal; Tool Joint shoulder flatness gap <= 0.002 in.';
+      else if (org === 'API') acc = 'API RP 8B / 5CT: Maximum contact bore wear <= 5%; sour service hardness <= 22/23 HRC';
+      else acc = 'Acceptable within specified engineering tolerance envelope';
     }
-    if (!rej && hasRejection) {
+    if (!rej) {
       if (org === 'ASME') rej = 'Any linear crack, lack of fusion, or elongation exceeding UW-51 limits is unconditionally rejected';
       else if (org === 'AWS') rej = 'Any crack, lack of fusion, or undercut exceeding 1/32 in. requires backgouging and repair';
       else if (org === 'DS-1 / IADC') rej = 'Remaining wall < 70% (Class 3/Scrap) or fatigue cracks mandates immediate condemnation';
+      else if (org === 'API') rej = 'Bore wear > 5% or presence of any fatigue crack mandates immediate quarantine / discard';
       else rej = 'Exceeding wear limit or presence of crack mandates component discard/quarantine';
     }
 
@@ -1711,10 +1722,10 @@ function classifyChunkWorker(chunk) {
       organization: org,
       pillar_type: 'DISCARD_LIMITS',
       is_excluded: 0,
-      in_scope: null,
+      in_scope: 'Component wear limits, dimensional tolerances, and discard criteria',
       out_of_scope: null,
-      acceptance_limits: acc ? acc.slice(0, 220) : null,
-      rejection_limits: rej ? rej.slice(0, 220) : null,
+      acceptance_limits: acc ? acc.slice(0, 240) : null,
+      rejection_limits: rej ? rej.slice(0, 240) : null,
       normative_refs: rosetta,
       qa_docs: null
     };
@@ -1725,7 +1736,7 @@ function classifyChunkWorker(chunk) {
     let inScope = null;
     let outScope = null;
     if (content.includes('covers') || content.includes('applicable to') || content.includes('specifies')) {
-      inScope = chunk.content.slice(0, 200).replace(/\n/g, ' ').trim();
+      inScope = chunk.content.slice(0, 220).replace(/\n/g, ' ').trim();
     }
     if (content.includes('not cover') || content.includes('excluded') || content.includes('does not apply')) {
       outScope = 'Excluded auxiliary items and battery limit boundaries noted in clause';
@@ -1759,7 +1770,7 @@ function classifyChunkWorker(chunk) {
   }
 
   // 9. Detect Quality, Documentation, Mill Certificates & Hold Points
-  if (/quality|documentation|mill test report|\bmtr\b|certificate of conformance|\bcoc\b|record retention|traceability|marking|stencil|serial number|inspection certificate|u-1 form|nameplate stamping|hold point/i.test(content)) {
+  if (/quality|documentation|mill test report|\bmtr\b|certificate of conformance|\bcoc\b|record retention|traceability|marking|stencil|serial number|inspection certificate|u-1 form|nameplate stamping|hold point|witness point/i.test(content)) {
     let docs = [];
     if (/mtr|mill test/i.test(content)) docs.push('MTR (EN 10204 3.1/3.2)');
     if (/coc|conformance/i.test(content)) docs.push('Certificate of Conformance (COC)');
@@ -1772,7 +1783,7 @@ function classifyChunkWorker(chunk) {
       organization: org,
       pillar_type: 'QUALITY_DOCS',
       is_excluded: 0,
-      in_scope: null,
+      in_scope: 'QA/QC statutory compliance documentation and traceability',
       out_of_scope: null,
       acceptance_limits: null,
       rejection_limits: null,
@@ -1787,7 +1798,7 @@ function classifyChunkWorker(chunk) {
       organization: org,
       pillar_type: 'TABLE_ANNEX',
       is_excluded: 0,
-      in_scope: null,
+      in_scope: 'Tabular rejection limits and dimensional schedule',
       out_of_scope: null,
       acceptance_limits: null,
       rejection_limits: null,
@@ -1802,7 +1813,7 @@ function classifyChunkWorker(chunk) {
       organization: org,
       pillar_type: 'PROCEDURE',
       is_excluded: 0,
-      in_scope: null,
+      in_scope: 'Field procedural sequence and execution protocol',
       out_of_scope: null,
       acceptance_limits: null,
       rejection_limits: null,
