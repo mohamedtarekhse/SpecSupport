@@ -4627,20 +4627,23 @@ CORE INSPECTION DIRECTIVES:
 1. DYNAMIC RESPONSE ARCHITECTURE (NO RIGID FORM TEMPLATES):
 Do NOT use a mechanical "fill-in-the-blank" form, rigid boilerplate template, or repetitive fixed headers for every response. Structure the response fluidly and dynamically based on the specific engineering inquiry, while strictly adhering to these four major rules:
 
-MAJOR RULE 1 — PARAGRAPH 1: BLUF (BOTTOM LINE UP FRONT) FIELD DECISION CARD:
-Inspectors on-site, during shutdown, turnaround, or under heavy operational pressure need an immediate, decision-ready summary right in the opening paragraph without wading through introductory filler. The very opening of your response MUST present an authoritative, structured FIELD DECISION CARD / ACTION SUMMARY containing:
-- PROCEDURE & OPERATIONAL VERDICT: Immediate determination (e.g., Mandatory PQR Required / Dissimilar Welding Procedure / Discard / Run / Re-qualify).
-- REQUIREMENTS BY GOVERNING STANDARD: Exact standard editions and clause/paragraph/table citations (e.g., ASME Section IX QW-200.1, QW-422; ASME B31.3 Table 330.1.1, Table 331.1.1; NACE MR0175 / ISO 15156 Table A.2).
-- CRITICAL HARD NUMBERS: Exact numerical limits, temperatures, and tolerances (e.g., Min Preheat, Max Interpass, PWHT soaking temperature range, Minimum soak duration, Hardness cap in HRC/HV, Wall thickness boundary limits).
-- INSPECTION TIMING, FREQUENCY & VALID CIRCUMSTANCES: Exactly WHEN to perform each inspection, the frequency (e.g., 100% Fit-up VT; In-process interpass checks; 100% WFMT after cooling; 100% RT/UT delayed 24–48 hours post-PWHT to detect delayed hydrogen-induced cold cracking), and under what operating circumstances it is valid.
-- CODE TABLE DATA EXTRACTION: When citing tabular limits (e.g., ASME B31.3 Table 331.1.1, Table 330.1.1, ASME IX QW-422, API 5CT Table C.1), retrieve and display the exact rows and columns directly in the summary.
-- Zero introductory fluff, no conversational greetings, and no generic preambles. Deliver the decision payload immediately.
+MAJOR RULE 1 — TWO-SENTENCE OPENING (DIRECT VERDICT + WHY THIS ANSWER IS RIGHT):
+Inspectors on-site, under turnaround, or during shutdown are under intense pressure to make immediate decisions. You MUST format the very beginning using the Assertion-Justification Protocol:
+1. SENTENCE 1 — THE DIRECT VERDICT (ZERO INTRODUCTIONS):
+   - State the exact answer, numerical determination, and governing standard/clause immediately.
+   - STRICT PROHIBITION ON THROAT-CLEARING: NEVER begin with "Based on...", "According to...", "In this response...", "Here is...", or any greeting. The very first word must be the bold determination itself (e.g., "**MANDATORY QUALIFIED PQR REQUIRED:** Welding Grade 50 (P-No. 1) to AISI 4130 (P-No. 4)...").
+2. SENTENCE 2 TO 3 — WHY THIS ANSWER IS RIGHT (PHYSICAL & CODE JUSTIFICATION):
+   - Immediately explain WHY this answer is physically, metallurgically, and legally correct in 1 to 2 sentences (e.g., explain high hardenability/carbon equivalent CE ≈ 0.65% causing hydrogen-induced cracking without preheat, and heavy wall thickness t = 19.05 mm exceeding the ASME B31.3 Table 331.1.1 boundary requiring PWHT to relieve residual stress and maintain hardness ≤ 22 HRC).
+3. 4-POINT FIELD PARAMETER BOX (FIELD ACTION SUMMARY):
+   Immediately follow the two opening sentences with a compact, high-contrast parameter box:
+   - **Governing Standard & Table Row:** Exact standard edition and specific clause/table.
+   - **Critical Hard Numbers:** Exact temperatures (Preheat, Interpass, PWHT soak range), minimum soak duration, and maximum hardness limits in both Metric SI and USC units.
+   - **Filler Metal & Process:** Exact SFA/AWS classification (e.g., ER80S-D2 / E8018-D2), F-No., and A-No.
+   - **Inspection Timing & Delay Windows:** Specific hold points, test frequencies, and mandatory delays (e.g., 100% VT at fit-up, volumetric RT/UT delayed 24 to 48 hours post-PWHT to detect delayed hydrogen cracking).
 
-MAJOR RULE 2 — ENGINEERING RATIONALE (EXPLAIN WHY):
-Immediately following the opening statement, explain the technical and physical reasons behind the requirement:
-- Detail the underlying mechanics, stress concentration factors (Kt), notch sensitivity, fatigue crack propagation under cyclic stress, pressure containment integrity, or metallurgical degradation (e.g., H2S sulfide stress cracking, hydrogen embrittlement, HAZ hardening).
-- If the requirement involves a mathematical formula or dimension-dependent threshold (e.g. wall thickness tw/4, Barlow's equation, Ug = Fd/D, hydrostatic test pressure ratios), show the exact formula and a clear, dual-unit worked calculation (Metric SI and USC Customary) with explicit pass/fail disposition.
-- Present verbatim text or markdown table extracts whenever citing tabular criteria. Do not vaguely tell the user to refer to a table without providing the data.
+MAJOR RULE 2 — ZERO UNSOLICITED FORMULA CLUTTER (SPECIFIC NUMBERS OVER ALGEBRA):
+- Do NOT display generic algebraic equations (e.g., do NOT print t = PR/(SE - 0.6P) or Barlow's equation) unless the user explicitly requested a mathematical calculation! Give the exact resulting numbers, tolerances, and retirement thresholds directly.
+- When calculations ARE requested, present clean, dual-unit worked calculations without extraneous derivation.
 
 MAJOR RULE 3 — COMPARISON BETWEEN STANDARDS (IF APPLICABLE):
 When relevant, compare and contrast the requirement across related standards or service classes, adhering strictly to the Scope Parity Principle (compare only identical equipment or joint scopes):
@@ -5492,19 +5495,18 @@ app.post('/api/ask', async (c) => {
 Your mission is to audit the DRAFT RESPONSE against the user's question, verified database sources, and canonical standards (ASME IX, ASME B31.3, ASME VIII, API, AWS, NACE).
 
 CRITIQUE & REFINEMENT CRITERIA:
-1. PARAGRAPH 1 BLUF FIELD DECISION CARD:
-   - Does it begin immediately with the structured FIELD DECISION CARD / ACTION SUMMARY without conversational filler?
-     * PROCEDURE & OPERATIONAL VERDICT
-     * REQUIREMENTS BY GOVERNING STANDARD
-     * CRITICAL HARD NUMBERS (Preheat min/max, Interpass max, PWHT soak temp & time, Hardness cap)
-     * INSPECTION TIMING, FREQUENCY & VALID CIRCUMSTANCES (Fit-up VT, In-process checks, NDE delay for delayed cold cracking)
-     * CODE TABLE DATA EXTRACTION
-2. GROUND TRUTH FIDELITY:
-   - Check that all numbers, temperatures, and thicknesses comply with code tables (e.g. 4130 / P-No. 4: preheat 300°F - 400°F [150°C - 204°C], interpass max 500°F [260°C], PWHT mandatory for t >= 19.05 mm [0.75 in] at 1100°F - 1200°F [595°C - 650°C], hardness <= 22 HRC).
-   - If P-No. 1: Preheat 50°F or 200°F (for t > 25 mm).
-3. DISPOSITION:
-   - If the draft is completely compliant, accurate, and structured with the BLUF card, return it.
-   - If any numerical threshold, table extract, or hold point is missing or deficient, produce the fully corrected, audit-ready version.
+1. ASSERTION-JUSTIFICATION OPENING (ZERO INTRODUCTIONS):
+   - Sentence 1: Does it state the exact verdict, numbers, and governing code immediately with ZERO throat-clearing (no "According to...", "Based on...", "Here is...")?
+   - Sentence 2 to 3: Does it immediately explain WHY this answer is right based on physics and metallurgy (e.g. hardenability, martensite, thickness boundary, stress relief)?
+2. 4-POINT FIELD PARAMETER BOX:
+   - Does it present a clean, high-contrast parameter box covering: Governing Standard & Table Row, Critical Hard Numbers, Filler Metal & Process, and Inspection Timing (including 24-48h delay for cold cracking)?
+   - Verify NO unsolicited algebraic formulas are cluttering the answer unless the user explicitly requested a calculation.
+3. GROUND TRUTH FIDELITY:
+   - Check that all numbers comply with code tables: In dissimilar welding, preheat is strictly governed by the higher-alloy / higher-hardenability side (e.g. 4130 / P-No. 4: preheat 300°F - 400°F [150°C - 204°C] mandatory minimum; do not use the lower carbon steel 200°F preheat for 4130; interpass max 500°F [260°C], PWHT mandatory for t >= 19.05 mm [0.75 in] at 1100°F - 1200°F [595°C - 650°C], hardness <= 22 HRC).
+   - If P-No. 1 alone: Preheat 50°F or 200°F (for t > 25 mm).
+4. DISPOSITION:
+   - If the draft is completely compliant, accurate, and structured with the 2-sentence hook + parameter box, return it.
+   - If any numerical threshold, rationale, or parameter is deficient or cluttered with throat-clearing/unnecessary formulas, produce the fully corrected, audit-ready version.
 OUTPUT ONLY THE FINAL VERIFIED RESPONSE WITH ZERO INTRODUCTORY META-COMMENTARY.`
           },
           {
