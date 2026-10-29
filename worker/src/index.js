@@ -5519,13 +5519,26 @@ app.post('/api/ask', async (c) => {
     let loopPasses = 1;
     if (answer && !answer.startsWith('AI Error:') && answer.length > 50) {
       try {
+        let envelopeContext = '';
+        try {
+          const envRows = await c.env.DB.prepare('SELECT material_group, min_preheat_f, min_preheat_c, max_interpass_f, max_interpass_c, pwht_thickness_threshold_mm, pwht_min_temp_c, pwht_max_temp_c, max_hardness_hrc, governing_standard FROM code_safety_envelopes WHERE is_active = 1').all();
+          if (envRows && envRows.results && envRows.results.length > 0) {
+            envelopeContext = `\nDETERMINISTIC CODE SAFETY ENVELOPES (MANDATORY D1 GROUND TRUTH LIMITS):\n` +
+              envRows.results.map(r => 
+                `* [${r.material_group}] Standard: ${r.governing_standard} | Preheat Min: ${r.min_preheat_f ? r.min_preheat_f + '°F (' + r.min_preheat_c + '°C)' : 'N/A'} | Interpass Max: ${r.max_interpass_f ? r.max_interpass_f + '°F (' + r.max_interpass_c + '°C)' : 'N/A'} | PWHT Threshold: ${r.pwht_thickness_threshold_mm ? r.pwht_thickness_threshold_mm + 'mm' : 'None'} | PWHT Temp: ${r.pwht_min_temp_c ? r.pwht_min_temp_c + '-' + r.pwht_max_temp_c + '°C' : 'N/A'} | Max Hardness: ${r.max_hardness_hrc ? r.max_hardness_hrc + ' HRC' : 'N/A'}`
+              ).join('\n') + `\n(Mandatory: If draft conflicts with any envelope above, you MUST correct it to honor the code envelope!)\n`;
+          }
+        } catch(e) {
+          console.warn('Could not fetch safety envelopes for critic:', e);
+        }
+
         const criticHistory = Array.isArray(history) ? history.slice(-6) : [];
         const criticMessages = [
           {
             role: 'system',
             content: `You are the SpecSupport Senior Level III QC Code Auditor & Verification Critic.
 Your mission is to audit the DRAFT RESPONSE against the ongoing conversation, user question, verified database sources, and canonical standards (ASME IX, ASME B31.3, ASME VIII, API, AWS, NACE).
-
+${envelopeContext}
 CRITIQUE & REFINEMENT CRITERIA:
 1. MULTI-TURN CONVERSATIONAL CONTINUITY:
    - If the user's question is a follow-up inquiry, verify that the draft MAINTAINS continuous context with the materials (e.g., Grade 50 to 4130), dimensions (Schedule XXS), and governing codes established earlier in the conversation!
@@ -5537,7 +5550,7 @@ CRITIQUE & REFINEMENT CRITERIA:
    - Does it present a clean, high-contrast parameter box covering: Governing Standard & Table Row, Critical Hard Numbers, Filler Metal & Process, and Inspection Timing (including 24-48h delay for cold cracking)?
    - Verify NO unsolicited algebraic formulas are cluttering the answer unless the user explicitly requested a calculation.
 4. GROUND TRUTH FIDELITY:
-   - Check that all numbers comply with code tables: In dissimilar welding, preheat is strictly governed by the higher-alloy / higher-hardenability side (e.g. 4130 / P-No. 4: preheat 300°F - 400°F [150°C - 204°C] mandatory minimum; do not use the lower carbon steel 200°F preheat for 4130; interpass max 500°F [260°C], PWHT mandatory for t >= 19.05 mm [0.75 in] at 1100°F - 1200°F [595°C - 650°C], hardness <= 22 HRC).
+   - Check that all numbers comply with code tables and deterministic safety envelopes: In dissimilar welding, preheat is strictly governed by the higher-alloy / higher-hardenability side (e.g. 4130 / P-No. 4: preheat 300°F - 400°F [150°C - 204°C] mandatory minimum; do not use the lower carbon steel 200°F preheat for 4130; interpass max 500°F [260°C], PWHT mandatory for t >= 19.05 mm [0.75 in] at 1100°F - 1200°F [595°C - 650°C], hardness <= 22 HRC).
    - If P-No. 1 alone: Preheat 50°F or 200°F (for t > 25 mm).
 5. DISPOSITION:
    - If the draft is completely compliant, accurate, and structured with the 2-sentence hook + parameter box, return it.
