@@ -6323,11 +6323,11 @@ Answer the inspector's query strictly and accurately based on the verified local
         }
 
         function formatParameterBox(html) {
-            const paramBoxRegex = /(?:<p>s*<strong[^>]*>([sS]*?(?:Parameter Box|FIELD ACTION SUMMARY)[sS]*?)</strong>s*</p>|<h[2-4][^>]*>([sS]*?(?:Parameter Box|FIELD ACTION SUMMARY)[sS]*?)</h[2-4]>)s*<ul[^>]*>([sS]*?)</ul>/i;
+            const paramBoxRegex = /(?:<p>\s*<strong[^>]*>([^<]*?(?:Parameter Box|FIELD ACTION SUMMARY)[^<]*?)<\/strong>\s*<\/p>|<h[2-4][^>]*>([^<]*?(?:Parameter Box|FIELD ACTION SUMMARY)[^<]*?)<\/h[2-4]>)\s*<ul[^>]*>([\s\S]*?)<\/ul>/i;
             return html.replace(paramBoxRegex, (match, pTitle, hTitle, listItems) => {
                 let title = stripDistractingEmojis(pTitle || hTitle || 'FIELD PARAMETER SCORECARD');
                 const items = [];
-                const itemRegex = /<li[^>]*>([sS]*?)</li>/gi;
+                const itemRegex = /<li[^>]*>([\s\S]*?)<\/li>/gi;
                 let m;
                 while ((m = itemRegex.exec(listItems)) !== null) {
                     let itemContent = stripDistractingEmojis(m[1]);
