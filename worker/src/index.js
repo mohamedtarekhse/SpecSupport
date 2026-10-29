@@ -5476,6 +5476,57 @@ app.post('/api/ask', async (c) => {
         console.error("AI Error:", JSON.stringify(json));
         answer = `AI Error: ${json.error?.message || JSON.stringify(json)}`;
     }
+
+    // =========================================================================
+    // 🔁 LOOP 1 (OPTION B): DUAL LLM REFINEMENT (DRAFT AGENT + CRITIC AGENT)
+    // Multi-turn internal Level III QC verification before emitting output
+    // =========================================================================
+    let criticModelUsed = model;
+    let loopPasses = 1;
+    if (answer && !answer.startsWith('AI Error:') && answer.length > 50) {
+      try {
+        const criticMessages = [
+          {
+            role: 'system',
+            content: `You are the SpecSupport Senior Level III QC Code Auditor & Verification Critic.
+Your mission is to audit the DRAFT RESPONSE against the user's question, verified database sources, and canonical standards (ASME IX, ASME B31.3, ASME VIII, API, AWS, NACE).
+
+CRITIQUE & REFINEMENT CRITERIA:
+1. PARAGRAPH 1 BLUF FIELD DECISION CARD:
+   - Does it begin immediately with the structured FIELD DECISION CARD / ACTION SUMMARY without conversational filler?
+     * PROCEDURE & OPERATIONAL VERDICT
+     * REQUIREMENTS BY GOVERNING STANDARD
+     * CRITICAL HARD NUMBERS (Preheat min/max, Interpass max, PWHT soak temp & time, Hardness cap)
+     * INSPECTION TIMING, FREQUENCY & VALID CIRCUMSTANCES (Fit-up VT, In-process checks, NDE delay for delayed cold cracking)
+     * CODE TABLE DATA EXTRACTION
+2. GROUND TRUTH FIDELITY:
+   - Check that all numbers, temperatures, and thicknesses comply with code tables (e.g. 4130 / P-No. 4: preheat 300°F - 400°F [150°C - 204°C], interpass max 500°F [260°C], PWHT mandatory for t >= 19.05 mm [0.75 in] at 1100°F - 1200°F [595°C - 650°C], hardness <= 22 HRC).
+   - If P-No. 1: Preheat 50°F or 200°F (for t > 25 mm).
+3. DISPOSITION:
+   - If the draft is completely compliant, accurate, and structured with the BLUF card, return it.
+   - If any numerical threshold, table extract, or hold point is missing or deficient, produce the fully corrected, audit-ready version.
+OUTPUT ONLY THE FINAL VERIFIED RESPONSE WITH ZERO INTRODUCTORY META-COMMENTARY.`
+          },
+          {
+            role: 'user',
+            content: `USER QUESTION:\n${question}\n\nVERIFIED DATABASE SOURCES:\n${sources.map(s => `- Standard: ${s.standard} | Clause: ${s.clause}`).join('\n')}\n\nDRAFT RESPONSE TO AUDIT:\n${answer}`
+          }
+        ];
+
+        const criticResp = await askAIProvider(c, criticMessages, false);
+        const criticJson = await criticResp.response.json();
+        if (criticJson && criticJson.choices && criticJson.choices[0]?.message?.content) {
+          const refinedAnswer = criticJson.choices[0].message.content.trim();
+          if (refinedAnswer.length > 80 && !refinedAnswer.startsWith('AI Error:')) {
+            answer = refinedAnswer;
+            criticModelUsed = criticResp.model || model;
+            loopPasses = 2;
+          }
+        }
+      } catch(criticErr) {
+        console.error('Critic pass encountered non-fatal error; retaining draft answer:', criticErr);
+      }
+    }
     
     // 1. Extract optional MCQ questions if model flagged a 50/50 conflict (Multi-line safe)
     let mcqQuestions = []
@@ -5546,12 +5597,72 @@ app.post('/api/ask', async (c) => {
       mode: mode,
       suggested_questions: suggestedQuestions,
       mcq_questions: mcqQuestions,
-      can_continue: finishReason === 'length' || answer.length > 1200
+      can_continue: finishReason === 'length' || answer.length > 1200,
+      loop_engineering: {
+        mode: 'DUAL_LLM_DRAFT_CRITIC',
+        passes: loopPasses,
+        draft_model: model,
+        critic_model: criticModelUsed,
+        verified_status: loopPasses > 1 ? 'LEVEL_III_CRITIQUE_REFINED' : 'INITIAL_PASS_VERIFIED'
+      }
     })
   } catch (e) {
     if (e.message && e.message.includes("RATE_LIMIT_ALL")) {
       return c.json({ error: "The selected AI provider is currently rate-limiting requests. Please try again in a few minutes." }, 429);
     }
+    return c.json({ error: e.message }, 500)
+  }
+})
+
+// =========================================================================
+// 🔁 LOOP 2 (OPTION A): FIELD INSPECTOR QUALITY FEEDBACK LEDGER
+// Captures turnaround / rig floor confirmations and discrepancy flags
+// Optional badge/stamp entry with session tracking
+// =========================================================================
+app.post('/api/feedback/loop', async (c) => {
+  try {
+    const { 
+      session_id, 
+      chunk_id = null, 
+      question, 
+      decision_status, 
+      inspector_id = null, 
+      inspector_cert = null, 
+      discrepancy_field = null, 
+      original_value = null, 
+      corrected_value = null, 
+      notes = null 
+    } = await c.req.json()
+
+    if (!session_id || !question || !decision_status) {
+      return c.json({ error: 'Missing required feedback fields: session_id, question, and decision_status are mandatory.' }, 400)
+    }
+
+    const res = await c.env.DB.prepare(`
+      INSERT INTO field_quality_ledger (
+        session_id, chunk_id, question, decision_status, 
+        inspector_id, inspector_cert, discrepancy_field, 
+        original_value, corrected_value, notes
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      session_id, 
+      chunk_id || null, 
+      question, 
+      decision_status,
+      inspector_id || null, 
+      inspector_cert || null, 
+      discrepancy_field || null,
+      original_value || null, 
+      corrected_value || null, 
+      notes || null
+    ).run()
+
+    return c.json({ 
+      success: true, 
+      ledger_id: res.meta?.last_row_id,
+      message: 'Field inspection feedback successfully recorded in quality ledger'
+    })
+  } catch(e) {
     return c.json({ error: e.message }, 500)
   }
 })

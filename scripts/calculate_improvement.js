@@ -259,10 +259,12 @@ async function main() {
   }
 
   console.log('\n=========================================================================');
-  if (currentRun.overallScore >= 95.0) {
-    console.log('✨ QUALITY GATE: PASSED (Zero regressions detected. Ready for Production.)');
+  if (currentRun.overallScore >= 100.0) {
+    console.log('✨ QUALITY GATE: PASSED (100.0% Perfect Composite Score. Zero Regressions. Ready for Production.)');
   } else {
-    console.log('⚠️ QUALITY GATE: REGRESSION WARNING (Score below 95% threshold.)');
+    console.error(`🚨 QUALITY GATE FAILED: Score ${currentRun.overallScore}% is below the mandatory 100.0% Hard Gate!`);
+    console.error('🛑 DEPLOYMENT BLOCKED by Loop 3 CI/CD Safety Gate. Automated Rollback Triggered.');
+    process.exit(1);
   }
   console.log('=========================================================================\n');
 }

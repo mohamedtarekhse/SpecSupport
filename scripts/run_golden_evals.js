@@ -184,9 +184,9 @@ console.log(`   Citation Coverage: ${results.filter(r => r.citationPassed).lengt
 console.log(`   Numerical Ground Truth: ${results.filter(r => r.valuePassed).length}/${total}`);
 console.log("=========================================================================");
 
-if (passRate >= 90) {
-  console.log("✨ EVALUATION STATUS: METRIC GATE PASSED (Ready for Production CI/CD)");
+if (passRate >= 100) {
+  console.log("✨ EVALUATION STATUS: METRIC GATE PASSED (100.0% Pass Rate. Ready for Production CI/CD)");
 } else {
-  console.error("⚠️ EVALUATION STATUS: FAILED TO MEET 90% QUALITY BAR");
+  console.error(`🚨 EVALUATION STATUS: FAILED (${passRate}% < 100% Hard Bar). DEPLOYMENT BLOCKED.`);
   process.exit(1);
 }
