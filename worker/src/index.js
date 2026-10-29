@@ -4380,6 +4380,56 @@ function expandRosettaKeywords(question, detectedStd, targetPillars) {
   return expansions.length > 0 ? (question + ' ' + expansions.join(' ')) : question;
 }
 
+async function loadSafetyEnvelopes(db) {
+  let envelopeContext = '';
+  try {
+    const envRows = await db.prepare('SELECT material_group, min_preheat_f, min_preheat_c, max_interpass_f, max_interpass_c, pwht_thickness_threshold_mm, pwht_min_temp_c, pwht_max_temp_c, max_hardness_hrc, governing_standard FROM code_safety_envelopes WHERE is_active = 1').all();
+    if (envRows && envRows.results && envRows.results.length > 0) {
+      envelopeContext = `\nDETERMINISTIC CODE SAFETY ENVELOPES (MANDATORY D1 GROUND TRUTH LIMITS):\n` +
+        envRows.results.map(r => 
+          `* [${r.material_group}] Standard: ${r.governing_standard} | Preheat Min: ${r.min_preheat_f ? r.min_preheat_f + '°F (' + r.min_preheat_c + '°C)' : 'N/A'} | Interpass Max: ${r.max_interpass_f ? r.max_interpass_f + '°F (' + r.max_interpass_c + '°C)' : 'N/A'} | PWHT Threshold: ${r.pwht_thickness_threshold_mm ? r.pwht_thickness_threshold_mm + 'mm' : 'None'} | PWHT Temp: ${r.pwht_min_temp_c ? r.pwht_min_temp_c + '-' + r.pwht_max_temp_c + '°C' : 'N/A'} | Max Hardness: ${r.max_hardness_hrc ? r.max_hardness_hrc + ' HRC' : 'N/A'}`
+        ).join('\n') + `\n(Mandatory: If draft conflicts with any envelope above, you MUST correct it to honor the code envelope!)\n`;
+    }
+  } catch(e) {
+    console.warn('Could not fetch safety envelopes for critic:', e);
+  }
+  return envelopeContext;
+}
+
+function buildCriticMessages(question, sources, draftAnswer, history, envelopeContext) {
+  const criticHistory = Array.isArray(history) ? history.slice(-6) : [];
+  return [
+    {
+      role: 'system',
+      content: `You are the SpecSupport Senior Level III QC Code Auditor & Verification Critic.
+Your mission is to audit the DRAFT RESPONSE against the ongoing conversation, user question, verified database sources, and canonical standards (ASME IX, ASME B31.3, ASME VIII, API, AWS, NACE).
+${envelopeContext}
+CRITIQUE & REFINEMENT CRITERIA:
+1. MULTI-TURN CONVERSATIONAL CONTINUITY:
+   - If the user's question is a follow-up inquiry, verify that the draft MAINTAINS continuous context with the materials (e.g., Grade 50 to 4130), dimensions (Schedule XXS), and governing codes established earlier in the conversation!
+   - Reject generic advice that resets the conversation or forgets the established alloys.
+2. ASSERTION-JUSTIFICATION OPENING (ZERO INTRODUCTIONS):
+   - Sentence 1: Does it state the exact verdict, numbers, and governing code immediately with ZERO throat-clearing (no "According to...", "Based on...", "Here is...")?
+   - Sentence 2 to 3: Does it immediately explain WHY this answer is right based on physics and metallurgy (e.g. hardenability, martensite, thickness boundary, stress relief)?
+3. 4-POINT FIELD PARAMETER BOX:
+   - Does it present a clean, high-contrast parameter box covering: Governing Standard & Table Row, Critical Hard Numbers, Filler Metal & Process, and Inspection Timing (including 24-48h delay for cold cracking)?
+   - Verify NO unsolicited algebraic formulas are cluttering the answer unless the user explicitly requested a calculation.
+4. GROUND TRUTH FIDELITY:
+   - Check that all numbers comply with code tables and deterministic safety envelopes: In dissimilar welding, preheat is strictly governed by the higher-alloy / higher-hardenability side (e.g. 4130 / P-No. 4: preheat 300°F - 400°F [150°C - 204°C] mandatory minimum; do not use the lower carbon steel 200°F preheat for 4130; interpass max 500°F [260°C], PWHT mandatory for t >= 19.05 mm [0.75 in] at 1100°F - 1200°F [595°C - 650°C], hardness <= 22 HRC).
+   - If P-No. 1 alone: Preheat 50°F or 200°F (for t > 25 mm).
+5. DISPOSITION:
+   - If the draft is completely compliant, accurate, and structured with the 2-sentence hook + parameter box, return it.
+   - If any numerical threshold, rationale, or continuity parameter is deficient, produce the fully corrected, audit-ready version.
+OUTPUT ONLY THE FINAL VERIFIED RESPONSE WITH ZERO INTRODUCTORY META-COMMENTARY.`
+    },
+    ...criticHistory,
+    {
+      role: 'user',
+      content: `USER QUESTION:\n${question}\n\nVERIFIED DATABASE SOURCES:\n${sources.map(s => `- Standard: ${s.standard} | Clause: ${s.clause}`).join('\n')}\n\nDRAFT RESPONSE TO AUDIT:\n${draftAnswer}`
+    }
+  ];
+}
+
 async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = [], mode = 'web', selected_standards = []) {
   const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
   let dbConf = {}
@@ -4542,15 +4592,19 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
 
   // Intelligent Governing Standard Detection
   let detectedStd = null
-  let stdMatch = question.match(/(ASME\s*(?:VIII|Section\s*VIII|B31\.3|B31\.4|B31\.8|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5\s*CT|RP\s*5C1|5\s*C1|1104|16\s*D|16\s*A|7\s*K|RP\s*2X|2X|RP\s*7G-2|7\s*G-?2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:3834-2|13534))/i)
+  let stdMatch = question.match(/(ASME\s*(?:VIII|Section\s*VIII|B31\.3|B31\.4|B31\.8|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5\s*CT|RP\s*5C1|5\s*C1|1104|16\s*D|16\s*A|16\s*C|16\s*AR|6\s*A|6\s*AR|7\s*K|RP\s*2X|2X|RP\s*7G-2|7\s*G-?2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:15156|3834-2|13534)|NACE\s*(?:MR0175|MR\s*0175))/i)
   if (!stdMatch && inheritedContextStr) {
-    stdMatch = contextualQuestion.match(/(ASME\s*(?:VIII|Section\s*VIII|B31\.3|B31\.4|B31\.8|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5\s*CT|RP\s*5C1|5\s*C1|1104|16\s*D|16\s*A|7\s*K|RP\s*2X|2X|RP\s*7G-2|7\s*G-?2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:3834-2|13534))/i)
+    stdMatch = contextualQuestion.match(/(ASME\s*(?:VIII|Section\s*VIII|B31\.3|B31\.4|B31\.8|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5\s*CT|RP\s*5C1|5\s*C1|1104|16\s*D|16\s*A|16\s*C|16\s*AR|6\s*A|6\s*AR|7\s*K|RP\s*2X|2X|RP\s*7G-2|7\s*G-?2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:15156|3834-2|13534)|NACE\s*(?:MR0175|MR\s*0175))/i)
   }
   if (stdMatch) {
     let raw = (stdMatch[1] || stdMatch[0]).replace(/Section\s*/i, '').trim().toUpperCase();
     raw = raw.replace(/\s+/g, ' ');
     if (raw === '16 D' || raw === '16D' || raw === 'API 16D') raw = '16D';
     if (raw === '16 A' || raw === '16A' || raw === 'API 16A') raw = '16A';
+    if (raw === '16 C' || raw === '16C' || raw === 'API 16C') raw = '16C';
+    if (raw === '16 AR' || raw === '16AR' || raw === 'API 16AR') raw = '16AR';
+    if (raw === '6 A' || raw === '6A' || raw === 'API 6A') raw = '6A';
+    if (raw === '6 AR' || raw === '6AR' || raw === 'API 6AR') raw = '6AR';
     if (raw === '5 CT' || raw === '5CT' || raw === 'API 5CT') raw = '5CT';
     if (raw === '5 C1' || raw === '5C1' || raw === 'API 5C1') raw = '5C1';
     if (raw === '7 G 2' || raw === '7 G-2' || raw === '7G-2' || raw === '7G2') raw = '7G-2';
@@ -4568,16 +4622,21 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
     if (raw === 'AWS D1.1' || raw === 'AWSD1.1') raw = 'AWS D1.1';
     if (raw === 'AWS B1.11' || raw === 'AWSB1.11') raw = 'AWS B1.11';
     if (raw === 'ISO 3834-2' || raw === 'ISO3834-2') raw = 'ISO 3834';
+    if (raw === 'NACE MR0175' || raw === 'NACEMR0175' || raw === 'MR0175' || raw === 'ISO 15156') raw = 'NACE';
     detectedStd = raw;
   } else if (standard_filter && standard_filter !== 'ALL' && standard_filter !== '🌐 GENERAL AI') {
     detectedStd = standard_filter.trim().toUpperCase()
   } else {
     const testTarget = contextualQuestion;
-    if (/\b(?:mast|derrick|substructure|crown\s*frame|raising\s*line|shoe\s*elevation)\b/i.test(testTarget)) {
+    if (/\b(?:aws\s*d1\.1|aws\s*b1\.11|structural\s*weld|cwi)\b/i.test(testTarget)) {
+      detectedStd = 'AWS D1.1'
+    } else if (/\b(?:nace|mr0175|iso\s*15156|sour\s*service|h2s|sulfide\s*stress)\b/i.test(testTarget)) {
+      detectedStd = 'NACE'
+    } else if (/\b(?:mast|derrick|substructure|crown\s*frame|raising\s*line|shoe\s*elevation)\b/i.test(testTarget)) {
       detectedStd = '4G'
     } else if (/\b(?:pulsation\s*dampener|pressure\s*vessel|spherical\s*shell|ug-27|uw-12|relief\s*valve)\b/i.test(testTarget)) {
       detectedStd = 'ASME VIII'
-    } else if (/\b(?:process\s*piping|b31\.3|severe\s*cyclic|undercut\s*depth)\b/i.test(testTarget)) {
+    } else if (/\b(?:process\s*piping|b31\.3|severe\s*cyclic)\b/i.test(testTarget)) {
       detectedStd = 'B31.3'
     } else if (/\b(?:liquid\s*pipeline|slurry\s*pipeline|b31\.4)\b/i.test(testTarget)) {
       detectedStd = 'B31.4'
@@ -4597,12 +4656,12 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
       detectedStd = 'OEM BOP'
     } else if (/\b(?:pipeline\s*weld|cross-country|api\s*1104|burn-through)\b/i.test(testTarget)) {
       detectedStd = '1104'
-    } else if (/\b(?:structural\s*weld|visual\s*weld|cwi|aws\s*d1\.1|aws\s*b1\.11)\b/i.test(testTarget)) {
-      detectedStd = 'AWS'
     } else if (/\b(?:elevator|elevator\s*bore|bails?|links?|hoisting|traveling\s*block)\b/i.test(testTarget)) {
       detectedStd = '8B'
     } else if (/\b(?:wps|pqr|welder\s*qual|welding\s*procedure|p-no|f-no|a-no|qw-\d+|dissimilar\s*weld|grade\s*50.*4130|4130.*grade\s*50)\b/i.test(testTarget)) {
       detectedStd = 'ASME IX'
+    } else if (/\b(?:undercut\s*depth)\b/i.test(testTarget)) {
+      detectedStd = 'B31.3'
     }
   }
 
@@ -4763,7 +4822,10 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
         `
         const param = `%${ent.value}%`
         const sqlParams = [param, param, param]
-        if (Array.isArray(selected_standards) && selected_standards.length > 0) {
+        if (detectedStd) {
+          sql += ` AND standard_code LIKE ?`
+          sqlParams.push(`%${detectedStd}%`)
+        } else if (Array.isArray(selected_standards) && selected_standards.length > 0) {
           const placeholders = selected_standards.map(() => '?').join(',')
           sql += ` AND standard_code IN (${placeholders})`
           sqlParams.push(...selected_standards)
@@ -4823,14 +4885,8 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
     query += ` AND standard_code = ?`
     params.push(standard_filter)
   } else if (detectedStd) {
-    if (ftsMatchedIds.length > 0) {
-      const placeholders = ftsMatchedIds.slice(0, 50).map(() => '?').join(',')
-      query += ` AND (standard_code LIKE ? OR id IN (${placeholders})) LIMIT 120`
-      params.push(`%${detectedStd}%`, ...ftsMatchedIds.slice(0, 50))
-    } else {
-      query += ` AND standard_code LIKE ? LIMIT 120`
-      params.push(`%${detectedStd}%`)
-    }
+    query += ` AND standard_code LIKE ? LIMIT 120`
+    params.push(`%${detectedStd}%`)
   } else if (ftsMatchedIds.length > 0) {
     const placeholders = ftsMatchedIds.slice(0, 80).map(() => '?').join(',')
     query += ` AND id IN (${placeholders}) LIMIT 80`
@@ -4841,6 +4897,17 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
 
   const { results } = await c.env.DB.prepare(query).bind(...params).all()
   let candidates = results || []
+  if (detectedStd && candidates.length < 4 && ftsMatchedIds.length > 0) {
+    try {
+      const fbPlaceholders = ftsMatchedIds.slice(0, 40).map(() => '?').join(',')
+      const fbSql = `SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization, pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs FROM standards_chunks WHERE (scope = 'global' OR scope IS NULL) AND (is_excluded = 0 OR is_excluded IS NULL) AND id IN (${fbPlaceholders}) LIMIT 40`
+      const { results: fbRes } = await c.env.DB.prepare(fbSql).bind(...ftsMatchedIds.slice(0, 40)).all()
+      if (fbRes && fbRes.length > 0) {
+        candidates = candidates.concat(fbRes)
+      }
+    } catch(e){}
+  }
+
   // Candidate filtering for high-scale Worker CPU protection
   if (candidates.length > 80) {
     const queryToks = question.match(/[0-9a-zA-Z\.\-_/]+/g) || []
@@ -4862,7 +4929,9 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
         if (Array.isArray(parsed)) emb = parsed
       }
     } catch(e){}
-    let score = (emb.length > 0 && Array.isArray(questionEmbedding) && questionEmbedding.length > 0) ? cosineSimilarity(questionEmbedding, emb) : -1
+    let score = (emb.length > 0 && Array.isArray(questionEmbedding) && questionEmbedding.length > 0) 
+      ? cosineSimilarity(questionEmbedding, emb) 
+      : ((detectedStd && row.standard_code && row.standard_code.toUpperCase().includes(detectedStd)) ? 0.75 : -1)
     return { ...row, vector_score: score }
   })
 
@@ -5428,12 +5497,38 @@ app.post('/api/ask', async (c) => {
     const { messages, sources, today } = contextData
     const isStreamRequested = Boolean(c.req.query('stream') === 'true' || c.req.header('Accept')?.includes('text/event-stream'))
     
+    // Step 1: Execute Pass 1 (Draft Model) internally in buffered mode
+    let draftRes = await askAIProvider(c, messages, false)
+    let draftJson = await draftRes.response.json()
+    let draftAnswer = "Error connecting to AI model."
+    let finishReason = "stop"
+    if (draftJson && draftJson.choices && draftJson.choices.length > 0) {
+      draftAnswer = draftJson.choices[0].message?.content || "Empty response."
+      finishReason = draftJson.choices[0].finish_reason || "stop"
+    } else {
+      console.error("AI Error:", JSON.stringify(draftJson))
+      draftAnswer = `AI Error: ${draftJson?.error?.message || JSON.stringify(draftJson)}`
+    }
+
+    // Step 2: Prepare Pass 2 (Critic Agent)
+    const envelopeContext = await loadSafetyEnvelopes(c.env.DB)
+    let criticMessages = messages
+    let loopPasses = 1
+    let criticModelUsed = draftRes.model
+
+    if (draftAnswer && !draftAnswer.startsWith('AI Error:') && draftAnswer.length > 50) {
+      criticMessages = buildCriticMessages(question, sources, draftAnswer, history, envelopeContext)
+      loopPasses = 2
+    }
+
     if (isStreamRequested) {
       try {
-        const { response: streamBody, model, provider, isStream } = await askAIProvider(c, messages, true)
+        // Stream Pass 2 (Level III Critic) live to the inspector!
+        const { response: streamBody, model, isStream } = await askAIProvider(c, criticMessages, true)
+        criticModelUsed = model || draftRes.model
         if (isStream && streamBody) {
           c.executionCtx.waitUntil(
-            c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(session_id, question, model, today).run()
+            c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(session_id, question, criticModelUsed, today).run()
           )
 
           const encoder = new TextEncoder()
@@ -5442,7 +5537,19 @@ app.post('/api/ask', async (c) => {
 
           ;(async () => {
             try {
-              await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'metadata', sources, model_used: model })}\n\n`))
+              await writer.write(encoder.encode(`data: ${JSON.stringify({ 
+                type: 'metadata', 
+                sources, 
+                model_used: criticModelUsed,
+                loop_engineering: {
+                  mode: 'DUAL_LLM_DRAFT_CRITIC',
+                  passes: loopPasses,
+                  draft_model: draftRes.model,
+                  critic_model: criticModelUsed,
+                  verified_status: loopPasses > 1 ? 'LEVEL_III_CRITIQUE_REFINED' : 'INITIAL_PASS_VERIFIED'
+                }
+              })}\n\n`))
+              
               const reader = streamBody.getReader ? streamBody.getReader() : null
               if (reader) {
                 const decoder = new TextDecoder()
@@ -5468,6 +5575,7 @@ app.post('/api/ask', async (c) => {
                   }
                 }
               }
+              
               const defaultFollowups = [
                 "What specific NDT procedure can verify this indication depth?",
                 "What is the approved repair procedure if this is rejected?",
@@ -5475,7 +5583,15 @@ app.post('/api/ask', async (c) => {
                 "How does this criterion compare with ISO or API standards?",
                 "What are common false indications observed in field inspection?"
               ]
-              await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'complete', suggested_questions: defaultFollowups })}\n\n`))
+              await writer.write(encoder.encode(`data: ${JSON.stringify({ 
+                type: 'complete', 
+                suggested_questions: defaultFollowups,
+                loop_engineering: {
+                  mode: 'DUAL_LLM_DRAFT_CRITIC',
+                  passes: loopPasses,
+                  verified_status: loopPasses > 1 ? 'LEVEL_III_CRITIQUE_REFINED' : 'INITIAL_PASS_VERIFIED'
+                }
+              })}\n\n`))
               await writer.write(encoder.encode('data: [DONE]\n\n'))
             } catch(stErr) {
               await writer.write(encoder.encode(`data: ${JSON.stringify({ error: stErr.message })}\n\n`))
@@ -5498,84 +5614,21 @@ app.post('/api/ask', async (c) => {
       }
     }
 
-    const { response, model, provider } = await askAIProvider(c, messages, false)
-    
-    const json = await response.json()
-    let answer = "Error connecting to AI model.";
-    let finishReason = "stop";
-    if (json && json.choices && json.choices.length > 0) {
-        answer = json.choices[0].message.content || "Empty response.";
-        finishReason = json.choices[0].finish_reason || "stop";
-    } else {
-        console.error("AI Error:", JSON.stringify(json));
-        answer = `AI Error: ${json.error?.message || JSON.stringify(json)}`;
-    }
-
-    // =========================================================================
-    // 🔁 LOOP 1 (OPTION B): DUAL LLM REFINEMENT (DRAFT AGENT + CRITIC AGENT)
-    // Multi-turn internal Level III QC verification before emitting output
-    // =========================================================================
-    let criticModelUsed = model;
-    let loopPasses = 1;
-    if (answer && !answer.startsWith('AI Error:') && answer.length > 50) {
+    // Step 3: Non-Streaming Refinement
+    let answer = draftAnswer
+    if (loopPasses > 1) {
       try {
-        let envelopeContext = '';
-        try {
-          const envRows = await c.env.DB.prepare('SELECT material_group, min_preheat_f, min_preheat_c, max_interpass_f, max_interpass_c, pwht_thickness_threshold_mm, pwht_min_temp_c, pwht_max_temp_c, max_hardness_hrc, governing_standard FROM code_safety_envelopes WHERE is_active = 1').all();
-          if (envRows && envRows.results && envRows.results.length > 0) {
-            envelopeContext = `\nDETERMINISTIC CODE SAFETY ENVELOPES (MANDATORY D1 GROUND TRUTH LIMITS):\n` +
-              envRows.results.map(r => 
-                `* [${r.material_group}] Standard: ${r.governing_standard} | Preheat Min: ${r.min_preheat_f ? r.min_preheat_f + '°F (' + r.min_preheat_c + '°C)' : 'N/A'} | Interpass Max: ${r.max_interpass_f ? r.max_interpass_f + '°F (' + r.max_interpass_c + '°C)' : 'N/A'} | PWHT Threshold: ${r.pwht_thickness_threshold_mm ? r.pwht_thickness_threshold_mm + 'mm' : 'None'} | PWHT Temp: ${r.pwht_min_temp_c ? r.pwht_min_temp_c + '-' + r.pwht_max_temp_c + '°C' : 'N/A'} | Max Hardness: ${r.max_hardness_hrc ? r.max_hardness_hrc + ' HRC' : 'N/A'}`
-              ).join('\n') + `\n(Mandatory: If draft conflicts with any envelope above, you MUST correct it to honor the code envelope!)\n`;
-          }
-        } catch(e) {
-          console.warn('Could not fetch safety envelopes for critic:', e);
-        }
-
-        const criticHistory = Array.isArray(history) ? history.slice(-6) : [];
-        const criticMessages = [
-          {
-            role: 'system',
-            content: `You are the SpecSupport Senior Level III QC Code Auditor & Verification Critic.
-Your mission is to audit the DRAFT RESPONSE against the ongoing conversation, user question, verified database sources, and canonical standards (ASME IX, ASME B31.3, ASME VIII, API, AWS, NACE).
-${envelopeContext}
-CRITIQUE & REFINEMENT CRITERIA:
-1. MULTI-TURN CONVERSATIONAL CONTINUITY:
-   - If the user's question is a follow-up inquiry, verify that the draft MAINTAINS continuous context with the materials (e.g., Grade 50 to 4130), dimensions (Schedule XXS), and governing codes established earlier in the conversation!
-   - Reject generic advice that resets the conversation or forgets the established alloys.
-2. ASSERTION-JUSTIFICATION OPENING (ZERO INTRODUCTIONS):
-   - Sentence 1: Does it state the exact verdict, numbers, and governing code immediately with ZERO throat-clearing (no "According to...", "Based on...", "Here is...")?
-   - Sentence 2 to 3: Does it immediately explain WHY this answer is right based on physics and metallurgy (e.g. hardenability, martensite, thickness boundary, stress relief)?
-3. 4-POINT FIELD PARAMETER BOX:
-   - Does it present a clean, high-contrast parameter box covering: Governing Standard & Table Row, Critical Hard Numbers, Filler Metal & Process, and Inspection Timing (including 24-48h delay for cold cracking)?
-   - Verify NO unsolicited algebraic formulas are cluttering the answer unless the user explicitly requested a calculation.
-4. GROUND TRUTH FIDELITY:
-   - Check that all numbers comply with code tables and deterministic safety envelopes: In dissimilar welding, preheat is strictly governed by the higher-alloy / higher-hardenability side (e.g. 4130 / P-No. 4: preheat 300°F - 400°F [150°C - 204°C] mandatory minimum; do not use the lower carbon steel 200°F preheat for 4130; interpass max 500°F [260°C], PWHT mandatory for t >= 19.05 mm [0.75 in] at 1100°F - 1200°F [595°C - 650°C], hardness <= 22 HRC).
-   - If P-No. 1 alone: Preheat 50°F or 200°F (for t > 25 mm).
-5. DISPOSITION:
-   - If the draft is completely compliant, accurate, and structured with the 2-sentence hook + parameter box, return it.
-   - If any numerical threshold, rationale, or continuity parameter is deficient, produce the fully corrected, audit-ready version.
-OUTPUT ONLY THE FINAL VERIFIED RESPONSE WITH ZERO INTRODUCTORY META-COMMENTARY.`
-          },
-          ...criticHistory,
-          {
-            role: 'user',
-            content: `USER QUESTION:\n${question}\n\nVERIFIED DATABASE SOURCES:\n${sources.map(s => `- Standard: ${s.standard} | Clause: ${s.clause}`).join('\n')}\n\nDRAFT RESPONSE TO AUDIT:\n${answer}`
-          }
-        ];
-
-        const criticResp = await askAIProvider(c, criticMessages, false);
-        const criticJson = await criticResp.response.json();
+        const criticResp = await askAIProvider(c, criticMessages, false)
+        const criticJson = await criticResp.response.json()
         if (criticJson && criticJson.choices && criticJson.choices[0]?.message?.content) {
-          const refinedAnswer = criticJson.choices[0].message.content.trim();
+          const refinedAnswer = criticJson.choices[0].message.content.trim()
           if (refinedAnswer.length > 80 && !refinedAnswer.startsWith('AI Error:')) {
-            answer = refinedAnswer;
-            criticModelUsed = criticResp.model || model;
-            loopPasses = 2;
+            answer = refinedAnswer
+            criticModelUsed = criticResp.model || draftRes.model
           }
         }
       } catch(criticErr) {
-        console.error('Critic pass encountered non-fatal error; retaining draft answer:', criticErr);
+        console.error('Non-streaming critic pass error; retaining draft answer:', criticErr)
       }
     }
     

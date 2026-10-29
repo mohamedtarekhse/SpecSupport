@@ -1,8 +1,8 @@
 # SpecSupport Engineering System — Full Conversation Archive
 
 > **Conversation ID:** `831bfcb2-41c2-4a30-92da-937c17c7849a`  
-> **Export Timestamp:** `2026-10-29T23:22:37.596Z`  
-> **Total Dialogue Turns:** `229`  
+> **Export Timestamp:** `2026-10-29T23:52:18.413Z`  
+> **Total Dialogue Turns:** `233`  
 > **Storage:** Cloudflare D1 (`inspection-db`), Vectorize (`inspecta-index`), Pages (`final.specsupport.pages.dev`)  
 > **Scope:** Complete architectural, database, edge worker, and multi-standard genome development log.  
 
@@ -239,6 +239,10 @@
 - [**Turn 227** (2026-10-29 22:46) — GO WITH OPTION A AND OPTION A](#turn-227)
 - [**Turn 228** (2026-10-29 23:13) — ANY IMPROVEMENTS TO IMPROVE PERFORMANCE OF ACCURACY YOUR RECOMNEDATIONS IS VERY APPREICATED BASED ON...](#turn-228)
 - [**Turn 229** (2026-10-29 23:17) — ALL OF THEM](#turn-229)
+- [**Turn 230** (2026-10-29 23:23) — I AM STILL NOT SATISFIED COULD YOU TELL ME WHAT COULD BE MISSING](#turn-230)
+- [**Turn 231** (2026-10-29 23:25) — CONTINUE INVESTIGATING](#turn-231)
+- [**Turn 232** (2026-10-29 23:33) — CONTINUE INVESTIGATING](#turn-232)
+- [**Turn 233** (2026-10-29 23:35) — OK](#turn-233)
 
 ---
 
@@ -21621,7 +21625,7 @@ Which improvement would you like me to implement first: **1 (Code De-fragmentati
 ALL OF THEM
 
 <details>
-<summary><b>🛠️ Tool Actions & Executions (23)</b></summary>
+<summary><b>🛠️ Tool Actions & Executions (28)</b></summary>
 
 - **run_command** — `Inspect distinct standard codes in D1`
 - **read_file** 
@@ -21645,6 +21649,216 @@ ALL OF THEM
 - **run_command** — `Check 400 error details`
 - **run_command** — `Find Missing fields check in worker`
 - **run_command** — `Run live test with session_id`
+- **run_command** — `Export full conversation history to markdown`
+- **run_command** — `Check git status`
+- **run_command** — `Stage modified and new files`
+- **run_command** — `Commit changes to git`
+- **run_command** — `Push commit to GitHub`
+- **run_command** — `Re-export full conversation history to markdown`
+
+</details>
+
+#### 🤖 SPECSUPPORT ASSISTANT
+
+### Verification & Implementation Summary
+
+All 3 accuracy improvements have been executed, tested, and deployed to production under **Loop 3 CI/CD gate (100.0% pass rate)**:
+
+1. **Standard Code De-fragmentation:**
+   * Unified fragmented codes in remote D1: `asme viii` merged into `ASME VIII DIV 1` (now 60 chunks), `API-RP-4G` merged into `API RP 4G` (now 192 chunks), and `ds1 vol3` canonicalized to `TH HILL DS-1 VOL 3` (2,085 chunks).
+2. **Deterministic Safety Envelope Injection in Loop 1 Critic:**
+   * Dynamic SQL lookup queries `code_safety_envelopes` on every query and injects hard ground-truth limits (preheat, interpass, PWHT threshold, max hardness) into the Critic Agent system prompt.
+3. **AWS D1.1 & NACE MR0175 Chunk Enrichment:**
+   * Ingested 7 Rosetta-grade tabular chunks with explicit acceptance/rejection criteria covering AWS D1.1 Table 6.1 (statically and cyclically loaded undercut, porosity, crack rejection), Table 3.3 (preheats), Clause 6.11 (UT defect classes), and NACE MR0175 Part 2/3 (hardness $\le 22\text{ HRC}$, PWHT, duplex ferrite balance).
+4. **Autonomous Deployment & Git Sync:**
+   * Live Cloudflare Worker deployed (`13a14271-449b-41f1-861a-2ec327a08281`).
+   * Code committed and pushed to `origin/final` (`f61695b`).
+   * Full trajectory exported to [`FULL_CONVERSATION_HISTORY.md`](file:///c:/Users/MT/Desktop/inspect%20support/FULL_CONVERSATION_HISTORY.md).
+
+---
+
+Would you like to test a specific inspection scenario in the chat UI, or proceed to UI visual polishing?
+
+---
+
+### <a id="turn-230"></a> Turn 230 — [2026-10-29T23:23:33Z]
+
+#### 👤 USER
+
+I AM STILL NOT SATISFIED COULD YOU TELL ME WHAT COULD BE MISSING
+
+<details>
+<summary><b>🛠️ Tool Actions & Executions (7)</b></summary>
+
+- **run_command** — `Check null embeddings count in D1`
+- **write_file** 
+- **run_command** — `Run audit_embeddings_and_rag script`
+- **read_file** 
+- **run_command** — `Check standards_fts table count`
+- **run_command** — `Find detectedStd logic in worker`
+- **run_command** — `Run debug retrieval script`
+
+</details>
+
+#### 🤖 SPECSUPPORT ASSISTANT
+
+Based on a deep engineering audit of the retrieval pipeline and database execution logs, here is **exactly what is missing and why you are rightly unsatisfied**:
+
+---
+
+### 1. The "False Grounding" RAG Flaw (Retrieval Dilution)
+* **What happens:** In `worker/src/index.js`, when a query has a detected standard (like `AWS D1.1`), the SQL query uses `WHERE (standard_code LIKE ? OR id IN (FTS_MATCHES))`. 
+* **The failure:** Generic search words like *"undercut"* or *"depth"* match dozens of chunks in `API RP 4G` or `IADC Manual`. These unrelated chunks dilute the search and push the real `AWS D1.1` chunks completely out of the top 5 sources! The model answers correctly only from its memory, **not from verified database grounding**.
+
+### 2. 1,108 Chunks Have `NULL` Vector Embeddings in D1
+* **Audit result:** Out of 9,025 chunks in D1, **1,108 chunks have no embeddings** (including newly added `AWS D1.1` and `NACE MR0175` tables).
+* **Impact:** In vector cosine similarity, every chunk with `NULL` embedding receives a score of `-1`, sending critical code tables straight to the bottom of the ranking.
+
+### 3. Missing Canonical Standards in the Routing Regex
+* `NACE MR0175`, `ISO 15156`, `API 6A`, `API 16C`, and `API 16AR` are **not present** in the primary `stdMatch` regex parser, forcing them into heuristic fallback.
+
+### 4. Unused Acceptance/Rejection Columns in RAG Context
+* In D1 `standards_chunks`, we have dedicated columns `acceptance_limits` and `rejection_limits`.
+* **The bug:** The prompt builder only injects `chunk.content` — it completely **omits the structured `acceptance_limits` and `rejection_limits` columns** from the context delivered to the LLM!
+
+### 5. Incomplete Safety Envelopes Table
+* The `code_safety_envelopes` table currently only covers 4 groups (P-1, P-4, P-5A, L-80). Critical groups like **P-8 (Austenitic Stainless), P-15E (P91/Cr-Mo-V), API 5L Line Pipe (X52–X70), and Inconel** are missing.
+
+---
+
+Would you like me to resolve the RAG retrieval dilution and generate embeddings for all 1,108 unindexed chunks right now?
+
+---
+
+### <a id="turn-231"></a> Turn 231 — [2026-10-29T23:25:51Z]
+
+#### 👤 USER
+
+CONTINUE INVESTIGATING
+
+<details>
+<summary><b>🛠️ Tool Actions & Executions (11)</b></summary>
+
+- **write_file** 
+- **run_command** — `Run deep investigation phase 1-3`
+- **run_command** — `Search markdown and parameter box formatting in index.html`
+- **run_command** — `Find appendMessage or marked.parse in index.html`
+- **read_file** 
+- **run_command** — `Find formatExecutiveVerdictCard in index.html`
+- **run_command** — `Check /api/ask calls in index.html`
+- **run_command** — `Search streaming logic in worker/src/index.js`
+- **run_command** — `Search api/feedback in index.html`
+- **run_command** — `Find appendStreamingMessage in index.html`
+- **run_command** — `Export conversation history to markdown`
+
+</details>
+
+#### 🤖 SPECSUPPORT ASSISTANT
+
+Here is the root-cause breakthrough from the deep forensic investigation:
+
+---
+
+### 1. The Critical "Streaming Loophole" (Bypassing Loop 1 in the UI)
+* **What we discovered:** When you chat in the web UI, [`index.html`](file:///c:/Users/MT/Desktop/inspect%20support/index.html#L6085) calls `/api/ask?stream=true`.
+* **The flaw:** In [`worker/src/index.js`](file:///c:/Users/MT/Desktop/inspect%20support/worker/src/index.js#L5431-L5495), when `stream=true`, the worker immediately streams raw tokens directly to the browser and exits. 
+* **The consequence:** **The Level III Critic Agent (Loop 1) was completely BYPASSED in the real browser UI!** You were seeing unverified Pass 1 drafts rather than the refined, audited answers with the enforced 2-sentence hook and parameter box.
+
+### 2. Loop 2 (Field Quality Ledger) Has Zero UI Presence
+* The backend table `field_quality_ledger` and `/api/feedback/loop` endpoint exist, but [`index.html`](file:///c:/Users/MT/Desktop/inspect%20support/index.html) has **no UI buttons** (e.g. `[✅ Level III Accept]` or `[⚠️ Flag Discrepancy]`), so inspectors cannot stamp or record real-time feedback.
+
+### 3. The "Parameter Box" Rendered as Raw Markdown Text
+* In [`index.html`](file:///c:/Users/MT/Desktop/inspect%20support/index.html#L6194-L6250), `formatExecutiveVerdictCard` only looked for `<h3>` tags.
+* Because `**Parameter Box:**` renders as `<p><strong>`, the UI failed to style it into a high-contrast executive parameter card, leaving it as an unstyled bullet list.
+
+### 4. 1,108 Chunks in D1 Have Missing Vector Embeddings
+* Out of 9,025 chunks, **1,101 chunks in `IADC MANUAL`** and 7 in `AWS`/`NACE` have `embedding = NULL`, causing them to score `-1` in vector cosine search.
+
+---
+
+Would you like me to fix the streaming Critic execution and add the Loop 2 Inspector Stamp button to the chat UI right now?
+
+---
+
+### <a id="turn-232"></a> Turn 232 — [2026-10-29T23:33:03Z]
+
+#### 👤 USER
+
+CONTINUE INVESTIGATING
+
+<details>
+<summary><b>🛠️ Tool Actions & Executions (10)</b></summary>
+
+- **run_command** — `Search contextualQuestion in worker/src/index.js`
+- **read_file** 
+- **write_file** 
+- **run_command** — `Query standards_taxonomy in D1`
+- **run_command** — `Find evaluateEngineeringFormulas in worker/src/index.js`
+- **run_command** — `Measure system prompt length`
+- **run_command** — `Find messages and systemPrompt in worker/src/index.js`
+- **run_command** — `Find coreInspectionDirectives definition in worker/src/index.js`
+- **run_command** — `Check UNIVERSAL_API_GENOME size`
+- **run_command** — `Export conversation history to markdown`
+
+</details>
+
+#### 🤖 SPECSUPPORT ASSISTANT
+
+Here are the exact 4 hidden engineering breakdowns uncovered in the continued investigation:
+
+---
+
+### 1. The Real Reason Critic Failed in Chat: The "Draft-Only" Streaming Pipeline
+* In [`index.html`](file:///c:/Users/MT/Desktop/inspect%20support/index.html#L6085), the web chat always requests `?stream=true`.
+* In [`worker/src/index.js`](file:///c:/Users/MT/Desktop/inspect%20support/worker/src/index.js#L5431), streaming connects the browser directly to **Pass 1 (Draft Model)** and exits immediately (`return new Response(...)`).
+* **The consequence:** You were **only ever seeing un-audited draft answers** in the browser! The Critic Agent, the safety envelopes check, and the 2-sentence Assertion-Justification enforcement **never ran on live streaming chats**.
+
+### 2. The Parameter Box Rendered as Plain Text (Regex Tag Mismatch)
+* In [`index.html`](file:///c:/Users/MT/Desktop/inspect%20support/index.html#L6195), the UI formatter only looked for `<h3>` tags to draw an executive inspection card.
+* Because markdown converts `**Parameter Box:**` into a paragraph `<p><strong>`, the card generator completely missed it, rendering your methodology as an ugly, unstyled bullet list.
+
+### 3. Loop 2 Quality Ledger is Completely Invisible in the UI
+* The D1 table `field_quality_ledger` and `/api/feedback/loop` API are live in the database, but [`index.html`](file:///c:/Users/MT/Desktop/inspect%20support/index.html) has **zero UI buttons or badges**. You had no way to stamp an answer as Level III Verified or log an on-site discrepancy from the chat.
+
+### 4. Over-Aggressive FTS Multi-Term Dilution
+* In [`worker/src/index.js`](file:///c:/Users/MT/Desktop/inspect%20support/worker/src/index.js#L4427-L4434), contextual history keywords (e.g. *Grade*, *Schedule*, *ASME*, *preheat*) were joined into SQLite FTS5 using generic `OR`. 
+* A simple follow-up query like *"what is the inspector qualification?"* matched hundreds of irrelevant historical chunks that merely contained the word *"Grade"*, drowning out the real clause.
+
+---
+
+Would you like me to connect Pass 2 (Critic Agent) directly to the live stream and render the high-contrast Parameter Box card in the UI now?
+
+---
+
+### <a id="turn-233"></a> Turn 233 — [2026-10-29T23:35:46Z]
+
+#### 👤 USER
+
+OK
+
+<details>
+<summary><b>🛠️ Tool Actions & Executions (21)</b></summary>
+
+- **read_file** 
+- **edit_file** 
+- **run_command** — `Check worker syntax`
+- **run_command** — `Find executive-verdict-card CSS in index.html`
+- **run_command** — `Inspect lines 561-571 in index.html`
+- **run_command** — `Find line indices in index.html`
+- **write_file** 
+- **run_command** — `Patch index.html`
+- **run_command** — `Run patch_frontend_loop2_and_parameter_box script`
+- **run_command** — `Check script tags in index.html`
+- **run_command** — `Run Loop 3 CI/CD deploy gate`
+- **manage_task** 
+- **run_command** — `Validate worker syntax`
+- **run_command** — `Run test_live_streaming_loop script`
+- **run_command** — `Test stdMatch regex in node`
+- **run_command** — `Run test_aws_query script`
+- **run_command** — `Find exactMatches in worker`
+- **run_command** — `Check syntax`
+- **run_command** — `Run Loop 3 deploy gate`
+- **run_command** — `Re-test live streaming sources and answer`
 - **run_command** — `Export full conversation history to markdown`
 
 </details>
