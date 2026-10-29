@@ -4412,6 +4412,27 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
     )
   } catch(e){}
 
+  // =========================================================================
+  // 🧠 MULTI-TURN CONTEXTUAL QUERY SYNTHESIZER (OPTION A)
+  // Extracts inherited materials, dimensions, and codes across the last 5 turns
+  // =========================================================================
+  let contextualQuestion = question;
+  let inheritedContextStr = "";
+  if (Array.isArray(history) && history.length > 0) {
+    const recentPrompts = history
+      .slice(-10)
+      .map(m => m.content || "")
+      .join(" ");
+
+    const inheritedMatches = recentPrompts.match(/\b(?:4130|Grade\s*50|A106|SA-516|X52|X60|X65|L-80|P-110|C-90|T-95|B31\.3|B31\.4|B31\.8|ASME\s*IX|ASME\s*VIII|ASME\s*V|API\s*1104|API\s*53|API\s*16D|API\s*16AR?|API\s*5CT|API\s*RP\s*7G-?2|API\s*RP\s*8B|API\s*RP\s*4G|AWS\s*D1\.1|ISO\s*3834-2|NACE\s*MR0175|Schedule\s*XXS|SCH\s*\d+|P-No\s*\.?\s*\d+|F-No\s*\.?\s*\d+|GTAW|SMAW|GMAW|SAW|PWHT|preheat|hydrostatic|drift|casing|tubing|drill\s*pipe|cameron|hydril)\b/gi) || [];
+
+    const uniqueInherited = Array.from(new Set(inheritedMatches.map(m => m.trim()))).slice(0, 8);
+    if (uniqueInherited.length > 0) {
+      inheritedContextStr = uniqueInherited.join(" ");
+      contextualQuestion = `${question} ${inheritedContextStr}`;
+    }
+  }
+
   // 0. Standards Taxonomy Governance Engine (Equipment Categorization & Direct Response Router)
   let taxonomyGovernanceNote = ""
   try {
@@ -4521,7 +4542,10 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
 
   // Intelligent Governing Standard Detection
   let detectedStd = null
-  const stdMatch = question.match(/(ASME\s*(?:VIII|Section\s*VIII|B31\.3|B31\.4|B31\.8|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5\s*CT|RP\s*5C1|5\s*C1|1104|16\s*D|16\s*A|7\s*K|RP\s*2X|2X|RP\s*7G-2|7\s*G-?2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:3834-2|13534))/i)
+  let stdMatch = question.match(/(ASME\s*(?:VIII|Section\s*VIII|B31\.3|B31\.4|B31\.8|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5\s*CT|RP\s*5C1|5\s*C1|1104|16\s*D|16\s*A|7\s*K|RP\s*2X|2X|RP\s*7G-2|7\s*G-?2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:3834-2|13534))/i)
+  if (!stdMatch && inheritedContextStr) {
+    stdMatch = contextualQuestion.match(/(ASME\s*(?:VIII|Section\s*VIII|B31\.3|B31\.4|B31\.8|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5\s*CT|RP\s*5C1|5\s*C1|1104|16\s*D|16\s*A|7\s*K|RP\s*2X|2X|RP\s*7G-2|7\s*G-?2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:3834-2|13534))/i)
+  }
   if (stdMatch) {
     let raw = (stdMatch[1] || stdMatch[0]).replace(/Section\s*/i, '').trim().toUpperCase();
     raw = raw.replace(/\s+/g, ' ');
@@ -4548,35 +4572,36 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
   } else if (standard_filter && standard_filter !== 'ALL' && standard_filter !== '🌐 GENERAL AI') {
     detectedStd = standard_filter.trim().toUpperCase()
   } else {
-    if (/\b(?:mast|derrick|substructure|crown\s*frame|raising\s*line|shoe\s*elevation)\b/i.test(question)) {
+    const testTarget = contextualQuestion;
+    if (/\b(?:mast|derrick|substructure|crown\s*frame|raising\s*line|shoe\s*elevation)\b/i.test(testTarget)) {
       detectedStd = '4G'
-    } else if (/\b(?:pulsation\s*dampener|pressure\s*vessel|spherical\s*shell|ug-27|uw-12|relief\s*valve)\b/i.test(question)) {
+    } else if (/\b(?:pulsation\s*dampener|pressure\s*vessel|spherical\s*shell|ug-27|uw-12|relief\s*valve)\b/i.test(testTarget)) {
       detectedStd = 'ASME VIII'
-    } else if (/\b(?:process\s*piping|b31\.3|severe\s*cyclic|undercut\s*depth)\b/i.test(question)) {
+    } else if (/\b(?:process\s*piping|b31\.3|severe\s*cyclic|undercut\s*depth)\b/i.test(testTarget)) {
       detectedStd = 'B31.3'
-    } else if (/\b(?:liquid\s*pipeline|slurry\s*pipeline|b31\.4)\b/i.test(question)) {
+    } else if (/\b(?:liquid\s*pipeline|slurry\s*pipeline|b31\.4)\b/i.test(testTarget)) {
       detectedStd = 'B31.4'
-    } else if (/\b(?:gas\s*transmission|gas\s*pipeline|distribution\s*piping|b31\.8)\b/i.test(question)) {
+    } else if (/\b(?:gas\s*transmission|gas\s*pipeline|distribution\s*piping|b31\.8)\b/i.test(testTarget)) {
       detectedStd = 'B31.8'
-    } else if (/\b(?:radiograph|optical\s*density|x-ray|gamma-ray|iqi|t-260|ultrasonic|angle\s*beam|dac\s*curve|t-4xx)\b/i.test(question)) {
+    } else if (/\b(?:radiograph|optical\s*density|x-ray|gamma-ray|iqi|t-260|ultrasonic|angle\s*beam|dac\s*curve|t-4xx)\b/i.test(testTarget)) {
       detectedStd = 'ASME V'
-    } else if (/\b(?:casing|tubing|drift\s*mandrel|l-80|p-110|c-90|t-95)\b/i.test(question)) {
+    } else if (/\b(?:casing|tubing|drift\s*mandrel|l-80|p-110|c-90|t-95)\b/i.test(testTarget)) {
       detectedStd = '5CT'
-    } else if (/\b(?:drill\s*pipe|drill\s*stem|tool\s*joint|hwdp|drill\s*collar|premium\s*class)\b/i.test(question)) {
+    } else if (/\b(?:drill\s*pipe|drill\s*stem|tool\s*joint|hwdp|drill\s*collar|premium\s*class)\b/i.test(testTarget)) {
       detectedStd = '7G-2'
-    } else if (/\b(?:shut-in|well\s*control|kick|kill\s*mud|sidpp|sicp|bop\s*stack|annular\s*bop|pipe\s*ram|hcr|choke\s*manifold|iadc)\b/i.test(question)) {
+    } else if (/\b(?:shut-in|well\s*control|kick|kill\s*mud|sidpp|sicp|bop\s*stack|annular\s*bop|pipe\s*ram|hcr|choke\s*manifold|iadc)\b/i.test(testTarget)) {
       detectedStd = 'IADC'
-    } else if (/\b(?:cameron|type\s*u|ram\s*rubbers?|bonnet\s*seal)\b/i.test(question)) {
+    } else if (/\b(?:cameron|type\s*u|ram\s*rubbers?|bonnet\s*seal)\b/i.test(testTarget)) {
       detectedStd = 'OEM BOP'
-    } else if (/\b(?:hydril|gk\s*annular|packing\s*unit|stripping\s*pressure)\b/i.test(question)) {
+    } else if (/\b(?:hydril|gk\s*annular|packing\s*unit|stripping\s*pressure)\b/i.test(testTarget)) {
       detectedStd = 'OEM BOP'
-    } else if (/\b(?:pipeline\s*weld|cross-country|api\s*1104|burn-through)\b/i.test(question)) {
+    } else if (/\b(?:pipeline\s*weld|cross-country|api\s*1104|burn-through)\b/i.test(testTarget)) {
       detectedStd = '1104'
-    } else if (/\b(?:structural\s*weld|visual\s*weld|cwi|aws\s*d1\.1|aws\s*b1\.11)\b/i.test(question)) {
+    } else if (/\b(?:structural\s*weld|visual\s*weld|cwi|aws\s*d1\.1|aws\s*b1\.11)\b/i.test(testTarget)) {
       detectedStd = 'AWS'
-    } else if (/\b(?:elevator|elevator\s*bore|bails?|links?|hoisting|traveling\s*block)\b/i.test(question)) {
+    } else if (/\b(?:elevator|elevator\s*bore|bails?|links?|hoisting|traveling\s*block)\b/i.test(testTarget)) {
       detectedStd = '8B'
-    } else if (/\b(?:wps|pqr|welder\s*qual|welding\s*procedure|p-no|f-no|a-no|qw-\d+|dissimilar\s*weld|grade\s*50.*4130|4130.*grade\s*50)\b/i.test(question)) {
+    } else if (/\b(?:wps|pqr|welder\s*qual|welding\s*procedure|p-no|f-no|a-no|qw-\d+|dissimilar\s*weld|grade\s*50.*4130|4130.*grade\s*50)\b/i.test(testTarget)) {
       detectedStd = 'ASME IX'
     }
   }
@@ -4652,6 +4677,12 @@ When relevant, compare and contrast the requirement across related standards or 
 
 MAJOR RULE 4 — TARGETED REFINEMENT QUESTIONS (IF APPLICABLE):
 If the user's inquiry has unstated operating parameters, fluid service severity, material grade, design temperature, or NDT technique sensitivity that could alter the acceptance threshold, conclude by asking 1 to 3 concise, highly targeted refinement questions to help the inspector zero in on their exact operational condition.
+
+MAJOR RULE 5 — MULTI-TURN CONVERSATIONAL CONTINUITY (CONSIDER AT LEAST 5 PROMPTS BEHIND):
+You are operating in an ongoing multi-turn dialogue with a field inspector. Maintain strict conversational continuity across at least the previous 5 user inquiries:
+- When the user asks a follow-up inquiry (e.g., "what is the preheat?", "what filler metal should I use for the root pass?", "is PWHT required?"), resolve all unstated subjects, material grades (e.g., AISI 4130 and Grade 50), pipe dimensions (Schedule XXS 5 inch OD), and governing codes (ASME IX, ASME B31.3) established in earlier turns!
+- NEVER answer follow-up questions in isolation or output generic carbon steel advice when a specific alloy or joint configuration was previously established.
+- Carry forward established thicknesses, P-Numbers, and operating parameters seamlessly throughout the thread.
 
 2. PROFESSIONAL ENGINEERING TONE (NO EMOJIS):
 Maintain an authoritative, audit-ready engineering style. DO NOT use emojis (no ⚖️, ✅, ❌, 🔬, 📜, 📊, 💡, ⚡) anywhere in the response. Rely on clean typography, structured comparisons, and precise engineering metrics.
@@ -4747,8 +4778,8 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   }
 
   // 2. 🧬 Deterministic Rosetta Genome Query Synthesis (Replaces Hallucinated HyDE)
-  const targetPillars = detectTargetPillars(question);
-  const searchQuestion = expandRosettaKeywords(question, detectedStd, targetPillars);
+  const targetPillars = detectTargetPillars(contextualQuestion);
+  const searchQuestion = expandRosettaKeywords(contextualQuestion, detectedStd, targetPillars);
 
   // 3. Dense Vector Embedding
   let questionEmbedding = []
@@ -4761,7 +4792,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   let bm25Scores = {};
   let ftsMatchedIds = [];
   try {
-    const ftsTerm = question.replace(/[^a-zA-Z0-9 ]/g, "").split(" ").filter(w => w.length > 2).join(" OR ");
+    const ftsTerm = contextualQuestion.replace(/[^a-zA-Z0-9 ]/g, "").split(" ").filter(w => w.length > 2).join(" OR ");
     if (ftsTerm) {
       const { results: ftsRes } = await c.env.DB.prepare(`SELECT rowid, bm25(standards_fts) as bm25_score FROM standards_fts WHERE standards_fts MATCH ? LIMIT 100`).bind(ftsTerm).all();
       if (ftsRes && ftsRes.length > 0) {
@@ -5488,27 +5519,32 @@ app.post('/api/ask', async (c) => {
     let loopPasses = 1;
     if (answer && !answer.startsWith('AI Error:') && answer.length > 50) {
       try {
+        const criticHistory = Array.isArray(history) ? history.slice(-6) : [];
         const criticMessages = [
           {
             role: 'system',
             content: `You are the SpecSupport Senior Level III QC Code Auditor & Verification Critic.
-Your mission is to audit the DRAFT RESPONSE against the user's question, verified database sources, and canonical standards (ASME IX, ASME B31.3, ASME VIII, API, AWS, NACE).
+Your mission is to audit the DRAFT RESPONSE against the ongoing conversation, user question, verified database sources, and canonical standards (ASME IX, ASME B31.3, ASME VIII, API, AWS, NACE).
 
 CRITIQUE & REFINEMENT CRITERIA:
-1. ASSERTION-JUSTIFICATION OPENING (ZERO INTRODUCTIONS):
+1. MULTI-TURN CONVERSATIONAL CONTINUITY:
+   - If the user's question is a follow-up inquiry, verify that the draft MAINTAINS continuous context with the materials (e.g., Grade 50 to 4130), dimensions (Schedule XXS), and governing codes established earlier in the conversation!
+   - Reject generic advice that resets the conversation or forgets the established alloys.
+2. ASSERTION-JUSTIFICATION OPENING (ZERO INTRODUCTIONS):
    - Sentence 1: Does it state the exact verdict, numbers, and governing code immediately with ZERO throat-clearing (no "According to...", "Based on...", "Here is...")?
    - Sentence 2 to 3: Does it immediately explain WHY this answer is right based on physics and metallurgy (e.g. hardenability, martensite, thickness boundary, stress relief)?
-2. 4-POINT FIELD PARAMETER BOX:
+3. 4-POINT FIELD PARAMETER BOX:
    - Does it present a clean, high-contrast parameter box covering: Governing Standard & Table Row, Critical Hard Numbers, Filler Metal & Process, and Inspection Timing (including 24-48h delay for cold cracking)?
    - Verify NO unsolicited algebraic formulas are cluttering the answer unless the user explicitly requested a calculation.
-3. GROUND TRUTH FIDELITY:
+4. GROUND TRUTH FIDELITY:
    - Check that all numbers comply with code tables: In dissimilar welding, preheat is strictly governed by the higher-alloy / higher-hardenability side (e.g. 4130 / P-No. 4: preheat 300°F - 400°F [150°C - 204°C] mandatory minimum; do not use the lower carbon steel 200°F preheat for 4130; interpass max 500°F [260°C], PWHT mandatory for t >= 19.05 mm [0.75 in] at 1100°F - 1200°F [595°C - 650°C], hardness <= 22 HRC).
    - If P-No. 1 alone: Preheat 50°F or 200°F (for t > 25 mm).
-4. DISPOSITION:
+5. DISPOSITION:
    - If the draft is completely compliant, accurate, and structured with the 2-sentence hook + parameter box, return it.
-   - If any numerical threshold, rationale, or parameter is deficient or cluttered with throat-clearing/unnecessary formulas, produce the fully corrected, audit-ready version.
+   - If any numerical threshold, rationale, or continuity parameter is deficient, produce the fully corrected, audit-ready version.
 OUTPUT ONLY THE FINAL VERIFIED RESPONSE WITH ZERO INTRODUCTORY META-COMMENTARY.`
           },
+          ...criticHistory,
           {
             role: 'user',
             content: `USER QUESTION:\n${question}\n\nVERIFIED DATABASE SOURCES:\n${sources.map(s => `- Standard: ${s.standard} | Clause: ${s.clause}`).join('\n')}\n\nDRAFT RESPONSE TO AUDIT:\n${answer}`
