@@ -1374,6 +1374,22 @@ app.post('/api/admin/backfill-embeddings', async (c) => {
   }
 })
 
+// 🧪 Test Cloudflare BGE Reranker
+app.post('/api/admin/test-rerank', async (c) => {
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
+  try {
+    const { query, texts } = await c.req.json().catch(() => ({}))
+    const contexts = (texts || []).map(t => ({ text: t }))
+    const res = await c.env.AI.run('@cf/baai/bge-reranker-base', {
+      query: query || "What is preheat for P-No. 1?",
+      contexts: contexts.length > 0 ? contexts : [{ text: "Preheat for P-No. 1 is 10C" }, { text: "Bananas are yellow" }]
+    })
+    return c.json({ success: true, result: res })
+  } catch(e) {
+    return c.json({ error: e.message, stack: e.stack }, 500)
+  }
+})
+
 // 🗑️ Delete Chunk (Row) - Supporting both DELETE and POST
 const handleDeleteChunk = async (c) => {
   if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
@@ -2242,6 +2258,24 @@ app.get('/api/admin/doctor', async (c) => {
   } catch(e) {
     report.checks.embedding_ai = { status: 'FAIL', error: e.message };
     report.status = 'DEGRADED';
+  }
+
+  // 2b. Check Cloudflare Workers AI Cross-Encoder Re-Ranker
+  try {
+    const t0 = Date.now();
+    const rerankRes = await c.env.AI.run('@cf/baai/bge-reranker-base', {
+      query: 'Preheat test',
+      contexts: [{ text: 'Preheat 10C' }, { text: 'Other' }]
+    });
+    const rrLatency = Date.now() - t0;
+    const hasRerankData = Boolean(rerankRes?.response && rerankRes.response.length > 0);
+    report.checks.cross_encoder_reranker = {
+      status: hasRerankData ? 'PASS' : 'WARN',
+      latency_ms: rrLatency,
+      model: '@cf/baai/bge-reranker-base'
+    };
+  } catch(e) {
+    report.checks.cross_encoder_reranker = { status: 'WARN', error: e.message };
   }
 
   // 3. Check Whisper Speech Engine Availability
@@ -5050,7 +5084,36 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
     // Context starvation fallback: never pass empty context if database candidates exist
     validChunks = combinedChunks.slice(0, 3);
   }
-  const topChunks = validChunks.slice(0, 5)
+
+  // ⚡ 2nd-Pass Cross-Encoder Re-Ranking via Cloudflare Workers AI (@cf/baai/bge-reranker-base)
+  let topChunks = []
+  const exactClauseHits = validChunks.filter(c => c.is_exact_clause_hit)
+  let candidatePool = validChunks.filter(c => !c.is_exact_clause_hit).slice(0, 10)
+
+  if (c.env.AI && candidatePool.length >= 2) {
+    try {
+      const contexts = candidatePool.map(c => ({
+        text: `${c.standard_code} ${c.clause || ''}: ${c.content}`.substring(0, 1000)
+      }))
+      const rerankRes = await c.env.AI.run('@cf/baai/bge-reranker-base', {
+        query: (contextualQuestion || question).substring(0, 500),
+        contexts: contexts
+      })
+      const items = rerankRes?.response || rerankRes?.data || []
+      if (Array.isArray(items) && items.length > 0) {
+        items.forEach(it => {
+          if (candidatePool[it.id]) {
+            candidatePool[it.id].rerank_score = it.score
+          }
+        })
+        candidatePool.sort((a, b) => (b.rerank_score ?? -999) - (a.rerank_score ?? -999))
+      }
+    } catch (err) {
+      console.warn('Cross-encoder reranking fallback to RRF:', err?.message)
+    }
+  }
+
+  topChunks = [...exactClauseHits, ...candidatePool].slice(0, 5)
 
   let contextText = ""
   let hasPrivateSpec = false
@@ -5058,19 +5121,21 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
     if (chunk.scope === 'private_temp' || chunk.scope === 'company_shared') hasPrivateSpec = true
     const exactTag = chunk.is_exact_clause_hit ? " [EXACT CLAUSE MATCH]" : ""
     const pillarTag = chunk.pillar_type ? ` [ROSETTA PILLAR: ${chunk.pillar_type}]` : ""
+    const rerankTag = chunk.rerank_score !== undefined ? ` [CROSS-ENCODER: ${Number(chunk.rerank_score).toFixed(3)}]` : ""
     let metaLines = ""
     if (chunk.acceptance_limits) metaLines += `\n[VERIFIED ACCEPTANCE]: ${chunk.acceptance_limits}`
     if (chunk.rejection_limits) metaLines += `\n[MANDATORY REJECTION]: ${chunk.rejection_limits}`
     if (chunk.normative_refs) metaLines += `\n[NORMATIVE BRIDGE]: ${chunk.normative_refs}`
     if (chunk.qa_docs) metaLines += `\n[QA AUDIT DOCS]: ${chunk.qa_docs}`
 
-    contextText += `[Source ${idx+1}${exactTag}${pillarTag}] Standard: ${chunk.standard_code} | Clause: ${chunk.clause}${metaLines}\n${chunk.content}\n\n`
+    contextText += `[Source ${idx+1}${exactTag}${pillarTag}${rerankTag}] Standard: ${chunk.standard_code} | Clause: ${chunk.clause}${metaLines}\n${chunk.content}\n\n`
     sources.push({ 
       standard: chunk.standard_code, 
       clause: chunk.clause,
       verified_db: true,
       chunk_id: chunk.id,
-      pillar: chunk.pillar_type || 'GENERAL'
+      pillar: chunk.pillar_type || 'GENERAL',
+      rerank_score: chunk.rerank_score !== undefined ? Number(chunk.rerank_score.toFixed(4)) : null
     })
   })
 
