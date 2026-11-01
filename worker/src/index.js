@@ -1327,6 +1327,53 @@ app.put('/api/admin/chunks/:id', async (c) => {
   }
 })
 
+// ⚡ Auto-backfill Missing Embeddings in Batches
+app.post('/api/admin/backfill-embeddings', async (c) => {
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
+  try {
+    const limit = Math.min(parseInt(c.req.query('limit') || '25'), 50)
+    const { results } = await c.env.DB.prepare(
+      'SELECT id, standard_code, clause, content FROM standards_chunks WHERE embedding IS NULL LIMIT ?'
+    ).bind(limit).all()
+
+    if (!results || results.length === 0) {
+      return c.json({ remaining: 0, processed: 0, message: 'All chunks have embeddings' })
+    }
+
+    if (!c.env.AI) {
+      return c.json({ error: 'Cloudflare Workers AI binding (AI) not available' }, 500)
+    }
+
+    const texts = results.map(r => `${r.standard_code || ''} ${r.clause || ''}: ${r.content || ''}`.substring(0, 1000))
+    const aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: texts })
+    const embeddings = aiResp.data ?? aiResp ?? []
+
+    const stmts = []
+    for (let i = 0; i < results.length; i++) {
+      const emb = embeddings[i]
+      if (Array.isArray(emb) && emb.length > 0) {
+        stmts.push(
+          c.env.DB.prepare('UPDATE standards_chunks SET embedding = ? WHERE id = ?').bind(JSON.stringify(emb), results[i].id)
+        )
+      }
+    }
+
+    if (stmts.length > 0) {
+      await c.env.DB.batch(stmts)
+    }
+
+    const countRes = await c.env.DB.prepare('SELECT COUNT(*) as count FROM standards_chunks WHERE embedding IS NULL').first()
+
+    return c.json({
+      success: true,
+      processed: stmts.length,
+      remaining: countRes?.count || 0
+    })
+  } catch (e) {
+    return c.json({ error: e.message }, 500)
+  }
+})
+
 // 🗑️ Delete Chunk (Row) - Supporting both DELETE and POST
 const handleDeleteChunk = async (c) => {
   if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
