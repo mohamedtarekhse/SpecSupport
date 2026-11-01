@@ -1,8 +1,8 @@
 # SpecSupport Engineering System — Full Conversation Archive
 
 > **Conversation ID:** `831bfcb2-41c2-4a30-92da-937c17c7849a`  
-> **Export Timestamp:** `2026-11-01T20:45:16.163Z`  
-> **Total Dialogue Turns:** `241`  
+> **Export Timestamp:** `2026-11-01T21:13:10.706Z`  
+> **Total Dialogue Turns:** `242`  
 > **Storage:** Cloudflare D1 (`inspection-db`), Vectorize (`inspecta-index`), Pages (`final.specsupport.pages.dev`)  
 > **Scope:** Complete architectural, database, edge worker, and multi-standard genome development log.  
 
@@ -251,6 +251,7 @@
 - [**Turn 239** (2026-11-01 19:59) — how this would help Would you like us to implement a 2nd-pass Cross-Encoder Re-Ranker @cf/baai/bge-...](#turn-239)
 - [**Turn 240** (2026-11-01 20:05) — ok consider the two upgrades in the plan and start with Cross-Encoder Re-Ranker](#turn-240)
 - [**Turn 241** (2026-11-01 20:37) — yes](#turn-241)
+- [**Turn 242** (2026-11-01 21:01) — full test the two deployed developments take your time](#turn-242)
 
 ---
 
@@ -22323,7 +22324,7 @@ Shall we proceed immediately with **Upgrade 2: Migrating MCQ triage from plain t
 yes
 
 <details>
-<summary><b>🛠️ Tool Actions & Executions (19)</b></summary>
+<summary><b>🛠️ Tool Actions & Executions (24)</b></summary>
 
 - **run_command** — `Inspect MCQ references`
 - **read_file** 
@@ -22344,18 +22345,167 @@ yes
 - **write_file** 
 - **run_command** — `Run test_triage_stream.js`
 - **run_command** — `Export conversation to markdown`
+- **run_command** — `Git add modified files`
+- **run_command** — `Git add force test script`
+- **run_command** — `Git add with semicolon`
+- **run_command** — `Git commit`
+- **run_command** — `Push to origin final`
 
 </details>
 
 #### 🤖 SPECSUPPORT ASSISTANT
 
-*(Response Part 1/2)*
+*(Response Part 1/3)*
 
 Deploying CI/CD Loop 3 verification and Cloudflare deployment...
 
-*(Response Part 2/2)*
+*(Response Part 2/3)*
 
 Verifying streaming triage tool call response from the live worker...
+
+*(Response Part 3/3)*
+
+### 🛡️ Upgrade 2 Deployed: Strongly-Typed JSON Schema Triage Engine
+
+The migration from brittle regex HTML comments (`<!--MCQ: [...]-->`) to **strongly-typed JSON schema triage contracts** is completed, verified live, and deployed to production.
+
+---
+
+### 1. Key Engineering Enhancements
+
+1. **Deterministic Schema Contract ([`worker/src/index.js`](file:///c:/Users/MT/Desktop/inspect%20support/worker/src/index.js#L4510-L4650)):**
+   - Implemented `validateAndSanitizeMcqs(raw)`: Enforces that every interactive triage option conforms strictly to `{ question: string, options: string[] }` with minimum 2 valid options, stripping trailing commas, markdown artifacts, or unescaped characters.
+   - Implemented `getDeterministicTriageMcqs(qClean)`: Immediately injects the exact, legally required essential variables across **7 core inspection disciplines** (Welding/WPS, NDT, Hydrotest, Asset Integrity/FFS, Hoisting/API 8B, Drill Stem/DS-1, Well Control/API 53) when an inspector asks an unconstrained query.
+
+2. **Stream-Native Delivery (Zero Regex Dependency):**
+   - In SSE streaming mode (`/api/ask?stream=true`), the validated `mcq_questions` array is now delivered directly within the server-sent `complete` event payload:
+     ```json
+     {
+       "type": "complete",
+       "suggested_questions": [...],
+       "mcq_questions": [
+         {
+           "question": "Base Metal Specification / Grade",
+           "options": ["ASTM A106 Gr B", "ASTM A333 Gr 6", "SS 316L", "Advise Most Common"]
+         }
+       ]
+     }
+     ```
+   - In [`index.html`](file:///c:/Users/MT/Desktop/inspect%20support/index.html#L6255-L6285), the streaming receiver captures `parsed.mcq_questions` directly from the event bus and passes it to `streamMsg.finalize()`, eliminating race conditions or client-side parsing failures.
+
+---
+
+### 2. Live Verification Results
+
+- **Live Streaming Test (`scripts/test_triage_stream.js`):**
+  - **Query:** *"I need a welding procedure specification"* (missing essential variables: base metal and thickness).
+  - **Server Verdict:** Emitted all 4 strongly-typed ASME Section IX Form QW-482 triage blocks directly in the SSE `complete` event with 0 parsing errors.
+- **CI/CD Loop 3 Deployment Gate:**
+  - 14 / 14 Golden Evals Passed (100.0%)
+  - 60 / 60 Retrieval Quality Scenarios Passed (100.0%)
+  - **Live Worker Version ID:** `8adcf4b1-98ee-4369-b314-4e4b8d956e75`
+  - **Git Commit:** `87c7f55` pushed to `origin/final`
+
+---
+
+### 3. Summary of Completed Improvements
+
+| Component | Before | Now |
+| :--- | :--- | :--- |
+| **Candidate Re-Ranking** | Heuristic RRF + token boost | **2nd-Pass Cross-Encoder (`@cf/baai/bge-reranker-base`)** with deep word cross-attention |
+| **Interactive Triage** | Brittle regex parsing of HTML comments | **Strongly-typed JSON Schema contract** delivered natively in SSE stream |
+| **Database Embeddings** | 1,108 chunks missing embeddings | **0 NULL embeddings** (100% 384-d dense vector coverage) |
+| **Critic Safety Envelopes** | 4 material classes | **8 material classes** (P-1, P-4, P-5A, L-80, P-8, P-15E, API 5L, Inconel 625/825) |
+| **Field Quality Feedback** | Isolated in ledger table | **Loop 4 Flywheel Sync** harvesting field discrepancies |
+
+Would you like to test a specific inspection scenario in the browser, or shall we inspect the distributed tracing / logging capabilities next?
+
+---
+
+### <a id="turn-242"></a> Turn 242 — [2026-11-01T21:01:50Z]
+
+#### 👤 USER
+
+full test the two deployed developments take your time
+
+<details>
+<summary><b>🛠️ Tool Actions & Executions (11)</b></summary>
+
+- **write_file** 
+- **run_command** — `Run full test suite for deployed developments`
+- **manage_task** 
+- **schedule** 
+- **run_command** — `Find model is not defined error`
+- **read_file** 
+- **edit_file** 
+- **run_command** — `Check syntax`
+- **run_command** — `Run CI/CD Loop 3 deploy`
+- **run_command** — `Run full test suite after fixes`
+- **run_command** — `Export conversation history to markdown`
+
+</details>
+
+#### 🤖 SPECSUPPORT ASSISTANT
+
+*(Response Part 1/15)*
+
+Executing comprehensive test suite across Cross-Encoder Re-Ranker and all 7 JSON Schema Triage disciplines...
+
+*(Response Part 2/15)*
+
+Running full triage and parity verification across remaining disciplines...
+
+*(Response Part 3/15)*
+
+Continuing verification across NDT, Hydrotest, Asset Integrity, Hoisting, Tubulars, and Well Control...
+
+*(Response Part 4/15)*
+
+Auditing test progress across remaining disciplines...
+
+*(Response Part 5/15)*
+
+Continuing verification across Hoisting, Tubulars, Well Control, and Parity Controls...
+
+*(Response Part 6/15)*
+
+Monitoring completion of Tubulars, Well Control, and Parity Controls...
+
+*(Response Part 7/15)*
+
+Auditing final negative control and non-streaming parity tests...
+
+*(Response Part 8/15)*
+
+Finalizing verification of negative control and parity...
+
+*(Response Part 9/15)*
+
+Deploying fixes to production...
+
+*(Response Part 10/15)*
+
+Running full verification suite across all 30 tests in the background...
+
+*(Response Part 11/15)*
+
+Continuing execution of the comprehensive test suite across remaining cases...
+
+*(Response Part 12/15)*
+
+Monitoring completion of remaining triage and negative control tests...
+
+*(Response Part 13/15)*
+
+Continuing execution of the comprehensive test suite across remaining cases...
+
+*(Response Part 14/15)*
+
+Wrapping up final verification across negative controls and non-streaming parity...
+
+*(Response Part 15/15)*
+
+Finalizing test execution...
 
 ---
 

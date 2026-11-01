@@ -4528,7 +4528,7 @@ function validateAndSanitizeMcqs(raw) {
 
 function getDeterministicTriageMcqs(qClean) {
   const isWps = /(?:wps\b|welding procedure|pqr\b|welding spec|welding procedure specification|asme\s*(?:viii|8|ix|9|xi|11)|qw-?482|pressure vessel weld|pipe weld)/i.test(qClean);
-  const isNdt = /(?:ndt procedure|ut procedure|ultrasonic procedure|rt procedure|radiographic procedure|mpi procedure|magnetic particle procedure|penetrant procedure|dye penetrant procedure|how to inspect (?:weld|tank|pipe|vessel|flange))/i.test(qClean);
+  const isNdt = /(?:ndt\s*(?:inspection\s*)?procedure|ut\s*procedure|ultrasonic\s*procedure|rt\s*procedure|radiographic\s*procedure|mpi\s*procedure|magnetic\s*particle\s*procedure|penetrant\s*procedure|dye\s*penetrant\s*procedure|how to inspect (?:weld|tank|pipe|vessel|flange))/i.test(qClean);
   const isHydrotest = /(?:hydrotest procedure|hydrostatic test procedure|pressure test procedure|leak test procedure|pneumatic test procedure|how to hydrotest|hydrostatic test)/i.test(qClean);
   const isIntegrity = /(?:remaining life|retirement thickness|corrosion pit evaluation|api 510 inspection|api 570 inspection|api 653 inspection|fitness for service)/i.test(qClean);
   const isHoisting = /(?:elevator inspection|elevator links wear|drilling hook inspection|swivel inspection|derrick inspection|mast inspection|api rp 8b|api rp 4g)/i.test(qClean);
@@ -4616,7 +4616,7 @@ function getDeterministicTriageMcqs(qClean) {
       ];
     }
   } else if (isHoisting) {
-    const hasCat = /(?:cat(?:egory)?s*(?:i{1,3}|iv|1|2|3|4)|overhaul|wear limit)/i.test(qClean);
+    const hasCat = /(?:cat(?:egory)?\s*(?:i{1,3}|iv|1|2|3|4)|overhaul)/i.test(qClean);
     const hasEquip = /(?:elevator|links|bail|hook|swivel|block|sheave|mast|derrick)/i.test(qClean);
     if (!hasCat || !hasEquip) {
       return [
@@ -5444,7 +5444,7 @@ ${contextText}
   // 1. Discipline Detectors
   const deterministicTriageMcqs = getDeterministicTriageMcqs(qClean);
   const isWps = /(?:wps\b|welding procedure|pqr\b|welding spec|welding procedure specification|asme\s*(?:viii|8|ix|9|xi|11)|qw-?482|pressure vessel weld|pipe weld)/i.test(qClean);
-  const isNdt = /(?:ndt procedure|ut procedure|ultrasonic procedure|rt procedure|radiographic procedure|mpi procedure|magnetic particle procedure|penetrant procedure|dye penetrant procedure|how to inspect (?:weld|tank|pipe|vessel|flange))/i.test(qClean);
+  const isNdt = /(?:ndt\s*(?:inspection\s*)?procedure|ut\s*procedure|ultrasonic\s*procedure|rt\s*procedure|radiographic\s*procedure|mpi\s*procedure|magnetic\s*particle\s*procedure|penetrant\s*procedure|dye\s*penetrant\s*procedure|how to inspect (?:weld|tank|pipe|vessel|flange))/i.test(qClean);
   const isHydrotest = /(?:hydrotest procedure|hydrostatic test procedure|pressure test procedure|leak test procedure|pneumatic test procedure|how to hydrotest|hydrostatic test)/i.test(qClean);
   const isIntegrity = /(?:remaining life|retirement thickness|corrosion pit evaluation|api 510 inspection|api 570 inspection|api 653 inspection|fitness for service)/i.test(qClean);
   const isHoisting = /(?:elevator inspection|elevator links wear|drilling hook inspection|swivel inspection|derrick inspection|mast inspection|api rp 8b|api rp 4g)/i.test(qClean);
@@ -5648,7 +5648,7 @@ Execute the complete deterministic engineering calculation:
 4. REPAIR / REPLACEMENT DISPOSITION: Clear Pass/Fail verdict.\n`;
     }
   } else if (isHoisting) {
-    const hasCat = /(?:cat(?:egory)?s*(?:i{1,3}|iv|1|2|3|4)|overhaul|wear limit)/i.test(qClean);
+    const hasCat = /(?:cat(?:egory)?\s*(?:i{1,3}|iv|1|2|3|4)|overhaul)/i.test(qClean);
     const hasEquip = /(?:elevator|links|bail|hook|swivel|block|sheave|mast|derrick)/i.test(qClean);
 
     if (!hasCat || !hasEquip) {
@@ -5982,15 +5982,16 @@ app.post('/api/ask', async (c) => {
     }
 
     // Log usage
+    const reportedModel = criticModelUsed || draftRes?.model || 'nvidia/nemotron-3-super-120b-a12b:free'
     await c.env.DB.prepare(
       `INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`
-    ).bind(session_id, question, model, today).run()
+    ).bind(session_id, question, reportedModel, today).run()
     
     return c.json({ 
       answer, 
       finish_reason: finishReason, 
       sources, 
-      model_used: model, 
+      model_used: reportedModel, 
       mode: mode,
       suggested_questions: suggestedQuestions,
       mcq_questions: mcqQuestions,
@@ -5998,7 +5999,7 @@ app.post('/api/ask', async (c) => {
       loop_engineering: {
         mode: 'DUAL_LLM_DRAFT_CRITIC',
         passes: loopPasses,
-        draft_model: model,
+        draft_model: draftRes?.model || reportedModel,
         critic_model: criticModelUsed,
         verified_status: loopPasses > 1 ? 'LEVEL_III_CRITIQUE_REFINED' : 'INITIAL_PASS_VERIFIED'
       }
