@@ -4511,6 +4511,172 @@ OUTPUT ONLY THE FINAL VERIFIED RESPONSE WITH ZERO INTRODUCTORY META-COMMENTARY.`
   ];
 }
 
+// 📋 Strict Typed Schema & Validator for Interactive Triage MCQs
+function validateAndSanitizeMcqs(raw) {
+  if (!Array.isArray(raw)) return []
+  return raw.filter(item => {
+    return item && 
+      typeof item.question === 'string' && 
+      item.question.trim().length > 0 &&
+      Array.isArray(item.options) && 
+      item.options.length >= 2
+  }).map(item => ({
+    question: item.question.trim(),
+    options: item.options.map(opt => String(opt).trim()).filter(Boolean)
+  })).filter(item => item.options.length >= 2)
+}
+
+function getDeterministicTriageMcqs(qClean) {
+  const isWps = /(?:wps\b|welding procedure|pqr\b|welding spec|welding procedure specification|asme\s*(?:viii|8|ix|9|xi|11)|qw-?482|pressure vessel weld|pipe weld)/i.test(qClean);
+  const isNdt = /(?:ndt procedure|ut procedure|ultrasonic procedure|rt procedure|radiographic procedure|mpi procedure|magnetic particle procedure|penetrant procedure|dye penetrant procedure|how to inspect (?:weld|tank|pipe|vessel|flange))/i.test(qClean);
+  const isHydrotest = /(?:hydrotest procedure|hydrostatic test procedure|pressure test procedure|leak test procedure|pneumatic test procedure|how to hydrotest|hydrostatic test)/i.test(qClean);
+  const isIntegrity = /(?:remaining life|retirement thickness|corrosion pit evaluation|api 510 inspection|api 570 inspection|api 653 inspection|fitness for service)/i.test(qClean);
+  const isHoisting = /(?:elevator inspection|elevator links wear|drilling hook inspection|swivel inspection|derrick inspection|mast inspection|api rp 8b|api rp 4g)/i.test(qClean);
+  const isTubular = /(?:drill pipe inspection|drill stem inspection|tool joint wear|hwdp inspection|drill collar inspection|casing inspection criteria|api rp 7g-2)/i.test(qClean);
+  const isBop = /(?:bop test procedure|bop pressure test|blowout preventer test|accumulator drawdown test|choke manifold test|api standard 53)/i.test(qClean);
+
+  if (isWps) {
+    const hasBaseMetal = /(?:a106|a333|a53|api 5l|sa-?516|sa516|sa-?537|sa-?106|sa106|sa-?333|sa333|sa-?240|sa240|sa-?312|sa312|316l?|304l?|p-?no|p1|p8|p3|p4|p5a|x52|x60|x65|4130|carbon steel|stainless|pressure vessel)/i.test(qClean);
+    const hasThickness = /(?:sch|schedule|wall|thickness|\bmm\b|\binch\b|\bthk\b|xxs|std|gauge|gage|\bplate\b)/i.test(qClean);
+    if (!hasBaseMetal || !hasThickness) {
+      return [
+        {
+          question: "Base Metal Specification / Grade",
+          options: ["ASTM A106 Gr B (Carbon Steel - Most Common)", "ASTM A333 Gr 6 (Low Temp -45°C)", "Stainless Steel 316L (Austenitic P-No 8)", "Advise Most Common (A106 Gr B)"]
+        },
+        {
+          question: "Pipe Wall Thickness / Schedule",
+          options: ["Sch 40 (Standard - No PWHT <=19mm)", "Sch 80 (Heavy Wall - High Integrity)", "Sch 160 / XXS (High Pressure - Mandatory PWHT)", "Advise Based on Standard Pressure"]
+        },
+        {
+          question: "Service Severity Condition",
+          options: ["Standard Hydrocarbon (ASME B31.3 Normal Service)", "Sour Service H2S (NACE MR0175 / ISO 15156)", "High-Temperature / Severe Cyclic Service"]
+        },
+        {
+          question: "Governing Specification Policy",
+          options: ["Global International Standards (ASME B31.3 & ASME IX Baseline)", "Custom Company / Client Specification (Provide Spec)"]
+        }
+      ];
+    }
+  } else if (isNdt) {
+    const hasMethod = /(?:ultrasonic| ut |radiograph| rt |magnetic particle| mpi | mt |penetrant| pt | dpi )/i.test(qClean);
+    const hasThkOrGeom = /(?:wall|thickness|\bmm\b|\binch\b|butt weld|nozzle|fillet|pipe|plate)/i.test(qClean);
+    if (!hasMethod || !hasThkOrGeom) {
+      return [
+        {
+          question: "Target NDT Examination Method",
+          options: ["Angle Beam Ultrasonic Testing (UT/PAUT per Art. 4)", "Radiographic Examination (RT per Art. 2 - Ir-192 / X-ray)", "Magnetic Particle Testing (MT per Art. 7 - Wet / Yoke)", "Liquid Penetrant Testing (PT per Art. 6 - Solvent Removable)"]
+        },
+        {
+          question: "Component Geometry & Wall Thickness",
+          options: ["Standard Butt Weld (t <= 25 mm / 1 inch)", "Heavy Wall Section (t > 25 mm)", "Nozzle / Structural T-K-Y Joint", "Advise Based on Common Field Spec"]
+        },
+        {
+          question: "Governing Acceptance Standard",
+          options: ["Global Standard (ASME B31.3 Table 341.3.2 / ASME VIII Div 1)", "Specific Company / Client Acceptance Criteria (Provide Spec)"]
+        }
+      ];
+    }
+  } else if (isHydrotest) {
+    const hasPressure = /(?:psi|bar|kpa|class 150|class 300|class 600|design pressure|maop)/i.test(qClean);
+    const hasCode = /(?:b31.3|b31.4|b31.8|asme viii|section viii|api 510)/i.test(qClean);
+    if (!hasPressure || !hasCode) {
+      return [
+        {
+          question: "Governing Piping / Equipment Code",
+          options: ["Process Piping (ASME B31.3 Para 345 - 1.5x Design)", "Liquid Pipeline (ASME B31.4 Clause 437 - 1.25x MAOP)", "Gas Pipeline (ASME B31.8 Section 841 - 1.25x/1.5x MAOP)", "Pressure Vessel (ASME Section VIII Div 1 UG-99)"]
+        },
+        {
+          question: "System Rating / Design Pressure",
+          options: ["Class 150 (285 psig / 19.6 bar)", "Class 300 (740 psig / 51.0 bar)", "Class 600 (1480 psig / 102 bar)", "Advise Standard 1.5x Calculation"]
+        },
+        {
+          question: "Governing Specification Policy",
+          options: ["Global International Standards (ASME Code Baseline)", "Custom Company / Client Specification (Provide Spec)"]
+        }
+      ];
+    }
+  } else if (isIntegrity) {
+    const hasGeom = /(?:cylinder|cylindrical|sphere|spherical|head|shell|elbow|pipe|vessel|tank)/i.test(qClean);
+    const hasThk = /(?:thickness|\bmm\b|\binch\b|actual|tmin|corrosion rate)/i.test(qClean);
+    if (!hasGeom || !hasThk) {
+      return [
+        {
+          question: "Asset Type & Governing In-Service Code",
+          options: ["Pressure Vessel (API 510 / ASME VIII)", "Process Piping System (API 570 / ASME B31.3)", "Aboveground Storage Tank (API 653 / API 650)"]
+        },
+        {
+          question: "Shell Component Geometry",
+          options: ["Cylindrical Shell (ASME UG-27(c))", "Spherical Shell / Dampener (ASME UG-27(d))", "2:1 Ellipsoidal Head (ASME 1-4(c))", "Advise Most Common (Cylindrical)"]
+        },
+        {
+          question: "Governing Standard Policy",
+          options: ["API Global In-Service Standards Baseline", "Owner-Operator Asset Integrity Management Spec"]
+        }
+      ];
+    }
+  } else if (isHoisting) {
+    const hasCat = /(?:cat(?:egory)?s*(?:i{1,3}|iv|1|2|3|4)|overhaul|wear limit)/i.test(qClean);
+    const hasEquip = /(?:elevator|links|bail|hook|swivel|block|sheave|mast|derrick)/i.test(qClean);
+    if (!hasCat || !hasEquip) {
+      return [
+        {
+          question: "Hoisting / Structural Equipment Scope",
+          options: ["Drilling Elevators (Center Latch / Slip Type)", "Elevator Links / Bails (Double / Single Hook)", "Crown & Traveling Block Sheaves", "Derrick / Mast Structural Frame (API RP 4G)"]
+        },
+        {
+          question: "Target Inspection Category",
+          options: ["Category I & II (Daily & Weekly Rig Crew Visual)", "Category III (Field NDT - MPI & Calipers)", "Category IV (5-Year Full Teardown & Overhaul)", "Advise Based on Operating Hours"]
+        },
+        {
+          question: "Governing Standard Policy",
+          options: ["API RP 8B / RP 4G International Baseline", "OEM Procedure (NOV, Varco, Cameron) / Contractor Spec"]
+        }
+      ];
+    }
+  } else if (isTubular) {
+    const hasClass = /(?:premium|class 2|class 3|ds-1|80%|70%)/i.test(qClean);
+    const hasPipe = /(?:drill pipe|tool joint|hwdp|drill collar|casing|tubing)/i.test(qClean);
+    if (!hasClass || !hasPipe) {
+      return [
+        {
+          question: "Tubular Component Scope",
+          options: ["Drill Pipe Body & Tool Joints", "Heavy Weight Drill Pipe (HWDP)", "Drill Collars & Stabilizers", "API 5CT Casing / Tubing (Wellsite Receiving)"]
+        },
+        {
+          question: "Target Classification Tier",
+          options: ["Premium Class (Min 80% Remaining Wall)", "Class 2 (Min 70% Remaining Wall - Workover)", "Scrap / Discard Classification (Below 70%/55%)", "Advise Premium Class Baseline"]
+        },
+        {
+          question: "Governing Specification Policy",
+          options: ["API RP 7G-2 International Standard Baseline", "TH Hill DS-1 (Category 3-5 Special Criteria)"]
+        }
+      ];
+    }
+  } else if (isBop) {
+    const hasRwp = /(?:3000|5000|10000|15000|rwp|rated working pressure)/i.test(qClean);
+    const hasTest = /(?:low pressure|high pressure|drawdown|routine|initial|operational)/i.test(qClean);
+    if (!hasRwp || !hasTest) {
+      return [
+        {
+          question: "Well Control Installation Type",
+          options: ["Surface BOP Stack (Land Rig / Jack-up)", "Subsea BOP Stack (Drillship / Semi-submersible)", "Coiled Tubing / Snubbing Unit BOP"]
+        },
+        {
+          question: "Stack Rated Working Pressure (RWP)",
+          options: ["5,000 psi (34.5 MPa)", "10,000 psi (69.0 MPa)", "15,000 psi (103.4 MPa)", "Advise 10,000 psi Most Common"]
+        },
+        {
+          question: "Governing Policy",
+          options: ["API Standard 53 International Baseline", "Operator Well Control Policy (Provide Spec)"]
+        }
+      ];
+    }
+  }
+
+  return null;
+}
+
 async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = [], mode = 'web', selected_standards = []) {
   const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
   let dbConf = {}
@@ -5276,6 +5442,7 @@ ${contextText}
   const qClean = question.toLowerCase();
 
   // 1. Discipline Detectors
+  const deterministicTriageMcqs = getDeterministicTriageMcqs(qClean);
   const isWps = /(?:wps\b|welding procedure|pqr\b|welding spec|welding procedure specification|asme\s*(?:viii|8|ix|9|xi|11)|qw-?482|pressure vessel weld|pipe weld)/i.test(qClean);
   const isNdt = /(?:ndt procedure|ut procedure|ultrasonic procedure|rt procedure|radiographic procedure|mpi procedure|magnetic particle procedure|penetrant procedure|dye penetrant procedure|how to inspect (?:weld|tank|pipe|vessel|flange))/i.test(qClean);
   const isHydrotest = /(?:hydrotest procedure|hydrostatic test procedure|pressure test procedure|leak test procedure|pneumatic test procedure|how to hydrotest|hydrostatic test)/i.test(qClean);
@@ -5589,7 +5756,7 @@ Generate a complete, step-by-step BOP Pressure Test Sequence:
     { role: "user", content: question }
   ]
   
-  return { messages, sources, today }
+  return { messages, sources, today, deterministicTriageMcqs }
 }
 
 app.post('/api/ask', async (c) => {
@@ -5606,7 +5773,7 @@ app.post('/api/ask', async (c) => {
       throw e
     }
     
-    const { messages, sources, today } = contextData
+    const { messages, sources, today, deterministicTriageMcqs } = contextData
     const isStreamRequested = Boolean(c.req.query('stream') === 'true' || c.req.header('Accept')?.includes('text/event-stream'))
     
     // Step 1: Execute Pass 1 (Draft Model) internally in buffered mode
@@ -5631,6 +5798,18 @@ app.post('/api/ask', async (c) => {
     if (draftAnswer && !draftAnswer.startsWith('AI Error:') && draftAnswer.length > 50) {
       criticMessages = buildCriticMessages(question, sources, draftAnswer, history, envelopeContext)
       loopPasses = 2
+    }
+
+    // 🎯 Resolve strongly-typed active triage MCQs
+    let activeMcqs = (deterministicTriageMcqs && deterministicTriageMcqs.length > 0) ? deterministicTriageMcqs : []
+    if (activeMcqs.length === 0 && draftAnswer) {
+      const match = draftAnswer.match(/<!--MCQ:\s*(\[[\s\S]*?\])\s*-->/i)
+      if (match) {
+        try {
+          const parsed = validateAndSanitizeMcqs(JSON.parse(match[1]))
+          if (parsed.length > 0) activeMcqs = parsed
+        } catch(e) {}
+      }
     }
 
     if (isStreamRequested) {
@@ -5698,6 +5877,7 @@ app.post('/api/ask', async (c) => {
               await writer.write(encoder.encode(`data: ${JSON.stringify({ 
                 type: 'complete', 
                 suggested_questions: defaultFollowups,
+                mcq_questions: activeMcqs,
                 loop_engineering: {
                   mode: 'DUAL_LLM_DRAFT_CRITIC',
                   passes: loopPasses,
@@ -5744,12 +5924,13 @@ app.post('/api/ask', async (c) => {
       }
     }
     
-    // 1. Extract optional MCQ questions if model flagged a 50/50 conflict (Multi-line safe)
-    let mcqQuestions = []
+    // 1. Extract optional MCQ questions if model flagged a 50/50 conflict or triage needed
+    let mcqQuestions = (activeMcqs && activeMcqs.length > 0) ? activeMcqs : []
     const mcqMatch = answer.match(/<!--MCQ:\s*(\[[\s\S]*?\])\s*-->/i)
     if (mcqMatch) {
       try {
-        mcqQuestions = JSON.parse(mcqMatch[1])
+        const parsed = validateAndSanitizeMcqs(JSON.parse(mcqMatch[1]))
+        if (parsed.length > 0) mcqQuestions = parsed
       } catch(e){}
       answer = answer.replace(mcqMatch[0], '').trim()
     }

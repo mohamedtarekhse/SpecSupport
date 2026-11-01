@@ -6241,6 +6241,7 @@ Answer the inspector's query strictly and accurately based on the verified local
                     let fullAnswer = '';
                     let streamSources = [];
                     let streamFollowups = [];
+                    let streamMcqs = [];
 
                     while (true) {
                         const { done, value } = await reader.read();
@@ -6260,6 +6261,9 @@ Answer the inspector's query strictly and accurately based on the verified local
                                     streamSources = parsed.sources || [];
                                 } else if (parsed.type === 'complete') {
                                     streamFollowups = parsed.suggested_questions || [];
+                                    if (Array.isArray(parsed.mcq_questions) && parsed.mcq_questions.length > 0) {
+                                        streamMcqs = parsed.mcq_questions;
+                                    }
                                 } else if (parsed.token !== undefined) {
                                     fullAnswer += String(parsed.token);
                                     streamMsg.updateText(fullAnswer);
@@ -6277,7 +6281,8 @@ Answer the inspector's query strictly and accurately based on the verified local
                     if (streamMcqMatch) {
                         try { inlineStreamMcqs = JSON.parse(streamMcqMatch[1]); } catch(e){}
                     }
-                    streamMsg.finalize(fullAnswer, streamSources, streamFollowups, inlineStreamMcqs);
+                    const activeStreamMcqs = (streamMcqs && streamMcqs.length > 0) ? streamMcqs : inlineStreamMcqs;
+                    streamMsg.finalize(fullAnswer, streamSources, streamFollowups, activeStreamMcqs);
                     chatHistory.push({ role: 'user', content: text });
                     chatHistory.push({ role: 'assistant', content: fullAnswer });
                 } else {
