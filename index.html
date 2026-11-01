@@ -6345,7 +6345,7 @@ Answer the inspector's query strictly and accurately based on the verified local
                     } else if (itemContent.includes('<strong>')) {
                         const parts = itemContent.split('</strong>');
                         label = parts[0].replace(/<strong[^>]*>/, '').trim();
-                        val = parts.slice(1).replace(/^[:s-]+/, '').trim();
+                        val = parts.slice(1).join('</strong>').replace(/^[:\s-]+/, '').trim();
                     } else if (content.includes(':')) {
                         const parts = itemContent.split(':');
                         label = parts[0].trim();
@@ -6461,7 +6461,7 @@ Answer the inspector's query strictly and accurately based on the verified local
                     } else if (itemContent.includes('<strong>')) {
                         const parts = itemContent.split('</strong>');
                         label = parts[0].replace(/<strong[^>]*>/, '').trim();
-                        val = parts.slice(1).replace(/^[:\s-]+/, '').trim();
+                        val = parts.slice(1).join('</strong>').replace(/^[:\s-]+/, '').trim();
                     }
 
                     const lowerLabel = label.toLowerCase();
