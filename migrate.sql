@@ -39,3 +39,20 @@ CREATE TABLE IF NOT EXISTS system_config (
 
 INSERT OR IGNORE INTO system_config (key, value) VALUES ('openrouter_api_key', '');
 INSERT OR IGNORE INTO system_config (key, value) VALUES ('openrouter_model', 'qwen/qwen3.8-27b:free');
+
+CREATE VIRTUAL TABLE IF NOT EXISTS standards_fts USING fts5(
+  content,
+  standard_code UNINDEXED,
+  clause UNINDEXED,
+  content_rowid='id'
+);
+
+CREATE TABLE IF NOT EXISTS hyde_cache (
+  question TEXT PRIMARY KEY,
+  hyde_text TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Backfill FTS from existing chunks
+INSERT INTO standards_fts (rowid, content, standard_code, clause)
+SELECT id, content, standard_code, clause FROM standards_chunks;
