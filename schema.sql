@@ -21,6 +21,21 @@ CREATE TABLE usage_log (
 CREATE INDEX idx_standard_code ON standards_chunks(standard_code);
 CREATE INDEX idx_session_date ON usage_log(session_id, date);
 
+-- Hybrid search keyword side (referenced by worker/src/index.js BM25 query)
+CREATE VIRTUAL TABLE IF NOT EXISTS standards_fts USING fts5(
+  content,
+  standard_code UNINDEXED,
+  clause UNINDEXED,
+  content_rowid='id'
+);
+
+-- HyDE cache (referenced by prepareContextAndMessages)
+CREATE TABLE IF NOT EXISTS hyde_cache (
+  question TEXT PRIMARY KEY,
+  hyde_text TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE user_subscriptions (
   session_id TEXT PRIMARY KEY,
   daily_limit INTEGER DEFAULT 10,

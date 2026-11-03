@@ -165,10 +165,20 @@ app.post('/api/admin/ingest', async (c) => {
     const aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [content] })
     const embedding = JSON.stringify(aiResp.data?.[0] ?? aiResp?.[0] ?? [])
     
-    await c.env.DB.prepare(
+    const insertRes = await c.env.DB.prepare(
       `INSERT INTO standards_chunks (standard_code, standard_name, section, clause, content, embedding)
        VALUES (?, ?, ?, ?, ?, ?)`
     ).bind(standard_code, standard_name, section, clause, content, embedding).run()
+
+    // Keep BM25 keyword index in sync with the vector store (hybrid search depends on it)
+    try {
+      const ftsRowid = insertRes?.meta?.last_row_id
+      if (ftsRowid) {
+        await c.env.DB.prepare(
+          `INSERT INTO standards_fts (rowid, content, standard_code, clause) VALUES (?, ?, ?, ?)`
+        ).bind(ftsRowid, content, standard_code, clause).run()
+      }
+    } catch (ftsErr) { console.error('FTS sync failed:', ftsErr.message) }
     
     return c.json({ success: true })
   } catch (e) {
@@ -580,6 +590,12 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
   // Final Hybrid Sort
   scoredChunks.sort((a, b) => b.rrf_score - a.rrf_score)
   const topChunks = scoredChunks.slice(0, 5)
+
+  // ANTI-HALLUCINATION GATE 1 (Retrieval Confidence): if nothing retrieved is
+  // close enough, refuse BEFORE spending an LLM call. Cheap refusal beats fabrication.
+  const bestVectorScore = topChunks.length ? Math.max(...topChunks.map(ch => ch.vector_score)) : -1
+  const bestRrf = topChunks.length ? topChunks[0].rrf_score : 0
+  const lowConfidence = standard_filter !== '🌐 GENERAL AI' && (bestVectorScore < 0.35 || bestRrf <= 0)
   
   let contextText = ""
   let sources = []
@@ -619,6 +635,7 @@ You MUST start your response with EXACTLY this structured format:
 
 If the answer is not in the context, say: 'This specific clause is not in my loaded standards.'
 Never guess. Never fabricate clause numbers.
+The hypothetical draft text (if any) was retrieval aid ONLY - it is NOT a source and must never be quoted or cited.
 If question is in Arabic, answer in Arabic (except for the structured headers).
 ${rulesSection}
 CONTEXT SOURCES:
@@ -632,7 +649,43 @@ ${contextText}
     { role: "user", content: question }
   ]
   
-  return { messages, sources, today }
+  return { messages, sources, today, lowConfidence, contextText }
+}
+
+// ANTI-HALLUCINATION GATE 2: Grounded-Claim Ledger (post-generation verifier).
+// Extracts clause citations and numeric+unit claims from the answer; each must be
+// traceable to the retrieved context. Unverifiable claims are flagged, never passed silently.
+function verifyGroundedClaims(answer, contextText) {
+  if (!contextText) return { answer, verified: true }
+  const norm = (s) => s.toLowerCase().replace(/\s+/g, ' ')
+  const ctx = norm(contextText)
+  const issues = []
+
+  // 1) Clause citations like "section 7.2.3", "para. 341.4", "clause 6.1", "§5.2.1"
+  const citeRe = /(?:\b(?:section|para(?:graph)?|clause)\s*|§\s*)(\d+(?:\.\d+)+)/gi
+  let m
+  while ((m = citeRe.exec(answer)) !== null) {
+    if (!ctx.includes(m[1])) issues.push(`clause ${m[1]}`)
+  }
+
+  // 2) Numeric claims with units (the #1 fabrication vector): "3 mm", "20%", "1/2 in", "9 psi"
+  const numRe = /(\d+(?:[.\/]\d+)?)\s*(mm|cm|m(?![a-z])|inch(?:es)?|in(?![a-z])|%|psi|mpa|bar|kw|j|°c|°f|h|hours?|years?|days?)\b/gi
+  while ((m = numRe.exec(answer)) !== null) {
+    if (!ctx.includes(norm(m[1]))) issues.push(`${m[0]}`)
+  }
+
+  // 3) Bare decimal numbers (thresholds like "0.45" or "1/2") — check only short answers' key figures
+  const bareRe = /\b\d+\.\d{2}\b/g
+  while ((m = bareRe.exec(answer)) !== null) {
+    if (!ctx.includes(m[0])) issues.push(m[0])
+  }
+
+  const unique = [...new Set(issues)]
+  if (unique.length === 0) return { answer, verified: true }
+  const warning = `
+
+> ⚠️ **Verification failed** — not found in loaded standards: ${unique.slice(0, 6).join(', ')}. Treat these values as unverified.`
+  return { answer: answer + warning, verified: false, issues: unique }
 }
 
 app.post('/api/ask', async (c) => {
@@ -649,7 +702,19 @@ app.post('/api/ask', async (c) => {
       throw e
     }
     
-    const { messages, sources, today } = contextData
+    const { messages, sources, today, lowConfidence, contextText } = contextData
+
+    // Gate 1: refuse BEFORE generation when retrieval confidence is too low
+    if (lowConfidence) {
+      await c.env.DB.prepare(
+        `INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`
+      ).bind(session_id, question, 'refused_low_confidence', today).run()
+      return c.json({
+        answer: "This specific clause is not in my loaded standards. (Retrieval confidence too low — I will not guess.)",
+        finish_reason: 'stop', sources: [], model_used: 'refused_low_confidence', grounded: true
+      }, 200)
+    }
+
     const { response, model, provider } = await askAIProvider(c, messages, false)
     
     const json = await response.json()
@@ -668,7 +733,13 @@ app.post('/api/ask', async (c) => {
       `INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`
     ).bind(session_id, question, model, today).run()
     
-    return c.json({ answer, finish_reason: finishReason, sources, model_used: model })
+    // Gate 2: grounded-claim ledger (RAG modes only; General AI mode has no corpus to check against)
+    const guard = standard_filter === '🌐 GENERAL AI'
+      ? { answer, verified: true }
+      : verifyGroundedClaims(answer, contextText)
+    answer = guard.answer
+
+    return c.json({ answer, finish_reason: finishReason, sources, model_used: model, grounded: guard.verified })
   } catch (e) {
     if (e.message && e.message.includes("RATE_LIMIT_ALL")) {
       return c.json({ error: "The selected AI provider is currently rate-limiting requests. Please try again in a few minutes." }, 429);
@@ -691,7 +762,16 @@ app.post('/api/ask/stream', async (c) => {
       throw e
     }
     
-    const { messages, sources, today } = contextData
+    const { messages, sources, today, lowConfidence } = contextData
+
+    // Gate 1 (stream): pre-refusal on low retrieval confidence
+    if (lowConfidence) {
+      return c.json({
+        answer: "This specific clause is not in my loaded standards. (Retrieval confidence too low — I will not guess.)",
+        finish_reason: 'stop', sources: [], model_used: 'refused_low_confidence', grounded: true
+      }, 200)
+    }
+
     const { response, model, provider } = await askAIProvider(c, messages, true)
     
     // We send sources and model as initial event then stream chunks
