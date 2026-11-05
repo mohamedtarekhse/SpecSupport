@@ -3917,7 +3917,7 @@ async function askAIProvider(c, messages, stream) {
 
       if (groqKey) {
         try {
-          return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', 'llama-3.1-70b-versatile', 4096)
+          return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', 'llama-3.3-70b-versatile', 4096)
         } catch (e) {
           lastError = `Groq: ${e.message}`
         }
@@ -3933,7 +3933,7 @@ async function askAIProvider(c, messages, stream) {
     // 2. Groq active
     else if (activeProvider === 'groq') {
       if (groqKey) {
-        const groqModels = ['llama-3.1-70b-versatile', 'llama3-8b-8192']
+        const groqModels = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
         for (const m of groqModels) {
           try {
             return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', m, 4096)
@@ -3976,7 +3976,7 @@ async function askAIProvider(c, messages, stream) {
       }
       if (groqKey) {
         try {
-          return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', 'llama-3.1-70b-versatile', 4096)
+          return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', 'llama-3.3-70b-versatile', 4096)
         } catch (e) {
           lastError = `Groq: ${e.message}`
         }
