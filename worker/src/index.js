@@ -4803,8 +4803,11 @@ function detectOutOfScopeStandard(question) {
     /\b(ACI\s*(?:318|349|350|211))\b/i,
     /\b(ISO\s*(?:10993|13485|14971|9001))\b/i,
     /\b(BS\s*(?:5950|8110|7671))\b/i,
-    /\b(Eurocode|EN\s*199[0-9]|IEC\s*[0-9]+)\b/i,
-    /\b(ASTM\s*C[0-9]+)\b/i
+    /\b(Eurocode|EN\s*(?:199[0-9]|13445|12952|13480)|IEC\s*[0-9]+)\b/i,
+    /\b(ASTM\s*(?:C[0-9]+|A123|A153|A385|A780))\b/i,
+    /\b(AWS\s*D1\.[2-9]\b|AWS\s*D1\.8\b)\b/i,
+    /\b(ASME\s*BPE\b|ASME\s*Section\s*(?:I|III|IV|VI|VII|X|XII)\b)\b/i,
+    /\b(API\s*(?:RP\s*2A(?:-WSD|-LRFD)?|Spec\s*2B|Spec\s*2C|RP\s*2MET|RP\s*14C|Spec\s*17D))\b/i
   ];
   for (const pat of outOfScopePatterns) {
     const match = question.match(pat);
@@ -4902,16 +4905,23 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
 
   // 🛡️ Phase P1.2: Calibrated Abstention Gate for Out-of-Corpus Queries
   const outStd = detectOutOfScopeStandard(question);
-  const inScopeMention = /\b(API|ASME|AWS|ISO\s*(?:3834|9712)|NACE|IADC|DS-1|4130|A106|SA-?516|X52|X65)\b/i.test(question);
-  if (outStd && !inScopeMention) {
-    return {
-      isAbstention: true,
-      abstentionText: `**CORPUS SCOPE DEMARCATION NOTICE:** The requested standard (${outStd}) is outside the verified Oil & Gas inspection database corpus (API, ASME, AWS, ISO 3834/9712, NACE MR0175, IADC, DS-1).\n\nPer SpecSupport Level III verification rules, no certified inspection disposition or numerical limits can be generated for unverified external standards. Please specify an in-scope governing code or upload your company specification via Refiner Studio.`,
-      messages: [],
-      sources: [],
-      today: new Date().toISOString().split('T')[0],
-      deterministicTriageMcqs: []
-    };
+  if (outStd) {
+    const remainingText = question.replace(new RegExp(outStd.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'i'), '');
+    const inScopeStdRegex = /\b(API\s*(?:1104|5CT|6A|16[ACD]|16AR|510|570|653|RP\s*[4578][A-Z0-9\-]*)|ASME\s*(?:B31\.[1348]|VIII(?:\s*Div(?:ision)?\s*[12])?|IX|V)|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:3834|9712)|NACE\s*MR0175|IADC|DS-1)\b/i;
+    const inScopeMaterialRegex = /\b(4130|A106|SA-?516|X52|X65|LF2|P-No\s*\.?\s*\d+|QW\/?QB-?422)\b/i;
+    const hasInScopeStd = inScopeStdRegex.test(remainingText);
+    const hasInScopeMaterial = inScopeMaterialRegex.test(remainingText);
+    
+    if (!hasInScopeStd && !hasInScopeMaterial) {
+      return {
+        isAbstention: true,
+        abstentionText: `**CORPUS SCOPE DEMARCATION NOTICE:** The requested standard (${outStd}) is outside the verified Oil & Gas inspection database corpus (API, ASME, AWS, ISO 3834/9712, NACE MR0175, IADC, DS-1).\n\nPer SpecSupport Level III verification rules, no certified inspection disposition or numerical limits can be generated for unverified external standards. Please specify an in-scope governing code or upload your company specification via Refiner Studio.`,
+        messages: [],
+        sources: [],
+        today: new Date().toISOString().split('T')[0],
+        deterministicTriageMcqs: []
+      };
+    }
   }
 
   // Usage check
