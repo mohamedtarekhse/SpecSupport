@@ -139,13 +139,29 @@ let passed = 0;
 let total = GOLDEN_DATASET.length;
 const results = [];
 
-// Load the local standards files to test direct retrieval comprehension
+// Load the local standards files or backup archive to test direct retrieval comprehension
 const standardsDir = path.join(__dirname, '..', 'standards');
-const standardsFiles = fs.readdirSync(standardsDir).filter(f => f.endsWith('.txt'));
 let allKnowledge = '';
-standardsFiles.forEach(f => {
-  allKnowledge += fs.readFileSync(path.join(standardsDir, f), 'utf8') + '\n';
-});
+
+if (fs.existsSync(standardsDir)) {
+  const standardsFiles = fs.readdirSync(standardsDir).filter(f => f.endsWith('.txt'));
+  standardsFiles.forEach(f => {
+    allKnowledge += fs.readFileSync(path.join(standardsDir, f), 'utf8') + '\n';
+  });
+} else {
+  const backupZip = path.join(__dirname, '..', 'backups', 'standards_source_backup.zip');
+  if (fs.existsSync(backupZip)) {
+    const tmpDir = path.join(__dirname, '..', 'backups', 'unpacked_standards');
+    if (!fs.existsSync(tmpDir)) {
+      fs.mkdirSync(tmpDir, { recursive: true });
+      require('child_process').execSync(`tar -xf "${backupZip}" -C "${tmpDir}"`);
+    }
+    const standardsFiles = fs.readdirSync(tmpDir).filter(f => f.endsWith('.txt'));
+    standardsFiles.forEach(f => {
+      allKnowledge += fs.readFileSync(path.join(tmpDir, f), 'utf8') + '\n';
+    });
+  }
+}
 
 GOLDEN_DATASET.forEach((tc, idx) => {
   const start = Date.now();

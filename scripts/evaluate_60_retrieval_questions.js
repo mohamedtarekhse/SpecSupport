@@ -398,13 +398,27 @@ const CATEGORIES = [
   }
 ];
 
-// Load local standards corpus to execute real BM25 / keyword retrieval
+// Load local standards corpus or backup archive to execute real BM25 / keyword retrieval
 const standardsDir = path.join(__dirname, '..', 'standards');
-const files = fs.readdirSync(standardsDir).filter(f => f.endsWith('.txt'));
+let corpusDir = standardsDir;
+
+if (!fs.existsSync(standardsDir)) {
+  const backupZip = path.join(__dirname, '..', 'backups', 'standards_source_backup.zip');
+  const tmpDir = path.join(__dirname, '..', 'backups', 'unpacked_standards');
+  if (fs.existsSync(backupZip)) {
+    if (!fs.existsSync(tmpDir)) {
+      fs.mkdirSync(tmpDir, { recursive: true });
+      require('child_process').execSync(`tar -xf "${backupZip}" -C "${tmpDir}"`);
+    }
+    corpusDir = tmpDir;
+  }
+}
+
+const files = fs.existsSync(corpusDir) ? fs.readdirSync(corpusDir).filter(f => f.endsWith('.txt')) : [];
 
 const chunkIndex = [];
 for (const file of files) {
-  const content = fs.readFileSync(path.join(standardsDir, file), 'utf8');
+  const content = fs.readFileSync(path.join(corpusDir, file), 'utf8');
   let stdCode = '';
   const stdMatch = content.match(/\[STANDARD:\s*([^\]]+)\]/i);
   if (stdMatch) stdCode = stdMatch[1].trim();
