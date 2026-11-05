@@ -4028,6 +4028,21 @@ function extractAlphanumericEntities(text) {
     /\b(QW\-[0-9]{3,4})\b/gi,
     /\b([0-9]{3}\.[0-9]+(?:\.[0-9]+)?)\b/gi // e.g. 341.3.2, 345.4.2
   ]
+  // Material Specifications (e.g. SA-516, SA106, A-333) → direct Table QW/QB-422 & ASME data lookups
+  const materialPatterns = [
+    /\b(SA-?\s?\d{3})\b/gi,
+    /\b(A-?\s?\d{3}\s*(?:Gr(?:ade)?\s*\w+)?)\b/gi
+  ]
+  for (const matPat of materialPatterns) {
+    let mMat
+    while ((mMat = matPat.exec(text)) !== null) {
+      const raw = mMat[1].trim()
+      const digits = (raw.match(/\d{3}/) || [])[0]
+      if (!digits) continue
+      const prefix = /^SA/i.test(raw) ? 'SA-' : 'A-'
+      entities.push({ type: 'material', value: prefix + digits })
+    }
+  }
   for (const pat of clausePatterns) {
     let match
     while ((match = pat.exec(text)) !== null) {
