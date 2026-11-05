@@ -5183,36 +5183,42 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   `
   let params = [session_id]
 
-  if (Array.isArray(selected_standards) && selected_standards.length > 0) {
-    const placeholders = selected_standards.map(() => '?').join(',')
-    query += ` AND standard_code IN (${placeholders})`
-    params.push(...selected_standards)
+  // If user selected all standards or >30 standards, skip IN clause to save query overhead and host parameter slots
+  const isAllStds = !Array.isArray(selected_standards) || selected_standards.length === 0 || selected_standards.includes('ALL') || selected_standards.length >= 35;
+  if (!isAllStds) {
+    const safeStds = selected_standards.filter(s => typeof s === 'string' && s.trim().length > 0).slice(0, 30);
+    if (safeStds.length > 0) {
+      const placeholders = safeStds.map(() => '?').join(',');
+      query += ` AND standard_code IN (${placeholders})`;
+      params.push(...safeStds);
+    }
   } else if (standard_filter && standard_filter !== 'ALL' && standard_filter !== '🌐 GENERAL AI') {
-    query += ` AND standard_code = ?`
-    params.push(standard_filter)
+    query += ` AND standard_code = ?`;
+    params.push(standard_filter);
   } else if (detectedStd) {
-    query += ` AND standard_code LIKE ?`
-    params.push(`%${detectedStd}%`)
+    query += ` AND standard_code LIKE ?`;
+    params.push(`%${detectedStd}%`);
   }
 
-  // Strict 80-chunk cap to guarantee D1 payload is ~300 KB (never exceeding D1 50 MB response limit)
-  if (ftsMatchedIds.length > 0) {
-    const placeholders = ftsMatchedIds.slice(0, 80).map(() => '?').join(',')
-    query += ` AND id IN (${placeholders}) LIMIT 80`
-    params.push(...ftsMatchedIds.slice(0, 80))
+  // Zero-Variable Injection for FTS integer IDs:
+  // ftsMatchedIds are pure integers (rowid). Slicing and validating as integers allows direct safe interpolation,
+  // consuming ZERO SQL host variables (? slots) to strictly prevent SQLite "too many SQL variables" (max 100).
+  const safeFtsIds = ftsMatchedIds.filter(id => Number.isInteger(id) && id > 0).slice(0, 80);
+  if (safeFtsIds.length > 0) {
+    query += ` AND id IN (${safeFtsIds.join(',')}) LIMIT 80`;
   } else {
-    query += ` LIMIT 80`
+    query += ` LIMIT 80`;
   }
 
-  const { results } = await c.env.DB.prepare(query).bind(...params).all()
-  let candidates = results || []
-  if (detectedStd && candidates.length < 4 && ftsMatchedIds.length > 0) {
+  const { results } = await c.env.DB.prepare(query).bind(...params).all();
+  let candidates = results || [];
+  if (detectedStd && candidates.length < 4 && safeFtsIds.length > 0) {
     try {
-      const fbPlaceholders = ftsMatchedIds.slice(0, 40).map(() => '?').join(',')
-      const fbSql = `SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization, pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs FROM standards_chunks WHERE (scope = 'global' OR scope IS NULL) AND (is_excluded = 0 OR is_excluded IS NULL) AND id IN (${fbPlaceholders}) LIMIT 40`
-      const { results: fbRes } = await c.env.DB.prepare(fbSql).bind(...ftsMatchedIds.slice(0, 40)).all()
+      const safeFbIds = safeFtsIds.slice(0, 40);
+      const fbSql = `SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization, pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs FROM standards_chunks WHERE (scope = 'global' OR scope IS NULL) AND (is_excluded = 0 OR is_excluded IS NULL) AND id IN (${safeFbIds.join(',')}) LIMIT 40`;
+      const { results: fbRes } = await c.env.DB.prepare(fbSql).all();
       if (fbRes && fbRes.length > 0) {
-        candidates = candidates.concat(fbRes)
+        candidates = candidates.concat(fbRes);
       }
     } catch(e){}
   }
