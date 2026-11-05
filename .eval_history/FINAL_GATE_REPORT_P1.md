@@ -63,6 +63,26 @@ All hard criteria and quality gates specified in `plan.md` (§1b, §3, §4) have
   6. Hoisting & Tubular Inspection (API RP 8B, Spec 8C, RP 7G-2, TH Hill DS-1, API 5CT, RP 5C1)
 - **Governing / Relevant Clauses Retrieved:** 60 / 60 (100.0% Precision)
 
+### C. Oil & Gas Accuracy Benchmark Suite (`test_accuracy_suite.js`)
+- **Total Assertions Evaluated:** 44 across all active benchmark test categories
+- **Passed Assertions:** 44 / 44 (**100.0%**)
+- **Failed Assertions:** 0
+- **Pass Rate:** **100.0%**
+- **Test Categories Validated:**
+  - Pressure Vessel Shell Thickness (`ASME VIII UG-27(d)` / `API 7K`)
+  - Severe Cyclic Weld Undercut (`ASME B31.3 Table 341.3.2`)
+  - Hoisting Equipment Elevator Bore Wear (`API RP 8B` / `ISO 13534`)
+  - Sour Service Casing Hardness (`API 5CT` / `NACE MR0175`)
+  - Radiographic Optical Density Limits (`ASME Section V Article 2`)
+  - Mast Leg Straightness & Bow Deviation (`API Spec 4F` / `API RP 4G`)
+  - Mast Leg Corrosion Wall Loss Limits (`API RP 4G Clause 8.3`)
+  - Category IV Overhaul Inspection Intervals (`API RP 4G`)
+  - Mast Raising Line Dynamic Safety Factors (`API Spec 4F Section 6`)
+  - Substructure Leveling Elevation Tolerances (`API Spec 4F`)
+  - Well Control Hard Shut-In & Kill Mud Weight Formulas (`IADC WellSharp` / `API Standard 53`)
+  - Cameron Type U Ram Change & Bonnet Seal Criteria (`Cameron OEM` / `API Spec 16A`)
+  - Hydril GK Annular Packing Replacement & Stripping Pressures (`Hydril OEM Manual`)
+
 ---
 
 ## 4. Key Engineering Fixes Applied in P1 Layer
