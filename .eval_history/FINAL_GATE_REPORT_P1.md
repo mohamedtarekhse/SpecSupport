@@ -83,9 +83,15 @@ All hard criteria and quality gates specified in `plan.md` (§1b, §3, §4) have
   - Cameron Type U Ram Change & Bonnet Seal Criteria (`Cameron OEM` / `API Spec 16A`)
   - Hydril GK Annular Packing Replacement & Stripping Pressures (`Hydril OEM Manual`)
 
+### D. Independent Holdout Evaluation Suite (`scripts/run_independent_holdout_eval.js` — Phase P1.4)
+- **Total Test Cases:** 30 independent questions across top 10 standards (ASME IX, ASME VIII, ASME B31.3, ASME V, API 1104, API 53, API 4G/4F, API 7G-2/8B, API 5CT, NACE MR0175)
+- **Passed:** 29 / 30 (96.7%)
+- **Target Gate:** >= 85.0%
+- **Status:** 🟢 **HOLDOUT GATE PASSED (High Trust Level)**
+
 ---
 
-## 4. Key Engineering Fixes Applied in P1 Layer
+## 4. Key Engineering Fixes & Phase P2/P3 Implementations
 
 1. **Reasoning Model Token Starvation Resolution (`reasoning_effort: 'low'`):**
    - `@cf/zai-org/glm-5.3-flash` is a 320B parameter MoE reasoning model that outputs chain-of-thought in `reasoning_content`.
@@ -103,6 +109,21 @@ All hard criteria and quality gates specified in `plan.md` (§1b, §3, §4) have
 4. **SSE Grounding Stream Contract:**
    - Fixed variable scoping for `sourcesToSend` in SSE completion events.
    - Grounding metrics (`score_pct`, `badge`, `flags`, `verbatim_evidence_quote`) stream cleanly in the SSE `complete` payload and render the Level III Grounding Badge in the UI.
+
+5. **Phase P2.5 Edition Schema & Ingestion:**
+   - Added `edition` column to D1 `standards_chunks`.
+   - Populated 582 baseline chunks with governing editions (API 53 5th Ed, API 1104 22nd Ed, API 16D 3rd Ed, API 16AR 1st Ed, API 4G 5th Ed, API 5CT 10th Ed, API 7G-2 2nd Ed, API 8B 8th Ed, ASME IX 2023 Ed, ASME VIII 2023 Ed, ASME B31.3 2022 Ed, AWS D1.1 2020 Ed, ISO 3834-2 2021 Ed, NACE MR0175 2021 Ed).
+   - Injected edition tags into sources and context (`Standard: API 53 (5th Edition) | Clause: 7.9.9.4`).
+
+6. **Phase P2.3 Addendum & Hierarchical Governance Precedence:**
+   - Injected Directive 7 into `coreInspectionDirectives`: Explicit precedence rule: Company/Operator Procedure > Project Amendment/Addendum > Baseline Standard Code.
+
+7. **Phase P1.5 Request Traces & P3.6 Semantic Cache:**
+   - Wired non-streaming `/api/ask` branch to record telemetry into D1 `request_traces` and cached responses into `query_semantic_cache` using `c.executionCtx.waitUntil(...)`.
+
+8. **Phase P3.4 Per-Mode Max Tokens & P3.5 Opt-In Delta Matrices:**
+   - Mode-based token budgeting: lookup ~950 tokens, deep/expert ~2200 tokens, RAG ~1600–2000 tokens.
+   - Restructured Major Rule 3 to only emit multi-standard Delta Matrices upon explicit user request, keeping direct lookup answers concise.
 
 ---
 
