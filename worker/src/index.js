@@ -3878,7 +3878,7 @@ function recordProviderSuccess(providerName) {
   delete providerCircuitBreaker.suspendedUntil[providerName];
 }
 
-async function askAIProvider(c, messages, stream) {
+async function askAIProvider(c, messages, stream, mode = 'rag') {
     const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all();
     let dbConf = {};
     if (confRes.results) confRes.results.forEach(r => dbConf[r.key] = r.value);
@@ -3901,10 +3901,12 @@ async function askAIProvider(c, messages, stream) {
 
     let lastError = null;
 
+    // Phase P3.4: Per-mode max_tokens caps (lookup ~950, deep ~2200, rag ~1800)
+    const maxToks = (mode === 'lookup') ? 950 : ((mode === 'deep' || mode === 'expert') ? 2200 : (stream ? 2000 : 1600));
+
     // Cloudflare Workers AI runner with SSE streaming support
     const runCloudflareAI = async (modelToUse) => {
       if (!c.env.AI) throw new Error("Cloudflare Workers AI binding 'AI' not found in environment.");
-      const maxToks = stream ? 2500 : 2000;
       if (stream) {
         const streamResp = await c.env.AI.run(modelToUse, {
           messages: messages,
@@ -5218,10 +5220,10 @@ MAJOR RULE 2 — ZERO UNSOLICITED FORMULA CLUTTER (SPECIFIC NUMBERS OVER ALGEBRA
 - Do NOT display generic algebraic equations (e.g., do NOT print t = PR/(SE - 0.6P) or Barlow's equation) unless the user explicitly requested a mathematical calculation! Give the exact resulting numbers, tolerances, and retirement thresholds directly.
 - When calculations ARE requested, present clean, dual-unit worked calculations without extraneous derivation.
 
-MAJOR RULE 3 — COMPARISON BETWEEN STANDARDS (IF APPLICABLE):
-When relevant, compare and contrast the requirement across related standards or service classes, adhering strictly to the Scope Parity Principle (compare only identical equipment or joint scopes):
-- E.g., ASME B31.3 Normal Fluid Service vs. Severe Cyclic Conditions; API 1104 cross-country pipeline vs. ASME B31.3 process piping; API RP 8B hoisting wear limits vs. OEM manufacturer specs (NOV/Varco); API RP 7G-2 Premium vs. Class 2 drill stem.
-- Highlight the exact delta in criteria, NDT frequency, or hold point rigor.
+MAJOR RULE 3 — COMPARISON & DELTA MATRIX (OPT-IN ONLY, PHASE P3.5):
+- ONLY provide a multi-standard comparison or Delta Matrix if the user explicitly asks to compare standards (e.g. "compare with ISO", "difference vs API 1104", "ASME vs API", "contrast Normal vs Severe Cyclic") or if comparison mode is selected.
+- For direct lookup queries, provide the exact governing requirement without unprompted multi-standard comparison tables. Keep direct answers focused, fast, and auditable.
+- When comparisons ARE requested, adhere strictly to the Scope Parity Principle (compare only identical equipment or joint scopes). Highlight the exact delta in criteria, NDT frequency, or hold point rigor.
 
 MAJOR RULE 4 — TARGETED REFINEMENT QUESTIONS (IF APPLICABLE):
 If the user's inquiry has unstated operating parameters, fluid service severity, material grade, design temperature, or NDT technique sensitivity that could alter the acceptance threshold, conclude by asking 1 to 3 concise, highly targeted refinement questions to help the inspector zero in on their exact operational condition.
@@ -6225,7 +6227,7 @@ app.post('/api/ask', async (c) => {
     const isStreamRequested = Boolean(c.req.query('stream') === 'true' || c.req.header('Accept')?.includes('text/event-stream'))
     
     // Step 1: Execute Pass 1 (Draft Model) internally in buffered mode
-    let draftRes = await askAIProvider(c, messages, false)
+    let draftRes = await askAIProvider(c, messages, false, mode)
     let draftJson = await draftRes.response.json()
     let draftAnswer = "Error connecting to AI model."
     let finishReason = "stop"
@@ -6263,7 +6265,7 @@ app.post('/api/ask', async (c) => {
     if (isStreamRequested) {
       try {
         // Stream Pass 2 (Level III Critic) live to the inspector!
-        const { response: streamBody, model, isStream } = await askAIProvider(c, criticMessages, true)
+        const { response: streamBody, model, isStream } = await askAIProvider(c, criticMessages, true, mode)
         criticModelUsed = model || draftRes.model
         if (isStream && streamBody) {
           c.executionCtx.waitUntil(
@@ -6414,7 +6416,7 @@ app.post('/api/ask', async (c) => {
     // In non-streaming mode: if draft grounding is already solid (>= 50%), avoid redundant secondary pass to prevent Cloudflare subrequest timeouts
     if (loopPasses > 1 && draftGroundingCheck.score_pct < 50) {
       try {
-        const criticResp = await askAIProvider(c, criticMessages, false)
+        const criticResp = await askAIProvider(c, criticMessages, false, mode)
         const criticJson = await criticResp.response.json()
         if (criticJson && criticJson.choices && criticJson.choices[0]?.message?.content) {
           const refinedAnswer = criticJson.choices[0].message.content.trim()
