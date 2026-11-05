@@ -5250,10 +5250,14 @@ When comparing standards, strictly adhere to the Scope Parity Principle:
   * ROTARY & DRILLING TOOLS (Power Tongs, Slips, Rotary Tables, Mud Pumps, Kellys): Governed by API 7K / API Spec 7-1 vs. OEM specifications.
   * PROCESS & PIPELINE WELDING: Compare ASME B31.3 vs. API 1104 vs. AWS D1.1 vs. ISO 5817 (same joint/welding scope).
   * PRESSURE VESSELS: Compare ASME Section VIII Div 1 vs. Div 2 vs. PD 5500 vs. EN 13445.
-  * CHOKE MANIFOLDS & BUFFER CHAMBERS (Buffer Tanks, Choke Lines, Manifold Headers):
-    - Governing Codes: API Spec 16C (Choke & Kill Systems - Manifolds, Buffer Tanks, Articulated Lines) and ASME Section VIII Division 1 (Pressure Vessel body, Shell/Head calculations UG-27/32, Welding UW, U-Stamp) and API Spec 6A (PSL 2/3 Flanges & Hubs, Class DD/EE).
-    - STRICT PROHIBITION: NEVER cite API 16AR for new manufacturing of choke manifolds, buffer chambers, or choke & kill lines! API 16AR is exclusively titled "Standard for Repair and Remanufacture of Drill-through Equipment" (BOPs, spools, adapters).
-    - NEVER cite API 16AR Clause 5.1 (which is "Disassembly and Initial Inspection" of used equipment) for new manufacturing, design, or welding of buffer chambers!
+  * CHOKE MANIFOLDS & CHOKE/KILL SYSTEMS (Manifold Headers, Buffer Tanks, Choke Lines, Rigid/Articulated Lines, Gate Valves, Chokes):
+    - Governing Codes:
+      1. System Recertification & Proof Testing: API Spec 16C (Section 10 for pressure testing at 1.5× RWP, Section 5/6 for design/materials) and API Standard 53 (Sections 7 & 8 for 5-year overhaul, in-service inspection, and field line-up).
+      2. Valves, Chokes, Flanges, & Hubs: API Spec 6A (PSL 2/3, Material Class DD/EE) and API RP 6AR (Recommended Practice for Repair and Remanufacture of Wellhead and Tree Equipment).
+      3. Buffer Chamber / Vessel Body: ASME Section VIII Division 1 (UG-27 shell, UG-32 heads, UW welding) + API 510 or NBIC (NB-23) R-Stamp for vessel repair.
+      4. Sour Service Hardness: NACE MR0175 / ISO 15156 (≤ 22 HRC / 250 HV).
+    - ABSOLUTE PROHIBITION ON API 16AR: NEVER cite API Spec 16AR for choke manifolds, choke lines, buffer chambers, or choke & kill systems under ANY circumstances (neither new manufacturing NOR repair NOR recertification)! API 16AR is strictly restricted to API 16A Drill-Through Equipment (ram BOPs, annular BOPs, drilling spools, adapter spools). Choke manifolds are NOT drill-through equipment.
+    - ABSOLUTE PROHIBITION ON API 16D FOR DRILLING CHOKE MANIFOLDS: API 16D Clause 6.1 governs hydraulic control manifolds for accumulator closing units (Koomey units), NEVER high-pressure drilling choke & kill manifolds (API 16C).
   * DRILLING STRUCTURES (Masts, Derricks, Substructures, Crown Frames): Compare API Spec 4F (design/wind) & API RP 4G (Categories I-IV, straightness, wear) vs. OEM Rig Overhaul Specs (Lee C. Moore, NOV Dreco, DSI, Bentec) vs. Contractor Standards. STRICTLY PROHIBIT API 1104, ASME B31.3, and API 5CT.
 - If only ONE international standard exists for that specific equipment (as is the case for Hoisting Tools under API RP 8B / ISO 13534), DO NOT invent an unrelated standard. Instead, contrast:
   [API Code Baseline] vs. [OEM Specification (e.g. NOV/Varco)] vs. [Company / Rig Contractor Specification]
