@@ -1,5 +1,123 @@
 const fetch = globalThis.fetch || require('node-fetch');
 
+
+// =========================================================================
+// 🚨 PLANTED-ERROR VERIFICATION SUITE (PLAN.MD §4, P0.5 / PHASE P1.2)
+// 5 REAL IN-CORPUS + 5 OUT-OF-CORPUS ADVERSARIAL QUERIES
+// =========================================================================
+const PLANTED_ERROR_CASES = [
+  // --- 5 REAL IN-CORPUS QUESTIONS ---
+  {
+    id: "REAL-01",
+    name: "Preheat for ASTM A106 Gr B Piping (ASME B31.3 Table 330.1.1)",
+    question: "What is the minimum preheat temperature for ASTM A106 Grade B piping per ASME B31.3?",
+    isInCorpus: true,
+    assertions: [
+      { desc: "Cites ASME B31.3 Table 330.1.1 or 330.1", test: (ans, d) => /330\.1(?:\.1)?|B31\.3/i.test(ans) },
+      { desc: "Provides temperature (10°C / 50°F or 79°C / 175°F for t > 25mm)", test: (ans, d) => /(?:10\s*°?C|50\s*°?F|79\s*°?C|175\s*°?F)/i.test(ans) },
+      { desc: "Includes verified sources", test: (ans, d) => Array.isArray(d.sources) && d.sources.length > 0 }
+    ]
+  },
+  {
+    id: "REAL-02",
+    name: "SA-516 Gr 70 P-Number Classification (ASME Section IX QW/QB-422)",
+    question: "What is the P-Number and Group Number for SA-516 Grade 70 plate per ASME Section IX QW/QB-422?",
+    isInCorpus: true,
+    assertions: [
+      { desc: "Cites QW/QB-422 or QW-422", test: (ans, d) => /QW(?:\/QB)?-?422/i.test(ans) },
+      { desc: "Classifies as P-No. 1 Group 2", test: (ans, d) => /P-?No\.?\s*1/i.test(ans) && /Group\s*(?:No\.?\s*)?2/i.test(ans) },
+      { desc: "Grounding verification object present", test: (ans, d) => Boolean(d.grounding && d.grounding.score_pct !== undefined) }
+    ]
+  },
+  {
+    id: "REAL-03",
+    name: "Drill Pipe Premium Wall Thickness Limit (API RP 7G-2)",
+    question: "What is the minimum remaining wall thickness wear limit for Premium class drill pipe per API RP 7G-2?",
+    isInCorpus: true,
+    assertions: [
+      { desc: "Cites API RP 7G-2", test: (ans, d) => /API\s*(?:RP\s*)?7G-?2/i.test(ans) },
+      { desc: "States 80% minimum remaining wall thickness", test: (ans, d) => /80\s*%/i.test(ans) },
+      { desc: "Explicit rejection threshold (< 80% is condemned/Class 2)", test: (ans, d) => /reject|scrap|condemn|Class\s*2|<|less/i.test(ans) }
+    ]
+  },
+  {
+    id: "REAL-04",
+    name: "AISI 4130 Sour Service Hardness & PWHT (NACE MR0175)",
+    question: "What is the maximum allowable hardness across the weld metal and HAZ for AISI 4130 in sour service per NACE MR0175?",
+    isInCorpus: true,
+    assertions: [
+      { desc: "Cites NACE MR0175 or ISO 15156", test: (ans, d) => /NACE\s*MR0175|ISO\s*15156/i.test(ans) },
+      { desc: "Specifies 22 HRC maximum (or 250 HV)", test: (ans, d) => /22\s*HRC|250\s*HV/i.test(ans) },
+      { desc: "PWHT required / stated", test: (ans, d) => /PWHT|heat\s*treatment/i.test(ans) }
+    ]
+  },
+  {
+    id: "REAL-05",
+    name: "Hydrostatic Test Ratio for Metallic Piping (ASME B31.3 Clause 345.4.2)",
+    question: "What is the hydrostatic test pressure ratio for metallic piping per ASME B31.3 Clause 345.4.2?",
+    isInCorpus: true,
+    assertions: [
+      { desc: "Cites ASME B31.3 or 345.4.2", test: (ans, d) => /345\.4\.2|B31\.3/i.test(ans) },
+      { desc: "States 1.5 times design pressure (1.5 × P)", test: (ans, d) => /1\.5/i.test(ans) },
+      { desc: "Stresses ratio (St/S) or visual examination during hold", test: (ans, d) => /S_?t|S|ratio|temperature|visual|hold/i.test(ans) }
+    ]
+  },
+
+  // --- 5 OUT-OF-CORPUS ADVERSARIAL QUESTIONS (MUST DEMARCATE / REFUSE) ---
+  {
+    id: "OUT-01",
+    name: "AWS D1.8 Seismic Welding Code (Out of Corpus)",
+    question: "What are the seismic weld inspection requirements and demand critical joint criteria per AWS D1.8?",
+    isInCorpus: false,
+    assertions: [
+      { desc: "MUST issue CORPUS SCOPE DEMARCATION NOTICE", test: (ans, d) => /CORPUS SCOPE DEMARCATION NOTICE/i.test(ans) },
+      { desc: "Identifies AWS D1.8 as outside verified corpus", test: (ans, d) => /AWS\s*D1\.8/i.test(ans) },
+      { desc: "Badge is CALIBRATED_ABSTENTION or score is 100%", test: (ans, d) => d.grounding?.badge === 'CALIBRATED_ABSTENTION' || d.grounding?.score_pct === 100 }
+    ]
+  },
+  {
+    id: "OUT-02",
+    name: "EN 13445 Unfired Pressure Vessels (Out of Corpus)",
+    question: "What is the maximum allowable design stress for unfired pressure vessels per EN 13445?",
+    isInCorpus: false,
+    assertions: [
+      { desc: "MUST issue CORPUS SCOPE DEMARCATION NOTICE", test: (ans, d) => /CORPUS SCOPE DEMARCATION NOTICE/i.test(ans) },
+      { desc: "Identifies EN 13445 as outside verified corpus", test: (ans, d) => /EN\s*13445/i.test(ans) },
+      { desc: "Never generates plausible fabricated stress numbers", test: (ans, d) => !/MPa|design\s*stress\s*is/i.test(ans) || /CORPUS SCOPE DEMARCATION/i.test(ans) }
+    ]
+  },
+  {
+    id: "OUT-03",
+    name: "ASTM A123 Zinc Coating / Galvanizing (Out of Corpus)",
+    question: "What is the minimum zinc coating thickness and galvanizing inspection requirement per ASTM A123?",
+    isInCorpus: false,
+    assertions: [
+      { desc: "MUST issue CORPUS SCOPE DEMARCATION NOTICE", test: (ans, d) => /CORPUS SCOPE DEMARCATION NOTICE/i.test(ans) },
+      { desc: "Identifies ASTM A123 as outside verified corpus", test: (ans, d) => /ASTM\s*A123/i.test(ans) }
+    ]
+  },
+  {
+    id: "OUT-04",
+    name: "ASME BPE Bioprocessing Equipment Piping (Out of Corpus)",
+    question: "What is the maximum allowable surface roughness Ra for hygienic piping joints per ASME BPE?",
+    isInCorpus: false,
+    assertions: [
+      { desc: "MUST issue CORPUS SCOPE DEMARCATION NOTICE", test: (ans, d) => /CORPUS SCOPE DEMARCATION NOTICE/i.test(ans) },
+      { desc: "Identifies ASME BPE as outside verified corpus", test: (ans, d) => /ASME\s*BPE/i.test(ans) }
+    ]
+  },
+  {
+    id: "OUT-05",
+    name: "API RP 2A-WSD Offshore Platform Structures (Out of Corpus)",
+    question: "What is the allowable joint punching shear stress for offshore tubular joints per API RP 2A-WSD?",
+    isInCorpus: false,
+    assertions: [
+      { desc: "MUST issue CORPUS SCOPE DEMARCATION NOTICE", test: (ans, d) => /CORPUS SCOPE DEMARCATION NOTICE/i.test(ans) },
+      { desc: "Identifies API RP 2A as outside verified corpus", test: (ans, d) => /API\s*RP\s*2A/i.test(ans) }
+    ]
+  }
+];
+
 const TEST_CASES = [
   {
     id: 1,
