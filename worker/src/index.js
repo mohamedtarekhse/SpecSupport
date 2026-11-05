@@ -1591,7 +1591,7 @@ app.get('/api/admin/chunks/export', async (c) => {
       FROM standards_chunks
       ${whereSql}
       ORDER BY id ASC
-      LIMIT 5000
+      LIMIT 500
     `).bind(...params).all()
     return c.json({
       success: true,
@@ -2431,15 +2431,26 @@ app.get('/api/locaspec/bundle', async (c) => {
       whereSql += " AND (standard_code LIKE '%ASME V%' OR standard_code LIKE '%D1.1%' OR standard_code LIKE '%B1.11%' OR standard_code LIKE '%3834%' OR standard_code LIKE '%2X%')"
     }
 
-    const { results } = await c.env.DB.prepare(`
-      SELECT id, standard_code, standard_name, section, clause, content, pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs
-      FROM standards_chunks
-      ${whereSql}
-      ORDER BY standard_code ASC, id ASC
-      LIMIT 6000
-    `).all()
+    // Batch queries in 1000-row chunks so no individual D1 query exceeds the 50 MB payload ceiling
+    let allChunks = []
+    const batchSize = 1000
+    let offset = 0
+    while (true) {
+      const { results } = await c.env.DB.prepare(`
+        SELECT id, standard_code, standard_name, section, clause, content, pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs
+        FROM standards_chunks
+        ${whereSql}
+        ORDER BY standard_code ASC, id ASC
+        LIMIT ? OFFSET ?
+      `).bind(batchSize, offset).all()
 
-    const chunks = results || []
+      if (!results || results.length === 0) break
+      allChunks.push(...results)
+      if (results.length < batchSize) break
+      offset += batchSize
+    }
+
+    const chunks = allChunks
 
     return c.json({
       success: true,
@@ -5165,9 +5176,12 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
     query += ` AND standard_code = ?`
     params.push(standard_filter)
   } else if (detectedStd) {
-    query += ` AND standard_code LIKE ? LIMIT 120`
+    query += ` AND standard_code LIKE ?`
     params.push(`%${detectedStd}%`)
-  } else if (ftsMatchedIds.length > 0) {
+  }
+
+  // Strict 80-chunk cap to guarantee D1 payload is ~300 KB (never exceeding D1 50 MB response limit)
+  if (ftsMatchedIds.length > 0) {
     const placeholders = ftsMatchedIds.slice(0, 80).map(() => '?').join(',')
     query += ` AND id IN (${placeholders}) LIMIT 80`
     params.push(...ftsMatchedIds.slice(0, 80))
