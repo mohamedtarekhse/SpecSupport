@@ -32,6 +32,50 @@ app.get('/api/health', (c) => {
   })
 })
 
+app.get('/api/test-cf-ai', async (c) => {
+  const model = c.req.query('model') || '@cf/zai-org/glm-5.3-flash';
+  const prompt = c.req.query('prompt') || 'Say hello in 5 words.';
+  const max_tokens = parseInt(c.req.query('max_tokens') || '1500');
+  const reasoning_effort = c.req.query('reasoning_effort') || 'low';
+  try {
+    const t0 = Date.now();
+    const res = await c.env.AI.run(model, {
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens,
+      reasoning_effort
+    });
+    return c.json({
+      success: true,
+      model,
+      duration_ms: Date.now() - t0,
+      result: res
+    });
+  } catch (err) {
+    return c.json({
+      success: false,
+      model,
+      error_message: err.message,
+      error_name: err.name
+    }, 200);
+  }
+})
+
+app.get('/api/test-cf-stream', async (c) => {
+  const model = c.req.query('model') || '@cf/zai-org/glm-5.3-flash';
+  try {
+    const streamResp = await c.env.AI.run(model, {
+      messages: [{ role: 'user', content: 'What is API 570 in 2 sentences?' }],
+      max_tokens: 500,
+      stream: true
+    });
+    return new Response(streamResp, {
+      headers: { 'Content-Type': 'text/event-stream' }
+    });
+  } catch(e) {
+    return c.json({ error: e.message }, 500);
+  }
+})
+
 // Auto Database Schema Migration / Verification
 app.all('/api/admin/setup-db', async (c) => {
   try {
@@ -3860,22 +3904,29 @@ async function askAIProvider(c, messages, stream) {
     // Cloudflare Workers AI runner with SSE streaming support
     const runCloudflareAI = async (modelToUse) => {
       if (!c.env.AI) throw new Error("Cloudflare Workers AI binding 'AI' not found in environment.");
+      const maxToks = stream ? 2500 : 2000;
       if (stream) {
         const streamResp = await c.env.AI.run(modelToUse, {
           messages: messages,
-          max_tokens: 4096,
+          max_tokens: maxToks,
           temperature: 0.15,
+          reasoning_effort: 'low',
           stream: true
         });
         return { response: streamResp, model: modelToUse, provider: 'cloudflare', isStream: true };
       }
       const res = await c.env.AI.run(modelToUse, {
         messages: messages,
-        max_tokens: 4096,
-        temperature: 0.15
+        max_tokens: maxToks,
+        temperature: 0.15,
+        reasoning_effort: 'low'
       });
-      const text = res?.response || (typeof res === 'string' ? res : (res?.choices?.[0]?.message?.content || ''));
-      if (!text || text === '{}') throw new Error(`Empty response from Cloudflare AI (${modelToUse})`);
+      const msg = res?.choices?.[0]?.message;
+      let text = res?.response || (typeof res === 'string' ? res : (msg?.content || ''));
+      if ((!text || text === '{}' || text.trim() === '') && msg?.reasoning_content) {
+        text = msg.reasoning_content;
+      }
+      if (!text || text === '{}' || text.trim() === '') throw new Error(`Empty response from Cloudflare AI (${modelToUse})`);
       return {
         response: {
           ok: true,
@@ -4564,7 +4615,7 @@ CRITIQUE & REFINEMENT CRITERIA:
 5. DISPOSITION:
    - If the draft is completely compliant, accurate, and structured with the 2-sentence hook + parameter box, return it.
    - If any numerical threshold, rationale, or continuity parameter is deficient, produce the fully corrected, audit-ready version.
-OUTPUT ONLY THE FINAL VERIFIED RESPONSE WITH ZERO INTRODUCTORY META-COMMENTARY.`
+OUTPUT ONLY THE FINAL VERIFIED RESPONSE WITH ZERO INTRODUCTORY META-COMMENTARY AND ZERO REASONING MONOLOGUE.`
     },
     ...criticHistory,
     {
@@ -5143,7 +5194,7 @@ MAJOR RULE 1 — TWO-SENTENCE OPENING (DIRECT VERDICT + WHY THIS ANSWER IS RIGHT
 Inspectors on-site, under turnaround, or during shutdown are under intense pressure to make immediate decisions. You MUST format the very beginning using the Assertion-Justification Protocol:
 1. SENTENCE 1 — THE DIRECT VERDICT (ZERO INTRODUCTIONS):
    - State the exact answer, numerical determination, and governing standard/clause immediately.
-   - STRICT PROHIBITION ON THROAT-CLEARING: NEVER begin with "Based on...", "According to...", "In this response...", "Here is...", or any greeting. The very first word must be the bold determination itself (e.g., "**MANDATORY QUALIFIED PQR REQUIRED:** Welding Grade 50 (P-No. 1) to AISI 4130 (P-No. 4)...").
+   - STRICT PROHIBITION ON THROAT-CLEARING: NEVER begin with "Based on...", "According to...", "In this response...", "Here is...", or any greeting. NEVER output internal reasoning monologue (e.g. "Let me analyze...", "I will answer..."). The very first word must be the bold determination itself (e.g., "**MANDATORY QUALIFIED PQR REQUIRED:** Welding Grade 50 (P-No. 1) to AISI 4130 (P-No. 4)...").
 2. SENTENCE 2 TO 3 — WHY THIS ANSWER IS RIGHT (PHYSICAL & CODE JUSTIFICATION):
    - Immediately explain WHY this answer is physically, metallurgically, and legally correct in 1 to 2 sentences (e.g., explain high hardenability/carbon equivalent CE ≈ 0.65% causing hydrogen-induced cracking without preheat, and heavy wall thickness t = 19.05 mm exceeding the ASME B31.3 Table 331.1.1 boundary requiring PWHT to relieve residual stress and maintain hardness ≤ 22 HRC).
 3. 4-POINT FIELD PARAMETER BOX (FIELD ACTION SUMMARY):
@@ -6223,6 +6274,7 @@ app.post('/api/ask', async (c) => {
                 const decoder = new TextDecoder()
                 let buffer = ''
                 let streamedFullText = ''
+                let accumulatedReasoning = ''
                 while (true) {
                   const { done, value } = await reader.read()
                   if (done) break
@@ -6236,13 +6288,21 @@ app.post('/api/ask', async (c) => {
                     if (payload === '[DONE]') continue
                     try {
                       const parsed = JSON.parse(payload)
-                      const token = parsed.response || parsed.token || parsed.choices?.[0]?.delta?.content || ''
+                      const delta = parsed.choices?.[0]?.delta
+                      if (delta?.reasoning_content) {
+                        accumulatedReasoning += delta.reasoning_content
+                      }
+                      const token = parsed.response || parsed.token || delta?.content || ''
                       if (token) {
                         streamedFullText += token
                         await writer.write(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`))
                       }
                     } catch(e) {}
                   }
+                }
+                if (streamedFullText.trim().length === 0 && accumulatedReasoning.trim().length > 0) {
+                  streamedFullText = accumulatedReasoning.trim()
+                  await writer.write(encoder.encode(`data: ${JSON.stringify({ token: streamedFullText })}\n\n`))
                 }
               }
               
@@ -6256,7 +6316,7 @@ app.post('/api/ask', async (c) => {
 
               const streamGroundingResult = verifyAnswerGrounding(
                 streamedFullText,
-                sourcesToSend,
+                sources,
                 contextData.envelopeContextText || ""
               );
 
@@ -6273,7 +6333,7 @@ app.post('/api/ask', async (c) => {
                     streamedFullText,
                     streamGroundingResult.score_pct,
                     streamGroundingResult.badge,
-                    JSON.stringify(sourcesToSend.slice(0, 10))
+                    JSON.stringify((sources || []).slice(0, 10))
                   ).run() : Promise.resolve(),
                   c.env.DB.prepare(`
                     INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms)
@@ -6330,13 +6390,15 @@ app.post('/api/ask', async (c) => {
 
     // Step 3: Non-Streaming Refinement
     let answer = draftAnswer
-    if (loopPasses > 1) {
+    const draftGroundingCheck = verifyAnswerGrounding(draftAnswer, sources, envelopeContext || "")
+    // In non-streaming mode: if draft grounding is already solid (>= 50%), avoid redundant secondary pass to prevent Cloudflare subrequest timeouts
+    if (loopPasses > 1 && draftGroundingCheck.score_pct < 50) {
       try {
         const criticResp = await askAIProvider(c, criticMessages, false)
         const criticJson = await criticResp.response.json()
         if (criticJson && criticJson.choices && criticJson.choices[0]?.message?.content) {
           const refinedAnswer = criticJson.choices[0].message.content.trim()
-          if (refinedAnswer.length > 80 && !refinedAnswer.startsWith('AI Error:')) {
+          if (refinedAnswer.length > 80 && !refinedAnswer.startsWith('AI Error:') && !/^Let me (?:analyze|audit|think|review)/i.test(refinedAnswer)) {
             answer = refinedAnswer
             criticModelUsed = criticResp.model || draftRes.model
           }
@@ -6433,7 +6495,7 @@ app.post('/api/ask', async (c) => {
     })
   } catch (e) {
     if (e.message && e.message.includes("RATE_LIMIT_ALL")) {
-      return c.json({ error: "The selected AI provider is currently rate-limiting requests. Please try again in a few minutes." }, 429);
+      return c.json({ error: e.message }, 429);
     }
     return c.json({ error: e.message }, 500)
   }
