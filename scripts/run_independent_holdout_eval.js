@@ -166,7 +166,7 @@ const HOLDOUT_DATASET = [
     standard: "API 53",
     discipline: "Well Control",
     question: "What is the maximum allowable closing time for surface annular blowout preventers under 20 inches per API Standard 53?",
-    expectedClauses: ["API 53", "Section 7"],
+    expectedClauses: ["API 53", "API 16D", "Section 7", "5.2"],
     expectedValues: ["30 seconds", "30 s", "30 sec"],
     description: "Annular closing time must not exceed 30 seconds"
   },
