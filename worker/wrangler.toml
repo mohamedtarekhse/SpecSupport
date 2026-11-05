@@ -3,7 +3,7 @@ main = "src/index.js"
 compatibility_date = "2024-09-23"
 
 [vars]
-OPENROUTER_MODEL = "nvidia/nemotron-3-super-120b-a12b:free"
+OPENROUTER_MODEL = "google/gemma-4-31b-it:free"
 ALLOWED_ORIGIN = "*"
 
 [[d1_databases]]

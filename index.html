@@ -3061,6 +3061,82 @@
             text-align: center;
         }
 
+    
+        /* 🛡️ Phase P1.3: Grounding & Evidence Badge UI */
+        .grounding-badge-container {
+            margin: 10px 0;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(8px);
+        }
+        .grounding-badge-container.badge-verified {
+            border-color: rgba(16, 185, 129, 0.4);
+            background: rgba(16, 185, 129, 0.08);
+        }
+        .grounding-badge-container.badge-partial {
+            border-color: rgba(245, 158, 11, 0.4);
+            background: rgba(245, 158, 11, 0.08);
+        }
+        .grounding-badge-container.badge-abstention {
+            border-color: rgba(99, 102, 241, 0.4);
+            background: rgba(99, 102, 241, 0.08);
+        }
+        .grounding-badge-container.badge-warning {
+            border-color: rgba(239, 68, 68, 0.4);
+            background: rgba(239, 68, 68, 0.08);
+        }
+        .grounding-badge-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+        .grounding-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.03em;
+            font-size: 12px;
+        }
+        .badge-verified .grounding-badge-pill { color: #10b981; }
+        .badge-partial .grounding-badge-pill { color: #f59e0b; }
+        .badge-abstention .grounding-badge-pill { color: #818cf8; }
+        .badge-warning .grounding-badge-pill { color: #ef4444; }
+        .grounding-score-tag {
+            font-size: 11px;
+            color: var(--gemini-text-muted, #94a3b8);
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        .verbatim-evidence-card {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+        .verbatim-quote-label {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gemini-text-muted, #94a3b8);
+            margin-bottom: 4px;
+        }
+        .verbatim-quote-text {
+            margin: 0;
+            padding: 6px 10px;
+            background: rgba(0, 0, 0, 0.25);
+            border-left: 3px solid #10b981;
+            font-style: italic;
+            color: #e2e8f0;
+            font-size: 12px;
+            line-height: 1.4;
+            border-radius: 0 4px 4px 0;
+        }
+
     </style>
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#0070F2">
@@ -6242,6 +6318,7 @@ Answer the inspector's query strictly and accurately based on the verified local
                     let streamSources = [];
                     let streamFollowups = [];
                     let streamMcqs = [];
+                    let streamGrounding = null;
 
                     while (true) {
                         const { done, value } = await reader.read();
@@ -6282,14 +6359,14 @@ Answer the inspector's query strictly and accurately based on the verified local
                         try { inlineStreamMcqs = JSON.parse(streamMcqMatch[1]); } catch(e){}
                     }
                     const activeStreamMcqs = (streamMcqs && streamMcqs.length > 0) ? streamMcqs : inlineStreamMcqs;
-                    streamMsg.finalize(fullAnswer, streamSources, streamFollowups, activeStreamMcqs);
+                    streamMsg.finalize(fullAnswer, streamSources, streamFollowups, activeStreamMcqs, streamGrounding);
                     chatHistory.push({ role: 'user', content: text });
                     chatHistory.push({ role: 'assistant', content: fullAnswer });
                 } else {
                     const data = await res.json();
                     if (data.error) throw new Error(data.error);
 
-                    appendMessage(data.answer, 'ai', data.sources, data.suggested_questions, data.can_continue, data.mcq_questions);
+                    appendMessage(data.answer, 'ai', data.sources, data.suggested_questions, data.can_continue, data.mcq_questions, data.grounding);
                     chatHistory.push({ role: 'user', content: text });
                     chatHistory.push({ role: 'assistant', content: data.answer });
                 }
@@ -6597,7 +6674,7 @@ Answer the inspector's query strictly and accurately based on the verified local
             };
         }
 
-        function appendMessage(text, role, sources = [], followups = [], canContinue = false, mcqs = []) {
+        function appendMessage(text, role, sources = [], followups = [], canContinue = false, mcqs = [], groundingMeta = null) {
             const list = document.getElementById('messages-list');
             const row = document.createElement('div');
             row.className = `message-row ${role}`;

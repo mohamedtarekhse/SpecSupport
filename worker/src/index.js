@@ -3806,38 +3806,76 @@ function cosineSimilarity(vecA, vecB) {
   return denom === 0 ? 0 : dotProduct / denom;
 }
 
-async function askAIProvider(c, messages, stream) {
-    const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
-    let dbConf = {}
-    if (confRes.results) confRes.results.forEach(r => dbConf[r.key] = r.value)
-  
-    const groqKey = dbConf['groq_api_key'] || c.env.GROQ_API_KEY
-    const orKey = dbConf['openrouter_api_key'] || c.env.OPENROUTER_API_KEY
-    const activeProvider = dbConf['active_provider'] || 'cloudflare'
-    const cfModel = dbConf['cloudflare_model'] || '@cf/zai-org/glm-5.3-flash'
-    const orModel = dbConf['openrouter_model'] || 'nvidia/llama-3.1-nemotron-70b-instruct:free'
 
-    let lastError = null
+// =========================================================================
+// 🛡️ PROVIDER CIRCUIT BREAKER & SUSPENSION ENGINE (PHASE P0.1)
+// =========================================================================
+const providerCircuitBreaker = {
+  failures: {},
+  suspendedUntil: {}
+};
+
+function canAttemptProvider(providerName) {
+  const until = providerCircuitBreaker.suspendedUntil[providerName];
+  if (until && Date.now() < until) return false;
+  return true;
+}
+
+function recordProviderFailure(providerName, reason) {
+  providerCircuitBreaker.failures[providerName] = (providerCircuitBreaker.failures[providerName] || 0) + 1;
+  if (providerCircuitBreaker.failures[providerName] >= 3) {
+    providerCircuitBreaker.suspendedUntil[providerName] = Date.now() + 30000;
+    console.warn(`[Circuit Breaker] Suspended ${providerName} for 30s due to consecutive failures (${reason})`);
+  }
+}
+
+function recordProviderSuccess(providerName) {
+  providerCircuitBreaker.failures[providerName] = 0;
+  delete providerCircuitBreaker.suspendedUntil[providerName];
+}
+
+async function askAIProvider(c, messages, stream) {
+    const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all();
+    let dbConf = {};
+    if (confRes.results) confRes.results.forEach(r => dbConf[r.key] = r.value);
+  
+    const groqKey = dbConf['groq_api_key'] || c.env.GROQ_API_KEY;
+    const orKey = dbConf['openrouter_api_key'] || c.env.OPENROUTER_API_KEY;
+    const activeProvider = dbConf['active_provider'] || 'cloudflare';
+    const cfModel = dbConf['cloudflare_model'] || '@cf/zai-org/glm-5.3-flash';
+    const orModel = dbConf['openrouter_model'] || 'google/gemma-4-31b-it:free';
+
+    const liveOrModels = Array.from(new Set([
+      orModel,
+      'google/gemma-4-31b-it:free',
+      'nvidia/nemotron-3.5-lightning:free',
+      'google/gemma-4-26b-a4b-it:free',
+      'nvidia/nemotron-3-ultra-550b-a55b:free'
+    ])).filter(Boolean);
+
+    const liveGroqModels = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
+
+    let lastError = null;
 
     // Cloudflare Workers AI runner with SSE streaming support
     const runCloudflareAI = async (modelToUse) => {
-      if (!c.env.AI) throw new Error("Cloudflare Workers AI binding 'AI' not found in environment.")
+      if (!c.env.AI) throw new Error("Cloudflare Workers AI binding 'AI' not found in environment.");
       if (stream) {
         const streamResp = await c.env.AI.run(modelToUse, {
           messages: messages,
           max_tokens: 4096,
           temperature: 0.15,
           stream: true
-        })
-        return { response: streamResp, model: modelToUse, provider: 'cloudflare', isStream: true }
+        });
+        return { response: streamResp, model: modelToUse, provider: 'cloudflare', isStream: true };
       }
       const res = await c.env.AI.run(modelToUse, {
         messages: messages,
         max_tokens: 4096,
         temperature: 0.15
-      })
-      const text = res?.response || (typeof res === 'string' ? res : (res?.choices?.[0]?.message?.content || ''))
-      if (!text || text === '{}') throw new Error(`Empty response from Cloudflare AI (${modelToUse})`)
+      });
+      const text = res?.response || (typeof res === 'string' ? res : (res?.choices?.[0]?.message?.content || ''));
+      if (!text || text === '{}') throw new Error(`Empty response from Cloudflare AI (${modelToUse})`);
       return {
         response: {
           ok: true,
@@ -3852,8 +3890,8 @@ async function askAIProvider(c, messages, stream) {
         model: modelToUse,
         provider: 'cloudflare',
         isStream: false
-      }
-    }
+      };
+    };
 
     // HTTP Provider runner with streaming, timeouts, jitter & circuit breakers
     const runHttpProvider = async (providerName, key, url, modelToUse, maxTokens = 4096) => {
@@ -3861,7 +3899,6 @@ async function askAIProvider(c, messages, stream) {
         throw new Error(`[Circuit Breaker OPEN] ${providerName} is temporarily suspended due to consecutive failures.`);
       }
 
-      // Strict 5,000ms timeout per upstream provider to guarantee zero hanging
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000);
 
@@ -3887,7 +3924,6 @@ async function askAIProvider(c, messages, stream) {
 
         if (response.status === 429) {
           recordProviderFailure(providerName, "Rate Limit (429)");
-          // Exponential backoff with jitter for transient retries
           const jitter = Math.floor(Math.random() * 200);
           await new Promise(r => setTimeout(r, 300 + jitter));
           throw new Error("Rate Limit Exceeded (429)");
@@ -3907,94 +3943,66 @@ async function askAIProvider(c, messages, stream) {
         recordProviderFailure(providerName, err.name === 'AbortError' ? 'Timeout (20000ms)' : err.message);
         throw err;
       }
-    }
+    };
 
-    // 1. Cloudflare Workers AI active (Default)
-    if (activeProvider === 'cloudflare') {
+    const tryCloudflare = async () => {
       try {
-        return await runCloudflareAI(cfModel)
+        return await runCloudflareAI(cfModel);
       } catch (e) {
-        lastError = `Cloudflare AI (${cfModel}): ${e.message}`
-        console.error(lastError)
+        lastError = `Cloudflare AI (${cfModel}): ${e.message}`;
         if (cfModel !== '@cf/meta/llama-3.1-8b-instruct') {
           try {
-            return await runCloudflareAI('@cf/meta/llama-3.1-8b-instruct')
+            return await runCloudflareAI('@cf/meta/llama-3.1-8b-instruct');
           } catch (e2) {
-            lastError = `Cloudflare AI (@cf/meta/llama-3.1-8b-instruct): ${e2.message}`
-            console.error(lastError)
+            lastError = `Cloudflare AI (@cf/meta/llama-3.1-8b-instruct): ${e2.message}`;
           }
         }
+        throw new Error(lastError);
       }
+    };
 
-      if (groqKey) {
+    const tryGroq = async () => {
+      if (!groqKey) throw new Error("Groq API key not configured");
+      for (const m of liveGroqModels) {
         try {
-          return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', 'llama-3.3-70b-versatile', 4096)
+          return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', m, 4096);
         } catch (e) {
-          lastError = `Groq: ${e.message}`
+          lastError = `Groq (${m}): ${e.message}`;
+          if (e.message.includes("Invalid API Key")) throw e;
         }
       }
-      if (orKey) {
+      throw new Error(lastError);
+    };
+
+    const tryOpenRouter = async () => {
+      if (!orKey) throw new Error("OpenRouter API key not configured");
+      for (const m of liveOrModels) {
         try {
-          return await runHttpProvider('openrouter', orKey, 'https://openrouter.ai/api/v1/chat/completions', orModel)
+          return await runHttpProvider('openrouter', orKey, 'https://openrouter.ai/api/v1/chat/completions', m);
         } catch (e) {
-          lastError = `OpenRouter: ${e.message}`
+          lastError = `OpenRouter (${m}): ${e.message}`;
+          if (e.message.includes("Invalid API Key")) throw e;
         }
       }
-    }
-    // 2. Groq active
-    else if (activeProvider === 'groq') {
-      if (groqKey) {
-        const groqModels = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
-        for (const m of groqModels) {
-          try {
-            return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', m, 4096)
-          } catch (e) {
-            lastError = `Groq (${m}): ${e.message}`
-            if (e.message.includes("Invalid API Key")) throw e
-          }
-        }
-      }
+      throw new Error(lastError);
+    };
+
+    // Cascade Priority Ordering
+    const providerChain = activeProvider === 'groq'
+      ? [tryGroq, tryCloudflare, tryOpenRouter]
+      : (activeProvider === 'openrouter'
+        ? [tryOpenRouter, tryCloudflare, tryGroq]
+        : [tryCloudflare, tryGroq, tryOpenRouter]);
+
+    for (const attempt of providerChain) {
       try {
-        return await runCloudflareAI(cfModel)
-      } catch (e) {
-        lastError = `Cloudflare AI: ${e.message}`
-      }
-      if (orKey) {
-        try {
-          return await runHttpProvider('openrouter', orKey, 'https://openrouter.ai/api/v1/chat/completions', orModel)
-        } catch (e) {
-          lastError = `OpenRouter: ${e.message}`
-        }
-      }
-    }
-    // 3. OpenRouter active
-    else if (activeProvider === 'openrouter') {
-      if (orKey) {
-        const orModels = [orModel, 'meta-llama/llama-3.1-70b-instruct:free']
-        for (const m of orModels) {
-          try {
-            return await runHttpProvider('openrouter', orKey, 'https://openrouter.ai/api/v1/chat/completions', m)
-          } catch (e) {
-            lastError = `OpenRouter (${m}): ${e.message}`
-            if (e.message.includes("Invalid API Key")) throw e
-          }
-        }
-      }
-      try {
-        return await runCloudflareAI(cfModel)
-      } catch (e) {
-        lastError = `Cloudflare AI: ${e.message}`
-      }
-      if (groqKey) {
-        try {
-          return await runHttpProvider('groq', groqKey, 'https://api.groq.com/openai/v1/chat/completions', 'llama-3.3-70b-versatile', 4096)
-        } catch (e) {
-          lastError = `Groq: ${e.message}`
-        }
+        return await attempt();
+      } catch (err) {
+        // Cascade to next provider
       }
     }
 
-    throw new Error(`RATE_LIMIT_ALL: ${lastError || 'Unable to generate response from any provider.'}`)
+    throw new Error(`RATE_LIMIT_ALL: All AI providers failed. Last error: ${lastError || 'None'}`);
 }
 
 // Alphanumeric Clause & Standard Entity Extractor
@@ -4732,10 +4740,128 @@ function getDeterministicTriageMcqs(qClean) {
   return null;
 }
 
+
+// =========================================================================
+// 🛡️ PHASE P1.1 & P1.2: DETERMINISTIC GROUNDING VERIFIER & ABSTENTION GATE
+// =========================================================================
+
+function detectOutOfScopeStandard(question) {
+  if (!question || typeof question !== 'string') return null;
+  const outOfScopePatterns = [
+    /\b(DNV(?:-ST|-OS|-RP)?[A-Za-z0-9\-]*)\b/i,
+    /\b(ACI\s*(?:318|349|350|211))\b/i,
+    /\b(ISO\s*(?:10993|13485|14971|9001))\b/i,
+    /\b(BS\s*(?:5950|8110|7671))\b/i,
+    /\b(Eurocode|EN\s*199[0-9]|IEC\s*[0-9]+)\b/i,
+    /\b(ASTM\s*C[0-9]+)\b/i
+  ];
+  for (const pat of outOfScopePatterns) {
+    const match = question.match(pat);
+    if (match) return match[1];
+  }
+  return null;
+}
+
+function verifyAnswerGrounding(answer, sources, envelopeContext) {
+  if (!answer || typeof answer !== 'string') {
+    return { score_pct: 100, verified_claims: 0, total_claims: 0, unverified_claims: 0, flags: [], badge: 'VERIFIED_CODE_GROUNDED' };
+  }
+
+  // Aggregate all trusted reference text from retrieved sources and code safety envelopes
+  const sourceTexts = (sources || []).map(s => `${s.standard || ''} ${s.clause || ''} ${s.content || ''}`).join('\n');
+  const allReferenceText = `${sourceTexts}\n${envelopeContext || ''}`.toLowerCase();
+
+  const flags = [];
+  let totalClaims = 0;
+  let verifiedClaims = 0;
+
+  // 1. Verify Clause & Table Citations
+  const citationRegex = /\b(?:Table\s+[A-Za-z0-9\.\-]+|Clause\s+[A-Za-z0-9\.\-]+|UG-[0-9]+(?:\([a-z0-9]+\))?|UW-[0-9]+(?:\([a-z0-9]+\))?|QW-[0-9]+(?:\.[0-9]+)?|Section\s+[0-9]+(?:\.[0-9]+)?|Para(?:graph)?\s+[0-9]+(?:\.[0-9]+)?)\b/gi;
+  const foundCitations = answer.match(citationRegex) || [];
+  const uniqueCitations = Array.from(new Set(foundCitations.map(c => c.trim())));
+
+  for (const citation of uniqueCitations) {
+    totalClaims++;
+    const citClean = citation.toLowerCase().replace(/\s+/g, ' ');
+    const strippedClause = citClean.replace('clause ', '').replace('table ', '').replace('section ', '').replace('paragraph ', '').replace('para ', '');
+    if (allReferenceText.includes(citClean) || allReferenceText.includes(strippedClause)) {
+      verifiedClaims++;
+    } else {
+      flags.push({ type: 'UNVERIFIED_CITATION', claim: citation });
+    }
+  }
+
+  // 2. Verify Critical Numbers with Units
+  const numericClaimRegex = /\b(?:\d+(?:\.\d+)?)\s*(?:°C|°F|HRC|HBW|psi|bar|ksi|mm|inch|in\.|ft-lbs|Joule|J\b|%|years?|days?|minutes?|min\b)\b/gi;
+  const foundNumbers = answer.match(numericClaimRegex) || [];
+  const uniqueNumbers = Array.from(new Set(foundNumbers.map(n => n.trim())));
+
+  for (const num of uniqueNumbers) {
+    totalClaims++;
+    const numClean = num.toLowerCase().replace(/\s+/g, '');
+    const numCleanSpaced = num.toLowerCase().replace(/\s+/g, ' ');
+    if (allReferenceText.includes(numClean) || allReferenceText.includes(numCleanSpaced)) {
+      verifiedClaims++;
+    } else {
+      if (/(?:°[cf]|hrc|hbw|psi|bar|ksi|mm|\b%\b)/i.test(num)) {
+        flags.push({ type: 'UNVERIFIED_NUMERIC_PARAMETER', claim: num });
+      } else {
+        verifiedClaims++;
+      }
+    }
+  }
+
+  // 3. Extract Best Verbatim Evidence Quote (P1.3)
+  let bestQuote = '';
+  let bestQuoteLen = 0;
+  for (const s of (sources || [])) {
+    if (!s.content) continue;
+    const sentences = answer.split(/(?<=[.!?])\s+/);
+    for (const sent of sentences) {
+      const cleanSent = sent.trim().replace(/^\*+|\*+$/g, '');
+      if (cleanSent.length > 25 && s.content.includes(cleanSent)) {
+        if (cleanSent.length > bestQuoteLen) {
+          bestQuote = cleanSent;
+          bestQuoteLen = cleanSent.length;
+        }
+      }
+    }
+  }
+
+  const scorePct = totalClaims > 0 ? Math.round((verifiedClaims / totalClaims) * 100) : 100;
+  let badge = 'VERIFIED_CODE_GROUNDED';
+  if (scorePct < 65) badge = 'UNVERIFIED_WARNING';
+  else if (scorePct < 85) badge = 'PARTIAL_VERIFICATION';
+
+  return {
+    score_pct: scorePct,
+    verified_claims: verifiedClaims,
+    total_claims: totalClaims,
+    unverified_claims: flags.length,
+    flags: flags.slice(0, 5),
+    verbatim_evidence_quote: bestQuote || null,
+    badge
+  };
+}
+
 async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = [], mode = 'web', selected_standards = []) {
   const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all()
   let dbConf = {}
   if (confRes.results) confRes.results.forEach(r => dbConf[r.key] = r.value)
+
+  // 🛡️ Phase P1.2: Calibrated Abstention Gate for Out-of-Corpus Queries
+  const outStd = detectOutOfScopeStandard(question);
+  const inScopeMention = /\b(API|ASME|AWS|ISO\s*(?:3834|9712)|NACE|IADC|DS-1|4130|A106|SA-?516|X52|X65)\b/i.test(question);
+  if (outStd && !inScopeMention) {
+    return {
+      isAbstention: true,
+      abstentionText: `**CORPUS SCOPE DEMARCATION NOTICE:** The requested standard (${outStd}) is outside the verified Oil & Gas inspection database corpus (API, ASME, AWS, ISO 3834/9712, NACE MR0175, IADC, DS-1).\n\nPer SpecSupport Level III verification rules, no certified inspection disposition or numerical limits can be generated for unverified external standards. Please specify an in-scope governing code or upload your company specification via Refiner Studio.`,
+      messages: [],
+      sources: [],
+      today: new Date().toISOString().split('T')[0],
+      deterministicTriageMcqs: []
+    };
+  }
 
   // Usage check
   const today = new Date().toISOString().split('T')[0]
@@ -5149,29 +5275,28 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   const targetPillars = detectTargetPillars(contextualQuestion);
   const searchQuestion = expandRosettaKeywords(contextualQuestion, detectedStd, targetPillars);
 
-  // 3. Dense Vector Embedding
-  let questionEmbedding = []
-  try {
-    const aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [searchQuestion] })
-    questionEmbedding = aiResp.data?.[0] ?? aiResp?.[0] ?? []
-  } catch(e) {}
+  // 3. Dense Vector Embedding & 4. BM25 Full Text Search in PARALLEL (Phase P3.2)
+  const ftsTerm = contextualQuestion.replace(/[^a-zA-Z0-9 ]/g, "").split(" ").filter(w => w.length > 2).join(" OR ");
 
-  // 4. BM25 Full Text Search
+  const [vectorRes, ftsDbRes] = await Promise.all([
+    (!exactMatches || exactMatches.length === 0)
+      ? c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [searchQuestion] }).catch(() => null)
+      : Promise.resolve(null),
+    (ftsTerm)
+      ? c.env.DB.prepare(`SELECT rowid, bm25(standards_fts) as bm25_score FROM standards_fts WHERE standards_fts MATCH ? LIMIT 100`).bind(ftsTerm).all().catch(() => ({ results: [] }))
+      : Promise.resolve({ results: [] })
+  ]);
+
+  let questionEmbedding = vectorRes ? (vectorRes.data?.[0] ?? vectorRes?.[0] ?? []) : [];
   let bm25Scores = {};
   let ftsMatchedIds = [];
-  try {
-    const ftsTerm = contextualQuestion.replace(/[^a-zA-Z0-9 ]/g, "").split(" ").filter(w => w.length > 2).join(" OR ");
-    if (ftsTerm) {
-      const { results: ftsRes } = await c.env.DB.prepare(`SELECT rowid, bm25(standards_fts) as bm25_score FROM standards_fts WHERE standards_fts MATCH ? LIMIT 100`).bind(ftsTerm).all();
-      if (ftsRes && ftsRes.length > 0) {
-        ftsRes.sort((a,b) => a.bm25_score - b.bm25_score);
-        ftsRes.forEach((r, rank) => { 
-          bm25Scores[r.rowid] = rank;
-          ftsMatchedIds.push(r.rowid);
-        });
-      }
-    }
-  } catch(e) {}
+  if (ftsDbRes && ftsDbRes.results && ftsDbRes.results.length > 0) {
+    ftsDbRes.results.sort((a,b) => a.bm25_score - b.bm25_score);
+    ftsDbRes.results.forEach((r, rank) => { 
+      bm25Scores[r.rowid] = rank;
+      ftsMatchedIds.push(r.rowid);
+    });
+  }
 
   // 5. Multi-Tier Scoped SQL Query with 11 Rosetta Genome Pillars
   let query = `
@@ -5828,10 +5953,105 @@ Generate a complete, step-by-step BOP Pressure Test Sequence:
 }
 
 app.post('/api/ask', async (c) => {
+  const reqStartTime = Date.now();
   try {
     const { question, language, session_id, standard_filter, history, mode = 'web', selected_standards = [] } = await c.req.json()
     
     if (!question || !session_id) return c.json({ error: 'Missing fields' }, 400)
+
+    // ⚡ Phase P3.6: SHA-256 Semantic Query Cache Lookup
+    const cacheKeyRaw = `${(question || '').trim().toLowerCase()}_${standard_filter || 'ALL'}_${(selected_standards || []).sort().join(',')}`;
+    let queryHash = null;
+    try {
+      const qhBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(cacheKeyRaw));
+      queryHash = Array.from(new Uint8Array(qhBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+      const cached = await c.env.DB.prepare(`
+        SELECT answer, grounding_score, evidence_badge, sources_json 
+        FROM query_semantic_cache 
+        WHERE query_hash = ?
+      `).bind(queryHash).first();
+
+      if (cached && cached.answer) {
+        let cachedSources = [];
+        try { cachedSources = JSON.parse(cached.sources_json || '[]'); } catch(e){}
+        const isStreamReq = Boolean(c.req.query('stream') === 'true' || c.req.header('Accept')?.includes('text/event-stream'));
+        if (isStreamReq) {
+          const encoder = new TextEncoder();
+          const { readable, writable } = new TransformStream();
+          const writer = writable.getWriter();
+          ;(async () => {
+            try {
+              await writer.write(encoder.encode(`data: ${JSON.stringify({
+                type: 'metadata',
+                sources: cachedSources,
+                model_used: 'SpecSupport-Semantic-Cache',
+                cached: true,
+                loop_engineering: {
+                  mode: 'SEMANTIC_CACHE_FASTPATH',
+                  grounding_score: cached.grounding_score || 100,
+                  evidence_badge: cached.evidence_badge || 'VERIFIED_CODE_GROUNDED'
+                }
+              })}\n\n`));
+              await writer.write(encoder.encode(`data: ${JSON.stringify({ token: cached.answer })}\n\n`));
+              await writer.write(encoder.encode(`data: ${JSON.stringify({
+                type: 'complete',
+                suggested_questions: [],
+                mcq_questions: [],
+                grounding: {
+                  score_pct: cached.grounding_score || 100,
+                  badge: cached.evidence_badge || 'VERIFIED_CODE_GROUNDED',
+                  verified_claims: 1,
+                  total_claims: 1,
+                  unverified_claims: 0
+                },
+                loop_engineering: {
+                  mode: 'SEMANTIC_CACHE_FASTPATH',
+                  grounding_score: cached.grounding_score || 100,
+                  evidence_badge: cached.evidence_badge || 'VERIFIED_CODE_GROUNDED'
+                }
+              })}\n\n`));
+              await writer.write(encoder.encode('data: [DONE]\n\n'));
+            } finally {
+              try { await writer.close(); } catch(e){}
+            }
+          })();
+          return new Response(readable, {
+            headers: {
+              'Content-Type': 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              'Connection': 'keep-alive',
+              'Access-Control-Allow-Origin': c.env.ALLOWED_ORIGIN || '*'
+            }
+          });
+        } else {
+          return c.json({
+            answer: cached.answer,
+            sources: cachedSources,
+            model_used: 'SpecSupport-Semantic-Cache',
+            cached: true,
+            mode,
+            suggested_questions: [],
+            mcq_questions: [],
+            can_continue: false,
+            grounding: {
+              score_pct: cached.grounding_score || 100,
+              badge: cached.evidence_badge || 'VERIFIED_CODE_GROUNDED',
+              verified_claims: 1,
+              total_claims: 1,
+              unverified_claims: 0
+            },
+            loop_engineering: {
+              mode: 'SEMANTIC_CACHE_FASTPATH',
+              grounding_score: cached.grounding_score || 100,
+              evidence_badge: cached.evidence_badge || 'VERIFIED_CODE_GROUNDED'
+            }
+          });
+        }
+      }
+    } catch(ce) {
+      console.warn("Semantic cache check warning:", ce);
+    }
     
     let contextData
     try {
@@ -5841,6 +6061,95 @@ app.post('/api/ask', async (c) => {
       throw e
     }
     
+    // 🛡️ Phase P1.2: Check Calibrated Abstention Gate
+    if (contextData.isAbstention) {
+      const abstentionText = contextData.abstentionText;
+      const reportedModel = 'SpecSupport-Abstention-Gate';
+      const isStreamRequestedEarly = Boolean(c.req.query('stream') === 'true' || c.req.header('Accept')?.includes('text/event-stream'));
+      
+      if (isStreamRequestedEarly) {
+        const encoder = new TextEncoder();
+        const { readable, writable } = new TransformStream();
+        const writer = writable.getWriter();
+        ;(async () => {
+          try {
+            await writer.write(encoder.encode(`data: ${JSON.stringify({ 
+              type: 'metadata', 
+              sources: [], 
+              model_used: reportedModel,
+              loop_engineering: {
+                mode: 'CALIBRATED_ABSTENTION_GATE',
+                passes: 1,
+                verified_status: 'REFUSED_OUT_OF_SCOPE'
+              }
+            })}\n\n`));
+            await writer.write(encoder.encode(`data: ${JSON.stringify({ token: abstentionText })}\n\n`));
+            await writer.write(encoder.encode(`data: ${JSON.stringify({ 
+              type: 'complete', 
+              suggested_questions: [
+                "What API standards are available in SpecSupport?",
+                "How do I upload custom company specifications in Refiner Studio?",
+                "What is the governing code for pressure vessels?"
+              ],
+              mcq_questions: [],
+              grounding: {
+                score_pct: 100,
+                badge: 'CALIBRATED_ABSTENTION',
+                verified_claims: 1,
+                total_claims: 1,
+                unverified_claims: 0
+              },
+              loop_engineering: {
+                mode: 'CALIBRATED_ABSTENTION_GATE',
+                passes: 1,
+                verified_status: 'REFUSED_OUT_OF_SCOPE',
+                grounding_score: 100,
+                evidence_badge: 'CALIBRATED_ABSTENTION'
+              }
+            })}\n\n`));
+            await writer.write(encoder.encode('data: [DONE]\n\n'));
+          } finally {
+            try { await writer.close(); } catch(e) {}
+          }
+        })();
+        return new Response(readable, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'Access-Control-Allow-Origin': c.env.ALLOWED_ORIGIN || '*'
+          }
+        });
+      } else {
+        return c.json({
+          answer: abstentionText,
+          sources: [],
+          model_used: reportedModel,
+          mode,
+          suggested_questions: [
+            "What API standards are available in SpecSupport?",
+            "How do I upload custom company specifications in Refiner Studio?"
+          ],
+          mcq_questions: [],
+          can_continue: false,
+          grounding: {
+            score_pct: 100,
+            badge: 'CALIBRATED_ABSTENTION',
+            verified_claims: 1,
+            total_claims: 1,
+            unverified_claims: 0
+          },
+          loop_engineering: {
+            mode: 'CALIBRATED_ABSTENTION_GATE',
+            passes: 1,
+            draft_model: reportedModel,
+            critic_model: reportedModel,
+            verified_status: 'REFUSED_OUT_OF_SCOPE'
+          }
+        });
+      }
+    }
+
     const { messages, sources, today, deterministicTriageMcqs } = contextData
     const isStreamRequested = Boolean(c.req.query('stream') === 'true' || c.req.header('Accept')?.includes('text/event-stream'))
     
@@ -5913,6 +6222,7 @@ app.post('/api/ask', async (c) => {
               if (reader) {
                 const decoder = new TextDecoder()
                 let buffer = ''
+                let streamedFullText = ''
                 while (true) {
                   const { done, value } = await reader.read()
                   if (done) break
@@ -5928,6 +6238,7 @@ app.post('/api/ask', async (c) => {
                       const parsed = JSON.parse(payload)
                       const token = parsed.response || parsed.token || parsed.choices?.[0]?.delta?.content || ''
                       if (token) {
+                        streamedFullText += token
                         await writer.write(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`))
                       }
                     } catch(e) {}
@@ -5941,18 +6252,61 @@ app.post('/api/ask', async (c) => {
                 "What are the welder and inspector qualification prerequisites?",
                 "How does this criterion compare with ISO or API standards?",
                 "What are common false indications observed in field inspection?"
-              ]
+              ];
+
+              const streamGroundingResult = verifyAnswerGrounding(
+                streamedFullText,
+                sourcesToSend,
+                contextData.envelopeContextText || ""
+              );
+
+              // Phase P1.5 Request Traces & Phase P3.6 Semantic Cache Save
+              try {
+                c.executionCtx?.waitUntil(Promise.all([
+                  queryHash ? c.env.DB.prepare(`
+                    INSERT OR REPLACE INTO query_semantic_cache (query_hash, question, standard_filter, answer, grounding_score, evidence_badge, sources_json)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                  `).bind(
+                    queryHash,
+                    question.slice(0, 300),
+                    standard_filter || 'ALL',
+                    streamedFullText,
+                    streamGroundingResult.score_pct,
+                    streamGroundingResult.badge,
+                    JSON.stringify(sourcesToSend.slice(0, 10))
+                  ).run() : Promise.resolve(),
+                  c.env.DB.prepare(`
+                    INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  `).bind(
+                    crypto.randomUUID(),
+                    session_id,
+                    question.slice(0, 300),
+                    standard_filter || 'ALL',
+                    streamGroundingResult.score_pct,
+                    streamGroundingResult.badge,
+                    draftRes?.provider || 'cloudflare',
+                    draftRes?.model || reportedModel,
+                    Date.now() - reqStartTime
+                  ).run()
+                ]));
+              } catch(e) {}
+
               await writer.write(encoder.encode(`data: ${JSON.stringify({ 
                 type: 'complete', 
                 suggested_questions: defaultFollowups,
                 mcq_questions: activeMcqs,
+                grounding: streamGroundingResult,
                 loop_engineering: {
                   mode: 'DUAL_LLM_DRAFT_CRITIC',
                   passes: loopPasses,
-                  verified_status: loopPasses > 1 ? 'LEVEL_III_CRITIQUE_REFINED' : 'INITIAL_PASS_VERIFIED'
+                  verified_status: loopPasses > 1 ? 'LEVEL_III_CRITIQUE_REFINED' : 'INITIAL_PASS_VERIFIED',
+                  grounding_score: streamGroundingResult.score_pct,
+                  evidence_badge: streamGroundingResult.badge,
+                  verbatim_evidence_quote: streamGroundingResult.verbatim_evidence_quote
                 }
-              })}\n\n`))
-              await writer.write(encoder.encode('data: [DONE]\n\n'))
+              })}\n\n`));
+              await writer.write(encoder.encode('data: [DONE]\n\n'));
             } catch(stErr) {
               await writer.write(encoder.encode(`data: ${JSON.stringify({ error: stErr.message })}\n\n`))
             } finally {
@@ -6055,6 +6409,7 @@ app.post('/api/ask', async (c) => {
       `INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`
     ).bind(session_id, question, reportedModel, today).run()
     
+    const groundingResult = verifyAnswerGrounding(answer, sources, envelopeContext);
     return c.json({ 
       answer, 
       finish_reason: finishReason, 
@@ -6064,12 +6419,16 @@ app.post('/api/ask', async (c) => {
       suggested_questions: suggestedQuestions,
       mcq_questions: mcqQuestions,
       can_continue: finishReason === 'length' || answer.length > 1200,
+      grounding: groundingResult,
       loop_engineering: {
         mode: 'DUAL_LLM_DRAFT_CRITIC',
         passes: loopPasses,
         draft_model: draftRes?.model || reportedModel,
         critic_model: criticModelUsed,
-        verified_status: loopPasses > 1 ? 'LEVEL_III_CRITIQUE_REFINED' : 'INITIAL_PASS_VERIFIED'
+        verified_status: loopPasses > 1 ? 'LEVEL_III_CRITIQUE_REFINED' : 'INITIAL_PASS_VERIFIED',
+        grounding_score: groundingResult.score_pct,
+        evidence_badge: groundingResult.badge,
+        verbatim_evidence_quote: groundingResult.verbatim_evidence_quote
       }
     })
   } catch (e) {
