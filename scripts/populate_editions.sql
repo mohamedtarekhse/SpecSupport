@@ -1,0 +1,12 @@
+UPDATE standards_chunks SET edition = '5th Edition' WHERE standard_code IN ('API 53', 'API Standard 53');
+UPDATE standards_chunks SET edition = '22nd Edition' WHERE standard_code = 'API 1104';
+UPDATE standards_chunks SET edition = '3rd Edition' WHERE standard_code = 'API 16D';
+UPDATE standards_chunks SET edition = '1st Edition' WHERE standard_code = 'API 16AR';
+UPDATE standards_chunks SET edition = '5th Edition' WHERE standard_code IN ('API RP 4G', 'API Spec 4F');
+UPDATE standards_chunks SET edition = '10th Edition' WHERE standard_code = 'API 5CT';
+UPDATE standards_chunks SET edition = '2nd Edition' WHERE standard_code = 'API RP 7G-2';
+UPDATE standards_chunks SET edition = '8th Edition' WHERE standard_code = 'API RP 8B';
+UPDATE standards_chunks SET edition = '2023 Edition' WHERE standard_code IN ('ASME IX', 'ASME Section IX', 'ASME VIII DIV 1', 'ASME V', 'ASME Section V');
+UPDATE standards_chunks SET edition = '2022 Edition' WHERE standard_code = 'ASME B31.3';
+UPDATE standards_chunks SET edition = '2020 Edition' WHERE standard_code = 'AWS D1.1';
+UPDATE standards_chunks SET edition = '2021 Edition' WHERE standard_code IN ('ISO 3834-2', 'NACE MR0175');

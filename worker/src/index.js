@@ -5278,6 +5278,10 @@ Always couple this qualification with an exact ITP milestone: Hold Point (H), Wi
 6. MANDATORY ENGINEERING FIDELITY & NO-EVASION PRINCIPLE:
 - NEVER claim you "cannot calculate without material properties" or evade direct numerical answers! When specific material grades are not stated in a user query, you MUST adopt the recognized oilfield baseline material (e.g., AISI 4130 / ASTM A350 LF2 for drilling pressure equipment & pulsation dampeners; ASTM A106 Gr B / API 5L X52 for piping) and execute the full formula showing the exact numbers and retirement limit.
 - EQUIPMENT MODEL VS MATERIAL DISTINCTION: NEVER confuse an equipment model or capacity designation (e.g., Hydril K20, National 12-P-160, Varco BJ 500-Ton) with a material specification! K20 indicates a 20-gallon spherical pulsation dampener, NOT a steel grade.
+
+7. HIERARCHICAL GOVERNANCE & ADDENDUM PRECEDENCE (PHASE P2.3):
+- ORDER OF NORMATIVE AUTHORITY: Company/Operator Procedure > Project Amendment/Addendum > Baseline International Standard Code (API, ASME, AWS, ISO).
+- Whenever a company specification or project addendum mandates stricter rejection limits, tighter NDT acceptance, or shorter inspection intervals, you MUST enforce the company specification while citing the baseline code as the governing floor. State the active edition of the governing standard where applicable.
 - VESSEL GEOMETRY DISTINCTION: Recognize spherical vessels (e.g., pulsation dampeners, spherical accumulators) vs cylindrical shells. Use ASME Section VIII Div 1 UG-27(d) [t = PR / (2SE - 0.2P)] for spherical vessels and UG-27(c) [t = PR / (SE - 0.6P)] for cylindrical vessels.
 
 7. OPTIONAL MCQ CONFLICT RESOLUTION (STRICT LAST RESORT ONLY):
@@ -5366,7 +5370,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   // 5. Multi-Tier Scoped SQL Query with 11 Rosetta Genome Pillars
   let query = `
     SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization,
-           pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs 
+           pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs, edition 
     FROM standards_chunks 
     WHERE (scope = 'global' OR scope IS NULL OR (scope = 'private_temp' AND session_id = ?))
       AND (is_excluded = 0 OR is_excluded IS NULL)
@@ -5405,7 +5409,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   if (detectedStd && candidates.length < 4 && safeFtsIds.length > 0) {
     try {
       const safeFbIds = safeFtsIds.slice(0, 40);
-      const fbSql = `SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization, pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs FROM standards_chunks WHERE (scope = 'global' OR scope IS NULL) AND (is_excluded = 0 OR is_excluded IS NULL) AND id IN (${safeFbIds.join(',')}) LIMIT 40`;
+      const fbSql = `SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization, pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs, edition FROM standards_chunks WHERE (scope = 'global' OR scope IS NULL) AND (is_excluded = 0 OR is_excluded IS NULL) AND id IN (${safeFbIds.join(',')}) LIMIT 40`;
       const { results: fbRes } = await c.env.DB.prepare(fbSql).all();
       if (fbRes && fbRes.length > 0) {
         candidates = candidates.concat(fbRes);
@@ -5552,10 +5556,12 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
     if (chunk.normative_refs) metaLines += `\n[NORMATIVE BRIDGE]: ${chunk.normative_refs}`
     if (chunk.qa_docs) metaLines += `\n[QA AUDIT DOCS]: ${chunk.qa_docs}`
 
-    contextText += `[Source ${idx+1}${exactTag}${pillarTag}${rerankTag}] Standard: ${chunk.standard_code} | Clause: ${chunk.clause}${metaLines}\n${chunk.content}\n\n`
+    const editionTag = chunk.edition ? ` (${chunk.edition})` : ""
+    contextText += `[Source ${idx+1}${exactTag}${pillarTag}${rerankTag}] Standard: ${chunk.standard_code}${editionTag} | Clause: ${chunk.clause}${metaLines}\n${chunk.content}\n\n`
     sources.push({ 
       standard: chunk.standard_code, 
       clause: chunk.clause,
+      edition: chunk.edition || null,
       verified_db: true,
       chunk_id: chunk.id,
       pillar: chunk.pillar_type || 'GENERAL',
@@ -6486,6 +6492,41 @@ app.post('/api/ask', async (c) => {
     ).bind(session_id, question, reportedModel, today).run()
     
     const groundingResult = verifyAnswerGrounding(answer, sources, envelopeContext);
+
+    // Phase P1.5 (Per-Request Traces) & P3.6 (Query Semantic Cache) for Non-Streaming Endpoint
+    try {
+      if (c.executionCtx && typeof c.executionCtx.waitUntil === 'function') {
+        c.executionCtx.waitUntil(Promise.allSettled([
+          queryHash ? c.env.DB.prepare(`
+            INSERT OR REPLACE INTO query_semantic_cache (query_hash, question, standard_filter, answer, grounding_score, evidence_badge, sources_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+          `).bind(
+            queryHash,
+            question.slice(0, 300),
+            standard_filter || 'ALL',
+            answer,
+            groundingResult.score_pct,
+            groundingResult.badge,
+            JSON.stringify((sources || []).slice(0, 10))
+          ).run() : Promise.resolve(),
+          c.env.DB.prepare(`
+            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(
+            crypto.randomUUID(),
+            session_id,
+            question.slice(0, 300),
+            standard_filter || 'ALL',
+            groundingResult.score_pct,
+            groundingResult.badge,
+            draftRes?.provider || 'cloudflare',
+            draftRes?.model || reportedModel,
+            Date.now() - reqStartTime
+          ).run()
+        ]));
+      }
+    } catch(e) {}
+
     return c.json({ 
       answer, 
       finish_reason: finishReason, 
