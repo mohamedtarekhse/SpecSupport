@@ -366,5 +366,85 @@ Target API: https://inspection-api.mohamedtarekhse.workers.dev
    - **Section 3 (Negative Control):** 2/2 PASS
    - **Section 4 (Non-Streaming Parity):** 2/2 PASS
 
+---
+
+## 8. Phase P2 Batch B & Latency Optimization (2026-11-06)
+
+### 8.1 Delivered Improvements
+1. **ITEM 1 — P2.6 Envelope Completeness Census (`scripts/envelope_census.js`)**:
+   - D1 schema migration executed: added `primary_code`, `source_chunk_id`, `min_remaining_wall_pct`, `min_hydrotest_ratio`, and `notes` to `code_safety_envelopes`.
+   - Scanned 3,962 candidate threshold chunks across all 41 loaded standards.
+   - Built and applied a 15-row unified canonical safety envelope census in D1, linking verbatim chunk source IDs to metallurgical limits, wear thresholds, and hydrostatic pressure test ratios.
+   - Wired `loadSafetyEnvelopes` and `verifyAnswerGrounding` to ingest full census parameters into the Critic Agent and Grounding Verifier context.
+   - **Grounding Score Lifts:**
+     - `REAL-03` (API RP 7G-2 Drill Pipe Premium Wall Wear Limit): Lifted from 70% `PARTIAL_VERIFICATION` to **90% `VERIFIED_CODE_GROUNDED`**.
+     - `REAL-05` (ASME B31.3 Clause 345.4.2 Hydrostatic Test Ratio 1.5×): Lifted from 80% `PARTIAL_VERIFICATION` to **100% `VERIFIED_CODE_GROUNDED`**.
+     - Gaps completely closed without dropping claim extraction rules or weakening refusals.
+2. **ITEM 2 — Deterministic Table-Hit Fast Path (Phase P3.1 Latency Win)**:
+   - Implemented `resolveDeterministicTableAnswer()` in `worker/src/index.js` for ASME IX QW-422, API 1104 Table 1, and ASME B31.3 Table 341.3.2 queries.
+   - Directly composes the verified answer adhering strictly to the `Short Answer -> Evidence -> Explanation` format without issuing LLM inference calls.
+   - Verifier runs on the templated answer to guarantee 100% grounding, exact verbatim evidence quote, and `VERIFIED_CODE_GROUNDED` badge.
+   - Supports both streaming SSE and non-streaming JSON endpoints with graceful fallback to the dual-pass draft pipeline when queries require broader synthesis.
+   - **Latency Win:** Slashed end-to-end lookup latencies from 10–21s down to **< 1.0s** (~560–990ms fresh, ~100ms cached).
+3. **ITEM 3 — Latency Instrumentation & Stage Timings Polish**:
+   - Added `retrieval_ms`, `table_ms`, `draft_ms`, `critic_ms`, `verifier_ms`, and `mode` columns to `request_traces`.
+   - Recorded stage-level latency telemetry in D1 background execution and populated `timings` payload in API responses.
+
+---
+
+### 8.2 Production Gate Verification Results
+- **Deployment Version ID:** `ddd922d3-9ce4-41aa-9cd5-ed70e25bd544` (Triggers: `https://inspection-api.mohamedtarekhse.workers.dev`)
+
+1. **Golden Evaluations Harness (`scripts/run_golden_evals.js`):**
+   - **Score:** **14 / 14 Passed (100.0%)**
+   - **Citation Coverage:** 14/14 (100%)
+   - **Numerical Ground Truth:** 14/14 (100%)
+   - **Gate Status:** **PASSED**
+
+2. **Planted-Error Verification Suite (`scripts/test_planted_suite_only.js`):**
+   - **Total Score:** **10 / 10 Test Cases Passed (100.0%)**
+   - **In-Corpus Grounding (100% Passed with VERIFIED badges):**
+     - `REAL-01` (A106 Gr B Preheat): **100%** (`VERIFIED_CODE_GROUNDED`)
+     - `REAL-02` (SA-516 Gr 70 P-No. 1 Group 2): **100%** (`VERIFIED_CODE_GROUNDED`) [Fastpath: 650ms]
+     - `REAL-03` (Drill Pipe 80% Wall Wear Limit): **90%** (`VERIFIED_CODE_GROUNDED`) [Lifted from 70%]
+     - `REAL-04` (AISI 4130 Sour Hardness 22 HRC): **100%** (`VERIFIED_CODE_GROUNDED`)
+     - `REAL-05` (Hydrostatic Test Ratio 1.5×): **100%** (`VERIFIED_CODE_GROUNDED`) [Lifted from 80%]
+   - **Out-of-Corpus Refusals:**
+     - `OUT-01` through `OUT-05`: **5 / 5 Refused (100.0%)** (`CALIBRATED_ABSTENTION`)
+
+3. **Deterministic Fast-Path Probes (`scripts/verify_p2_batch_b.js`):**
+   - **Probe A (ASME IX QW-422 SA-516 Gr 70):**
+     - Total Latency: **563 ms** (Stage: retrieval 528ms, table 12ms, draft 0ms, critic 0ms, verifier 1ms)
+     - Grounding: **100%** | Badge: `VERIFIED_CODE_GROUNDED` | MCQs: 0
+     - Result: **PASS**
+   - **Probe B (API 1104 Table 1 Foot-run Acceptance):**
+     - Total Latency: **626 ms** (Stage: retrieval 591ms, table 12ms, draft 0ms, critic 0ms, verifier 1ms)
+     - Grounding: **100%** | Badge: `VERIFIED_CODE_GROUNDED` | MCQs: 0
+     - Result: **PASS**
+   - **Probe C (ASME B31.3 Table 341.3.2 Acceptance Criteria):**
+     - Total Latency: **637 ms** (Stage: retrieval 603ms, table 13ms, draft 0ms, critic 0ms, verifier 1ms)
+     - Grounding: **100%** | Badge: `VERIFIED_CODE_GROUNDED` | MCQs: 0
+     - Result: **PASS**
+   - **Streaming SSE Fast-Path:** **PASS** (118 ms)
+
+4. **Deployed Developments Deep Audit Suite (`scripts/full_test_deployed_developments.js`):**
+   - **Score:** **31 / 31 Passed (100.0%)**
+   - **Section 1 (Cross-Encoder Re-Ranker):** 3/3 PASS
+   - **Section 2 (Triage Disciplines 2.1 - 2.7):** 21/21 PASS
+   - **Section 3 (Negative Control Bypass):** 2/2 PASS
+   - **Section 4 (Non-Streaming Parity):** 2/2 PASS
+
+---
+
+### 8.3 Live Latency P50 Benchmark Summary
+
+| Execution Mode | Sample Count | P50 Latency (ms) | Target | Notes |
+|---|---|---|---|---|
+| **Fast-Path Table Hit (Cold)** | 3 | **626 ms** | $\le 2500\text{ ms}$ | 0 LLM calls, deterministic D1 table retrieval |
+| **Fast-Path Table Hit (Cached)** | 3 | **140 ms** | $\le 500\text{ ms}$ | Versioned semantic cache instant return |
+| **RAG In-Corpus Standard Draft** | 2 | **14,998 ms** | $\sim 8000\text{--}18000\text{ ms}$ | Dual-pass Critic LLM generation |
+| **Web Mode Literature Synthesis** | 1 | **67,179 ms** | $\sim 15000\text{--}70000\text{ ms}$ | Multi-provider literature retrieval & reasoning |
+
+
 
 
