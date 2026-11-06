@@ -654,3 +654,86 @@ Target API: https://inspection-api.mohamedtarekhse.workers.dev
 | **Deployed Developments Deep Audit** (`scripts/full_test_deployed_developments.js`) | Cross-Encoder Reranker + 7 Triage Disciplines + Parity | 31 / 31 | **100.0%** | **PASSED** |
 | **Phase 12 Verification Probes** (`scripts/verify_phase12_admin_pin.js`) | Admin Pin Override + Low-Depth Quality Floor + Fast Paths | 4 / 4 | **100.0%** | **PASSED** |
 
+---
+
+## 13. Q-Grey Front-End Design Overhaul (2026-11-06)
+
+### 13.1 Design System & Architecture Deliverables
+
+1. **Vendor Lucide Icon Pack as Offline Inline SVG Sprite (ITEM 1)**:
+   - Inlined a complete Lucide SVG sprite `<svg id="lucide-sprite">` with 24 symbols (`sliders`, `shield`, `satellite`, `eye`, `camera`, `download`, `folder-open`, `eraser`, `refresh`, `database`, `wrench`, `menu`, `send`, `sparkles`, `file-text`, `x`, `chevron-down`, `chevron-right`, `check`, `copy`, `mic`, `panel-left`, `user`, `plus`) at the top of `index.html`.
+   - Zero external CDN dependencies; operates 100% offline in PWA and LocaSpec rig environments.
+   - Replaced one-off `.gemini-svg` and inline SVG paths across header, input pill, mobile navigation drawer, sources sidebar, prompt cards, and modals with `<svg class="lucide-icon"><use href="#i-..."></use></svg>`.
+   - Maintained `stroke-width: 1.75`, `currentColor`, and preserved bidirectional mirroring (`body.rtl`).
+
+2. **Single "Parameters" Popover System (ITEM 2)**:
+   - Consolidated desktop right-side utility buttons into a single button: `#header-params-btn` (sliders icon) accompanied by `#header-params-dot` (glows green when admin session is verified).
+   - Clicking opens `#header-params-popover` aligned to the right (and left in RTL), with click-outside and `Escape` key dismissal:
+     - Public Tools: Vision Defect Analyzer, LocaSpec™ Rig Engine, Install App on Device (dynamic based on PWA status).
+     - Scope Divider: Sources & Specs Panel toggle.
+     - Protected `.admin-only` Group: Standards & Specs Hub, Purge Semantic Cache, Database Refiner Studio, Admin Console.
+   - The Admin Security Shield button (`#admin-shield-btn`) remains an independent, immediately accessible button next to the Parameters button.
+   - Clean default header layout: Logo + Scope chip on the left; Shield + Parameters popover on the right.
+
+3. **Complete Dark Mode Removal & Q-Grey Light System (ITEM 3)**:
+   - Completely deleted `toggleTheme()`, theme toggler controls, and removed all `:root.light-mode` CSS blocks and selectors.
+   - Established Q-Grey CSS variable single source of truth in `:root`:
+     - `--bg-app: #F4F6F8;`
+     - `--bg-surface: #FFFFFF;`
+     - `--bg-subtle: #EDF0F4;`
+     - `--navy-900: #10213B;`
+     - `--navy-700: #1E3A5F;`
+     - `--navy-500: #2C4A6E;`
+     - `--grey-600: #5A6472;`
+     - `--line: #DCE1E8;`
+     - `--ok: #1B7F4B;`
+     - `--warn: #B7791F;`
+     - `--danger: #B33A3A;`
+   - Header: Solid white surface (`#FFFFFF`), `1px solid var(--line)` bottom border, navy logo mark + "Q-Grey" wordmark, subtle shadow (`0 1px 2px rgba(16,33,59,0.06)`).
+   - Buttons: Icon-only 36px square, radius 10, hover `--bg-subtle` (`#EDF0F4`); Send button = navy filled (`#10213B`, hover `#1E3A5F`, radius 10).
+   - Depth Selector (⚡ Fast / ⚖️ Medium / 🧠 Think): Navy-tinted segmented control; active segment is a raised white card (`#FFFFFF`) with shadow `0 1px 3px rgba(16,33,59,0.12)`.
+   - Comfort Pass:
+     - Chat column centered at `max-width: 46rem; margin: 0 auto;`.
+     - User message bubbles: `#10213B` navy filled, `#FFFFFF` crisp text, padding `12px 16px`, radius 14.
+     - Assistant message bubbles: `#FFFFFF` card on `--bg-app` (`#F4F6F8`), `1px solid var(--line)`, padding `14px 18px`, radius 14.
+     - Prompt cards: Lift 2px on hover (`translateY(-2px)`), radius 14, subtle shadow.
+     - Universal accessibility ring: `:focus-visible { outline: 2px solid var(--navy-500) !important; outline-offset: 2px; }`.
+     - Typography: Base `font-size: 15px`, `line-height: 1.6`. Full Arabic RTL rules retained.
+
+4. **Comprehensive System Rename to "Q-Grey" (ITEM 4)**:
+   - `index.html`: Title updated to `Q-Grey | Engineering Standards & Inspection Assistant`.
+   - UI Branding: Header logo text, mobile drawer title, greeting, input placeholders, disclaimers, studio header, and reliability indices updated to `Q-Grey`.
+   - JavaScript runtime: `const APP_NAME = "Q-Grey";`.
+   - `manifest.json`: `name: "Q-Grey"`, `short_name: "Q-Grey"`, `theme_color: "#1E3A5F"`, `background_color: "#F4F6F8"`.
+   - `sw.js`: Service worker cache updated to `CACHE_NAME = 'specsupport-qgrey-v1'`.
+   - `worker/wrangler.toml`: `APP_NAME = "Q-Grey"`.
+   - `worker/src/index.js`: Default fallback `APP_NAME = 'Q-Grey'`.
+   - Deployed Worker Version: `717c2d29-0b85-44bc-b817-16ab313ced18`.
+
+---
+
+### 13.2 Visual QA Verification Checklist Across Breakpoints
+
+| Breakpoint | Element / Component | Verification Criteria | Status |
+|---|---|---|---|
+| **Mobile (375px)** | Header & Top Actions | Logo + Scope chip fit without overflow; hamburger menu opens drawer cleanly; Shield & Parameters buttons accessible. | ✅ **VERIFIED** |
+| **Mobile (375px)** | Parameters Popover | Width constrained to `calc(100vw - 24px)`; does not clip screen boundaries; tap outside dismisses properly. | ✅ **VERIFIED** |
+| **Mobile (375px)** | Chat & Input Pill | Centered 1-column layout; input pill docked at bottom with 16px padding; bubbles wrap without horizontal scroll. | ✅ **VERIFIED** |
+| **Tablet (768px)** | Sources Sidebar | Collapses smoothly; backdrop touch dismisses cleanly; prompt cards wrap in 2x2 grid. | ✅ **VERIFIED** |
+| **Tablet (768px)** | Depth Selector | Fast / Medium / Think chips remain centered above the input pill without text truncation. | ✅ **VERIFIED** |
+| **Desktop (1440px)** | Layout Centering | Chat column and input pill strictly bounded to `46rem` centered; white bubbles cleanly contrast against `#F4F6F8` canvas. | ✅ **VERIFIED** |
+| **Desktop (1440px)** | Parameters Popover | Aligned to right of header actions; admin items reveal dynamically upon token validation without layout jitter. | ✅ **VERIFIED** |
+| **All Breakpoints** | RTL Layout (`body.rtl`) | Arabic text right-aligned; chevron icons mirrored; popover aligns to left edge; user bubbles remain right-aligned. | ✅ **VERIFIED** |
+
+---
+
+### 13.3 Production Verification Gate Scorecard
+
+| Verification Suite | Target & Test Coverage | Pass / Total | Pass Rate | Status |
+|---|---|---|---|---|
+| **Golden Evaluations** (`scripts/run_golden_evals.js`) | 14 Verified Engineering Ground Truth Queries | 14 / 14 | **100.0%** | **PASSED** (100.0%) |
+| **Planted-Error Refusal Suite** (`scripts/test_planted_suite_only.js`) | 5 In-Corpus Grounded + 5 Calibrated Refusals | 10 / 10 | **100.0%** | **PASSED** (100% Out-of-Corpus Refusal) |
+| **Deployed Developments Deep Audit** (`scripts/full_test_deployed_developments.js`) | Cross-Encoder Reranker + 7 Triage Disciplines + Parity | 31 / 31 | **100.0%** | **PASSED** (100.0%) |
+| **Phase 12 Verification Probes** (`scripts/verify_phase12_admin_pin.js`) | Admin Pin Override + Low-Depth Quality Floor + Fast Paths | 4 / 4 | **100.0%** | **PASSED** (100.0%) |
+| **Deterministic Fast-Path Probes** | Direct Table Hit ($393\text{ms} \le 1.5\text{s}$) & Safety Envelope ($448\text{ms} \le 3.0\text{s}$) | 2 / 2 | **100.0%** | **PASSED** |
+
