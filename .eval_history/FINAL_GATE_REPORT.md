@@ -135,3 +135,38 @@ Target API: https://inspection-api.mohamedtarekhse.workers.dev
 ...
 
 ```
+
+---
+
+## 4. P1 Regression Bug Fixes & Grounding Gate Verification (2026-11-06)
+
+### A. Bug 1: Triage MCQs Fire on Definitive Lookups
+- **Probe Question:** `"What is the P-Number and Group for SA-516 Grade 70 per ASME IX QW-422?"`
+- **Root Cause Identified:** The discipline detector regex matched `asme ix` and set `isWps = true`. Because `hasThickness` was false, `getDeterministicTriageMcqs` returned 4 interactive procedure MCQs and `prepareContextAndMessages` injected `[INTERACTIVE PROCEDURE TRIAGE DIRECTIVE]` into `systemPrompt`.
+- **Surgical Fix:** 
+  1. Implemented `isEntityClearQuery(question, entities, exactMatches, tableHits)` to detect concrete clause/table hits, material specs combined with clauses/tables, or direct engineering property lookups.
+  2. Bypassed `getDeterministicTriageMcqs` when `isEntityClearQuery` returns true.
+  3. Bypassed interactive procedure triage prompt injection when `isClear` is true.
+  4. Passed `isEntityClear: isClear` in context to ensure both buffered (`/api/ask`) and streaming SSE pathways suppress MCQs (`activeMcqs = []`, `mcq_questions = []`).
+  5. Updated negative-control test in `scripts/full_test_deployed_developments.js` to use the probe question and updated regex to match `"P-No. 1, Group No. 2"`.
+- **Commit:** `258c8b6` - `fix(triage): entity-clear bypass on triage MCQ fire (all modes)`.
+
+### B. Bug 2: Verifier False Negatives & Normalization
+- **Root Cause Identified:**
+  1. In `prepareContextAndMessages` (`topChunks.forEach` and `tableHits.forEach`), `sources.push` omitted `content: chunk.content`. In `verifyAnswerGrounding()`, `s.content` was `undefined`, depriving the verifier of all chunk and table text.
+  2. The verifier lacked a normalization pipeline (`norm()`) to reconcile differences in punctuation, casing, spacing, unit representations (`"ksi"` vs `" ksi"`, `"MPa"` vs `"mpa"`), and P-Number formatting (`"P-No. 1, Group No. 2"` vs `"P-NO. 1 GROUP NO. 2"`).
+- **Surgical Fix:**
+  1. Attached `content: chunk.content || ''` and `content: `${t.table_title || ''} ${t.raw_markdown || ''} ${t.structured_json || ''}`` to `sources.push`.
+  2. Implemented unified `norm(str)` normalization pipeline covering unit aliases, degree symbols, dashes, P-Numbers, and whitespace.
+  3. Upgraded `verifyAnswerGrounding()` to apply `norm()` across references, citations, unit-bearing parameters, and P-Number / Group claims.
+- **Commit:** `0188020` - `fix(verification): normalize claim matching in grounding verifier`.
+
+### C. Gate Verification Results
+- **Golden Evaluations (`scripts/run_golden_evals.js`):** **14 / 14 Passed (100.0%)**
+- **Planted-Error Adversarial Refusal Suite:**
+  - 5/5 Out-of-Corpus queries refused with `CORPUS SCOPE DEMARCATION NOTICE` (100.0% precision).
+  - 5/5 In-Corpus queries verified with verified sources and high grounding score.
+- **Test Regex Assertion Update:**
+  - `scripts/full_test_deployed_developments.js` line 267 updated from `/(?:P-?No\.?|P-?Number)\s*1.*Group(?:\s*Number)?\s*2/i` to `/(?:P-?No\.?|P-?Number)\s*1[\s\S]{0,40}Group(?:\s*No\.?|\s*Number)?\s*2/i` to correctly accept standard `"P-No. 1, Group No. 2"` phrasing.
+- **Git State:** Both commits committed cleanly and pushed to `origin/final`.
+- **Deployment Status:** Wrangler deploy reported Cloudflare API upstream outage (`GET /accounts/.../workers/services/inspection-api -> 503 Service Unavailable ("no healthy upstream")`). Runtime edge data plane at `https://inspection-api.mohamedtarekhse.workers.dev/api/health` is healthy.
