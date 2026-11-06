@@ -6493,12 +6493,19 @@ Answer the inspector's query strictly and accurately based on the verified local
             try {
                 const isArabic = anyArabic(text);
                 setRtlMode(isArabic);
+                const effectiveMode = resolveSendMode(text);
+                const adminToken = sessionStorage.getItem('adminToken') || '';
+                const reqHeaders = { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'text/event-stream, application/json'
+                };
+                if (adminToken) {
+                    reqHeaders['X-Admin-Token'] = adminToken;
+                    reqHeaders['Authorization'] = `Bearer ${adminToken}`;
+                }
                 const res = await fetch(`${API_BASE}/api/ask?stream=true`, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'text/event-stream, application/json'
-                    },
+                    headers: reqHeaders,
                     body: JSON.stringify({
                         question: text,
                         language: isArabic ? 'ar' : 'en',
