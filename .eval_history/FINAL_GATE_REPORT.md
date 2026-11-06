@@ -565,6 +565,60 @@ Target API: https://inspection-api.mohamedtarekhse.workers.dev
 | **Cross-Encoder & Triage Audit** (`scripts/full_test_deployed_developments.js`) | 31 Comprehensive Tests (Reranker, 7 Disciplines, Parity) | 31 / 31 | **100.0%** | **PASSED** |
 | **Phase 10 Latency Gate** (`scripts/verify_phase10_reality_check.js`) | Envelope Fast-Path $\le 3\text{s}$, Table $\le 1.5\text{s}$, Fast $\le 6\text{s}$ | 6 / 6 | **100.0%** | **PASSED** |
 
+---
+
+## 11. Nav/Role/Provider (2026-11-06)
+
+### 11.1 Architectural Interventions & Deployed Capabilities
+1. **Unified Auto-Mode & Dynamic Scope Chip (Item 1)**:
+   - Removed legacy `.gemini-mode-switch` (Web / Standards / Ask Expert pills) from header center.
+   - Deployed `resolveSendMode(question)` helper: defaults to `'standards'` whenever standards are scoped in the NotebookLM sidebar OR the user question contains standard codes, clauses, tables, or material specs (ASME/API/AWS/ISO/NACE/SA-516/QW-422); defaults to `'web'` for general queries.
+   - Added `#header-scope-chip` beside the logo: dynamically reflects `"Auto"` or `"${N} standards scoped"`, opening the NotebookLM sidebar on click.
+   - Re-routed "Ask Expert & Peer Review" access directly to the NotebookLM sidebar footer and mobile drawer.
+2. **Server-Verified Role-Gated Admin System (Item 2)**:
+   - Protected all administrative entrypoints (Standards Hub, Purge Cache, Refiner Studio, Admin Settings) with CSS class `.admin-only { display: none !important; }` by default; revealed exclusively via `body[data-admin="true"] .admin-only { display: flex !important; }`.
+   - Added an always-visible shield icon button (`#admin-shield-btn`) opening a minimal modal (password input + Verify).
+   - Server verification via `GET /api/admin/config` requiring valid Bearer / X-Admin-Token; on 200 OK, sets `sessionStorage['adminToken']` and `document.body.dataset.admin = 'true'`. Clearing `sessionStorage` or clicking "Lock Session" immediately revokes administrative surfaces. Never stored in `localStorage`.
+   - Consolidated admin tools into a slide-over "Admin Console" with quick actions: Studio Link, Standards Upload, Cache Purge (`?force=true`), Model Status, and Latency Traces.
+3. **Role-Based Cloudflare AI Provider Routing (Item 3)**:
+   - Public Users: `/api/ask` routes primary chat generation to `@cf/meta/llama-3.1-8b-instruct-fp8-fast`, with `@cf/zai-org/glm-5.3-flash` fallback.
+   - Admins: Valid `X-Admin-Token` header pins generation to `@cf/zai-org/glm-5.3-flash` (MoE 320B), with reasoning effort governed by `answer_depth`.
+   - External Fallback Cascade: Cloudflare AI binding $\rightarrow$ Groq (`llama-3.3-70b-versatile`, `llama-3.1-8b-instant`) $\rightarrow$ OpenRouter (`gemma-4-31b-it:free`).
+   - Quota Protection (Error 4006): On Cloudflare neuron allocation saturation (code 4006), marks binding degraded in-memory for 10 minutes, aborts retries immediately, emits a clean `CALIBRATED_ABSTENTION` notice, and logs trace telemetry.
+   - Telemetry: Added `provider_role TEXT NULL` column to `request_traces` in D1 and deployed `GET /api/admin/model-status` reporting active models and quota state.
+4. **App Rename Hook (Item 4)**:
+   - Introduced `APP_NAME` (worker env var + UI const, defaulting to `"Inspecta"`).
+   - Hooked `APP_NAME` into `manifest.json` (`name`, `short_name`), `index.html` (logo text, `<title>`), and system prompt headers.
+   - Updated assistant persona to: `"code-grounded inspection assistant; every answer verified or refused."`
+
+---
+
+### 11.2 Live Production Probe Results (`scripts/verify_phase11_probes.js`)
+
+| Probe Target | Verification Scope | Status | Result / Recorded Telemetry |
+|---|---|---|---|
+| **Probe 1.1** | `GET /api/admin/config` (unauthenticated) | ✅ **PASS** | 401 Unauthorized (Cleanly Rejected) |
+| **Probe 1.2** | `GET /api/admin/config` (invalid Bearer token) | ✅ **PASS** | 401 Unauthorized (Access Denied) |
+| **Probe 1.3** | `GET /api/admin/config` (valid Bearer token) | ✅ **PASS** | 200 OK (`sessionStorage['adminToken']` verified) |
+| **Probe 1.4** | `GET /api/admin/model-status` (Bearer-gated) | ✅ **PASS** | 200 OK (Returns public 8B + admin GLM-5.3 models) |
+| **Probe 2** (a) | `/api/ask` Public User Request | ✅ **PASS** | Trace verified: `provider_role='public'`, Model: `@cf/meta/llama-3.1-8b-instruct-fp8-fast` |
+| **Probe 3** (b) | `/api/ask` Admin Request (`X-Admin-Token`) | ✅ **PASS** | Trace verified: `provider_role='admin'`, Model: `@cf/zai-org/glm-5.3-flash` |
+| **Probe 4** (c) | `/api/ask` Invalid Token Request | ✅ **PASS** | Trace verified: Defaults safely to `provider_role='public'`, Model: `@cf/meta/llama-3.1-8b-instruct-fp8-fast` |
+| **Probe 5** (g) | Table Fast-Path Invariance Check | ✅ **PASS** | Latency: **167 ms** ($\le 1.5\text{s}$), Score: 100%, Badge: `VERIFIED_CODE_GROUNDED` |
+| **Probe 6** (d, f) | DOM Static Checks (`index.html`) | ✅ **PASS** | Scope chip ✓, Shield button ✓, `.admin-only` hidden ✓, Center mode-switch removed ✓, `APP_NAME` hook ✓ |
+
+---
+
+### 11.3 Quality Gate Scorecard
+
+| Verification Suite | Target & Test Coverage | Pass / Total | Pass Rate | Status |
+|---|---|---|---|---|
+| **Golden Evaluations** (`scripts/run_golden_evals.js`) | 14 Verified Engineering Ground Truth Queries | 14 / 14 | **100.0%** | **PASSED** |
+| **Planted-Error Refusal Suite** (`scripts/test_planted_suite_only.js`) | 5 In-Corpus Grounded + 5 Calibrated Refusals | 10 / 10 | **100.0%** | **PASSED** (100% Out-of-Corpus Refusal) |
+| **Deployed Developments Deep Audit** (`scripts/full_test_deployed_developments.js`) | Cross-Encoder Reranker + 7 Triage Disciplines + Parity | 31 / 31 | **100.0%** | **PASSED** |
+| **Phase 11 Production Probes** (`scripts/verify_phase11_probes.js`) | Role Routing, Shield Verification, Fast-Path $\le 1.5\text{s}$ | 6 / 6 | **100.0%** | **PASSED** |
+
+
 
 
 
