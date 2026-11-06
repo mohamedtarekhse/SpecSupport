@@ -132,6 +132,23 @@
 
         /* 3-Mode Segmented Pill Switcher */
         
+        
+        /* Admin-Only Protected Surfaces */
+        .admin-only {
+            display: none !important;
+        }
+        body[data-admin="true"] .admin-only {
+            display: flex !important;
+        }
+        body[data-admin="true"] button.admin-only.mobile-nav-item,
+        body[data-admin="true"] a.admin-only.mobile-nav-item {
+            display: flex !important;
+        }
+        body[data-admin="true"] #admin-shield-btn svg {
+            stroke: #10B981 !important;
+            fill: rgba(16, 185, 129, 0.2);
+        }
+
         /* Dynamic Header Scope Chip */
         .header-scope-chip {
             display: inline-flex;
@@ -3425,7 +3442,7 @@
                     <svg class="gemini-svg" style="width:14px; height:14px;" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 10l-2.5 1.5.7-2.9-2.2-2 2.9-.2L22 4l1.1 2.4 2.9.2-2.2 2 .7 2.9z"/></svg>
                     <span>Ask an Expert (Peer Review)</span>
                 </button>
-                <button class="sidebar-action-btn primary" onclick="openStandardsModal()">
+                <button class="sidebar-action-btn primary admin-only" onclick="openStandardsModal()">
                     <svg class="gemini-svg" style="width:14px; height:14px;" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     <span>Ingest Standard / Manual</span>
                 </button>
@@ -4284,6 +4301,31 @@
     </div>
 
     <!-- Admin Panel Slide-Over & Database Refiner -->
+    
+    <!-- Minimal Admin Token Verification Modal (Item 2) -->
+    <div id="admin-auth-modal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.72); backdrop-filter:blur(6px); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:var(--gemini-surface); border:1px solid var(--gemini-border); border-radius:16px; padding:24px; width:400px; max-width:90vw; box-shadow:0 20px 45px rgba(0,0,0,0.6);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <svg class="gemini-svg" style="width:20px; height:20px; stroke:var(--sap-blue);" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <h3 style="margin:0; font-size:1.1rem; font-weight:700; color:var(--gemini-text-main);">Admin Authentication</h3>
+                </div>
+                <button onclick="closeAdminAuthModal()" style="background:none; border:none; color:var(--gemini-text-muted); font-size:1.4rem; cursor:pointer; line-height:1;">&times;</button>
+            </div>
+            <p style="margin:0 0 16px; font-size:0.8rem; color:var(--gemini-text-muted); line-height:1.4;">
+                Enter the ADMIN_SECRET token to unlock database curation, refiner studio, and AI model routing controls.
+            </p>
+            <div style="margin-bottom:14px;">
+                <input type="password" id="admin-auth-input" class="admin-input" style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:8px; border:1px solid var(--gemini-border); background:var(--gemini-bg); color:var(--gemini-text-main); font-size:0.9rem;" placeholder="Admin Token..." onkeydown="if(event.key==='Enter') verifyAdminToken();">
+                <div id="admin-auth-error" style="display:none; color:#EF4444; font-size:0.78rem; margin-top:8px;"></div>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button class="sidebar-btn-link" onclick="closeAdminAuthModal()" style="padding:6px 14px; font-size:0.82rem;">Cancel</button>
+                <button class="mode-pill active" id="admin-auth-verify-btn" onclick="verifyAdminToken()" style="padding:8px 18px; font-size:0.84rem; font-weight:600;">Verify & Unlock</button>
+            </div>
+        </div>
+    </div>
+
     <div id="admin-panel">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <div style="display:flex; align-items:center; gap:8px;">
@@ -8342,6 +8384,141 @@ Answer the inspector's query strictly and accurately based on the verified local
         function closeVisionModal() { document.getElementById('vision-modal').style.display = 'none'; }
         function openStandardsModal() { document.getElementById('standards-modal').style.display = 'flex'; loadStandardsCatalog(); }
         function closeStandardsModal() { document.getElementById('standards-modal').style.display = 'none'; }
+        
+        // Phase 11: Server-Verified Role-Gated Admin System (Item 2)
+        function handleAdminShieldClick() {
+            if (sessionStorage.getItem('adminToken')) {
+                toggleAdminPanel();
+            } else {
+                openAdminAuthModal();
+            }
+        }
+        window.handleAdminShieldClick = handleAdminShieldClick;
+
+        function openAdminAuthModal() {
+            const modal = document.getElementById('admin-auth-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                const input = document.getElementById('admin-auth-input');
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
+                const err = document.getElementById('admin-auth-error');
+                if (err) err.style.display = 'none';
+            }
+        }
+        window.openAdminAuthModal = openAdminAuthModal;
+
+        function closeAdminAuthModal() {
+            const modal = document.getElementById('admin-auth-modal');
+            if (modal) modal.style.display = 'none';
+        }
+        window.closeAdminAuthModal = closeAdminAuthModal;
+
+        async function verifyAdminToken() {
+            const input = document.getElementById('admin-auth-input');
+            const errEl = document.getElementById('admin-auth-error');
+            const token = input ? input.value.trim() : '';
+            if (!token) {
+                if (errEl) {
+                    errEl.textContent = 'Please enter an admin token.';
+                    errEl.style.display = 'block';
+                }
+                return;
+            }
+            if (errEl) errEl.style.display = 'none';
+            const verifyBtn = document.getElementById('admin-auth-verify-btn');
+            if (verifyBtn) verifyBtn.textContent = 'Verifying...';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/config`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (res.ok) {
+                    sessionStorage.setItem('adminToken', token);
+                    document.body.dataset.admin = 'true';
+                    closeAdminAuthModal();
+                    updateAdminUiState();
+                    const panelToken = document.getElementById('admin-token');
+                    if (panelToken) panelToken.value = token;
+                    showToast('Admin enabled');
+                } else {
+                    if (errEl) {
+                        errEl.textContent = 'Invalid admin token. Access denied.';
+                        errEl.style.display = 'block';
+                    }
+                }
+            } catch (err) {
+                if (errEl) {
+                    errEl.textContent = 'Verification error: ' + err.message;
+                    errEl.style.display = 'block';
+                }
+            } finally {
+                if (verifyBtn) verifyBtn.textContent = 'Verify & Unlock';
+            }
+        }
+        window.verifyAdminToken = verifyAdminToken;
+
+        function clearAdminSession() {
+            sessionStorage.removeItem('adminToken');
+            delete document.body.dataset.admin;
+            updateAdminUiState();
+            const p = document.getElementById('admin-panel');
+            if (p) p.style.display = 'none';
+            showToast('Admin session cleared');
+        }
+        window.clearAdminSession = clearAdminSession;
+
+        function updateAdminUiState() {
+            const token = sessionStorage.getItem('adminToken');
+            const isAdmin = Boolean(token);
+            if (isAdmin) {
+                document.body.dataset.admin = 'true';
+            } else {
+                delete document.body.dataset.admin;
+            }
+            const shieldBtn = document.getElementById('admin-shield-btn');
+            if (shieldBtn) {
+                shieldBtn.title = isAdmin ? "Admin Console (Verified ✓)" : "Admin Security & Console";
+            }
+            const mobileText = document.getElementById('mobile-admin-shield-text');
+            const mobileBadge = document.getElementById('mobile-admin-shield-badge');
+            if (mobileText) mobileText.textContent = isAdmin ? "Admin Console" : "Admin Authentication";
+            if (mobileBadge) {
+                mobileBadge.textContent = isAdmin ? "Active ✓" : "Token";
+                mobileBadge.style.background = isAdmin ? "#10B981" : "var(--sap-blue)";
+            }
+        }
+        window.updateAdminUiState = updateAdminUiState;
+
+        async function loadAdminModelStatus() {
+            const box = document.getElementById('admin-model-status-box');
+            if (!box) return;
+            box.style.display = 'block';
+            box.textContent = 'Querying /api/admin/model-status...';
+            const token = sessionStorage.getItem('adminToken') || '';
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/model-status`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    box.innerHTML = `<strong>⚡ Model Routing:</strong><br>
+                        Public: ${data.models?.public_primary || 'llama-3.1-8b'}<br>
+                        Admin: ${data.models?.admin_primary || 'glm-5.3-flash'}<br>
+                        Quota: ${data.quota_status?.ai_binding_degraded ? '⚠️ DEGRADED (10m wait)' : '✅ NORMAL'}`;
+                } else {
+                    box.textContent = 'Failed to load model status (' + res.status + ')';
+                }
+            } catch(e) {
+                box.textContent = 'Error: ' + e.message;
+            }
+        }
+        window.loadAdminModelStatus = loadAdminModelStatus;
+
         function toggleAdminPanel() {
             const p = document.getElementById('admin-panel');
             const isOpening = p.style.display === 'none' || p.style.display === '';
