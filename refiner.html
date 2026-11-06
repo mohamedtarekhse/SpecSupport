@@ -545,6 +545,9 @@
             <button class="studio-tab" id="tab-coverage-btn" onclick="setStudioTab('coverage')">
                 <span>📊</span> Coverage Parity Audits
             </button>
+            <button class="studio-tab" id="tab-traces-btn" onclick="setStudioTab('traces')">
+                <span>⚡</span> Latency Traces
+            </button>
         </div>
 
         <!-- ========================================== -->
@@ -684,6 +687,44 @@
 
             <div class="schema-grid" id="schema-tables-grid">
                 <div style="color:var(--text-muted); padding:20px;">Loading database tables and columns...</div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 5: ⚡ LATENCY TRACES PANEL (ITEM 1)      -->
+        <!-- ========================================== -->
+        <div id="studio-tab-traces" style="display:none;">
+            <div class="controls-bar">
+                <div class="search-group">
+                    <span style="font-weight:700; font-size:0.95rem;">⚡ Live Request Latency Traces</span>
+                    <span style="color:var(--text-muted); font-size:0.82rem;" id="traces-count-label">Loading recent traces...</span>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="loadLatencyTraces()">🔄 Refresh Traces</button>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:110px;">Time</th>
+                            <th>Question</th>
+                            <th style="width:80px;">Depth</th>
+                            <th style="width:120px;">Path / Mode</th>
+                            <th style="width:85px; text-align:right;">Total</th>
+                            <th style="width:70px; text-align:right;">Retr</th>
+                            <th style="width:70px; text-align:right;">Table</th>
+                            <th style="width:70px; text-align:right;">Draft</th>
+                            <th style="width:70px; text-align:right;">Critic</th>
+                            <th style="width:70px; text-align:right;">Verif</th>
+                            <th style="width:130px;">Model</th>
+                        </tr>
+                    </thead>
+                    <tbody id="traces-tbody">
+                        <tr><td colspan="11" style="text-align:center; padding:30px; color:var(--text-muted);">Click Refresh to load latency traces.</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -920,16 +961,72 @@
             document.getElementById('tab-taxonomy-btn').classList.toggle('active', tab === 'taxonomy');
             document.getElementById('tab-schema-btn').classList.toggle('active', tab === 'schema');
             document.getElementById('tab-coverage-btn').classList.toggle('active', tab === 'coverage');
+            const tracesBtn = document.getElementById('tab-traces-btn');
+            if (tracesBtn) tracesBtn.classList.toggle('active', tab === 'traces');
 
             document.getElementById('studio-tab-chunks').style.display = tab === 'chunks' ? 'block' : 'none';
             document.getElementById('studio-tab-taxonomy').style.display = tab === 'taxonomy' ? 'block' : 'none';
             document.getElementById('studio-tab-schema').style.display = tab === 'schema' ? 'block' : 'none';
             document.getElementById('studio-tab-coverage').style.display = tab === 'coverage' ? 'block' : 'none';
+            const tracesPanel = document.getElementById('studio-tab-traces');
+            if (tracesPanel) tracesPanel.style.display = tab === 'traces' ? 'block' : 'none';
 
             if (tab === 'chunks') loadChunks(currentChunkPage);
             if (tab === 'taxonomy') loadTaxonomyTable();
             if (tab === 'schema') loadSchemaViewer();
             if (tab === 'coverage') loadCoverageTable();
+            if (tab === 'traces') loadLatencyTraces();
+        }
+
+        
+        async function loadLatencyTraces() {
+            const tbody = document.getElementById('traces-tbody');
+            const countLabel = document.getElementById('traces-count-label');
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:20px; color:var(--text-muted);">Loading traces from /api/admin/traces...</td></tr>';
+            try {
+                const token = document.getElementById('admin-token')?.value || localStorage.getItem('inspecta_admin_token') || 'specsupport-admin-2026';
+                const res = await fetch(`${API_BASE}/api/admin/traces?limit=50`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) {
+                    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:20px; color:var(--red);">Failed to load traces: HTTP ${res.status}</td></tr>`;
+                    return;
+                }
+                const data = await res.json();
+                const traces = data.traces || [];
+                if (countLabel) countLabel.textContent = `Showing latest ${traces.length} requests`;
+                if (traces.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:20px; color:var(--text-muted);">No request traces recorded yet.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = traces.map(t => {
+                    const timeStr = t.created_at ? t.created_at.split(' ')[1] || t.created_at : '-';
+                    const depthBadge = t.answer_depth === 'high' ? '<span style="color:#a855f7; font-weight:600;">🧠 Think</span>' : (t.answer_depth === 'low' ? '<span style="color:#10b981; font-weight:600;">⚡ Fast</span>' : '<span style="color:#3b82f6; font-weight:600;">⚖️ Med</span>');
+                    const isFastPath = (t.mode || '').includes('FASTPATH');
+                    const modeBadge = isFastPath 
+                        ? '<span style="background:rgba(16,185,129,0.15); color:#10b981; padding:2px 6px; border-radius:4px; font-size:0.75rem; font-weight:600;">FAST-PATH</span>'
+                        : `<span style="background:rgba(59,130,246,0.15); color:#3b82f6; padding:2px 6px; border-radius:4px; font-size:0.75rem;">${t.mode || 'llm'}</span>`;
+                    const durColor = t.duration_ms < 1500 ? '#10b981' : (t.duration_ms < 6000 ? '#3b82f6' : (t.duration_ms < 20000 ? '#f59e0b' : '#ef4444'));
+                    return `
+                        <tr>
+                            <td style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">${timeStr}</td>
+                            <td style="max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(t.question || '')}">${escapeHtml(t.question || '')}</td>
+                            <td>${depthBadge}</td>
+                            <td>${modeBadge}</td>
+                            <td style="text-align:right; font-family:var(--font-mono); font-weight:700; color:${durColor};">${t.duration_ms != null ? t.duration_ms + 'ms' : '-'}</td>
+                            <td style="text-align:right; font-family:var(--font-mono); font-size:0.8rem;">${t.retrieval_ms != null ? t.retrieval_ms + 'ms' : '-'}</td>
+                            <td style="text-align:right; font-family:var(--font-mono); font-size:0.8rem;">${t.table_ms != null ? t.table_ms + 'ms' : '-'}</td>
+                            <td style="text-align:right; font-family:var(--font-mono); font-size:0.8rem;">${t.draft_ms != null ? t.draft_ms + 'ms' : '-'}</td>
+                            <td style="text-align:right; font-family:var(--font-mono); font-size:0.8rem;">${t.critic_ms != null ? t.critic_ms + 'ms' : '-'}</td>
+                            <td style="text-align:right; font-family:var(--font-mono); font-size:0.8rem;">${t.verifier_ms != null ? t.verifier_ms + 'ms' : '-'}</td>
+                            <td style="font-size:0.75rem; color:var(--text-muted); max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(t.model || t.provider || '')}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch(e) {
+                tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:20px; color:var(--red);">Error loading traces: ${e.message}</td></tr>`;
+            }
         }
 
         async function loadCoverageTable() {

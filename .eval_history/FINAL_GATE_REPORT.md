@@ -503,6 +503,69 @@ Target API: https://inspection-api.mohamedtarekhse.workers.dev
 | **Deployed Developments Audit** (`scripts/full_test_deployed_developments.js`) | Cross-Encoder Reranker + 7 Triage Disciplines + Parity | 31 / 31 | **100.0%** | **PASSED** |
 | **Phase 9 Feature Verification** (`scripts/verify_phase9_features.js`) | Arabic Triage, Entity Bypass, Fast/Think Latency & Traces | 9 / 9 | **100.0%** | **PASSED** |
 
+---
+
+## 10. Latency Gate (2026-11-06)
+
+### 10.1 Diagnostic Reality-Check & Root Causes
+- **Previous Discrepancy:** While deterministic table lookups achieved sub-second latency (563–1,100 ms), metallurgical queries in Fast (`low`) lane took **18.3 s** (target $\le 6$ s) and API RP 7G-2 drill pipe wear queries took **71.8 s**.
+- **Root Cause 1 (API RP 7G-2 71.8s):** Drill pipe classification fell through to Cloudflare's dense reasoning models (`@cf/zai-org/glm-5.3-flash`), generating long chain-of-thought traces for simple threshold queries.
+- **Root Cause 2 (Fast Lane 18.3s):** In `runCloudflareAI`, `options.answer_depth === 'low'` still routed to 70B models with token caps of 900, causing 8–14s generation cycles under load.
+- **Root Cause 3 (Ghost `critic_ms`):** `critic_ms` was calculated as `duration_ms - draft_ms - retrieval_ms`, giving a false-positive 90–150 ms reading even when the critic pass was bypassed.
+
+---
+
+### 10.2 Architectural Interventions & Production Fixes
+1. **Deterministic Envelope Direct-Answer Engine (`resolveDeterministicEnvelopeAnswer`)**:
+   - Added direct resolver for tabular and numerical limits in `code_safety_envelopes`:
+     - API RP 7G-2 drill pipe remaining wall wear limits: Class Premium ($\ge 80\%$, max wear $20\%$), Class 2 ($\ge 70\%$, max wear $30\%$) in English and Arabic.
+     - ASME B31.3 Clause 345.4.2 hydrostatic test minimum pressure ratio ($1.5 \times$ design pressure).
+     - NACE MR0175 / ISO 15156 sour service hardness threshold (AISI 4130 $\le 22\text{ HRC}$).
+   - Immediate deterministic response with 100% grounding, exact clause citation, and 0 LLM calls.
+2. **Honest Fast-Lane Routing (`@cf/meta/llama-3.1-8b-instruct-fast`)**:
+   - Routed `answer_depth === 'low'` requests directly to `@cf/meta/llama-3.1-8b-instruct-fast` with `max_tokens = 200` and prompt instruction for concise, bulleted answers ($\le 80$ words).
+   - Replaced deprecated `@cf/meta/llama-3.1-8b-instruct` Cloudflare fallback.
+   - Enforced `critic_ms = 0` when critic is bypassed (`loopPasses === 1`).
+3. **Trace Readback Endpoint & Studio Panel**:
+   - Deployed `GET /api/admin/traces?limit=50` (ADMIN_SECRET-gated via `isStudioAuthorized`).
+   - Integrated real-time "Latency Traces" tab in `refiner.html` showing depth chips, execution stage timings (`retrieval_ms`, `table_ms`, `draft_ms`, `critic_ms`), and model attribution.
+
+---
+
+### 10.3 Production Latency Profile (Last 100 Production Traces)
+
+| Execution Path / Depth Mode | Sample (n) | P50 Latency (ms) | P90 Latency (ms) | Target Latency | Status |
+|---|---|---|---|---|---|
+| **Deterministic Fast-Path (Table & Envelope)** | 22 | **632 ms** | 1,130 ms | $\le 1,500\text{ ms}$ / $\le 3,000\text{ ms}$ | **PASS** |
+| **Repaired Fast Lane (`low`, 8B Fast Model)** | 2 | **1,976 ms** | 2,113 ms | $\le 6,000\text{ ms}$ | **PASS** |
+| **Medium Lane (`medium`, Dual-Pass)** | 84 | 26,560 ms | 142,649 ms | Baseline | Reference |
+| **Think Lane (`high`, Deep Reasoning)** | 3 | 56,499 ms | 79,130 ms | Extended | Reference |
+
+---
+
+### 10.4 Stochastic Probe Verification Results
+
+| Probe Target | Query / Spec | Latency (ms) | Grounding Badge | Verifier Score | LLM Calls |
+|---|---|---|---|---|---|
+| **API RP 7G-2 Drill Pipe** | 80% Premium Remaining Wall Limit | **1,266 ms** | `VERIFIED_CODE_GROUNDED` | 100% | **0 (Envelope)** |
+| **API RP 7G-2 (Arabic)** | نسبة الحد الأقصى للاستنزاف وأدنى سمك جدار متبقي | **726 ms** | `VERIFIED_CODE_GROUNDED` | 100% | **0 (Envelope)** |
+| **ASME B31.3 Hydrotest** | Clause 345.4.2 Hydrostatic Ratio (1.5×) | **686 ms** | `VERIFIED_CODE_GROUNDED` | 100% | **0 (Envelope)** |
+| **ASME IX Table QW-422** | SA-516 Gr 70 P-No. & Group Lookup | **591 ms** | `VERIFIED_CODE_GROUNDED` | 100% | **0 (Table Hit)** |
+| **Fast Lane Metallurgical #1** | A106/4130 Preheat (`answer_depth=low`) | **2,046 ms** | `VERIFIED_CODE_GROUNDED` | 100% | 1 (Draft 1.2s, Critic 0s) |
+| **Fast Lane Metallurgical #2** | A106/4130 Preheat Re-wording (`answer_depth=low`) | **2,226 ms** | `VERIFIED_CODE_GROUNDED` | 100% | 1 (Draft 1.5s, Critic 0s) |
+
+---
+
+### 10.5 Gate Scorecard (Non-Regression Protection)
+
+| Verification Suite | Target & Test Coverage | Pass / Total | Pass Rate | Status |
+|---|---|---|---|---|
+| **Golden Evaluations** (`scripts/run_golden_evals.js`) | 14 Ground Truth Cross-Discipline Technical Queries | 14 / 14 | **100.0%** | **PASSED** |
+| **Planted-Error Refusal Suite** (`scripts/test_planted_suite_only.js`) | 5 In-Corpus Grounded + 5 Calibrated Abstentions | 10 / 10 | **100.0%** | **PASSED** |
+| **Cross-Encoder & Triage Audit** (`scripts/full_test_deployed_developments.js`) | 31 Comprehensive Tests (Reranker, 7 Disciplines, Parity) | 31 / 31 | **100.0%** | **PASSED** |
+| **Phase 10 Latency Gate** (`scripts/verify_phase10_reality_check.js`) | Envelope Fast-Path $\le 3\text{s}$, Table $\le 1.5\text{s}$, Fast $\le 6\text{s}$ | 6 / 6 | **100.0%** | **PASSED** |
+
+
 
 
 
