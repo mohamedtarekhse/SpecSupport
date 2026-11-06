@@ -62,5 +62,48 @@ CREATE TABLE system_config (
   value TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS code_safety_envelopes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  material_group TEXT NOT NULL,
+  min_preheat_c REAL,
+  min_preheat_f REAL,
+  max_interpass_c REAL,
+  max_interpass_f REAL,
+  pwht_thickness_threshold_mm REAL,
+  pwht_min_temp_c REAL,
+  pwht_max_temp_c REAL,
+  max_hardness_hrc REAL,
+  governing_standard TEXT NOT NULL,
+  primary_code TEXT,
+  source_chunk_id INTEGER,
+  min_remaining_wall_pct REAL,
+  min_hydrotest_ratio REAL,
+  notes TEXT,
+  is_active INTEGER DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS request_traces (
+  id TEXT PRIMARY KEY,
+  session_id TEXT,
+  question TEXT,
+  standard_filter TEXT,
+  grounding_score REAL,
+  evidence_badge TEXT,
+  provider TEXT,
+  model TEXT,
+  duration_ms INTEGER,
+  retrieval_ms INTEGER,
+  table_ms INTEGER,
+  draft_ms INTEGER,
+  critic_ms INTEGER,
+  verifier_ms INTEGER,
+  mode TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
 INSERT INTO system_config (key, value) VALUES ('openrouter_api_key', '');
 INSERT INTO system_config (key, value) VALUES ('openrouter_model', 'qwen/qwen3.8-27b:free');

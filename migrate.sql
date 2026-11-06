@@ -45,3 +45,17 @@ INSERT OR IGNORE INTO system_config (key, value) VALUES ('openrouter_model', 'qw
 -- ALTER TABLE standards_chunks ADD COLUMN obligation_type TEXT;
 -- ALTER TABLE standards_chunks ADD COLUMN key_values TEXT;
 
+-- Phase P2.6 / Batch B: Safety Envelopes Census & Request Trace Stage Timings
+-- ALTER TABLE code_safety_envelopes ADD COLUMN primary_code TEXT;
+-- ALTER TABLE code_safety_envelopes ADD COLUMN source_chunk_id INTEGER;
+-- ALTER TABLE code_safety_envelopes ADD COLUMN min_remaining_wall_pct REAL;
+-- ALTER TABLE code_safety_envelopes ADD COLUMN min_hydrotest_ratio REAL;
+-- ALTER TABLE code_safety_envelopes ADD COLUMN notes TEXT;
+-- ALTER TABLE request_traces ADD COLUMN retrieval_ms INTEGER;
+-- ALTER TABLE request_traces ADD COLUMN table_ms INTEGER;
+-- ALTER TABLE request_traces ADD COLUMN draft_ms INTEGER;
+-- ALTER TABLE request_traces ADD COLUMN critic_ms INTEGER;
+-- ALTER TABLE request_traces ADD COLUMN verifier_ms INTEGER;
+-- ALTER TABLE request_traces ADD COLUMN mode TEXT;
+
+
