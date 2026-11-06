@@ -6,7 +6,7 @@ const app = new Hono()
 app.use('*', async (c, next) => {
   c.header('Access-Control-Allow-Origin', '*')
   c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Title, HTTP-Referer, X-Model')
+  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Token, x-admin-token, x-admin-secret, X-Title, HTTP-Referer, X-Model')
   c.header('Access-Control-Max-Age', '86400')
 
   if (c.req.method === 'OPTIONS') {
