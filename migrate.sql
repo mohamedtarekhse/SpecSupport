@@ -58,4 +58,7 @@ INSERT OR IGNORE INTO system_config (key, value) VALUES ('openrouter_model', 'qw
 -- ALTER TABLE request_traces ADD COLUMN verifier_ms INTEGER;
 -- ALTER TABLE request_traces ADD COLUMN mode TEXT;
 
+-- Phase 9: Answer Depth
+-- ALTER TABLE request_traces ADD COLUMN answer_depth TEXT;
+
 

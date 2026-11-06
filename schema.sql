@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS request_traces (
   critic_ms INTEGER,
   verifier_ms INTEGER,
   mode TEXT,
+  answer_depth TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

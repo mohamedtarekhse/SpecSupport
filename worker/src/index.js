@@ -4004,7 +4004,7 @@ function recordProviderSuccess(providerName) {
   delete providerCircuitBreaker.suspendedUntil[providerName];
 }
 
-async function askAIProvider(c, messages, stream, mode = 'rag') {
+async function askAIProvider(c, messages, stream, mode = 'rag', options = {}) {
     const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all();
     let dbConf = {};
     if (confRes.results) confRes.results.forEach(r => dbConf[r.key] = r.value);
@@ -4027,8 +4027,17 @@ async function askAIProvider(c, messages, stream, mode = 'rag') {
 
     let lastError = null;
 
-    // Phase P3.4: Per-mode max_tokens caps (lookup ~950, deep ~2200, rag ~1800)
-    const maxToks = (mode === 'lookup') ? 950 : ((mode === 'deep' || mode === 'expert') ? 2200 : (stream ? 2000 : 1600));
+    // Phase P3.4 & Phase 9: Per-mode & answer_depth max_tokens caps & reasoning effort
+    let maxToks = (mode === 'lookup') ? 950 : ((mode === 'deep' || mode === 'expert') ? 2200 : (stream ? 2000 : 1600));
+    let reasoningEffort = 'low';
+
+    if (options.answer_depth === 'low') {
+      maxToks = 900;
+      reasoningEffort = 'low';
+    } else if (options.answer_depth === 'high') {
+      maxToks = 2600;
+      reasoningEffort = 'high';
+    }
 
     // Cloudflare Workers AI runner with SSE streaming support
     const runCloudflareAI = async (modelToUse) => {
@@ -4038,7 +4047,7 @@ async function askAIProvider(c, messages, stream, mode = 'rag') {
           messages: messages,
           max_tokens: maxToks,
           temperature: 0.15,
-          reasoning_effort: 'low',
+          reasoning_effort: reasoningEffort,
           stream: true
         });
         return { response: streamResp, model: modelToUse, provider: 'cloudflare', isStream: true };
@@ -4047,7 +4056,7 @@ async function askAIProvider(c, messages, stream, mode = 'rag') {
         messages: messages,
         max_tokens: maxToks,
         temperature: 0.15,
-        reasoning_effort: 'low'
+        reasoning_effort: reasoningEffort
       });
       const msg = res?.choices?.[0]?.message;
       let text = res?.response || (typeof res === 'string' ? res : (msg?.content || ''));
@@ -4825,8 +4834,8 @@ function isEntityClearQuery(question, entities = [], exactMatches = [], tableHit
 
 function getDeterministicTriageMcqs(qClean, entities = [], exactMatches = [], tableHits = []) {
   if (isEntityClearQuery(qClean, entities, exactMatches, tableHits)) return null;
-  const isWps = /(?:wps\b|welding procedure|pqr\b|welding spec|welding procedure specification|asme\s*(?:viii|8|ix|9|xi|11)|qw-?482|pressure vessel weld|pipe weld)/i.test(qClean);
-  const isNdt = /(?:ndt\s*(?:inspection\s*)?procedure|ut\s*procedure|ultrasonic\s*procedure|rt\s*procedure|radiographic\s*procedure|mpi\s*procedure|magnetic\s*particle\s*procedure|penetrant\s*procedure|dye\s*penetrant\s*procedure|how to inspect (?:weld|tank|pipe|vessel|flange))/i.test(qClean);
+  const isWps = /(?:wps\b|welding procedure|pqr\b|welding spec|welding procedure specification|asme\s*(?:viii|8|ix|9|xi|11)|qw-?482|pressure vessel weld|pipe weld|إجراء لحام|مواصفة لحام|إجراءات اللحام|طريقة لحام|لحام)/i.test(qClean);
+  const isNdt = /(?:ndt\s*(?:inspection\s*)?procedure|ut\s*procedure|ultrasonic\s*procedure|rt\s*procedure|radiographic\s*procedure|mpi\s*procedure|magnetic\s*particle\s*procedure|penetrant\s*procedure|dye\s*penetrant\s*procedure|how to inspect (?:weld|tank|pipe|vessel|flange)|فحص غير إتلافي|فحص لا إتلافي|إجراء فحص|طريقة فحص)/i.test(qClean);
   const isHydrotest = /(?:hydrotest procedure|hydrostatic test procedure|pressure test procedure|leak test procedure|pneumatic test procedure|how to hydrotest|hydrostatic test)/i.test(qClean);
   const isIntegrity = /(?:remaining life|retirement thickness|corrosion pit evaluation|api 510 inspection|api 570 inspection|api 653 inspection|fitness for service)/i.test(qClean);
   const isHoisting = /(?:elevator inspection|elevator links wear|drilling hook inspection|swivel inspection|derrick inspection|mast inspection|api rp 8b|api rp 4g)/i.test(qClean);
@@ -5251,7 +5260,7 @@ function resolveDeterministicTableAnswer(question, sources, tableHits, envelopeC
   return { hit: false };
 }
 
-async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = [], mode = 'web', selected_standards = []) {
+async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = [], mode = 'web', selected_standards = [], answer_depth = 'medium') {
   const tPrepStart = Date.now();
   let retrievalMs = 0;
   let tableMs = 0;
@@ -6417,6 +6426,11 @@ Generate a complete, step-by-step BOP Pressure Test Sequence:
   }
   // Prepend Database Taxonomy & Equipment Governance Directive (Absolute Highest Priority)
   if (taxonomyGovernanceNote) {
+    if (answer_depth === 'low') {
+      systemPrompt += `\n[ANSWER DEPTH DIRECTIVE: FAST (LOW)]\nProvide a concise, direct, single-focus engineering answer. Strictly skip cross-standard comparisons and delta matrices. Avoid unsolicited algebraic calculations.\n`;
+    } else if (answer_depth === 'high') {
+      systemPrompt += `\n[ANSWER DEPTH DIRECTIVE: THINK (HIGH)]\nProvide an exhaustive Level III engineering audit. Include relevant cross-standard comparisons, detailed calculation worked examples with full units where applicable, and a dedicated 'Checks & Context' section verifying metallurgical boundaries and code edition limits.\n`;
+    }
     systemPrompt = `${taxonomyGovernanceNote}\n${systemPrompt}`
   }
 
@@ -6432,12 +6446,18 @@ Generate a complete, step-by-step BOP Pressure Test Sequence:
 app.post('/api/ask', async (c) => {
   const reqStartTime = Date.now();
   try {
-    const { question, language, session_id, standard_filter, history, mode = 'web', selected_standards = [] } = await c.req.json()
+    const rawReqBody = await c.req.json()
+    const { question, language, session_id, standard_filter, history, mode = 'web', selected_standards = [] } = rawReqBody
+    
+    let effectiveAnswerDepth = (rawReqBody.answer_depth || c.req.query('answer_depth') || rawReqBody.reasoning_effort || c.req.query('reasoning_effort') || 'medium').toLowerCase()
+    if (effectiveAnswerDepth === 'fast') effectiveAnswerDepth = 'low'
+    if (effectiveAnswerDepth === 'think') effectiveAnswerDepth = 'high'
+    if (!['low', 'medium', 'high'].includes(effectiveAnswerDepth)) effectiveAnswerDepth = 'medium'
     
     if (!question || !session_id) return c.json({ error: 'Missing fields' }, 400)
 
     // ⚡ Phase P3.6 & FIX A: Versioned SHA-256 Semantic Query Cache Lookup
-    const cacheKeyRaw = `v${CACHE_SCHEMA_VERSION}_${(question || '').trim().toLowerCase()}_${standard_filter || 'ALL'}_${(selected_standards || []).sort().join(',')}`;
+    const cacheKeyRaw = `v${CACHE_SCHEMA_VERSION}_${effectiveAnswerDepth}_${(question || '').trim().toLowerCase()}_${standard_filter || 'ALL'}_${(selected_standards || []).sort().join(',')}`;
     let queryHash = null;
     try {
       const qhBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(cacheKeyRaw));
@@ -6534,6 +6554,7 @@ app.post('/api/ask', async (c) => {
             model_used: 'SpecSupport-Semantic-Cache',
             cached: true,
             mode,
+            answer_depth: effectiveAnswerDepth,
             suggested_questions: [],
             mcq_questions: cachedTriageMcqs,
             can_continue: false,
@@ -6542,6 +6563,7 @@ app.post('/api/ask', async (c) => {
             evidence: cachedGrounding.evidence,
             loop_engineering: {
               mode: 'SEMANTIC_CACHE_FASTPATH',
+              answer_depth: effectiveAnswerDepth,
               grounding_score: cachedGrounding.score_pct,
               evidence_badge: cachedGrounding.badge,
               verbatim_evidence_quote: cachedGrounding.verbatim_evidence_quote
@@ -6555,7 +6577,7 @@ app.post('/api/ask', async (c) => {
     
     let contextData
     try {
-      contextData = await prepareContextAndMessages(c, question, language, session_id, standard_filter, history, mode, selected_standards)
+      contextData = await prepareContextAndMessages(c, question, language, session_id, standard_filter, history, mode, selected_standards, effectiveAnswerDepth)
     } catch(e) {
       if (e.message === 'RATE_LIMIT') return c.json({ error: 'Limit reached' }, 429)
       throw e
@@ -6742,12 +6764,12 @@ app.post('/api/ask', async (c) => {
               CACHE_SCHEMA_VERSION, JSON.stringify(grounding)
             ).run() : Promise.resolve(),
             c.env.DB.prepare(`
-              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               crypto.randomUUID(), session_id, question.slice(0, 300), standard_filter || 'ALL',
               100, 'VERIFIED_CODE_GROUNDED', 'deterministic_table', 'SpecSupport-Deterministic-Table-Engine',
-              totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, 'FASTPATH_TABLE'
+              totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, 'FASTPATH_TABLE', effectiveAnswerDepth
             ).run(),
             c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(
               session_id, question, 'SpecSupport-Deterministic-Table-Engine', today
@@ -6775,12 +6797,12 @@ app.post('/api/ask', async (c) => {
               CACHE_SCHEMA_VERSION, JSON.stringify(grounding)
             ).run() : Promise.resolve(),
             c.env.DB.prepare(`
-              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               crypto.randomUUID(), session_id, question.slice(0, 300), standard_filter || 'ALL',
               100, 'VERIFIED_CODE_GROUNDED', 'deterministic_table', 'SpecSupport-Deterministic-Table-Engine',
-              totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, 'FASTPATH_TABLE'
+              totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, 'FASTPATH_TABLE', effectiveAnswerDepth
             ).run(),
             c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(
               session_id, question, 'SpecSupport-Deterministic-Table-Engine', today
@@ -6793,6 +6815,7 @@ app.post('/api/ask', async (c) => {
           sources,
           model_used: 'SpecSupport-Deterministic-Table-Engine',
           mode,
+          answer_depth: effectiveAnswerDepth,
           suggested_questions: defaultFollowups,
           mcq_questions: [],
           can_continue: true,
@@ -6810,6 +6833,7 @@ app.post('/api/ask', async (c) => {
           },
           loop_engineering: {
             mode: 'DETERMINISTIC_TABLE_FASTPATH',
+            answer_depth: effectiveAnswerDepth,
             passes: 1,
             draft_model: 'SpecSupport-Deterministic-Table-Engine',
             critic_model: 'SpecSupport-Deterministic-Table-Engine',
@@ -6824,7 +6848,7 @@ app.post('/api/ask', async (c) => {
 
     // Step 1: Execute Pass 1 (Draft Model) internally in buffered mode
     const tDraftStart = Date.now()
-    let draftRes = await askAIProvider(c, messages, false, mode)
+    let draftRes = await askAIProvider(c, messages, false, mode, { answer_depth: effectiveAnswerDepth })
     let draftJson = await draftRes.response.json()
     const draftMs = Math.max(1, Date.now() - tDraftStart)
     let draftAnswer = "Error connecting to AI model."
@@ -6837,12 +6861,24 @@ app.post('/api/ask', async (c) => {
       draftAnswer = `AI Error: ${draftJson?.error?.message || JSON.stringify(draftJson)}`
     }
 
-    // Step 2: Prepare Pass 2 (Critic Agent)
+    // Step 2: Prepare Pass 2 (Critic Agent) with Answer-Depth Governance
     let criticMessages = messages
     let loopPasses = 1
     let criticModelUsed = draftRes.model
 
+    const draftGroundingCheck = verifyAnswerGrounding(draftAnswer, sources, envelopeContext || "")
+    let shouldRunCritic = false
     if (draftAnswer && !draftAnswer.startsWith('AI Error:') && draftAnswer.length > 50) {
+      if (effectiveAnswerDepth === 'high') {
+        shouldRunCritic = true // Critic MANDATORY on Think depth
+      } else if (effectiveAnswerDepth === 'low') {
+        shouldRunCritic = (draftGroundingCheck.score_pct < 50) // ONLY if grounding < 50 on Fast depth
+      } else {
+        shouldRunCritic = true // Medium depth: standard behavior
+      }
+    }
+
+    if (shouldRunCritic) {
       criticMessages = buildCriticMessages(question, sources, draftAnswer, history, envelopeContext)
       loopPasses = 2
     }
@@ -6862,9 +6898,15 @@ app.post('/api/ask', async (c) => {
     if (isStreamRequested) {
       try {
         // Stream Pass 2 (Level III Critic) live to the inspector!
-        const { response: streamBody, model, isStream } = await askAIProvider(c, criticMessages, true, mode)
+        let streamBody = null, model = null, isStream = false;
+        if (loopPasses > 1) {
+          const streamAiRes = await askAIProvider(c, criticMessages, true, mode, { answer_depth: effectiveAnswerDepth });
+          streamBody = streamAiRes.response;
+          model = streamAiRes.model;
+          isStream = streamAiRes.isStream;
+        }
         criticModelUsed = model || draftRes.model
-        if (isStream && streamBody) {
+        if (loopPasses === 1 || (isStream && streamBody)) {
           c.executionCtx.waitUntil(
             c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(session_id, question, criticModelUsed, today).run()
           )
@@ -6890,7 +6932,11 @@ app.post('/api/ask', async (c) => {
               
               let streamedFullText = ''
               let accumulatedReasoning = ''
-              const reader = streamBody.getReader ? streamBody.getReader() : null
+              if (loopPasses === 1) {
+                streamedFullText = draftAnswer
+                await writer.write(encoder.encode(`data: ${JSON.stringify({ token: draftAnswer })}\n\n`))
+              }
+              const reader = (streamBody && streamBody.getReader) ? streamBody.getReader() : null
               if (reader) {
                 const decoder = new TextDecoder()
                 let buffer = ''
@@ -6983,8 +7029,8 @@ app.post('/api/ask', async (c) => {
                     JSON.stringify(streamGroundingResult)
                   ).run() : Promise.resolve(),
                   c.env.DB.prepare(`
-                    INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                   `).bind(
                     crypto.randomUUID(),
                     session_id,
@@ -7000,13 +7046,15 @@ app.post('/api/ask', async (c) => {
                     draftMs || 0,
                     criticMs || 0,
                     verifierMs || 0,
-                    mode || 'standards'
+                    mode || 'standards',
+                    effectiveAnswerDepth
                   ).run()
                 ]));
               } catch(e) {}
 
               await writer.write(encoder.encode(`data: ${JSON.stringify({ 
                 type: 'complete', 
+                answer_depth: effectiveAnswerDepth,
                 suggested_questions: defaultFollowups,
                 mcq_questions: isEntityClear ? [] : activeMcqs,
                 grounding: streamGroundingResult,
@@ -7054,11 +7102,10 @@ app.post('/api/ask', async (c) => {
 
     // Step 3: Non-Streaming Refinement
     let answer = draftAnswer
-    const draftGroundingCheck = verifyAnswerGrounding(draftAnswer, sources, envelopeContext || "")
     // In non-streaming mode: if draft grounding is already solid (>= 50%), avoid redundant secondary pass to prevent Cloudflare subrequest timeouts
-    if (loopPasses > 1 && draftGroundingCheck.score_pct < 50) {
+    if (loopPasses > 1 && (effectiveAnswerDepth === 'high' || draftGroundingCheck.score_pct < 50)) {
       try {
-        const criticResp = await askAIProvider(c, criticMessages, false, mode)
+        const criticResp = await askAIProvider(c, criticMessages, false, mode, { answer_depth: effectiveAnswerDepth })
         const criticJson = await criticResp.response.json()
         if (criticJson && criticJson.choices && criticJson.choices[0]?.message?.content) {
           const refinedAnswer = criticJson.choices[0].message.content.trim()
@@ -7162,8 +7209,8 @@ app.post('/api/ask', async (c) => {
             JSON.stringify(groundingResult)
           ).run() : Promise.resolve(),
           c.env.DB.prepare(`
-            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `).bind(
             crypto.randomUUID(),
             session_id,
@@ -7179,7 +7226,8 @@ app.post('/api/ask', async (c) => {
             draftMs || 0,
             criticMs || 0,
             verifierMs || 0,
-            mode || 'standards'
+            mode || 'standards',
+            effectiveAnswerDepth
           ).run()
         ]));
       }
@@ -7191,6 +7239,7 @@ app.post('/api/ask', async (c) => {
       sources, 
       model_used: reportedModel, 
       mode: mode,
+      answer_depth: effectiveAnswerDepth,
       suggested_questions: suggestedQuestions,
       mcq_questions: mcqQuestions,
       can_continue: finishReason === 'length' || answer.length > 1200,
