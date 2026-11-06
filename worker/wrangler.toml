@@ -6,7 +6,7 @@ compatibility_date = "2024-09-23"
 OPENROUTER_MODEL = "google/gemma-4-31b-it:free"
 ALLOWED_ORIGIN = "*"
 ADMIN_SECRET = "inspect-admin-2026"
-APP_NAME = "Inspecta"
+APP_NAME = "Q-Grey"
 
 [[d1_databases]]
 binding = "DB"

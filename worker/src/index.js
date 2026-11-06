@@ -4170,7 +4170,7 @@ async function askAIProvider(c, messages, stream, mode = 'rag', options = {}) {
           headers: {
             "Authorization": `Bearer ${key}`,
             "Content-Type": "application/json",
-            ...(providerName === 'openrouter' && { "HTTP-Referer": "https://specsupport.pages.dev", "X-Title": (c.env.APP_NAME || "Inspecta") })
+            ...(providerName === 'openrouter' && { "HTTP-Referer": "https://specsupport.pages.dev", "X-Title": (c.env.APP_NAME || "Q-Grey") })
           },
           body: JSON.stringify({
             model: modelToUse,
@@ -5460,7 +5460,7 @@ function collapseRepetitiveLoops(text) {
 }
 
 async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = [], mode = 'web', selected_standards = [], answer_depth = 'medium') {
-  const APP_NAME = c.env.APP_NAME || 'Inspecta';
+  const APP_NAME = c.env.APP_NAME || 'Q-Grey';
   const tPrepStart = Date.now();
   let retrievalMs = 0;
   let tableMs = 0;
@@ -6656,7 +6656,7 @@ app.post('/api/ask', async (c) => {
     const adminSecret = c.env.ADMIN_SECRET || 'inspect-admin-2026';
     const isAdminRequest = Boolean(adminHeaderToken && (adminHeaderToken === adminSecret || adminHeaderToken === 'specsupport-admin-2026'));
     const providerRole = isAdminRequest ? 'admin' : 'public';
-    const APP_NAME = c.env.APP_NAME || 'Inspecta';
+    const APP_NAME = c.env.APP_NAME || 'Q-Grey';
 
     let effectiveAnswerDepth = (rawReqBody.answer_depth || c.req.query('answer_depth') || rawReqBody.reasoning_effort || c.req.query('reasoning_effort') || 'medium').toLowerCase()
     if (effectiveAnswerDepth === 'fast') effectiveAnswerDepth = 'low'

@@ -3,7 +3,7 @@
 // Enables 100% offline app shell execution on remote desert rigs & offshore platforms
 // =========================================================================
 
-const CACHE_NAME = 'specsupport-locaspec-v2.6';
+const CACHE_NAME = 'specsupport-qgrey-v1';
 const APP_SHELL = [
   './',
   './index.html',
