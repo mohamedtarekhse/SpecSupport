@@ -6341,6 +6341,9 @@ Answer the inspector's query strictly and accurately based on the verified local
                                     if (Array.isArray(parsed.mcq_questions) && parsed.mcq_questions.length > 0) {
                                         streamMcqs = parsed.mcq_questions;
                                     }
+                                    if (parsed.grounding) {
+                                        streamGrounding = parsed.grounding;
+                                    }
                                 } else if (parsed.token !== undefined) {
                                     fullAnswer += String(parsed.token);
                                     streamMsg.updateText(fullAnswer);
@@ -6667,9 +6670,9 @@ Answer the inspector's query strictly and accurately based on the verified local
                     contentDiv.innerHTML = marked.parse(clean) + '<span class="streaming-cursor">▊</span>';
                     list.scrollTop = list.scrollHeight;
                 },
-                finalize: (finalText, sources = [], followups = [], mcqs = []) => {
+                finalize: (finalText, sources = [], followups = [], mcqs = [], groundingMeta = null) => {
                     row.remove();
-                    appendMessage(finalText, 'ai', sources, followups, finalText.length > 1200, mcqs);
+                    appendMessage(finalText, 'ai', sources, followups, finalText.length > 1200, mcqs, groundingMeta);
                 }
             };
         }
@@ -6928,6 +6931,45 @@ Answer the inspector's query strictly and accurately based on the verified local
                         srcBox.innerHTML = `<summary>📖 Verified Sources Cited (${uniqueSources.length})</summary><ul>${listItems}</ul>`;
                         tailDiv.appendChild(srcBox);
                     }
+                }
+
+                // 🛡️ Grounding & Code-Alignment Evidence Badge (Phase P1.3 & FIX C)
+                if (groundingMeta && groundingMeta.badge) {
+                    const badgeBox = document.createElement('div');
+                    const badgeType = groundingMeta.badge;
+                    const score = groundingMeta.score_pct !== undefined ? groundingMeta.score_pct : 100;
+                    const evidenceQuote = groundingMeta.verbatim_evidence_quote || (groundingMeta.evidence && groundingMeta.evidence.quote);
+                    
+                    let badgeClass = 'badge-verified';
+                    let badgeLabel = 'LEVEL III CODE-GROUNDED';
+                    let badgeIcon = '🛡️';
+
+                    if (badgeType === 'CALIBRATED_ABSTENTION') {
+                        badgeClass = 'badge-abstention';
+                        badgeLabel = 'CORPUS DEMARCATION';
+                        badgeIcon = '🛑';
+                    } else if (badgeType === 'PARTIAL_VERIFICATION') {
+                        badgeClass = 'badge-partial';
+                        badgeLabel = 'LEVEL II CODE-GROUNDED';
+                        badgeIcon = '⚠️';
+                    } else if (badgeType === 'UNVERIFIED_WARNING') {
+                        badgeClass = 'badge-warning';
+                        badgeLabel = 'UNVERIFIED BOUNDARY';
+                        badgeIcon = '⚠️';
+                    }
+
+                    badgeBox.className = `grounding-badge-container ${badgeClass}`;
+                    badgeBox.innerHTML = `
+                        <div class="grounding-badge-header">
+                            <span class="grounding-badge-pill">${badgeIcon} ${badgeLabel}</span>
+                            <span class="grounding-score-tag">${score}% Verbatim Grounding</span>
+                        </div>
+                        <div class="verbatim-evidence-card">
+                            <span class="verbatim-quote-label">Normative Evidence Extract:</span>
+                            ${evidenceQuote ? `<blockquote class="verbatim-quote-text">"${evidenceQuote}"</blockquote>` : `<span style="font-size:11px;color:var(--gemini-text-muted,#94a3b8);font-style:italic;">No verbatim evidence extract available</span>`}
+                        </div>
+                    `;
+                    tailDiv.appendChild(badgeBox);
                 }
 
                 // Action Toolbar (at tail)

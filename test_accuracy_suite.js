@@ -26,7 +26,7 @@ const PLANTED_ERROR_CASES = [
     assertions: [
       { desc: "Cites QW/QB-422 or QW-422", test: (ans, d) => /QW(?:\/QB)?-?422/i.test(ans) },
       { desc: "Classifies as P-No. 1 Group 2", test: (ans, d) => /P-?No\.?\s*1/i.test(ans) && /Group\s*(?:No\.?\s*)?2/i.test(ans) },
-      { desc: "Grounding verification object present", test: (ans, d) => Boolean(d.grounding && d.grounding.score_pct !== undefined) }
+      { desc: "Grounding verification badge is VERIFIED_CODE_GROUNDED", test: (ans, d) => Boolean(d.grounding && d.grounding.badge === 'VERIFIED_CODE_GROUNDED') }
     ]
   },
   {
@@ -286,7 +286,7 @@ async function runSuite() {
       let tcPassed = true;
       for (const a of tc.assertions) {
         totalTests++;
-        const ok = a.test(answer);
+        const ok = a.test(answer, data);
         if (ok) {
           passedTests++;
           console.log(`    ✓ PASS: ${a.desc}`);

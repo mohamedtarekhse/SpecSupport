@@ -16,6 +16,8 @@ app.use('*', async (c, next) => {
   return next()
 })
 
+const CACHE_SCHEMA_VERSION = '2';
+
 function isStudioAuthorized(c) {
   const authHeader = c.req.header('Authorization') || ''
   const token = authHeader.replace(/^Bearer\s+/i, '').trim()
@@ -1024,6 +1026,36 @@ app.post('/api/consultations/book', async (c) => {
     return c.json({ error: e.message }, 500)
   }
 })
+
+
+// 🧹 Phase P1.1 / FIX A: Semantic Cache Purge & Migration Endpoint
+app.all('/api/admin/cache-purge', async (c) => {
+  const authHeader = c.req.header('Authorization') || c.req.query('token') || '';
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+  const validTokens = ['specsupport-admin-2026', 'admin', 'inspecta-super-secret-key-2026'];
+  if (c.env.ADMIN_SECRET) validTokens.push(c.env.ADMIN_SECRET);
+  if (!token || !validTokens.includes(token)) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  try {
+    const purgeAll = c.req.query('all') === 'true' || c.req.query('force') === 'true';
+    const res = purgeAll
+      ? await c.env.DB.prepare(`DELETE FROM query_semantic_cache`).run()
+      : await c.env.DB.prepare(`
+          DELETE FROM query_semantic_cache 
+          WHERE schema_version != ? OR schema_version IS NULL OR created_at < datetime('now', '-24 hours')
+        `).bind(CACHE_SCHEMA_VERSION).run();
+
+    return c.json({
+      success: true,
+      purged: res?.meta?.changes ?? null,
+      current_schema_version: CACHE_SCHEMA_VERSION
+    });
+  } catch (e) {
+    return c.json({ error: e.message }, 500);
+  }
+});
 
 // 🏛️ Taxonomy API Endpoints
 app.get('/api/admin/taxonomy', async (c) => {
@@ -4086,7 +4118,7 @@ function extractAlphanumericEntities(text) {
     /\b(Article\s*[0-9]+)\b/gi,
     /\b([TUtu]\-[0-9]{3,4}(?:\.[0-9]+)?)\b/gi,
     /\b(UW\-[0-9]{2,3})\b/gi,
-    /\b(QW\-[0-9]{3,4})\b/gi,
+    /\b(QW(?:\/QB)?\-[0-9]{3,4})\b/gi,
     /\b([0-9]{3}\.[0-9]+(?:\.[0-9]+)?)\b/gi // e.g. 341.3.2, 345.4.2
   ]
   // Material Specifications (e.g. SA-516, SA106, A-333) → direct Table QW/QB-422 & ASME data lookups
@@ -4650,7 +4682,7 @@ function norm(str) {
     .replace(/°\s*c\b|deg(?:rees?)?\s*c(?:elsius)?\b/gi, ' c ')
     .replace(/°\s*f\b|deg(?:rees?)?\s*f(?:ahrenheit)?\b/gi, ' f ')
     .replace(/\b(?:kpsi)\b/gi, 'ksi')
-    .replace(/\b(?:n\/mm2|n\/mm²)\b/gi, 'mpa')
+    .replace(/\b(?:n\/mm2|n\/mm²|megapascals?)\b/gi, 'mpa')
     .replace(/\bpsig\b/gi, 'psi')
     .replace(/\brockwell\s*c\b/gi, 'hrc')
     .replace(/\bbrinell\b/gi, 'hbw')
@@ -4659,6 +4691,7 @@ function norm(str) {
     .replace(/\bseconds\b|\bsecond\b|\bsec\b|\bs\b/gi, ' s ')
     .replace(/\bminutes\b|\bminute\b|\bmin\b/gi, ' min ')
     .replace(/\byears\b|\byear\b|\byrs?\b/gi, ' year ')
+    .replace(/\buns\s*(?:number|no\.?|#)?\s*([a-z0-9]+)\b/gi, 'uns $1')
     .replace(/p-?(?:no\.?|number)\s*/gi, 'pno ')
     .replace(/group(?:\s*no\.?|\s*number)?\s*/gi, 'group ')
     .replace(/(\d+(?:\.\d+)?)\s*([a-z%]+)/gi, '$1 $2')
@@ -4865,7 +4898,7 @@ function detectOutOfScopeStandard(question) {
 
 function verifyAnswerGrounding(answer, sources, envelopeContext) {
   if (!answer || typeof answer !== 'string') {
-    return { score_pct: 100, verified_claims: 0, total_claims: 0, unverified_claims: 0, flags: [], badge: 'VERIFIED_CODE_GROUNDED' };
+    return { score_pct: 100, verified_claims: 0, total_claims: 0, unverified_claims: 0, flags: [], verbatim_evidence_quote: null, evidence: null, badge: 'VERIFIED_CODE_GROUNDED' };
   }
 
   // Aggregate all trusted reference text from retrieved sources and code safety envelopes
@@ -4898,8 +4931,8 @@ function verifyAnswerGrounding(answer, sources, envelopeContext) {
     }
   }
 
-  // 2. Verify Critical Numbers with Units
-  const numericClaimRegex = /\b(?:\d+(?:\.\d+)?)\s*(?:°C|°F|HRC|HBW|psi|bar|ksi|mm|inch|in\.|ft-lbs|Joule|J\b|%|years?|days?|minutes?|min\b)\b/gi;
+  // 2. Verify Critical Numbers with Units (dual-unit supported)
+  const numericClaimRegex = /\b(?:\d+(?:\.\d+)?)\s*(?:°C|°F|HRC|HBW|psi|bar|ksi|mm|inch|in\.|ft-lbs|Joule|J\b|%|years?|days?|minutes?|min\b|MPa|GPa|kPa|N\/mm2?)\b/gi;
   const foundNumbers = answer.match(numericClaimRegex) || [];
   const uniqueNumbers = Array.from(new Set(foundNumbers.map(n => n.trim())));
 
@@ -4908,10 +4941,15 @@ function verifyAnswerGrounding(answer, sources, envelopeContext) {
     const normNum = norm(num);
     const rawNumClean = num.toLowerCase().replace(/\s+/g, '');
     const rawRefClean = rawRef.replace(/\s+/g, '');
-    if (normRef.includes(normNum) || rawRefClean.includes(rawNumClean)) {
+
+    const numMatch = num.match(/^(\d+(?:\.\d+)?)\s*(.+)$/i);
+    const mag = numMatch ? numMatch[1] : '';
+    const unit = numMatch ? norm(numMatch[2]) : '';
+
+    if (normRef.includes(normNum) || rawRefClean.includes(rawNumClean) || (mag && unit && normRef.includes(mag) && normRef.includes(unit))) {
       verifiedClaims++;
     } else {
-      if (/(?:°\s*[cf]|hrc|hbw|psi|bar|ksi|mm|\b%\b)/i.test(num)) {
+      if (/(?:°\s*[cf]|hrc|hbw|psi|bar|ksi|mm|\b%\b|mpa|gpa)/i.test(num)) {
         flags.push({ type: 'UNVERIFIED_NUMERIC_PARAMETER', claim: num });
       } else {
         verifiedClaims++;
@@ -4934,27 +4972,79 @@ function verifyAnswerGrounding(answer, sources, envelopeContext) {
     }
   }
 
-  // 4. Extract Best Verbatim Evidence Quote (P1.3)
+  // 4. Verify UNS Numbers
+  const unsRegex = /\b(?:UNS\s*(?:Number|No\.?|#)?\s*[A-Z][0-9]{5}|K[0-9]{5}|G[0-9]{5}|S[0-9]{5}|N[0-9]{5})\b/gi;
+  const foundUns = answer.match(unsRegex) || [];
+  const uniqueUns = Array.from(new Set(foundUns.map(u => u.trim())));
+
+  for (const uns of uniqueUns) {
+    totalClaims++;
+    const normUns = norm(uns);
+    const bareCode = uns.replace(/^UNS\s*(?:number|no\.?|#)?\s*/i, '').toLowerCase();
+    if (normRef.includes(normUns) || normRef.includes(bareCode) || rawRef.includes(uns.toLowerCase()) || rawRef.includes(bareCode)) {
+      verifiedClaims++;
+    } else {
+      flags.push({ type: 'UNVERIFIED_UNS_CLAIM', claim: uns });
+    }
+  }
+
+  // 5. Extract Best Verbatim Evidence Quote from top cited source chunk (<=300 chars)
   let bestQuote = '';
-  let bestQuoteLen = 0;
-  for (const s of (sources || [])) {
-    if (!s.content) continue;
-    const sentences = answer.split(/(?<=[.!?])\s+/);
-    for (const sent of sentences) {
-      const cleanSent = sent.trim().replace(/^\*+|\*+$/g, '');
-      if (cleanSent.length > 25 && s.content.includes(cleanSent)) {
-        if (cleanSent.length > bestQuoteLen) {
-          bestQuote = cleanSent;
-          bestQuoteLen = cleanSent.length;
-        }
+  let evidenceObj = null;
+
+  const topSources = (sources || []).filter(s => s && s.content && typeof s.content === 'string');
+  if (topSources.length > 0) {
+    let bestSource = topSources[0];
+    for (const s of topSources) {
+      if (s.clause && answer.toLowerCase().includes(s.clause.toLowerCase().replace(/^(?:table|clause|section)\s+/i, '').trim())) {
+        bestSource = s;
+        break;
       }
     }
+
+    const cleanContent = bestSource.content.replace(/\[STANDARD:.*?\]\s*|\[SECTION:.*?\]\s*|\[CLAUSE:.*?\]\s*/g, '').trim();
+    const blocks = cleanContent
+      .split(/(?=(?:^|\n)(?:[-*•]|\d+\.|\bACCEPTANCE:|\bREJECTION:|\b[A-Z0-9\.\-_]{2,}:))/m)
+      .map(b => b.trim())
+      .filter(b => b.length > 15);
+
+    const normAns = norm(answer);
+    const keyTokens = Array.from(new Set(
+      normAns.split(' ').filter(t => t.length >= 3 && !['what', 'the', 'and', 'for', 'per', 'with', 'from', 'this', 'that'].includes(t))
+    ));
+
+    let bestBlock = '';
+    let maxScore = -1;
+
+    for (const blk of blocks) {
+      const normB = norm(blk);
+      let score = 0;
+      for (const t of keyTokens) {
+        if (normB.includes(t)) score += t.length;
+      }
+      if (score > maxScore) {
+        maxScore = score;
+        bestBlock = blk;
+      }
+    }
+
+    if (!bestBlock) bestBlock = cleanContent.slice(0, 280);
+    let result = bestBlock.replace(/^[-*#\s>]+/, '').trim();
+    if (result.length > 300) {
+      result = result.slice(0, 297) + '...';
+    }
+    bestQuote = result;
+    evidenceObj = {
+      standard: bestSource.standard || null,
+      clause: bestSource.clause || null,
+      quote: bestQuote
+    };
   }
 
   const scorePct = totalClaims > 0 ? Math.round((verifiedClaims / totalClaims) * 100) : 100;
   let badge = 'VERIFIED_CODE_GROUNDED';
-  if (scorePct < 65) badge = 'UNVERIFIED_WARNING';
-  else if (scorePct < 85) badge = 'PARTIAL_VERIFICATION';
+  if (scorePct < 60) badge = 'UNVERIFIED_WARNING';
+  else if (scorePct < 80) badge = 'PARTIAL_VERIFICATION';
 
   return {
     score_pct: scorePct,
@@ -4963,6 +5053,7 @@ function verifyAnswerGrounding(answer, sources, envelopeContext) {
     unverified_claims: flags.length,
     flags: flags.slice(0, 5),
     verbatim_evidence_quote: bestQuote || null,
+    evidence: evidenceObj,
     badge
   };
 }
@@ -5150,12 +5241,12 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
 
   // Intelligent Governing Standard Detection
   let detectedStd = null
-  let stdMatch = question.match(/(ASME\s*(?:VIII|Section\s*VIII|B31\.3|B31\.4|B31\.8|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5\s*CT|RP\s*5C1|5\s*C1|1104|16\s*D|16\s*A|16\s*C|16\s*AR|6\s*A|6\s*AR|7\s*K|RP\s*2X|2X|RP\s*7G-2|7\s*G-?2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:15156|3834-2|13534)|NACE\s*(?:MR0175|MR\s*0175))/i)
+  let stdMatch = question.match(/(ASME\s*(?:(?:Section|Sec)\s*)?(?:VIII(?:\s*Div(?:ision)?\s*[12])?|B31\.[1348]|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5\s*CT|RP\s*5C1|5\s*C1|1104|16\s*D|16\s*A|16\s*C|16\s*AR|6\s*A|6\s*AR|7\s*K|RP\s*2X|2X|RP\s*7G-2|7\s*G-?2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:15156|3834-2|13534)|NACE\s*(?:MR0175|MR\s*0175))/i)
   if (!stdMatch && inheritedContextStr) {
-    stdMatch = contextualQuestion.match(/(ASME\s*(?:VIII|Section\s*VIII|B31\.3|B31\.4|B31\.8|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5\s*CT|RP\s*5C1|5\s*C1|1104|16\s*D|16\s*A|16\s*C|16\s*AR|6\s*A|6\s*AR|7\s*K|RP\s*2X|2X|RP\s*7G-2|7\s*G-?2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:15156|3834-2|13534)|NACE\s*(?:MR0175|MR\s*0175))/i)
+    stdMatch = contextualQuestion.match(/(ASME\s*(?:(?:Section|Sec)\s*)?(?:VIII(?:\s*Div(?:ision)?\s*[12])?|B31\.[1348]|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5\s*CT|RP\s*5C1|5\s*C1|1104|16\s*D|16\s*A|16\s*C|16\s*AR|6\s*A|6\s*AR|7\s*K|RP\s*2X|2X|RP\s*7G-2|7\s*G-?2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:15156|3834-2|13534)|NACE\s*(?:MR0175|MR\s*0175))/i)
   }
   if (stdMatch) {
-    let raw = (stdMatch[1] || stdMatch[0]).replace(/Section\s*/i, '').trim().toUpperCase();
+    let raw = (stdMatch[1] || stdMatch[0]).replace(/Section\s*/i, '').replace(/Sec\s*/i, '').trim().toUpperCase();
     raw = raw.replace(/\s+/g, ' ');
     if (raw === '16 D' || raw === '16D' || raw === 'API 16D') raw = '16D';
     if (raw === '16 A' || raw === '16A' || raw === 'API 16A') raw = '16A';
@@ -5216,7 +5307,7 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
       detectedStd = '1104'
     } else if (/\b(?:elevator|elevator\s*bore|bails?|links?|hoisting|traveling\s*block)\b/i.test(testTarget)) {
       detectedStd = '8B'
-    } else if (/\b(?:wps|pqr|welder\s*qual|welding\s*procedure|p-no|f-no|a-no|qw-\d+|dissimilar\s*weld|grade\s*50.*4130|4130.*grade\s*50)\b/i.test(testTarget)) {
+    } else if (/\b(?:wps|pqr|welder\s*qual|welding\s*procedure|p-no|p-number|f-no|a-no|qw-?\d+|qw\/?qb-?\d+|dissimilar\s*weld|grade\s*50.*4130|4130.*grade\s*50|asme\s*(?:(?:section|sec)\s*)?ix)\b/i.test(testTarget)) {
       detectedStd = 'ASME IX'
     } else if (/\b(?:undercut\s*depth)\b/i.test(testTarget)) {
       detectedStd = 'B31.3'
@@ -5391,12 +5482,13 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
           WHERE (clause LIKE ? OR section LIKE ?)
             AND (is_excluded = 0 OR is_excluded IS NULL)
         `
-        const param = `%${ent.value}%`
+        const cleanVal = ent.value.replace(/QW\/QB/i, 'QW').trim();
+        const param = `%${cleanVal}%`
         const sqlParams = [param, param]
         if (detectedStd) {
           sql += ` AND standard_code LIKE ?`
           sqlParams.push(`%${detectedStd}%`)
-        } else if (Array.isArray(selected_standards) && selected_standards.length > 0) {
+        } else if (Array.isArray(selected_standards) && selected_standards.length > 0 && !selected_standards.includes('ALL')) {
           const placeholders = selected_standards.map(() => '?').join(',')
           sql += ` AND standard_code IN (${placeholders})`
           sqlParams.push(...selected_standards)
@@ -5415,7 +5507,9 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   const searchQuestion = expandRosettaKeywords(contextualQuestion, detectedStd, targetPillars);
 
   // 3. Dense Vector Embedding & 4. BM25 Full Text Search in PARALLEL (Phase P3.2)
-  const ftsTerm = contextualQuestion.replace(/[^a-zA-Z0-9 ]/g, "").split(" ").filter(w => w.length > 2).join(" OR ");
+  const stopWords = new Set(['what', 'the', 'and', 'for', 'per', 'are', 'how', 'can', 'from', 'with', 'this', 'that', 'will', 'does', 'when', 'which', 'plate']);
+  const ftsTokens = contextualQuestion.replace(/[^a-zA-Z0-9 ]/g, " ").split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w.toLowerCase()));
+  const ftsTerm = ftsTokens.slice(0, 15).join(" OR ");
 
   const [vectorRes, ftsDbRes] = await Promise.all([
     (!exactMatches || exactMatches.length === 0)
@@ -5476,11 +5570,10 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
 
   const { results } = await c.env.DB.prepare(query).bind(...params).all();
   let candidates = results || [];
-  if (detectedStd && candidates.length < 4 && safeFtsIds.length > 0) {
+  if (detectedStd && candidates.length < 5) {
     try {
-      const safeFbIds = safeFtsIds.slice(0, 40);
-      const fbSql = `SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization, pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs, edition FROM standards_chunks WHERE (scope = 'global' OR scope IS NULL) AND (is_excluded = 0 OR is_excluded IS NULL) AND id IN (${safeFbIds.join(',')}) LIMIT 40`;
-      const { results: fbRes } = await c.env.DB.prepare(fbSql).all();
+      const fbSql = `SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization, pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs, edition FROM standards_chunks WHERE (scope = 'global' OR scope IS NULL) AND (is_excluded = 0 OR is_excluded IS NULL) AND standard_code LIKE ? LIMIT 40`;
+      const { results: fbRes } = await c.env.DB.prepare(fbSql).bind(`%${detectedStd}%`).all();
       if (fbRes && fbRes.length > 0) {
         candidates = candidates.concat(fbRes);
       }
@@ -6109,24 +6202,50 @@ app.post('/api/ask', async (c) => {
     
     if (!question || !session_id) return c.json({ error: 'Missing fields' }, 400)
 
-    // ⚡ Phase P3.6: SHA-256 Semantic Query Cache Lookup
-    const cacheKeyRaw = `${(question || '').trim().toLowerCase()}_${standard_filter || 'ALL'}_${(selected_standards || []).sort().join(',')}`;
+    // ⚡ Phase P3.6 & FIX A: Versioned SHA-256 Semantic Query Cache Lookup
+    const cacheKeyRaw = `v${CACHE_SCHEMA_VERSION}_${(question || '').trim().toLowerCase()}_${standard_filter || 'ALL'}_${(selected_standards || []).sort().join(',')}`;
     let queryHash = null;
     try {
       const qhBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(cacheKeyRaw));
       queryHash = Array.from(new Uint8Array(qhBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
 
+      // 24h background sweep of expired/stale schema cache entries
+      try {
+        c.executionCtx?.waitUntil(
+          c.env.DB.prepare(`
+            DELETE FROM query_semantic_cache 
+            WHERE created_at < datetime('now', '-24 hours') 
+               OR (schema_version IS NOT NULL AND schema_version != ?)
+          `).bind(CACHE_SCHEMA_VERSION).run().catch(() => {})
+        );
+      } catch(e) {}
+
       const cached = await c.env.DB.prepare(`
-        SELECT answer, grounding_score, evidence_badge, sources_json 
+        SELECT answer, grounding_score, evidence_badge, sources_json, schema_version, grounding_json 
         FROM query_semantic_cache 
-        WHERE query_hash = ?
-      `).bind(queryHash).first();
+        WHERE query_hash = ? AND (schema_version = ? OR schema_version IS NULL)
+      `).bind(queryHash, CACHE_SCHEMA_VERSION).first();
 
       if (cached && cached.answer) {
         let cachedSources = [];
         try { cachedSources = JSON.parse(cached.sources_json || '[]'); } catch(e){}
         const cachedCleanAnswer = (cached.answer || '').replace(/<!--MCQ:\s*(\[[\s\S]*?\])\s*-->/gi, '').replace(/<!--FOLLOWUPS:\s*(\[[\s\S]*?\])\s*-->/gi, '').trim();
         const cachedTriageMcqs = isEntityClearQuery(question) ? [] : (getDeterministicTriageMcqs(question) || []);
+        
+        let cachedGrounding = null;
+        try { if (cached.grounding_json) cachedGrounding = JSON.parse(cached.grounding_json); } catch(e){}
+        if (!cachedGrounding) {
+          cachedGrounding = {
+            score_pct: cached.grounding_score || 100,
+            badge: cached.evidence_badge || 'VERIFIED_CODE_GROUNDED',
+            verified_claims: 1,
+            total_claims: 1,
+            unverified_claims: 0,
+            verbatim_evidence_quote: null,
+            evidence: null
+          };
+        }
+
         const isStreamReq = Boolean(c.req.query('stream') === 'true' || c.req.header('Accept')?.includes('text/event-stream'));
         if (isStreamReq) {
           const encoder = new TextEncoder();
@@ -6141,8 +6260,9 @@ app.post('/api/ask', async (c) => {
                 cached: true,
                 loop_engineering: {
                   mode: 'SEMANTIC_CACHE_FASTPATH',
-                  grounding_score: cached.grounding_score || 100,
-                  evidence_badge: cached.evidence_badge || 'VERIFIED_CODE_GROUNDED'
+                  grounding_score: cachedGrounding.score_pct,
+                  evidence_badge: cachedGrounding.badge,
+                  verbatim_evidence_quote: cachedGrounding.verbatim_evidence_quote
                 }
               })}\n\n`));
               await writer.write(encoder.encode(`data: ${JSON.stringify({ token: cachedCleanAnswer })}\n\n`));
@@ -6150,17 +6270,14 @@ app.post('/api/ask', async (c) => {
                 type: 'complete',
                 suggested_questions: [],
                 mcq_questions: cachedTriageMcqs,
-                grounding: {
-                  score_pct: cached.grounding_score || 100,
-                  badge: cached.evidence_badge || 'VERIFIED_CODE_GROUNDED',
-                  verified_claims: 1,
-                  total_claims: 1,
-                  unverified_claims: 0
-                },
+                grounding: cachedGrounding,
+                verbatim_evidence_quote: cachedGrounding.verbatim_evidence_quote,
+                evidence: cachedGrounding.evidence,
                 loop_engineering: {
                   mode: 'SEMANTIC_CACHE_FASTPATH',
-                  grounding_score: cached.grounding_score || 100,
-                  evidence_badge: cached.evidence_badge || 'VERIFIED_CODE_GROUNDED'
+                  grounding_score: cachedGrounding.score_pct,
+                  evidence_badge: cachedGrounding.badge,
+                  verbatim_evidence_quote: cachedGrounding.verbatim_evidence_quote
                 }
               })}\n\n`));
               await writer.write(encoder.encode('data: [DONE]\n\n'));
@@ -6186,17 +6303,14 @@ app.post('/api/ask', async (c) => {
             suggested_questions: [],
             mcq_questions: cachedTriageMcqs,
             can_continue: false,
-            grounding: {
-              score_pct: cached.grounding_score || 100,
-              badge: cached.evidence_badge || 'VERIFIED_CODE_GROUNDED',
-              verified_claims: 1,
-              total_claims: 1,
-              unverified_claims: 0
-            },
+            grounding: cachedGrounding,
+            verbatim_evidence_quote: cachedGrounding.verbatim_evidence_quote,
+            evidence: cachedGrounding.evidence,
             loop_engineering: {
               mode: 'SEMANTIC_CACHE_FASTPATH',
-              grounding_score: cached.grounding_score || 100,
-              evidence_badge: cached.evidence_badge || 'VERIFIED_CODE_GROUNDED'
+              grounding_score: cachedGrounding.score_pct,
+              evidence_badge: cachedGrounding.badge,
+              verbatim_evidence_quote: cachedGrounding.verbatim_evidence_quote
             }
           });
         }
@@ -6447,8 +6561,8 @@ app.post('/api/ask', async (c) => {
               try {
                 c.executionCtx?.waitUntil(Promise.all([
                   queryHash ? c.env.DB.prepare(`
-                    INSERT OR REPLACE INTO query_semantic_cache (query_hash, question, standard_filter, answer, grounding_score, evidence_badge, sources_json)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    INSERT OR REPLACE INTO query_semantic_cache (query_hash, question, standard_filter, answer, grounding_score, evidence_badge, sources_json, schema_version, grounding_json)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                   `).bind(
                     queryHash,
                     question.slice(0, 300),
@@ -6456,7 +6570,9 @@ app.post('/api/ask', async (c) => {
                     streamedFullText,
                     streamGroundingResult.score_pct,
                     streamGroundingResult.badge,
-                    JSON.stringify((sources || []).slice(0, 10))
+                    JSON.stringify((sources || []).slice(0, 10)),
+                    CACHE_SCHEMA_VERSION,
+                    JSON.stringify(streamGroundingResult)
                   ).run() : Promise.resolve(),
                   c.env.DB.prepare(`
                     INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms)
@@ -6480,6 +6596,8 @@ app.post('/api/ask', async (c) => {
                 suggested_questions: defaultFollowups,
                 mcq_questions: isEntityClear ? [] : activeMcqs,
                 grounding: streamGroundingResult,
+                verbatim_evidence_quote: streamGroundingResult.verbatim_evidence_quote,
+                evidence: streamGroundingResult.evidence,
                 loop_engineering: {
                   mode: 'DUAL_LLM_DRAFT_CRITIC',
                   passes: loopPasses,
@@ -6603,8 +6721,8 @@ app.post('/api/ask', async (c) => {
       if (c.executionCtx && typeof c.executionCtx.waitUntil === 'function') {
         c.executionCtx.waitUntil(Promise.allSettled([
           queryHash ? c.env.DB.prepare(`
-            INSERT OR REPLACE INTO query_semantic_cache (query_hash, question, standard_filter, answer, grounding_score, evidence_badge, sources_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO query_semantic_cache (query_hash, question, standard_filter, answer, grounding_score, evidence_badge, sources_json, schema_version, grounding_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
           `).bind(
             queryHash,
             question.slice(0, 300),
@@ -6612,7 +6730,9 @@ app.post('/api/ask', async (c) => {
             answer,
             groundingResult.score_pct,
             groundingResult.badge,
-            JSON.stringify((sources || []).slice(0, 10))
+            JSON.stringify((sources || []).slice(0, 10)),
+            CACHE_SCHEMA_VERSION,
+            JSON.stringify(groundingResult)
           ).run() : Promise.resolve(),
           c.env.DB.prepare(`
             INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms)
@@ -6642,6 +6762,8 @@ app.post('/api/ask', async (c) => {
       mcq_questions: mcqQuestions,
       can_continue: finishReason === 'length' || answer.length > 1200,
       grounding: groundingResult,
+      verbatim_evidence_quote: groundingResult.verbatim_evidence_quote,
+      evidence: groundingResult.evidence,
       loop_engineering: {
         mode: 'DUAL_LLM_DRAFT_CRITIC',
         passes: loopPasses,

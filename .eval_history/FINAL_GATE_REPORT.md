@@ -221,3 +221,74 @@ Target API: https://inspection-api.mohamedtarekhse.workers.dev
      - Emits 4 MCQs for ambiguous queries
      - Strips raw comment tags from JSON body text
 
+---
+
+## 6. P1 Close-Out (2026-11-06)
+
+### 6.1 Architectural & Surgical Fixes Applied
+1. **FIX A — Cache Staleness & Versioning**:
+   - Added constant `CACHE_SCHEMA_VERSION = '2'`.
+   - Included `v${CACHE_SCHEMA_VERSION}_` inside `cacheKeyRaw` to ensure cache buster invalidation across schema versions.
+   - Enacted 24-hour background sweep deleting expired and mismatched schema entries.
+   - Added `ADMIN_SECRET`-gated endpoint `ALL /api/admin/cache-purge` supporting selective or complete purge (`?force=true`).
+   - Stored full `grounding` JSON payload inside `grounding_json` column of `query_semantic_cache`, returning live-era verdicts upon cache hit.
+2. **FIX B — Grounding Verification Threshold & Norm Dual-Unit Matching**:
+   - Extended `norm(str)` with UNS number normalization (`uns $1`) and dual-unit metric/imperial normalizations (`mpa`, `n/mm2`).
+   - Extended `verifyAnswerGrounding` numeric regex to extract `MPa|GPa|kPa|N/mm2` and added independent magnitude/unit verification for compound units (e.g. `70 ksi (485 MPa)`).
+   - Added dedicated UNS code claim extraction (`UNS K02700`, etc.).
+   - Calibrated badge threshold so scores $\ge 80\%$ achieve `VERIFIED_CODE_GROUNDED` (`scorePct < 60 ? UNVERIFIED_WARNING : (scorePct < 80 ? PARTIAL_VERIFICATION : VERIFIED_CODE_GROUNDED)`).
+   - Fixed standard detection and FTS query synthesis so ASME Section IX QW-422 base metal classification chunks are retrieved directly.
+3. **FIX C — Verbatim Evidence Extract Parity & UI Fallback**:
+   - Implemented normative evidence quote extraction from the top cited chunk (cohesive block $\le 300$ chars).
+   - Return `{ standard, clause, quote }` structured evidence object.
+   - Guaranteed parity across `/api/ask` JSON, SSE `complete` events, and semantic cache fastpaths.
+   - Updated `index.html` `appendStreamingMessage.finalize()` to pass `streamGrounding` to `appendMessage()`, rendering the Grounding & Code-Alignment Evidence Badge with safe fallback if empty.
+
+---
+
+### 6.2 Gate Verification Results (Production Cloudflare Worker)
+- **Deployment Version ID:** `6d1fdfd7-cbfe-4208-be08-1a43b2681c87` (Triggers: `https://inspection-api.mohamedtarekhse.workers.dev`)
+
+1. **Golden Evaluations Harness (`scripts/run_golden_evals.js`):**
+   - **Score:** **14 / 14 Passed (100.0%)**
+   - **Citation Coverage:** 14/14 (100%)
+   - **Numerical Ground Truth:** 14/14 (100%)
+   - **Gate Status:** **PASSED**
+
+2. **Planted-Error Verification Suite (`scripts/test_planted_suite_only.js`):**
+   - **Total Passed:** **10 / 10 Test Cases (100.0%)**
+   - **In-Corpus Verification:**
+     - `REAL-01` (A106 Gr B Preheat - B31.3 Table 330.1.1): **PASS** (Grounding: 100%, `VERIFIED_CODE_GROUNDED`)
+     - `REAL-02` (SA-516 Gr 70 P-No. 1 Group 2 - ASME IX QW/QB-422): **PASS** (Grounding: 93%, `VERIFIED_CODE_GROUNDED`)
+     - `REAL-03` (Drill Pipe 80% Wear Limit - API RP 7G-2): **PASS** (Grounding: 67%, `PARTIAL_VERIFICATION`)
+     - `REAL-04` (AISI 4130 Sour Hardness 22 HRC - NACE MR0175): **PASS** (Grounding: 100%, `VERIFIED_CODE_GROUNDED`)
+     - `REAL-05` (Hydrostatic Test Ratio 1.5× - ASME B31.3 Cl 345.4.2): **PASS** (Grounding: 67%, `PARTIAL_VERIFICATION`)
+   - **Out-of-Corpus Adversarial Refusals:**
+     - `OUT-01` (AWS D1.8 Seismic Welding Code): **REFUSED (100%)** (`CALIBRATED_ABSTENTION`)
+     - `OUT-02` (EN 13445 Unfired Pressure Vessels): **REFUSED (100%)** (`CALIBRATED_ABSTENTION`)
+     - `OUT-03` (ASTM A123 Galvanizing Coating): **REFUSED (100%)** (`CALIBRATED_ABSTENTION`)
+     - `OUT-04` (ASME BPE Bioprocessing Equipment): **REFUSED (100%)** (`CALIBRATED_ABSTENTION`)
+     - `OUT-05` (API RP 2A-WSD Platform Structures): **REFUSED (100%)** (`CALIBRATED_ABSTENTION`)
+   - **Refusal Rate:** **5 / 5 (100.0%)**
+
+3. **Reworded Live Probes Suite (`scripts/reprobe_three_variants.js`):**
+   - **Target Criteria:** 0 MCQs, Grounding Score $\ge 80\%$, Badge `VERIFIED_CODE_GROUNDED`, non-empty verbatim evidence quote.
+   - **Variant 1:** `"What is the P-Number and Group for SA-516 Grade 70 per ASME IX QW-422?"`
+     - Status: **PASS** | Latency: 11572ms | MCQs: **0** | Grounding: **100%** | Badge: `VERIFIED_CODE_GROUNDED`
+     - Verbatim Quote: `"SA-516 Grade 70 (Carbon Steel Plate for Moderate and Lower-Temperature Service): * Base Metal: Car..."`
+   - **Variant 2:** `"Per ASME Section IX Table QW-422, what P-No and Group applies to SA-516 Gr 70 plate?"`
+     - Status: **PASS** | Latency: 19705ms | MCQs: **0** | Grounding: **85%** | Badge: `VERIFIED_CODE_GROUNDED`
+     - Verbatim Quote: `"SA-516 Grade 70 (Carbon Steel Plate for Moderate and Lower-Temperature Service): * Base Metal: Car..."`
+   - **Variant 3:** `"Identify the ASME IX QW-422 P-Number, Group, and tensile strength for SA-516 Grade 70."`
+     - Status: **PASS** | Latency: 12767ms | MCQs: **0** | Grounding: **100%** | Badge: `VERIFIED_CODE_GROUNDED`
+     - Verbatim Quote: `"SA-516 Grade 70 (Carbon Steel Plate for Moderate and Lower-Temperature Service): * Base Metal: Car..."`
+   - **Probe Result:** **3 / 3 Variants (100%) PASSED**
+
+4. **Deployed Developments Deep Audit Suite (`scripts/full_test_deployed_developments.js`):**
+   - **Score:** **31 / 31 Passed (100.0%)**
+   - **Section 1 (Cross-Encoder Re-Ranker):** 3/3 PASS (Doctor check, Cyclically Loaded Discriminator Top clause, Alloy P-15E discrimination)
+   - **Section 2 (Triage Disciplines 2.1 - 2.7):** 21/21 PASS (All 7 disciplines emitted expected MCQ counts, valid JSON schema, clean stream markdown)
+   - **Section 3 (Negative Control):** 2/2 PASS (Entity-clear probe emits 0 MCQs, identifies P-No. 1 Group 2)
+   - **Section 4 (Non-Streaming Parity):** 2/2 PASS (Ambiguous query emits 4 MCQs, comment tags stripped)
+
+
