@@ -131,6 +131,36 @@
         }
 
         /* 3-Mode Segmented Pill Switcher */
+        
+        /* Dynamic Header Scope Chip */
+        .header-scope-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 10px;
+            margin-left: 8px;
+            border-radius: 999px;
+            background: var(--gemini-surface, rgba(255, 255, 255, 0.06));
+            border: 1px solid var(--gemini-border, rgba(255, 255, 255, 0.1));
+            color: var(--gemini-text-muted, #94a3b8);
+            font-size: 0.72rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .header-scope-chip:hover {
+            border-color: var(--sap-blue, #0284c7);
+            color: var(--gemini-text-main, #f1f5f9);
+            background: rgba(2, 132, 199, 0.1);
+        }
+        .scope-chip-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10B981;
+        }
+
         .gemini-mode-switch {
             display: flex;
             background: var(--gemini-surface);
@@ -3225,23 +3255,12 @@
             </button>
             <a href="#" class="logo-title" onclick="resetChat(); return false;">
                 <svg class="gemini-svg" style="width:20px; height:20px; stroke:var(--sap-blue);" viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></svg>
-                <span>Inspecta</span>
+                <span id="app-logo-text">Inspecta</span>
             </a>
-        </div>
-
-        <!-- Centered 3-Mode Segmented Pill Switcher (Web Mode Default) -->
-        <div class="gemini-mode-switch">
-            <button id="mode-web-btn" class="mode-pill active" onclick="setMode('web')">
-                <svg class="gemini-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                <span>Web Mode</span>
-            </button>
-            <button id="mode-standards-btn" class="mode-pill" onclick="setMode('standards')">
-                <svg class="gemini-svg" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15zM8 7h8M8 11h6"/></svg>
-                <span>Standards</span>
-            </button>
-            <button id="mode-expert-btn" class="mode-pill" onclick="setMode('expert')">
-                <svg class="gemini-svg" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 10l-2.5 1.5.7-2.9-2.2-2 2.9-.2L22 4l1.1 2.4 2.9.2-2.2 2 .7 2.9z"/></svg>
-                <span>Ask Expert</span>
+            <!-- Dynamic Auto / Scoped Standards Chip -->
+            <button id="header-scope-chip" class="header-scope-chip" title="Active Standards Scope (click to configure in sidebar)" onclick="toggleSourcesSidebar()">
+                <span class="scope-chip-dot"></span>
+                <span id="header-scope-text">Auto</span>
             </button>
         </div>
 
@@ -3310,6 +3329,10 @@
             <button class="mobile-nav-item" onclick="openKnowledgeCurator(); closeMobileNavMenu();">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                 <span>Curate Database Chunks</span>
+            </button>
+            <button class="mobile-nav-item" onclick="setMode('expert'); closeMobileNavMenu();">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 10l-2.5 1.5.7-2.9-2.2-2 2.9-.2L22 4l1.1 2.4 2.9.2-2.2 2 .7 2.9z"/></svg>
+                <span>Ask an Expert (Peer Review)</span>
             </button>
             <button class="mobile-nav-item" onclick="openVisionModal(); closeMobileNavMenu();">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -3398,6 +3421,10 @@
 
             <!-- Sidebar Action Footer -->
             <div class="sidebar-footer">
+                <button class="sidebar-action-btn" onclick="setMode('expert'); toggleSourcesSidebar();" title="Ask Level III & Peer Community">
+                    <svg class="gemini-svg" style="width:14px; height:14px;" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 10l-2.5 1.5.7-2.9-2.2-2 2.9-.2L22 4l1.1 2.4 2.9.2-2.2 2 .7 2.9z"/></svg>
+                    <span>Ask an Expert (Peer Review)</span>
+                </button>
                 <button class="sidebar-action-btn primary" onclick="openStandardsModal()">
                     <svg class="gemini-svg" style="width:14px; height:14px;" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     <span>Ingest Standard / Manual</span>
@@ -5596,13 +5623,47 @@
             localStorage.setItem('inspecta_theme', currentTheme);
         }
 
+        
+        // Phase 11: Auto-Mode & Entity-Aware Dispatcher
+        function resolveSendMode(question) {
+            const activeStandards = (typeof getActiveStandards === 'function') ? getActiveStandards() : [];
+            if (activeStandards && activeStandards.length > 0) {
+                return 'standards';
+            }
+            const q = (question || '').toLowerCase();
+            const entityRegex = /\b(api\s*(?:1104|5ct|6a|16[ad]|510|570|rp\s*[24578][a-z0-9\-]*)|asme\s*(?:b31\.[1348]|viii|ix|v)|aws\s*(?:d1\.1|b1\.11)|iso\s*3834|nace\s*mr0175|astm\b|table\s*[a-z0-9\.\-]+|clause\s*[0-9\.\-]+|section\s*[0-9ivx]+|article\s*[0-9]+|qw(?:\/qb)?\-[0-9]{3,4}|sa-?\s?\d{3}|a-?\s?106|a-?\s?516|p-?no\.?\s*\d+|group\s*(?:no\.?\s*)?\d+|\b4130\b|\bp91\b|\binconel\b)/i;
+            if (entityRegex.test(q)) {
+                return 'standards';
+            }
+            return 'web';
+        }
+        window.resolveSendMode = resolveSendMode;
+
+        function updateScopeChip() {
+            const chipText = document.getElementById('header-scope-text');
+            if (!chipText) return;
+            const count = (typeof selectedStandardsSet !== 'undefined' && selectedStandardsSet) ? selectedStandardsSet.size : 0;
+            if (count === 0) {
+                chipText.textContent = 'Auto';
+            } else if (count === 1) {
+                chipText.textContent = '1 standard scoped';
+            } else {
+                chipText.textContent = `${count} standards scoped`;
+            }
+            const scopeBadge = document.getElementById('mobile-menu-active-scope');
+            if (scopeBadge) {
+                scopeBadge.textContent = count > 0 ? `${count} Scoped` : 'Auto';
+            }
+        }
+        window.updateScopeChip = updateScopeChip;
+
         function setMode(mode, save = true) {
             currentMode = mode;
             if (save) localStorage.setItem('inspecta_mode', mode);
             
-            document.getElementById('mode-web-btn').classList.toggle('active', mode === 'web');
-            document.getElementById('mode-standards-btn').classList.toggle('active', mode === 'standards');
-            document.getElementById('mode-expert-btn').classList.toggle('active', mode === 'expert');
+            document.getElementById('mode-web-btn')?.classList.toggle('active', mode === 'web');
+            document.getElementById('mode-standards-btn')?.classList.toggle('active', mode === 'standards');
+            document.getElementById('mode-expert-btn')?.classList.toggle('active', mode === 'expert');
 
             const subnav = document.getElementById('expert-subnav-bar');
             const commView = document.getElementById('expert-community-view');
@@ -6205,6 +6266,8 @@
 
         // Send Message Pipeline
         async function sendMessage(overrideText = null) {
+            // alias
+            window.sendQuestion = sendMessage;
             const input = document.getElementById('user-input');
             const text = (typeof overrideText === 'string') ? overrideText : input.value.trim();
             if (!text || isGenerating) return;
@@ -6393,8 +6456,8 @@ Answer the inspector's query strictly and accurately based on the verified local
                         question: text,
                         language: isArabic ? 'ar' : 'en',
                         session_id: sessionId,
-                        standard_filter: currentMode === 'web' ? '🌐 GENERAL AI' : 'ALL',
-                        mode: currentMode,
+                        standard_filter: effectiveMode === 'web' ? '🌐 GENERAL AI' : (getActiveStandards().length > 0 ? getActiveStandards().join(', ') : '🌐 DATABASE MODE'),
+                        mode: effectiveMode,
                         selected_standards: getActiveStandards(),
                         answer_depth: currentAnswerDepth,
                         history: chatHistory.slice(-10)
@@ -9307,6 +9370,7 @@ Answer the inspector's query strictly and accurately based on the verified local
             }
 
             renderNotebookLMSidebar();
+            updateScopeChip();
             if (typeof populateCuratorStandardsFilter === 'function') populateCuratorStandardsFilter();
         }
 
@@ -9533,6 +9597,7 @@ Answer the inspector's query strictly and accurately based on the verified local
         }
 
         function updateSidebarCounts() {
+            updateScopeChip();
             let totalAvailable = 0;
             let totalActive = 0;
             let activeChunksCount = 0;
