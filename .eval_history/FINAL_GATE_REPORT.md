@@ -618,9 +618,39 @@ Target API: https://inspection-api.mohamedtarekhse.workers.dev
 | **Deployed Developments Deep Audit** (`scripts/full_test_deployed_developments.js`) | Cross-Encoder Reranker + 7 Triage Disciplines + Parity | 31 / 31 | **100.0%** | **PASSED** |
 | **Phase 11 Production Probes** (`scripts/verify_phase11_probes.js`) | Role Routing, Shield Verification, Fast-Path $\le 1.5\text{s}$ | 6 / 6 | **100.0%** | **PASSED** |
 
+---
 
+## 12. Admin-pin hotfix (2026-11-06)
 
+### 12.1 Architectural Interventions & Deployed Capabilities
+1. **Admin Pin Precedence in Fast Lane (Fix 1)**:
+   - Evaluated admin authorization (`providerRole === 'admin'`) prior to `answer_depth === 'low'` model selection.
+   - For valid `X-Admin-Token` requests, generation is strictly pinned to `@cf/zai-org/glm-5.3-flash` regardless of `answer_depth` (`low`, `medium`, or `high`).
+   - Non-admin requests continue to route `answer_depth='low'` to `@cf/meta/llama-3.1-8b-instruct-fp8-fast`.
+2. **Low-Depth Quality Floor Extension (Fix 2)**:
+   - Raised `max_tokens` ceiling for `answer_depth === 'low'` from `200` to `450` tokens.
+   - Extended system prompt directive for Fast (Low) depth: mandates at least one verbatim evidence line quoting normative code text/table values so claims are fully verifiable without requiring an expensive secondary critic pass.
+   - Fast lane latency preserved: P50 latency $\le 1.9\text{s}$ (well under $\le 6\text{s}$ budget).
 
+---
 
+### 12.2 Live Production Probe Results (`scripts/verify_phase12_admin_pin.js`)
 
+| Probe Target | Verification Scope | Status | Result / Recorded Telemetry |
+|---|---|---|---|
+| **Test A** | `/api/ask` Admin Request with `answer_depth='low'` | ✅ **PASS** | `provider_role='admin'`, Model: `@cf/zai-org/glm-5.3-flash` |
+| **Test B** | `/api/ask` Public Request with `answer_depth='low'` | ✅ **PASS** | `provider_role='public'`, Model: `@cf/meta/llama-3.1-8b-instruct-fp8-fast` ($1827\text{ms}$) |
+| **Test C** | Fast-Path Table Lookup (`QW-422 SA-516 Gr 70`) | ✅ **PASS** | Latency: **196 ms** ($\le 1.5\text{s}$), 0 LLM, Score: 100%, Badge: `VERIFIED_CODE_GROUNDED` |
+| **Test D** | Fast-Path Safety Envelope (`B31.3 Table 330.1.1`) | ✅ **PASS** | Latency: **198 ms** ($\le 3.0\text{s}$), 0 LLM, Score: 80%, Badge: `VERIFIED_CODE_GROUNDED` |
+
+---
+
+### 12.3 Quality Gate Scorecard
+
+| Verification Suite | Target & Test Coverage | Pass / Total | Pass Rate | Status |
+|---|---|---|---|---|
+| **Golden Evaluations** (`scripts/run_golden_evals.js`) | 14 Verified Engineering Ground Truth Queries | 14 / 14 | **100.0%** | **PASSED** |
+| **Planted-Error Refusal Suite** (`scripts/test_planted_suite_only.js`) | 5 In-Corpus Grounded + 5 Calibrated Refusals | 10 / 10 | **100.0%** | **PASSED** (100% Out-of-Corpus Refusal) |
+| **Deployed Developments Deep Audit** (`scripts/full_test_deployed_developments.js`) | Cross-Encoder Reranker + 7 Triage Disciplines + Parity | 31 / 31 | **100.0%** | **PASSED** |
+| **Phase 12 Verification Probes** (`scripts/verify_phase12_admin_pin.js`) | Admin Pin Override + Low-Depth Quality Floor + Fast Paths | 4 / 4 | **100.0%** | **PASSED** |
 

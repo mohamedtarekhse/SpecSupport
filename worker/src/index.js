@@ -4080,9 +4080,12 @@ async function askAIProvider(c, messages, stream, mode = 'rag', options = {}) {
       ? '@cf/meta/llama-3.1-8b-instruct-fp8-fast'
       : '@cf/zai-org/glm-5.3-flash';
 
-    const cfModel = (options.answer_depth === 'low') 
-      ? '@cf/meta/llama-3.1-8b-instruct-fp8-fast' 
-      : primaryCfModel;
+    // FIX 1: Evaluate admin role FIRST.
+    // If admin -> ALWAYS glm-5.3-flash regardless of answer_depth (reasoning_effort and token caps still follow depth map).
+    // Only non-admin requests route depth=low -> llama-8b.
+    const cfModel = isAdmin
+      ? '@cf/zai-org/glm-5.3-flash'
+      : ((options.answer_depth === 'low') ? '@cf/meta/llama-3.1-8b-instruct-fp8-fast' : primaryCfModel);
     const orModel = dbConf['openrouter_model'] || 'google/gemma-4-31b-it:free';
 
     const liveOrModels = Array.from(new Set([
@@ -4102,7 +4105,7 @@ async function askAIProvider(c, messages, stream, mode = 'rag', options = {}) {
     let reasoningEffort = 'low';
 
     if (options.answer_depth === 'low') {
-      maxToks = 200;
+      maxToks = 450;
       reasoningEffort = 'low';
     } else if (options.answer_depth === 'high') {
       maxToks = 2600;
@@ -6597,13 +6600,15 @@ Generate a complete, step-by-step BOP Pressure Test Sequence:
 5. DOCUMENTATION: Test chart sign-off by Toolpusher and Company Representative.\n`;
     }
   }
+  // Answer Depth Directive
+  if (answer_depth === 'low') {
+    systemPrompt += `\n[ANSWER DEPTH DIRECTIVE: FAST (LOW)]\nProvide a concise, direct, single-focus engineering answer. State the short direct answer first with specific values and units, followed by the exact code clause. MANDATORY: Include at least one verbatim evidence line quoting the exact normative code text/table values directly from the retrieved sources so verification claims match. Strictly skip cross-standard comparisons, delta matrices, and algebraic derivations.\n`;
+  } else if (answer_depth === 'high') {
+    systemPrompt += `\n[ANSWER DEPTH DIRECTIVE: THINK (HIGH)]\nProvide an exhaustive Level III engineering audit. Include relevant cross-standard comparisons, detailed calculation worked examples with full units where applicable, and a dedicated 'Checks & Context' section verifying metallurgical boundaries and code edition limits.\n`;
+  }
+
   // Prepend Database Taxonomy & Equipment Governance Directive (Absolute Highest Priority)
   if (taxonomyGovernanceNote) {
-    if (answer_depth === 'low') {
-      systemPrompt += `\n[ANSWER DEPTH DIRECTIVE: FAST (LOW)]\nProvide a concise, direct, single-focus engineering answer in under 80 words. State the short direct answer first with specific values and units, followed by the exact code clause and evidence quote. Strictly skip cross-standard comparisons, delta matrices, and algebraic derivations.\n`;
-    } else if (answer_depth === 'high') {
-      systemPrompt += `\n[ANSWER DEPTH DIRECTIVE: THINK (HIGH)]\nProvide an exhaustive Level III engineering audit. Include relevant cross-standard comparisons, detailed calculation worked examples with full units where applicable, and a dedicated 'Checks & Context' section verifying metallurgical boundaries and code edition limits.\n`;
-    }
     systemPrompt = `${taxonomyGovernanceNote}\n${systemPrompt}`
   }
 
