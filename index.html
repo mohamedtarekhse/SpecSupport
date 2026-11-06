@@ -4792,6 +4792,7 @@
             return tesseractLoadedPromise;
         }
 
+        const APP_NAME = window.APP_NAME || "Inspecta";
         const API_BASE = "https://inspection-api.mohamedtarekhse.workers.dev";
         let currentMode = localStorage.getItem('inspecta_mode') || 'web';
         let currentTheme = localStorage.getItem('inspecta_theme') || 'dark';

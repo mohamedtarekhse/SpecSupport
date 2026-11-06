@@ -61,4 +61,7 @@ INSERT OR IGNORE INTO system_config (key, value) VALUES ('openrouter_model', 'qw
 -- Phase 9: Answer Depth
 -- ALTER TABLE request_traces ADD COLUMN answer_depth TEXT;
 
+-- Phase 11: Provider Role
+-- ALTER TABLE request_traces ADD COLUMN provider_role TEXT;
+
 

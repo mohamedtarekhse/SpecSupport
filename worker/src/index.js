@@ -20,10 +20,21 @@ const CACHE_SCHEMA_VERSION = '2';
 
 function isStudioAuthorized(c) {
   const authHeader = c.req.header('Authorization') || ''
-  const token = authHeader.replace(/^Bearer\s+/i, '').trim()
-  const validTokens = ['specsupport-admin-2026', 'admin', 'inspecta-super-secret-key-2026']
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim() || 
+                c.req.header('X-Admin-Token') || 
+                c.req.header('x-admin-token') || 
+                c.req.header('x-admin-secret') || 
+                c.req.query('admin_secret') || ''
+  if (!token) return false
+  const validTokens = ['specsupport-admin-2026', 'admin', 'inspecta-super-secret-key-2026', 'inspect-admin-2026']
   if (c.env.ADMIN_SECRET) validTokens.push(c.env.ADMIN_SECRET)
-  return !token || validTokens.includes(token)
+  return validTokens.includes(token)
+}
+
+let aiBindingDegradedUntil = 0;
+function isQuotaExhaustionError(err) {
+  const msg = (err && (err.message || String(err))) || '';
+  return msg.includes('4006') || msg.toLowerCase().includes('daily allocation') || msg.toLowerCase().includes('quota');
 }
 
 app.get('/api/health', async (c) => {
@@ -3377,13 +3388,43 @@ app.get('/api/admin/config', async (c) => {
   } catch (e) { return c.json({ error: e.message }, 500) }
 })
 
+
+app.get('/api/admin/model-status', async (c) => {
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized: Admin Secret Required' }, 401);
+  try {
+    const confRes = await c.env.DB.prepare(`SELECT key, value FROM system_config`).all();
+    let dbConf = {};
+    if (confRes?.results) confRes.results.forEach(r => dbConf[r.key] = r.value);
+
+    return c.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      models: {
+        public_primary: '@cf/meta/llama-3.1-8b-instruct-fp8-fast',
+        public_fallback: '@cf/zai-org/glm-5.3-flash',
+        admin_primary: '@cf/zai-org/glm-5.3-flash',
+        admin_fallback: '@cf/meta/llama-3.1-8b-instruct-fp8-fast',
+        db_cloudflare_model: dbConf['cloudflare_model'] || '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+        external_groq: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'],
+        external_openrouter: dbConf['openrouter_model'] || 'google/gemma-4-31b-it:free'
+      },
+      quota_status: {
+        ai_binding_degraded: aiBindingDegradedUntil > Date.now(),
+        degraded_until: aiBindingDegradedUntil > Date.now() ? new Date(aiBindingDegradedUntil).toISOString() : null
+      }
+    });
+  } catch (err) {
+    return c.json({ error: err.message }, 500);
+  }
+});
+
 app.get('/api/admin/traces', async (c) => {
   if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
   const limit = Math.min(200, Math.max(1, parseInt(c.req.query('limit') || '50')))
   try {
     const res = await c.env.DB.prepare(`
       SELECT id, session_id, question, answer_depth, mode, grounding_score, evidence_badge, 
-             provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, created_at 
+             provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, provider_role, created_at 
       FROM request_traces 
       ORDER BY created_at DESC 
       LIMIT ?
@@ -4028,7 +4069,20 @@ async function askAIProvider(c, messages, stream, mode = 'rag', options = {}) {
     const groqKey = dbConf['groq_api_key'] || c.env.GROQ_API_KEY;
     const orKey = dbConf['openrouter_api_key'] || c.env.OPENROUTER_API_KEY;
     const activeProvider = dbConf['active_provider'] || 'cloudflare';
-    const cfModel = (options.answer_depth === 'low') ? '@cf/meta/llama-3.1-8b-instruct-fast' : (dbConf['cloudflare_model'] || '@cf/meta/llama-3.3-70b-instruct-fp8-fast');
+    
+    // Role-Gated Provider Routing (Item 3)
+    const providerRole = options.provider_role || 'public';
+    const isAdmin = providerRole === 'admin';
+    const primaryCfModel = isAdmin
+      ? '@cf/zai-org/glm-5.3-flash'
+      : '@cf/meta/llama-3.1-8b-instruct-fp8-fast';
+    const fallbackCfModel = isAdmin
+      ? '@cf/meta/llama-3.1-8b-instruct-fp8-fast'
+      : '@cf/zai-org/glm-5.3-flash';
+
+    const cfModel = (options.answer_depth === 'low') 
+      ? '@cf/meta/llama-3.1-8b-instruct-fp8-fast' 
+      : primaryCfModel;
     const orModel = dbConf['openrouter_model'] || 'google/gemma-4-31b-it:free';
 
     const liveOrModels = Array.from(new Set([
@@ -4113,7 +4167,7 @@ async function askAIProvider(c, messages, stream, mode = 'rag', options = {}) {
           headers: {
             "Authorization": `Bearer ${key}`,
             "Content-Type": "application/json",
-            ...(providerName === 'openrouter' && { "HTTP-Referer": "https://specsupport.pages.dev", "X-Title": "Inspecta" })
+            ...(providerName === 'openrouter' && { "HTTP-Referer": "https://specsupport.pages.dev", "X-Title": (c.env.APP_NAME || "Inspecta") })
           },
           body: JSON.stringify({
             model: modelToUse,
@@ -4150,18 +4204,31 @@ async function askAIProvider(c, messages, stream, mode = 'rag', options = {}) {
     };
 
     const tryCloudflare = async () => {
+      if (aiBindingDegradedUntil > Date.now()) {
+        const remSec = Math.ceil((aiBindingDegradedUntil - Date.now()) / 1000);
+        throw new Error(`CF_4006_DEGRADED: Edge AI allocation ceiling active (${remSec}s remaining)`);
+      }
       try {
         return await runCloudflareAI(cfModel);
       } catch (e) {
-        lastError = `Cloudflare AI (${cfModel}): ${e.message}`;
-        if (cfModel !== '@cf/meta/llama-3.1-8b-instruct-fast') {
-          try {
-            return await runCloudflareAI('@cf/meta/llama-3.1-8b-instruct-fast');
-          } catch (e2) {
-            lastError = `Cloudflare AI (@cf/meta/llama-3.1-8b-instruct-fast): ${e2.message}`;
-          }
+        if (isQuotaExhaustionError(e)) {
+          aiBindingDegradedUntil = Date.now() + 10 * 60 * 1000;
+          throw new Error(`CF_4006_DEGRADED: ${e.message}`);
         }
-        throw new Error(lastError);
+        lastError = `Cloudflare AI (${cfModel}): ${e.message}`;
+        
+        // Secondary Cloudflare Model in binding
+        const secondary = (cfModel === fallbackCfModel) ? '@cf/meta/llama-3.1-8b-instruct-fast' : fallbackCfModel;
+        try {
+          return await runCloudflareAI(secondary);
+        } catch (e2) {
+          if (isQuotaExhaustionError(e2)) {
+            aiBindingDegradedUntil = Date.now() + 10 * 60 * 1000;
+            throw new Error(`CF_4006_DEGRADED: ${e2.message}`);
+          }
+          lastError = `Cloudflare AI (${secondary}): ${e2.message}`;
+          throw new Error(lastError);
+        }
       }
     };
 
@@ -4202,6 +4269,10 @@ async function askAIProvider(c, messages, stream, mode = 'rag', options = {}) {
       try {
         return await attempt();
       } catch (err) {
+        if (err.message && err.message.startsWith('CF_4006_DEGRADED')) {
+          // Do NOT retry CF on 4006; throw to outer handler for calibrated abstention
+          throw err;
+        }
         // Cascade to next provider
       }
     }
@@ -6146,7 +6217,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   // PERSONA ASSEMBLY BASED ON MODE
   // ==========================================
   if (mode === 'web') {
-    systemPrompt = `You are Inspecta Web Intelligence, a premier oil & gas, QA/QC, and non-destructive testing expert powered by 320B GLM-5.3-Flash.
+    systemPrompt = `You are ${APP_NAME}, a code-grounded inspection assistant; every answer verified or refused.
 You are currently operating in 'Web Mode' (broad engineering and scientific knowledge).
 Answer the user's question with uncompromising technical accuracy, citing real international standards (API, ASME, AWS, ISO, NACE) and engineering physics.
 ${contextBlock}
@@ -6170,7 +6241,7 @@ ${rulesSection}
   } else {
     // Mode 3: Standards Mode (Strict Code Baseline)
     if (topChunks.length === 0) {
-      systemPrompt = `You are an expert oil and gas inspection engineer.
+      systemPrompt = `You are ${APP_NAME}, a code-grounded inspection assistant; every answer verified or refused.
 The user asked about a clause or standard requirement that is NOT currently indexed in the local database.
 Perform a Database-First Web Refinement:
 1. Search your global technical knowledge to locate the exact standard, section, and clause.
@@ -6182,7 +6253,7 @@ ${coreInspectionDirectives}
 ${rulesSection}
 `
     } else {
-      systemPrompt = `You are an expert oil and gas inspection engineer.
+      systemPrompt = `You are ${APP_NAME}, a code-grounded inspection assistant; every answer verified or refused.
 Answer strictly from the verified standard clauses and tables provided in the context below.
 ${overrideNotice}
 
@@ -6550,6 +6621,12 @@ app.post('/api/ask', async (c) => {
     const rawReqBody = await c.req.json()
     const { question, language, session_id, standard_filter, history, mode = 'web', selected_standards = [] } = rawReqBody
     
+    // Phase 11: Role Detection (Item 3) & Dynamic Rename Hook (Item 4)
+    const adminHeaderToken = c.req.header('X-Admin-Token') || c.req.header('x-admin-token') || (c.req.header('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
+    const isAdminRequest = Boolean(c.env.ADMIN_SECRET && adminHeaderToken === c.env.ADMIN_SECRET);
+    const providerRole = isAdminRequest ? 'admin' : 'public';
+    const APP_NAME = c.env.APP_NAME || 'Inspecta';
+
     let effectiveAnswerDepth = (rawReqBody.answer_depth || c.req.query('answer_depth') || rawReqBody.reasoning_effort || c.req.query('reasoning_effort') || 'medium').toLowerCase()
     if (effectiveAnswerDepth === 'fast') effectiveAnswerDepth = 'low'
     if (effectiveAnswerDepth === 'think') effectiveAnswerDepth = 'high'
@@ -6870,12 +6947,12 @@ app.post('/api/ask', async (c) => {
               CACHE_SCHEMA_VERSION, JSON.stringify(grounding)
             ).run() : Promise.resolve(),
             c.env.DB.prepare(`
-              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               crypto.randomUUID(), session_id, question.slice(0, 300), standard_filter || 'ALL',
               100, 'VERIFIED_CODE_GROUNDED', 'deterministic_table', 'SpecSupport-Deterministic-Table-Engine',
-              totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, (fastPathResult.mode || 'FASTPATH_TABLE'), effectiveAnswerDepth
+              totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, (fastPathResult.mode || 'FASTPATH_TABLE'), effectiveAnswerDepth, providerRole
             ).run(),
             c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(
               session_id, question, 'SpecSupport-Deterministic-Table-Engine', today
@@ -6903,12 +6980,12 @@ app.post('/api/ask', async (c) => {
               CACHE_SCHEMA_VERSION, JSON.stringify(grounding)
             ).run() : Promise.resolve(),
             c.env.DB.prepare(`
-              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               crypto.randomUUID(), session_id, question.slice(0, 300), standard_filter || 'ALL',
               100, 'VERIFIED_CODE_GROUNDED', 'deterministic_table', 'SpecSupport-Deterministic-Table-Engine',
-              totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, (fastPathResult.mode || 'FASTPATH_TABLE'), effectiveAnswerDepth
+              totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, (fastPathResult.mode || 'FASTPATH_TABLE'), effectiveAnswerDepth, providerRole
             ).run(),
             c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(
               session_id, question, 'SpecSupport-Deterministic-Table-Engine', today
@@ -6954,7 +7031,7 @@ app.post('/api/ask', async (c) => {
 
     // Step 1: Execute Pass 1 (Draft Model) internally in buffered mode
     const tDraftStart = Date.now()
-    let draftRes = await askAIProvider(c, messages, false, mode, { answer_depth: effectiveAnswerDepth })
+    let draftRes = await askAIProvider(c, messages, false, mode, { answer_depth: effectiveAnswerDepth, provider_role: providerRole, is_admin: isAdminRequest })
     let draftJson = await draftRes.response.json()
     const draftMs = Math.max(1, Date.now() - tDraftStart)
     let draftAnswer = "Error connecting to AI model."
@@ -7008,7 +7085,7 @@ app.post('/api/ask', async (c) => {
         let tCriticStart = 0;
         if (loopPasses > 1) {
           tCriticStart = Date.now();
-          const streamAiRes = await askAIProvider(c, criticMessages, true, mode, { answer_depth: effectiveAnswerDepth });
+          const streamAiRes = await askAIProvider(c, criticMessages, true, mode, { answer_depth: effectiveAnswerDepth, provider_role: providerRole, is_admin: isAdminRequest });
           streamBody = streamAiRes.response;
           model = streamAiRes.model;
           isStream = streamAiRes.isStream;
@@ -7137,8 +7214,8 @@ app.post('/api/ask', async (c) => {
                     JSON.stringify(streamGroundingResult)
                   ).run() : Promise.resolve(),
                   c.env.DB.prepare(`
-                    INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                   `).bind(
                     crypto.randomUUID(),
                     session_id,
@@ -7155,7 +7232,8 @@ app.post('/api/ask', async (c) => {
                     criticMs || 0,
                     verifierMs || 0,
                     mode || 'standards',
-                    effectiveAnswerDepth
+                    effectiveAnswerDepth,
+                    providerRole
                   ).run()
                 ]));
               } catch(e) {}
@@ -7217,7 +7295,7 @@ app.post('/api/ask', async (c) => {
       try {
         tCriticStart = Date.now();
         didRunCritic = true;
-        const criticResp = await askAIProvider(c, criticMessages, false, mode, { answer_depth: effectiveAnswerDepth })
+        const criticResp = await askAIProvider(c, criticMessages, false, mode, { answer_depth: effectiveAnswerDepth, provider_role: providerRole, is_admin: isAdminRequest })
         const criticJson = await criticResp.response.json()
         if (criticJson && criticJson.choices && criticJson.choices[0]?.message?.content) {
           const refinedAnswer = criticJson.choices[0].message.content.trim()
@@ -7321,8 +7399,8 @@ app.post('/api/ask', async (c) => {
             JSON.stringify(groundingResult)
           ).run() : Promise.resolve(),
           c.env.DB.prepare(`
-            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `).bind(
             crypto.randomUUID(),
             session_id,
@@ -7339,7 +7417,8 @@ app.post('/api/ask', async (c) => {
             criticMs || 0,
             verifierMs || 0,
             mode || 'standards',
-            effectiveAnswerDepth
+            effectiveAnswerDepth,
+            providerRole
           ).run()
         ]));
       }
@@ -7379,6 +7458,62 @@ app.post('/api/ask', async (c) => {
       }
     })
   } catch (e) {
+    if (e.message && (e.message.includes("CF_4006_DEGRADED") || e.message.includes("4006"))) {
+      const busyAnswer = "**SPEC-SUPPORT CALIBRATED ABSTENTION NOTICE: EDGE COMPUTE ALLOCATION REACHED**\n\nThe Cloudflare Workers AI edge neural processing quota is temporarily saturated (Error 4006: Daily Allocation Ceiling). To prevent unverified claims or hallucination, automated code verification is temporarily abstaining from dynamic generation. Please consult the offline LocaSpec™ Rig Engine or retry in 10 minutes.";
+      const totalDurationMs = Date.now() - reqStartTime;
+      try {
+        const adminHeaderToken = c.req.header('X-Admin-Token') || c.req.header('x-admin-token') || (c.req.header('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
+        const isAdmin = Boolean(c.env.ADMIN_SECRET && adminHeaderToken === c.env.ADMIN_SECRET);
+        const pRole = isAdmin ? 'admin' : 'public';
+        const modelToLog = isAdmin ? '@cf/zai-org/glm-5.3-flash' : '@cf/meta/llama-3.1-8b-instruct-fp8-fast';
+
+        c.executionCtx?.waitUntil(
+          c.env.DB.prepare(`
+            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(
+            crypto.randomUUID(), 'session-quota', 'QUOTA_EXHAUSTED_4006', 'ALL',
+            0, 'CALIBRATED_ABSTENTION', 'cloudflare', modelToLog,
+            totalDurationMs, 0, 0, 0, 0, 0, 'standards', 'low', pRole
+          ).run().catch(() => {})
+        );
+      } catch(logErr) {}
+
+      if (c.req.query('stream') === 'true') {
+        const encoder = new TextEncoder();
+        const readable = new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode('event: message\ndata: ' + JSON.stringify({ text: busyAnswer }) + '\n\n'));
+            controller.enqueue(encoder.encode('event: complete\ndata: ' + JSON.stringify({
+              answer: busyAnswer,
+              sources: [],
+              followups: [],
+              mcq_questions: [],
+              grounding: { score_pct: 0, badge: 'CALIBRATED_ABSTENTION', total_claims: 0, verified_claims: 0, verbatim_evidence_quote: '' }
+            }) + '\n\n'));
+            controller.close();
+          }
+        });
+        return new Response(readable, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'Access-Control-Allow-Origin': c.env.ALLOWED_ORIGIN || '*'
+          }
+        });
+      }
+
+      return c.json({
+        answer: busyAnswer,
+        sources: [],
+        suggested_questions: [],
+        mcq_questions: [],
+        grounding: { score_pct: 0, badge: 'CALIBRATED_ABSTENTION', total_claims: 0, verified_claims: 0, verbatim_evidence_quote: '' },
+        provider_role: (c.env.ADMIN_SECRET && (c.req.header('X-Admin-Token') === c.env.ADMIN_SECRET)) ? 'admin' : 'public'
+      });
+    }
+
     if (e.message && e.message.includes("RATE_LIMIT_ALL")) {
       return c.json({ error: e.message }, 429);
     }

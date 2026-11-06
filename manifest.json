@@ -1,7 +1,7 @@
 {
   "id": "/?source=pwa",
-  "name": "SpecSupport — Oil & Gas Standards AI & LocaSpec™ Rig Engine",
-  "short_name": "SpecSupport",
+  "name": "Inspecta — Oil & Gas Standards AI & LocaSpec™ Rig Engine",
+  "short_name": "Inspecta",
   "description": "Zero-hallucination standards verification and 100% offline LocaSpec™ rig engine for remote oilfield and manufacturing operations.",
   "start_url": "./index.html",
   "scope": "./",
