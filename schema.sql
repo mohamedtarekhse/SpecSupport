@@ -1,4 +1,4 @@
-﻿CREATE TABLE standards_chunks (
+CREATE TABLE standards_chunks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   standard_code TEXT NOT NULL,
   standard_name TEXT NOT NULL,
@@ -6,6 +6,8 @@
   clause TEXT NOT NULL,
   content TEXT NOT NULL,
   embedding TEXT,
+  obligation_type TEXT,
+  key_values TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

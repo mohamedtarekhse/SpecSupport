@@ -29,6 +29,57 @@ def compute_sha256(filepath):
             h.update(chunk)
     return h.hexdigest()
 
+def extract_key_values(text):
+    if not text:
+        return []
+    kv = []
+    seen = set()
+    num_unit_pattern = re.compile(r'\b(\d+(?:\.\d+)?)\s*(%|HRC|HRB|HBW|HV|ksi|MPa|psi|bar|mm|in(?:ch(?:es)?)?|ft|m|°C|°F|deg|J(?:oules)?|ft-lbs?|kg|lb|ratio)\b', re.IGNORECASE)
+    for m in num_unit_pattern.finditer(text):
+        try:
+            val = float(m.group(1))
+            unit = m.group(2).strip()
+            if re.match(r'^in(?:ch(?:es)?)?$', unit, re.I):
+                unit = 'in'
+            elif re.match(r'^deg$', unit, re.I):
+                unit = '°'
+            elif re.match(r'^j(?:oules)?$', unit, re.I):
+                unit = 'J'
+            key = f"{val}:{unit.lower()}"
+            if key not in seen:
+                seen.add(key)
+                kv.append([val, unit])
+            if len(kv) >= 12:
+                break
+        except Exception:
+            continue
+    return kv
+
+def classify_chunk(content, clause, section):
+    text = f"{clause} {section or ''} {content or ''}".strip()
+    lower = text.lower()
+    
+    if lower.startswith('table ') or bool(re.search(r'\|.*\|.*\|', content or '')) or bool(re.search(r'\b(table\s+[0-9a-z\.\-_]+)', clause or '', re.I)):
+        return 'TABLE_ROW'
+
+    if bool(re.search(r'^(\d+\.\d+\s+)?([a-z\s\-]+:\s*(means|defined as|is defined|refers to))', content or '', re.I)) or \
+       bool(re.search(r'\b(is defined as|shall mean|means any|term refers to)\b', content or '', re.I)) or \
+       bool(re.search(r'\bdefinition\b', clause or '', re.I)):
+        return 'DEFINITION'
+
+    has_num_unit = bool(re.search(r'\b\d+(?:\.\d+)?\s*(%|HRC|HRB|HBW|HV|ksi|MPa|psi|bar|mm|in|ft|m|°C|°F|J|ft-lbs|kg|lb)\b', text, re.I))
+    has_comparison = bool(re.search(r'\b(not less than|not more than|shall not exceed|at least|minimum|maximum|greater than|less than|within|\bmin\b|\bmax\b|>=|<=|>|<|±)\b', lower))
+    has_requirement = bool(re.search(r'\b(shall|should|must|not allowed|prohibited|mandatory|is required)\b', lower))
+
+    if (has_num_unit and (has_comparison or has_requirement)) or (has_comparison and bool(re.search(r'\d', text))):
+        return 'THRESHOLD'
+
+    if has_requirement:
+        return 'REQUIREMENT'
+
+    return 'CONTEXT'
+
+
 def extract_tables_from_markdown(md_text):
     """Parses markdown pipe tables into structured JSON schemas."""
     tables = []
@@ -109,11 +160,16 @@ def chunk_by_ast_boundaries(md_text, standard_code, max_chars=1200):
             if current_section: breadcrumb += f" [{current_section}]"
             if current_clause: breadcrumb += f" [{current_clause}]"
             
+            c_content = f"{breadcrumb}\n\n{sec}"
+            c_clause = current_clause or "Specification"
+            c_section = current_section or "General"
             chunks.append({
                 "breadcrumb": breadcrumb,
-                "section": current_section or "General",
-                "clause": current_clause or "Specification",
-                "content": f"{breadcrumb}\n\n{sec}"
+                "section": c_section,
+                "clause": c_clause,
+                "content": c_content,
+                "obligation_type": classify_chunk(c_content, c_clause, c_section),
+                "key_values": extract_key_values(c_content)
             })
         else:
             # Sub-split long sections by paragraph breaks
@@ -129,11 +185,16 @@ def chunk_by_ast_boundaries(md_text, standard_code, max_chars=1200):
                     if current_section: breadcrumb += f" [{current_section}]"
                     if current_clause: breadcrumb += f" [{current_clause}]"
                     
+                    c_content = f"{breadcrumb}\n\n{curr_chunk.strip()}"
+                    c_clause = current_clause or "Specification"
+                    c_section = current_section or "General"
                     chunks.append({
                         "breadcrumb": breadcrumb,
-                        "section": current_section or "General",
-                        "clause": current_clause or "Specification",
-                        "content": f"{breadcrumb}\n\n{curr_chunk.strip()}"
+                        "section": c_section,
+                        "clause": c_clause,
+                        "content": c_content,
+                        "obligation_type": classify_chunk(c_content, c_clause, c_section),
+                        "key_values": extract_key_values(c_content)
                     })
                     curr_chunk = p + "\n\n"
                 else:
@@ -144,11 +205,16 @@ def chunk_by_ast_boundaries(md_text, standard_code, max_chars=1200):
                 if current_chapter: breadcrumb += f" [{current_chapter}]"
                 if current_section: breadcrumb += f" [{current_section}]"
                 if current_clause: breadcrumb += f" [{current_clause}]"
+                c_content = f"{breadcrumb}\n\n{curr_chunk.strip()}"
+                c_clause = current_clause or "Specification"
+                c_section = current_section or "General"
                 chunks.append({
                     "breadcrumb": breadcrumb,
-                    "section": current_section or "General",
-                    "clause": current_clause or "Specification",
-                    "content": f"{breadcrumb}\n\n{curr_chunk.strip()}"
+                    "section": c_section,
+                    "clause": c_clause,
+                    "content": c_content,
+                    "obligation_type": classify_chunk(c_content, c_clause, c_section),
+                    "key_values": extract_key_values(c_content)
                 })
                 
     return chunks
@@ -301,6 +367,8 @@ def ingest_to_cloudflare(chunks, tables, standard_code, title, file_hash, api_ba
             "section": ch["section"],
             "clause": ch["clause"],
             "content": ch["content"],
+            "obligation_type": ch.get("obligation_type"),
+            "key_values": ch.get("key_values", []),
             "file_hash": file_hash,
             "scope": scope
         }

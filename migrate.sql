@@ -39,3 +39,9 @@ CREATE TABLE IF NOT EXISTS system_config (
 
 INSERT OR IGNORE INTO system_config (key, value) VALUES ('openrouter_api_key', '');
 INSERT OR IGNORE INTO system_config (key, value) VALUES ('openrouter_model', 'qwen/qwen3.8-27b:free');
+
+-- Phase P2.1: Obligation Subtyping & Key Values
+-- Added to standards_chunks:
+-- ALTER TABLE standards_chunks ADD COLUMN obligation_type TEXT;
+-- ALTER TABLE standards_chunks ADD COLUMN key_values TEXT;
+
