@@ -291,4 +291,80 @@ Target API: https://inspection-api.mohamedtarekhse.workers.dev
    - **Section 3 (Negative Control):** 2/2 PASS (Entity-clear probe emits 0 MCQs, identifies P-No. 1 Group 2)
    - **Section 4 (Non-Streaming Parity):** 2/2 PASS (Ambiguous query emits 4 MCQs, comment tags stripped)
 
+---
+
+## 7. Phase P2 — Corpus Intelligence Verification (2026-11-06)
+
+### 7.1 Implemented Enhancements
+1. **ITEM 0 — Data Hygiene (Corpus Mojibake Repair)**:
+   - Scanned all 9,027 chunks across remote D1 for byte corruption, U+FFFD replacement characters, and mangled em/en-dashes.
+   - Fixed corrupted punctuation and sequences; verified 0 remaining corrupted chunks (`\uFFFD`).
+   - Committed tool under `scripts/scan_mojibake.js`.
+2. **ITEM 1 — P2.1 Obligation Subtyping at Ingest & Backfill**:
+   - D1 migration executed: added `obligation_type TEXT` and `key_values TEXT` columns to `standards_chunks`.
+   - Backfilled all 9,027 database chunks deterministically:
+     - `THRESHOLD`: 3,793 chunks (42.0%)
+     - `REQUIREMENT`: 1,607 chunks (17.8%)
+     - `CONTEXT`: 3,506 chunks (38.8%)
+     - `DEFINITION`: 54 chunks (0.6%)
+     - `TABLE_ROW`: 67 chunks (0.7%)
+   - Updated `/api/admin/ingest` and `/api/admin/ingest-batch` in `worker/src/index.js` and `scripts/standards_forge.py` to extract `obligation_type` and `key_values` during future ingests.
+   - Wired late-interaction scoring boost (`+0.15`) for chunks whose obligation type aligns with query intent (`THRESHOLD`/`REQUIREMENT` for quantitative/limit queries).
+3. **ITEM 2 — P2.2 Generalize Table-Row Retrieval**:
+   - Seeded core structured standards tables into `standards_tables`:
+     - `ASME IX`: Table QW/QB-422 (Base metal P-No. / Group No.)
+     - `API 1104`: Table 1 (12-inch foot-run acceptance criteria)
+     - `ASME B31.3`: Table 341.3.2 & Table 304.1.1 (Wall-thickness and acceptance criteria)
+   - Structured table row retrieval runs before general chunk generation, returning top-3 matching rows as Source #1 or #2 with `source_type: "table_row"`.
+   - Restricted table triggers to concrete table designators (`table`, `qw-422`, `table 1`, `341.3.2`) and domain property nouns (`p-number`, `foot-run`, `wall thickness`) to ensure general queries retain full triage MCQ functionality without false bypasses.
+4. **ITEM 3 — P2.4 Coverage Parity Audit Gate**:
+   - Created `standards_coverage` D1 table and audited all 41 loaded standards via `scripts/audit_corpus_coverage.js`.
+   - Wired coverage check into `/api/health` and `/api/admin/doctor` (flagging `<90%` standards as `WARN` without blocking service).
+   - Added `GET /api/admin/coverage` endpoint.
+   - Built interactive, read-only "Coverage Parity Audits" panel in `refiner.html`.
+
+---
+
+### 7.2 Gate Verification Results (Production Cloudflare Worker)
+- **Deployment Version ID:** `3c88bc20-1c6e-4c68-9ca1-073c1a66876b`
+
+1. **Golden Evaluations Harness (`scripts/run_golden_evals.js`):**
+   - **Score:** **14 / 14 Passed (100.0%)**
+   - **Citation Coverage:** 14/14 (100%)
+   - **Numerical Ground Truth:** 14/14 (100%)
+   - **Gate Status:** **PASSED**
+
+2. **Planted-Error Verification Suite (`scripts/test_planted_suite_only.js`):**
+   - **Total Passed:** **10 / 10 Test Cases (100.0%)**
+   - **In-Corpus Grounding:**
+     - `REAL-01` (A106 Gr B Preheat): **100%** (`VERIFIED_CODE_GROUNDED`)
+     - `REAL-02` (SA-516 Gr 70 P-No. 1 Group 2): **100%** (`VERIFIED_CODE_GROUNDED`)
+     - `REAL-03` (Drill Pipe 80% Wear Limit): **70%** (`PARTIAL_VERIFICATION`)
+     - `REAL-04` (AISI 4130 Sour Hardness 22 HRC): **100%** (`VERIFIED_CODE_GROUNDED`)
+     - `REAL-05` (Hydrostatic Test Ratio 1.5×): **80%** (`VERIFIED_CODE_GROUNDED`)
+   - **Out-of-Corpus Refusals:**
+     - `OUT-01` through `OUT-05`: **5 / 5 Refused (100.0%)** (`CALIBRATED_ABSTENTION`)
+
+3. **P2.2 Table-Row Retrieval Probes (`scripts/test_p2_table_probes.js`):**
+   - **Probe A (ASME IX QW-422 SA-516 Gr 70):**
+     - Source #1: `Table QW/QB-422` (`source_type: table_row`)
+     - Grounding: **92%** | Badge: `VERIFIED_CODE_GROUNDED` | MCQs: 0
+     - Result: **PASS**
+   - **Probe B (API 1104 Table 1 Foot-run limits):**
+     - Source #1: `Table 1` (`source_type: table_row`)
+     - Grounding: **95%** | Badge: `VERIFIED_CODE_GROUNDED` | MCQs: 0
+     - Result: **PASS**
+   - **Probe C (ASME B31.3 Table 341.3.2 Wall-thickness limits):**
+     - Source #1: `Table 341.3.2` (`source_type: table_row`)
+     - Grounding: **80%** | Badge: `VERIFIED_CODE_GROUNDED` | MCQs: 0
+     - Result: **PASS**
+
+4. **Deployed Developments Deep Audit Suite (`scripts/full_test_deployed_developments.js`):**
+   - **Score:** **31 / 31 Passed (100.0%)**
+   - **Section 1 (Cross-Encoder Re-Ranker):** 3/3 PASS
+   - **Section 2 (Triage Disciplines 2.1 - 2.7):** 21/21 PASS
+   - **Section 3 (Negative Control):** 2/2 PASS
+   - **Section 4 (Non-Streaming Parity):** 2/2 PASS
+
+
 

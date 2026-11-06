@@ -26,11 +26,17 @@ function isStudioAuthorized(c) {
   return !token || validTokens.includes(token)
 }
 
-app.get('/api/health', (c) => {
+app.get('/api/health', async (c) => {
+  let lowCoverage = []
+  try {
+    const res = await c.env.DB.prepare(`SELECT standard_code, coverage_pct FROM standards_coverage WHERE coverage_pct < 90`).all()
+    if (res && res.results) lowCoverage = res.results.map(r => `${r.standard_code} (${r.coverage_pct}%)`)
+  } catch(e){}
   return c.json({ 
     status: 'ok', 
     engine: 'Cloudflare Workers AI (GLM-5.3 Flash 320B MoE)',
-    model: '@cf/zai-org/glm-5.3-flash' 
+    model: '@cf/zai-org/glm-5.3-flash',
+    coverage_doctor: lowCoverage.length > 0 ? { status: 'WARN', low_coverage: lowCoverage } : { status: 'PASS' }
   })
 })
 
@@ -2418,8 +2424,35 @@ app.get('/api/admin/doctor', async (c) => {
     status: 'ACTIVE'
   };
 
+  // 6. Check Corpus Coverage Parity (P2.4)
+  try {
+    const lowCovRes = await c.env.DB.prepare(`
+      SELECT standard_code, coverage_pct, sections_ingested, sections_total
+      FROM standards_coverage
+      WHERE coverage_pct < 90
+    `).all();
+    const lowCov = lowCovRes?.results || [];
+    report.checks.corpus_coverage = {
+      status: lowCov.length > 0 ? 'WARN' : 'PASS',
+      low_coverage_count: lowCov.length,
+      low_coverage_standards: lowCov.map(r => `${r.standard_code} (${r.coverage_pct}%)`)
+    };
+  } catch(e) {
+    report.checks.corpus_coverage = { status: 'INFO', note: 'Coverage audit not run yet' };
+  }
+
   report.latency_total_ms = Date.now() - startTotal;
   return c.json(report);
+});
+
+// P2.4 Read-Only Corpus Coverage Endpoint for Refiner Studio
+app.get('/api/admin/coverage', async (c) => {
+  try {
+    const res = await c.env.DB.prepare(`SELECT * FROM standards_coverage ORDER BY coverage_pct ASC`).all();
+    return c.json({ success: true, coverage: res?.results || [] });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
 });
 
 // =========================================================
@@ -3442,6 +3475,58 @@ app.post('/api/earn/submit', async (c) => {
   }
 })
 
+// P2.1 Obligation Subtyping & Key Values Extractors
+function extractKeyValues(text) {
+  if (!text) return []
+  const kv = []
+  const seen = new Set()
+  const numUnitRegex = /\b(\d+(?:\.\d+)?)\s*(%|HRC|HRB|HBW|HV|ksi|MPa|psi|bar|mm|in(?:ch(?:es)?)?|ft|m|°C|°F|deg|J(?:oules)?|ft-lbs?|kg|lb|ratio)\b/gi
+  let m
+  while ((m = numUnitRegex.exec(text)) !== null) {
+    const val = parseFloat(m[1])
+    let unit = m[2].trim()
+    if (/^in(?:ch(?:es)?)?$/i.test(unit)) unit = 'in'
+    else if (/^deg$/i.test(unit)) unit = '°'
+    else if (/^j(?:oules)?$/i.test(unit)) unit = 'J'
+    const key = val + ':' + unit.toLowerCase()
+    if (!seen.has(key)) {
+      seen.add(key)
+      kv.push([val, unit])
+    }
+    if (kv.length >= 12) break
+  }
+  return kv
+}
+
+function classifyChunk(content, clause, section) {
+  const text = (clause + ' ' + (section || '') + ' ' + (content || '')).trim()
+  const lower = text.toLowerCase()
+  
+  if (lower.startsWith('table ') || /\|.*\|.*\|/.test(content || '') || /\b(table\s+[0-9a-z\.\-_]+)/i.test(clause || '')) {
+    return 'TABLE_ROW'
+  }
+
+  if (/^(\d+\.\d+\s+)?([a-z\s\-]+:\s*(means|defined as|is defined|refers to))/i.test(content || '') ||
+      /\b(is defined as|shall mean|means any|term refers to)\b/i.test(content || '') ||
+      /\bdefinition\b/i.test(clause || '')) {
+    return 'DEFINITION'
+  }
+
+  const hasNumUnit = /\b\d+(?:\.\d+)?\s*(%|HRC|HRB|HBW|HV|ksi|MPa|psi|bar|mm|in|ft|m|°C|°F|J|ft-lbs|kg|lb)\b/i.test(text)
+  const hasComparison = /\b(not less than|not more than|shall not exceed|at least|minimum|maximum|greater than|less than|within|\bmin\b|\bmax\b|>=|<=|>|<|±)\b/i.test(lower)
+  const hasRequirement = /\b(shall|should|must|not allowed|prohibited|mandatory|is required)\b/i.test(lower)
+
+  if ((hasNumUnit && (hasComparison || hasRequirement)) || (hasComparison && /\d/.test(text))) {
+    return 'THRESHOLD'
+  }
+
+  if (hasRequirement) {
+    return 'REQUIREMENT'
+  }
+
+  return 'CONTEXT'
+}
+
 // Ingestion with Deduplication & Multi-Tier Scoping
 app.post('/api/admin/ingest', async (c) => {
   try {
@@ -3477,11 +3562,14 @@ app.post('/api/admin/ingest', async (c) => {
       expiresAt = d.toISOString()
     }
 
+    const obligationType = body.obligation_type || classifyChunk(content, clause, section)
+    const keyValues = body.key_values ? JSON.stringify(body.key_values) : JSON.stringify(extractKeyValues(content))
+
     // Insert chunk into database
     await c.env.DB.prepare(
-      `INSERT INTO standards_chunks (standard_code, standard_name, section, clause, content, embedding, scope, organization, session_id, expires_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).bind(standard_code, standard_name || standard_code, section || 'General', clause || 'Clause', content, embedding, effectiveScope, organization, session_id, expiresAt).run()
+      `INSERT INTO standards_chunks (standard_code, standard_name, section, clause, content, embedding, scope, organization, session_id, expires_at, obligation_type, key_values)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(standard_code, standard_name || standard_code, section || 'General', clause || 'Clause', content, embedding, effectiveScope, organization, session_id, expiresAt, obligationType, keyValues).run()
     
     // Register or increment in documents_catalog
     if (file_hash) {
@@ -3565,12 +3653,16 @@ app.post('/api/admin/ingest-batch', async (c) => {
       const effectiveOutScope = ch.out_of_scope !== undefined ? ch.out_of_scope : cls.out_of_scope
       const effectiveExcluded = ch.is_excluded !== undefined ? ch.is_excluded : (cls.is_excluded || 0)
 
+      const obligationType = ch.obligation_type || classifyChunk(ch.content, ch.clause, ch.section);
+      const keyValues = ch.key_values ? JSON.stringify(ch.key_values) : JSON.stringify(extractKeyValues(ch.content));
+
       return c.env.DB.prepare(
         `INSERT INTO standards_chunks (
            standard_code, standard_name, section, clause, content, embedding, scope, organization, session_id, expires_at,
-           pillar_type, is_excluded, in_scope, out_of_scope, acceptance_limits, rejection_limits, normative_refs, qa_docs
+           pillar_type, is_excluded, in_scope, out_of_scope, acceptance_limits, rejection_limits, normative_refs, qa_docs,
+           obligation_type, key_values
          )
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(
         standard_code,
         standard_name || standard_code,
@@ -3589,7 +3681,9 @@ app.post('/api/admin/ingest-batch', async (c) => {
         effectiveAcc,
         effectiveRej,
         effectiveNorm,
-        effectiveQa
+        effectiveQa,
+        obligationType,
+        keyValues
       )
     })
 
@@ -5273,7 +5367,7 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
     if (raw === 'ISO 3834-2' || raw === 'ISO3834-2') raw = 'ISO 3834';
     if (raw === 'NACE MR0175' || raw === 'NACEMR0175' || raw === 'MR0175' || raw === 'ISO 15156') raw = 'NACE';
     detectedStd = raw;
-  } else if (standard_filter && standard_filter !== 'ALL' && standard_filter !== '🌐 GENERAL AI') {
+  } else if (standard_filter && standard_filter !== 'ALL' && !standard_filter.includes('🌐') && !standard_filter.toLowerCase().includes('database') && !standard_filter.toLowerCase().includes('general')) {
     detectedStd = standard_filter.trim().toUpperCase()
   } else {
     const testTarget = contextualQuestion;
@@ -5477,7 +5571,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
     for (const ent of clauseEntities) {
       try {
         let sql = `
-          SELECT id, standard_code, standard_name, section, clause, content, scope, organization 
+          SELECT id, standard_code, standard_name, section, clause, content, scope, organization, obligation_type, key_values 
           FROM standards_chunks 
           WHERE (clause LIKE ? OR section LIKE ?)
             AND (is_excluded = 0 OR is_excluded IS NULL)
@@ -5531,10 +5625,11 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
     });
   }
 
-  // 5. Multi-Tier Scoped SQL Query with 11 Rosetta Genome Pillars
+  // 5. Multi-Tier Scoped SQL Query with 11 Rosetta Genome Pillars & Obligation Typing
   let query = `
     SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization,
-           pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs, edition 
+           pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs, edition,
+           obligation_type, key_values 
     FROM standards_chunks 
     WHERE (scope = 'global' OR scope IS NULL OR (scope = 'private_temp' AND session_id = ?))
       AND (is_excluded = 0 OR is_excluded IS NULL)
@@ -5550,7 +5645,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
       query += ` AND standard_code IN (${placeholders})`;
       params.push(...safeStds);
     }
-  } else if (standard_filter && standard_filter !== 'ALL' && standard_filter !== '🌐 GENERAL AI') {
+  } else if (standard_filter && standard_filter !== 'ALL' && !standard_filter.includes('🌐') && !standard_filter.toLowerCase().includes('database') && !standard_filter.toLowerCase().includes('general')) {
     query += ` AND standard_code = ?`;
     params.push(standard_filter);
   } else if (detectedStd) {
@@ -5572,7 +5667,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   let candidates = results || [];
   if (detectedStd && candidates.length < 5) {
     try {
-      const fbSql = `SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization, pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs, edition FROM standards_chunks WHERE (scope = 'global' OR scope IS NULL) AND (is_excluded = 0 OR is_excluded IS NULL) AND standard_code LIKE ? LIMIT 40`;
+      const fbSql = `SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization, pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs, edition, obligation_type, key_values FROM standards_chunks WHERE (scope = 'global' OR scope IS NULL) AND (is_excluded = 0 OR is_excluded IS NULL) AND standard_code LIKE ? LIMIT 40`;
       const { results: fbRes } = await c.env.DB.prepare(fbSql).bind(`%${detectedStd}%`).all();
       if (fbRes && fbRes.length > 0) {
         candidates = candidates.concat(fbRes);
@@ -5646,7 +5741,20 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
       pillarBoost += 0.20;
     }
 
-    chunk.final_retrieval_score = chunk.rrf_score + tokenBoost + stdMatchBoost + pillarBoost
+    // P2.1: Obligation Subtyping Match Boost (+0.15)
+    const isNumberOrThresholdQuery = /\b(what is the|minimum|maximum|allowable|acceptable|limit|threshold|value|number|group|p-number|f-number|a-number|ratio|tolerance|wall thickness|thickness|diameter|schedule|temperature|pressure|hardness|hrc|ksi|mpa|psi|percent|%|yield|tensile)\b/i.test(question) || /\b(how much|how many|what size)\b/i.test(question);
+    let obligationBoost = 0;
+    if (chunk.obligation_type) {
+      if (isNumberOrThresholdQuery) {
+        if (chunk.obligation_type === 'THRESHOLD' || chunk.obligation_type === 'REQUIREMENT' || chunk.obligation_type === 'TABLE_ROW') {
+          obligationBoost = 0.15;
+        }
+      } else {
+        obligationBoost = 0.15;
+      }
+    }
+
+    chunk.final_retrieval_score = chunk.rrf_score + tokenBoost + stdMatchBoost + pillarBoost + obligationBoost
   })
 
   scoredChunks.sort((a, b) => b.final_retrieval_score - a.final_retrieval_score)
@@ -5704,11 +5812,93 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
     }
   }
 
+  // ==========================================
+  // P2.2 GENERALIZED STRUCTURED TABLE RETRIEVAL (PRE-GENERATION & DOMAIN-GUARDED)
+  // ==========================================
+  let tableHits = []
+  try {
+    const qLower = question.toLowerCase()
+    let tableStd = detectedStd
+    if (!tableStd || tableStd.includes('🌐') || tableStd.includes('DATABASE')) {
+      if (/asme\s*(?:ix|9|sec(?:tion)?\s*ix)/i.test(question) || /qw[\/\-]?(?:qb[\/\-]?)?422/i.test(question)) tableStd = 'ASME IX'
+      else if (/api\s*1104/i.test(question)) tableStd = 'API 1104'
+      else if (/asme\s*b31\.3/i.test(question) || /341\.3\.2/i.test(question) || /304\.1\.1/i.test(question)) tableStd = 'ASME B31.3'
+      else if (/asme\s*viii/i.test(question)) tableStd = 'ASME VIII Div 1'
+    }
+
+    // 1. Explicit Table ID Match (e.g. Table QW/QB-422, QW-422, Table 341.3.2, Table 1, Table A.1)
+    const tableIdMatch = qLower.match(/(?:table\s+|qw[\/\-]?(?:qb[\/\-]?)?)(\b[0-9a-z\.\-_]+)/i) || qLower.match(/table\s+([0-9a-z\.\-_]+)/i)
+    if (tableIdMatch) {
+      let tblQuery = `
+        SELECT standard_code, edition, table_id, table_title, raw_markdown, structured_json 
+        FROM standards_tables 
+        WHERE (table_id LIKE ? OR table_title LIKE ?)`
+      let tblParams = [`%${tableIdMatch[1]}%`, `%${tableIdMatch[1]}%`]
+      if (Array.isArray(selected_standards) && selected_standards.length > 0 && !selected_standards.includes('ALL')) {
+        const placeholders = selected_standards.map(() => '?').join(',')
+        tblQuery += ` AND standard_code IN (${placeholders})`
+        tblParams.push(...selected_standards)
+      } else if (tableStd) {
+        tblQuery += ` AND standard_code LIKE ?`
+        tblParams.push(`%${tableStd}%`)
+      }
+      tblQuery += ` LIMIT 3`
+      const { results } = await c.env.DB.prepare(tblQuery).bind(...tblParams).all()
+      if (results && results.length > 0) tableHits.push(...results)
+    }
+
+    // 2. Property Noun Matching (P-Number, wear limit, density, hydrotest ratio, foot-run, wall thickness, undercut...)
+    if (tableHits.length === 0 && tableStd) {
+      const propertyKeywords = [
+        'p-number', 'p number', 'group number', 'foot-run', 'foot run', 'wall-thickness', 'wall thickness',
+        'wear limit', 'density', 'hydrotest ratio', 'acceptance criteria', 'allowable stress',
+        'tensile', 'yield', 'drift'
+      ];
+      for (const kw of propertyKeywords) {
+        if (qLower.includes(kw)) {
+          let kwQuery = `
+            SELECT standard_code, edition, table_id, table_title, raw_markdown, structured_json 
+            FROM standards_tables 
+            WHERE (table_title LIKE ? OR raw_markdown LIKE ?)
+              AND standard_code LIKE ?
+            LIMIT 2`
+          const { results } = await c.env.DB.prepare(kwQuery).bind(`%${kw}%`, `%${kw}%`, `%${tableStd}%`).all()
+          if (results && results.length > 0) {
+            tableHits.push(...results)
+            break
+          }
+        }
+      }
+    }
+  } catch(e) {}
+
   topChunks = [...exactClauseHits, ...candidatePool].slice(0, 5)
 
   let contextText = ""
   let hasPrivateSpec = false
-  topChunks.forEach((chunk, idx) => {
+  let sourceIndex = 1
+
+  // Top-3 matched table rows pass as Source #1 or #2 with source_type: "table_row"
+  if (tableHits.length > 0) {
+    tableHits.slice(0, 3).forEach(t => {
+      const tableContent = `Table Title: ${t.table_title || ''}\n${t.raw_markdown || ''}\nStructured Data:\n${t.structured_json || ''}`.trim()
+      contextText += `[Source ${sourceIndex} [VERIFIED TABLE ROW]] Standard: ${t.standard_code} | Table: ${t.table_id} (${t.table_title})\n${tableContent}\n\n`
+      sources.push({
+        standard: t.standard_code,
+        clause: t.table_id,
+        edition: t.edition || null,
+        content: tableContent,
+        source_type: 'table_row',
+        type: 'table',
+        verified_db: true,
+        table_id: t.table_id,
+        table_title: t.table_title
+      })
+      sourceIndex++
+    })
+  }
+
+  topChunks.forEach((chunk) => {
     if (chunk.scope === 'private_temp' || chunk.scope === 'company_shared') hasPrivateSpec = true
     const exactTag = chunk.is_exact_clause_hit ? " [EXACT CLAUSE MATCH]" : ""
     const pillarTag = chunk.pillar_type ? ` [ROSETTA PILLAR: ${chunk.pillar_type}]` : ""
@@ -5720,7 +5910,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
     if (chunk.qa_docs) metaLines += `\n[QA AUDIT DOCS]: ${chunk.qa_docs}`
 
     const editionTag = chunk.edition ? ` (${chunk.edition})` : ""
-    contextText += `[Source ${idx+1}${exactTag}${pillarTag}${rerankTag}] Standard: ${chunk.standard_code}${editionTag} | Clause: ${chunk.clause}${metaLines}\n${chunk.content}\n\n`
+    contextText += `[Source ${sourceIndex}${exactTag}${pillarTag}${rerankTag}] Standard: ${chunk.standard_code}${editionTag} | Clause: ${chunk.clause}${metaLines}\n${chunk.content}\n\n`
     sources.push({ 
       standard: chunk.standard_code, 
       clause: chunk.clause,
@@ -5731,6 +5921,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
       pillar: chunk.pillar_type || 'GENERAL',
       rerank_score: chunk.rerank_score !== undefined ? Number(chunk.rerank_score.toFixed(4)) : null
     })
+    sourceIndex++
   })
 
   const overrideNotice = hasPrivateSpec ? `\n[HIERARCHICAL GOVERNANCE OVERRIDE ACTIVE]: A company-specific procedure or project specification is loaded in context. COMPANY PROCEDURES TAKE ABSOLUTE PRECEDENCE OVER GENERAL CODES. If the company spec mandates stricter limits, enforce them!\n` : ""
@@ -5790,69 +5981,7 @@ ${contextText}
     }
   }
 
-  // ==========================================
-  // STRUCTURED TABLE-TO-JSON ENRICHMENT (DOMAIN-GUARDED)
-  // ==========================================
-  let tableHits = []
-  try {
-    const qLower = question.toLowerCase()
 
-    // Explicit Table ID Match (e.g. Table 341.3.2, Table 1, Table A.1)
-    const tableMatch = qLower.match(/table\s+([0-9a-z\.\-_]+)/i)
-    if (tableMatch) {
-      let tblQuery = `
-        SELECT standard_code, table_id, table_title, raw_markdown, structured_json 
-        FROM standards_tables 
-        WHERE table_id LIKE ?`
-      let tblParams = [`%${tableMatch[1]}%`]
-      if (Array.isArray(selected_standards) && selected_standards.length > 0) {
-        const placeholders = selected_standards.map(() => '?').join(',')
-        tblQuery += ` AND standard_code IN (${placeholders})`
-        tblParams.push(...selected_standards)
-      } else if (detectedStd) {
-        tblQuery += ` AND standard_code LIKE ?`
-        tblParams.push(`%${detectedStd}%`)
-      }
-      tblQuery += ` LIMIT 2`
-      const { results } = await c.env.DB.prepare(tblQuery).bind(...tblParams).all()
-      if (results && results.length > 0) tableHits.push(...results)
-    }
-    
-    // ONLY search tables by keyword IF detectedStd is KNOWN!
-    // NEVER search blindly across all standards without detectedStd!
-    if (tableHits.length === 0 && detectedStd) {
-      const stopWords = new Set(['what', 'when', 'which', 'where', 'how', 'minimum', 'maximum', 'allowable', 'acceptable', 'limit', 'standard', 'per', 'for', 'the', 'is', 'are', 'and', 'with', 'from', 'does', 'state', 'requirement', 'inspection', 'inspect', 'maintenance', 'procedure', 'equipment', 'general', 'table'])
-      const meaningfulKeywords = qLower.split(/[^a-z0-9\.\-_]+/i).filter(w => w.length > 3 && !stopWords.has(w)).slice(0, 3)
-      for (const kw of meaningfulKeywords) {
-        let kwQuery = `
-          SELECT standard_code, table_id, table_title, raw_markdown, structured_json 
-          FROM standards_tables 
-          WHERE (table_title LIKE ? OR raw_markdown LIKE ?)
-            AND standard_code LIKE ?
-          LIMIT 1`
-        const { results } = await c.env.DB.prepare(kwQuery).bind(`%${kw}%`, `%${kw}%`, `%${detectedStd}%`).all()
-        if (results && results.length > 0) {
-          tableHits.push(...results)
-          break
-        }
-      }
-    }
-
-    if (tableHits.length > 0) {
-      let tblText = "\n[VERIFIED STRUCTURED STANDARDS TABLES]:\n"
-      tableHits.forEach(t => {
-        tblText += `--- Standard: ${t.standard_code} | Table: ${t.table_id} (${t.table_title}) ---\n${t.raw_markdown}\nStructured Schema:\n${t.structured_json}\n\n`
-        sources.push({ 
-          standard: t.standard_code, 
-          clause: t.table_id, 
-          content: `${t.table_title || ''} ${t.raw_markdown || ''} ${t.structured_json || ''}`,
-          verified_db: true, 
-          type: 'table' 
-        })
-      })
-      systemPrompt += tblText
-    }
-  } catch(e) {}
 
   // Bilingual Oilfield Jargon Translations
   if (detectedJargonNotes.length > 0) {

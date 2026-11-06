@@ -542,6 +542,9 @@
             <button class="studio-tab" id="tab-schema-btn" onclick="setStudioTab('schema')">
                 <span>🛠️</span> Schema & Dynamic Columns
             </button>
+            <button class="studio-tab" id="tab-coverage-btn" onclick="setStudioTab('coverage')">
+                <span>📊</span> Coverage Parity Audits
+            </button>
         </div>
 
         <!-- ========================================== -->
@@ -681,6 +684,39 @@
 
             <div class="schema-grid" id="schema-tables-grid">
                 <div style="color:var(--text-muted); padding:20px;">Loading database tables and columns...</div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: 📊 COVERAGE PARITY AUDITS (P2.4)     -->
+        <!-- ========================================== -->
+        <div id="studio-tab-coverage" style="display:none;">
+            <div class="controls-bar">
+                <div>
+                    <span style="font-weight:700; font-size:0.95rem;">📊 Corpus Section Coverage Audits</span>
+                    <div style="font-size:0.78rem; color:var(--text-muted);">Real-time section parity tracking against official baseline catalogs.</div>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="loadCoverageTable()">🔄 Refresh Audits</button>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Standard Code</th>
+                            <th style="width:160px;">Ingested Sections</th>
+                            <th style="width:140px;">Baseline Total</th>
+                            <th style="width:140px;">Coverage %</th>
+                            <th style="width:140px;">Status</th>
+                            <th style="width:180px;">Last Audit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="coverage-tbody">
+                        <tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-muted);">Loading coverage audit data...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -883,14 +919,47 @@
             document.getElementById('tab-chunks-btn').classList.toggle('active', tab === 'chunks');
             document.getElementById('tab-taxonomy-btn').classList.toggle('active', tab === 'taxonomy');
             document.getElementById('tab-schema-btn').classList.toggle('active', tab === 'schema');
+            document.getElementById('tab-coverage-btn').classList.toggle('active', tab === 'coverage');
 
             document.getElementById('studio-tab-chunks').style.display = tab === 'chunks' ? 'block' : 'none';
             document.getElementById('studio-tab-taxonomy').style.display = tab === 'taxonomy' ? 'block' : 'none';
             document.getElementById('studio-tab-schema').style.display = tab === 'schema' ? 'block' : 'none';
+            document.getElementById('studio-tab-coverage').style.display = tab === 'coverage' ? 'block' : 'none';
 
             if (tab === 'chunks') loadChunks(currentChunkPage);
             if (tab === 'taxonomy') loadTaxonomyTable();
             if (tab === 'schema') loadSchemaViewer();
+            if (tab === 'coverage') loadCoverageTable();
+        }
+
+        async function loadCoverageTable() {
+            const tbody = document.getElementById('coverage-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted);">Loading coverage audits...</td></tr>';
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/coverage`);
+                const data = await res.json();
+                if (!data.success || !data.coverage || data.coverage.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted);">No coverage audit records found. Run scripts/audit_corpus_coverage.js first.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.coverage.map(r => {
+                    const warn = r.coverage_pct < 90;
+                    const badge = warn ? '<span class="status-badge" style="background:rgba(234,179,8,0.15); color:#eab308; border:1px solid rgba(234,179,8,0.3);">⚠️ &lt;90% WARN</span>' : '<span class="status-badge status-active">✓ OK</span>';
+                    return `
+                        <tr>
+                            <td style="font-weight:600;">${escapeHtml(r.standard_code)}</td>
+                            <td>${r.sections_ingested}</td>
+                            <td>${r.sections_total}</td>
+                            <td style="font-weight:700; color:${warn ? '#eab308' : '#22c55e'};">${r.coverage_pct}%</td>
+                            <td>${badge}</td>
+                            <td style="font-size:0.8rem; color:var(--text-muted);">${escapeHtml(r.last_audit || 'Just now')}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--danger);">Error loading coverage audits: ${escapeHtml(err.message)}</td></tr>`;
+            }
         }
 
         function escapeHtml(str) {
