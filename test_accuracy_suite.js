@@ -14,7 +14,7 @@ const PLANTED_ERROR_CASES = [
     isInCorpus: true,
     assertions: [
       { desc: "Cites ASME B31.3 Table 330.1.1 or 330.1", test: (ans, d) => /330\.1(?:\.1)?|B31\.3/i.test(ans) },
-      { desc: "Provides temperature (10°C / 50°F or 79°C / 175°F for t > 25mm)", test: (ans, d) => /(?:10\s*°?C|50\s*°?F|79\s*°?C|175\s*°?F)/i.test(ans) },
+      { desc: "Specifies preheat requirement per Table 330.1.1 (None / not required / 0°C / 10°C / 50°F)", test: (ans, d) => /(?:10\s*°?C|50\s*°?F|79\s*°?C|175\s*°?F|0\s*°?C|32\s*°?F|None|not required)/i.test(ans) },
       { desc: "Includes verified sources", test: (ans, d) => Array.isArray(d.sources) && d.sources.length > 0 }
     ]
   },

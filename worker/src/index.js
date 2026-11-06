@@ -5381,17 +5381,18 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   const detectedEntities = extractAlphanumericEntities(question)
   let exactMatches = []
 
-  if (detectedEntities.length > 0) {
-    for (const ent of detectedEntities) {
+  const clauseEntities = (detectedEntities || []).filter(e => e.type === 'clause' || e.type === 'table')
+  if (clauseEntities.length > 0) {
+    for (const ent of clauseEntities) {
       try {
         let sql = `
           SELECT id, standard_code, standard_name, section, clause, content, scope, organization 
           FROM standards_chunks 
-          WHERE (clause LIKE ? OR section LIKE ? OR content LIKE ?)
+          WHERE (clause LIKE ? OR section LIKE ?)
             AND (is_excluded = 0 OR is_excluded IS NULL)
         `
         const param = `%${ent.value}%`
-        const sqlParams = [param, param, param]
+        const sqlParams = [param, param]
         if (detectedStd) {
           sql += ` AND standard_code LIKE ?`
           sqlParams.push(`%${detectedStd}%`)
@@ -5699,9 +5700,9 @@ ${contextText}
   // ==========================================
   // STRUCTURED TABLE-TO-JSON ENRICHMENT (DOMAIN-GUARDED)
   // ==========================================
+  let tableHits = []
   try {
     const qLower = question.toLowerCase()
-    let tableHits = []
 
     // Explicit Table ID Match (e.g. Table 341.3.2, Table 1, Table A.1)
     const tableMatch = qLower.match(/table\s+([0-9a-z\.\-_]+)/i)
@@ -6124,6 +6125,8 @@ app.post('/api/ask', async (c) => {
       if (cached && cached.answer) {
         let cachedSources = [];
         try { cachedSources = JSON.parse(cached.sources_json || '[]'); } catch(e){}
+        const cachedCleanAnswer = (cached.answer || '').replace(/<!--MCQ:\s*(\[[\s\S]*?\])\s*-->/gi, '').replace(/<!--FOLLOWUPS:\s*(\[[\s\S]*?\])\s*-->/gi, '').trim();
+        const cachedTriageMcqs = isEntityClearQuery(question) ? [] : (getDeterministicTriageMcqs(question) || []);
         const isStreamReq = Boolean(c.req.query('stream') === 'true' || c.req.header('Accept')?.includes('text/event-stream'));
         if (isStreamReq) {
           const encoder = new TextEncoder();
@@ -6142,11 +6145,11 @@ app.post('/api/ask', async (c) => {
                   evidence_badge: cached.evidence_badge || 'VERIFIED_CODE_GROUNDED'
                 }
               })}\n\n`));
-              await writer.write(encoder.encode(`data: ${JSON.stringify({ token: cached.answer })}\n\n`));
+              await writer.write(encoder.encode(`data: ${JSON.stringify({ token: cachedCleanAnswer })}\n\n`));
               await writer.write(encoder.encode(`data: ${JSON.stringify({
                 type: 'complete',
                 suggested_questions: [],
-                mcq_questions: [],
+                mcq_questions: cachedTriageMcqs,
                 grounding: {
                   score_pct: cached.grounding_score || 100,
                   badge: cached.evidence_badge || 'VERIFIED_CODE_GROUNDED',
@@ -6175,13 +6178,13 @@ app.post('/api/ask', async (c) => {
           });
         } else {
           return c.json({
-            answer: cached.answer,
+            answer: cachedCleanAnswer,
             sources: cachedSources,
             model_used: 'SpecSupport-Semantic-Cache',
             cached: true,
             mode,
             suggested_questions: [],
-            mcq_questions: [],
+            mcq_questions: cachedTriageMcqs,
             can_continue: false,
             grounding: {
               score_pct: cached.grounding_score || 100,
@@ -6367,12 +6370,13 @@ app.post('/api/ask', async (c) => {
                 }
               })}\n\n`))
               
+              let streamedFullText = ''
+              let accumulatedReasoning = ''
               const reader = streamBody.getReader ? streamBody.getReader() : null
               if (reader) {
                 const decoder = new TextDecoder()
                 let buffer = ''
-                let streamedFullText = ''
-                let accumulatedReasoning = ''
+                let tagSuppressed = false
                 while (true) {
                   const { done, value } = await reader.read()
                   if (done) break
@@ -6393,7 +6397,12 @@ app.post('/api/ask', async (c) => {
                       const token = parsed.response || parsed.token || delta?.content || ''
                       if (token) {
                         streamedFullText += token
-                        await writer.write(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`))
+                        if (streamedFullText.includes('<!--MCQ:') || streamedFullText.includes('<!--FOLLOWUPS:')) {
+                          tagSuppressed = true
+                        }
+                        if (!tagSuppressed) {
+                          await writer.write(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`))
+                        }
                       }
                     } catch(e) {}
                   }
@@ -6402,6 +6411,22 @@ app.post('/api/ask', async (c) => {
                   streamedFullText = accumulatedReasoning.trim()
                   await writer.write(encoder.encode(`data: ${JSON.stringify({ token: streamedFullText })}\n\n`))
                 }
+              }
+
+              // Extract MCQs if not already resolved
+              const streamMcqMatch = streamedFullText.match(/<!--MCQ:\s*(\[[\s\S]*?\])\s*-->/i)
+              if (streamMcqMatch) {
+                if (!isEntityClear && activeMcqs.length === 0) {
+                  try {
+                    const parsed = validateAndSanitizeMcqs(JSON.parse(streamMcqMatch[1]))
+                    if (parsed.length > 0) activeMcqs = parsed
+                  } catch(e){}
+                }
+                streamedFullText = streamedFullText.replace(streamMcqMatch[0], '').trim()
+              }
+              const streamFollowupMatch = streamedFullText.match(/<!--FOLLOWUPS:\s*(\[[\s\S]*?\])\s*-->/i)
+              if (streamFollowupMatch) {
+                streamedFullText = streamedFullText.replace(streamFollowupMatch[0], '').trim()
               }
               
               const defaultFollowups = [

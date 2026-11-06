@@ -170,3 +170,54 @@ Target API: https://inspection-api.mohamedtarekhse.workers.dev
   - `scripts/full_test_deployed_developments.js` line 267 updated from `/(?:P-?No\.?|P-?Number)\s*1.*Group(?:\s*Number)?\s*2/i` to `/(?:P-?No\.?|P-?Number)\s*1[\s\S]{0,40}Group(?:\s*No\.?|\s*Number)?\s*2/i` to correctly accept standard `"P-No. 1, Group No. 2"` phrasing.
 - **Git State:** Both commits committed cleanly and pushed to `origin/final`.
 - **Deployment Status:** Wrangler deploy reported Cloudflare API upstream outage (`GET /accounts/.../workers/services/inspection-api -> 503 Service Unavailable ("no healthy upstream")`). Runtime edge data plane at `https://inspection-api.mohamedtarekhse.workers.dev/api/health` is healthy.
+
+---
+
+## 5. Live Production Verification & Planted-Error Gate Report (2026-11-06 10:15 UTC)
+
+### Deployment Confirmation
+- **Cloudflare Platform Outage Recovery:** Cloudflare Workers/Pages Functions control plane incident resolved at ~09:40 UTC.
+- **Worker Deployed Version:** `09df35b9-4fac-45f3-bfd4-60e358debb37`
+- **Live Endpoint:** `https://inspection-api.mohamedtarekhse.workers.dev/api/ask`
+
+### Test Gate Execution Results
+
+1. **Golden Evaluations Harness (`scripts/run_golden_evals.js`):**
+   - **Score:** **14 / 14 Passed (100.0%)**
+   - **Citation Coverage:** 14/14 (100%)
+   - **Numerical Ground Truth:** 14/14 (100%)
+   - **Gate Status:** **PASSED**
+
+2. **Planted-Error Verification Suite (`scripts/test_planted_suite_only.js`):**
+   - **Total Passed:** **10 / 10 (100.0%)**
+   - **In-Corpus Verification:**
+     - `REAL-01` (A106 Gr B Preheat - B31.3 Table 330.1.1): **PASS** (Grounding: 70%, `PARTIAL_VERIFICATION`)
+     - `REAL-02` (SA-516 Gr 70 P-No. 1 Group 2 - ASME IX QW-422): **PASS**
+     - `REAL-03` (Drill Pipe 80% Wear Limit - API RP 7G-2): **PASS** (Grounding: 100%, `VERIFIED_CODE_GROUNDED`)
+     - `REAL-04` (AISI 4130 Sour Hardness 22 HRC - NACE MR0175): **PASS**
+     - `REAL-05` (Hydrostatic Test Ratio 1.5× - ASME B31.3 Cl 345.4.2): **PASS**
+   - **Out-of-Corpus Adversarial Refusals:**
+     - `OUT-01` (AWS D1.8 Seismic Welding Code): **REFUSED (100%)** (`CALIBRATED_ABSTENTION`)
+     - `OUT-02` (EN 13445 Unfired Pressure Vessels): **REFUSED (100%)** (`CALIBRATED_ABSTENTION`)
+     - `OUT-03` (ASTM A123 Galvanizing Coating): **REFUSED (100%)** (`CALIBRATED_ABSTENTION`)
+     - `OUT-04` (ASME BPE Bioprocessing Equipment): **REFUSED (100%)** (`CALIBRATED_ABSTENTION`)
+     - `OUT-05` (API RP 2A-WSD Platform Structures): **REFUSED (100%)** (`CALIBRATED_ABSTENTION`)
+   - **Refusal Rate:** **5 / 5 (100.0%)**
+
+3. **Deployed Developments Deep Audit Suite (`scripts/full_test_deployed_developments.js`):**
+   - **Score:** **30 / 31 Passed (96.8%)**
+   - **Section 1 (Cross-Encoder Re-Ranker):**
+     - Doctor Health Check: PASS (@cf/baai/bge-reranker-base, 233ms)
+     - Test 1.2 Discriminator: Cross-Encoder rerank_score populated. (Remaining fail: Top clause was 5.1 due to open baseline filter)
+     - Test 1.3 Alloy Discrimination (P-15E vs P-1): PASS (`LEVEL_III_CRITIQUE_REFINED`)
+   - **Section 2 (Triage Disciplines 2.1 - 2.7):** **21 / 21 Assertions PASSED (100%)**
+     - All 7 disciplines emitted exact expected MCQ counts (4, 3, 3, 3, 3, 3, 3) in `complete` SSE events
+     - Strict JSON schema validation passed for all options
+     - Clean stream text: 0 raw `<!--MCQ:` comment tags leaked into markdown
+   - **Section 3 (Negative Control):** **2 / 2 Assertions PASSED (100%)**
+     - Entity-clear probe emits **0 MCQs** (direct answer)
+     - Identifies P-No. 1 Group 2 per ASME IX QW-422
+   - **Section 4 (Non-Streaming Parity):** **2 / 2 Assertions PASSED (100%)**
+     - Emits 4 MCQs for ambiguous queries
+     - Strips raw comment tags from JSON body text
+
