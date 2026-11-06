@@ -4642,7 +4642,28 @@ function validateAndSanitizeMcqs(raw) {
   })).filter(item => item.options.length >= 2)
 }
 
-function getDeterministicTriageMcqs(qClean) {
+function isEntityClearQuery(question, entities = [], exactMatches = [], tableHits = []) {
+  const qClean = (question || '').toLowerCase();
+  if ((exactMatches && exactMatches.length > 0) || (tableHits && tableHits.length > 0)) return true;
+  if (Array.isArray(entities) && entities.length > 0) {
+    const hasClauseEnt = entities.some(e => e.type === 'clause' || e.type === 'table');
+    const hasMaterialEnt = entities.some(e => e.type === 'material');
+    const hasEquipmentEnt = entities.some(e => e.type === 'equipment');
+    if (hasClauseEnt && (hasMaterialEnt || hasEquipmentEnt)) return true;
+  }
+  const hasMaterialSpec = /\b(?:sa-?516|sa516|sa-?537|sa537|sa-?106|sa106|a106|a333|a53|api\s*5l|sa-?240|sa-?312|sa-?333|sa333|316l?|304l?|4130|x52|x60|x65|grade\s*[0-9a-z]+|gr(?:ade)?\s*[a-z0-9]+)\b/i.test(qClean);
+  const hasTableOrClause = /\b(?:qw-?422|qw-?452|qw-?466|qw-?403|qw-?424|table\s+[0-9a-z\.\-_]+|clause\s+[0-9a-z\.\-_]+|ug-[0-9]+|uw-[0-9]+|ucs-[0-9]+|341\.3\.2|345\.4|330\.1|331\.1|t-[0-9]{3})\b/i.test(qClean);
+  if (hasMaterialSpec && hasTableOrClause) return true;
+  const isDirectPropertyLookup = /\b(?:what is the|minimum|maximum|allowable|acceptable|limit|ratio|holding time|temperature|hardness|thickness|dwell time|lifting power|preheat|pwht|interpass|pressure)\b/i.test(qClean) &&
+    /\b(?:p-number|group number|group for|f-number|a-number|p-no|undercut|density|straightness|wear limit|mandrel|yield strength|tensile strength|hardness|preheat|pwht|hydrotest|hydrostatic|proof test|thickness|wall loss|charpy|impact|tolerance)\b/i.test(qClean);
+  if (isDirectPropertyLookup && (hasMaterialSpec || hasTableOrClause || /\b(?:api|asme|aws|nace|iso)\b/i.test(qClean) || (entities && entities.some(e => e.type === 'clause' || e.type === 'material')))) return true;
+  if (/\b(?:qw\/?qb-?422|qw-?452|table\s+330\.1\.1|table\s+331\.1\.1|table\s+341\.3\.2|clause\s+345\.4\.2|table\s+t-?274|table\s+t-?672|table\s+t-?762|table\s+b\.1|clause\s+8\.[1-3]|clause\s+5\.1|clause\s+6\.1)\b/i.test(qClean)) return true;
+  return false;
+}
+
+function getDeterministicTriageMcqs(qClean, entities = [], exactMatches = [], tableHits = []) {
+  const isClear = isEntityClearQuery(qClean, entities, exactMatches, tableHits);
+  if (isClear) return null;
   const isWps = /(?:wps\b|welding procedure|pqr\b|welding spec|welding procedure specification|asme\s*(?:viii|8|ix|9|xi|11)|qw-?482|pressure vessel weld|pipe weld)/i.test(qClean);
   const isNdt = /(?:ndt\s*(?:inspection\s*)?procedure|ut\s*procedure|ultrasonic\s*procedure|rt\s*procedure|radiographic\s*procedure|mpi\s*procedure|magnetic\s*particle\s*procedure|penetrant\s*procedure|dye\s*penetrant\s*procedure|how to inspect (?:weld|tank|pipe|vessel|flange))/i.test(qClean);
   const isHydrotest = /(?:hydrotest procedure|hydrostatic test procedure|pressure test procedure|leak test procedure|pneumatic test procedure|how to hydrotest|hydrostatic test)/i.test(qClean);
@@ -4654,7 +4675,7 @@ function getDeterministicTriageMcqs(qClean) {
   if (isWps) {
     const hasBaseMetal = /(?:a106|a333|a53|api 5l|sa-?516|sa516|sa-?537|sa-?106|sa106|sa-?333|sa333|sa-?240|sa240|sa-?312|sa312|316l?|304l?|p-?no|p1|p8|p3|p4|p5a|x52|x60|x65|4130|carbon steel|stainless|pressure vessel)/i.test(qClean);
     const hasThickness = /(?:sch|schedule|wall|thickness|\bmm\b|\binch\b|\bthk\b|xxs|std|gauge|gage|\bplate\b)/i.test(qClean);
-    if (!hasBaseMetal || !hasThickness) {
+    if (!isClear && (!hasBaseMetal || !hasThickness)) {
       return [
         {
           question: "Base Metal Specification / Grade",
@@ -4677,7 +4698,7 @@ function getDeterministicTriageMcqs(qClean) {
   } else if (isNdt) {
     const hasMethod = /(?:ultrasonic| ut |radiograph| rt |magnetic particle| mpi | mt |penetrant| pt | dpi )/i.test(qClean);
     const hasThkOrGeom = /(?:wall|thickness|\bmm\b|\binch\b|butt weld|nozzle|fillet|pipe|plate)/i.test(qClean);
-    if (!hasMethod || !hasThkOrGeom) {
+    if (!isClear && (!hasMethod || !hasThkOrGeom)) {
       return [
         {
           question: "Target NDT Examination Method",
@@ -4696,7 +4717,7 @@ function getDeterministicTriageMcqs(qClean) {
   } else if (isHydrotest) {
     const hasPressure = /(?:psi|bar|kpa|class 150|class 300|class 600|design pressure|maop)/i.test(qClean);
     const hasCode = /(?:b31.3|b31.4|b31.8|asme viii|section viii|api 510)/i.test(qClean);
-    if (!hasPressure || !hasCode) {
+    if (!isClear && (!hasPressure || !hasCode)) {
       return [
         {
           question: "Governing Piping / Equipment Code",
@@ -4715,7 +4736,7 @@ function getDeterministicTriageMcqs(qClean) {
   } else if (isIntegrity) {
     const hasGeom = /(?:cylinder|cylindrical|sphere|spherical|head|shell|elbow|pipe|vessel|tank)/i.test(qClean);
     const hasThk = /(?:thickness|\bmm\b|\binch\b|actual|tmin|corrosion rate)/i.test(qClean);
-    if (!hasGeom || !hasThk) {
+    if (!isClear && (!hasGeom || !hasThk)) {
       return [
         {
           question: "Asset Type & Governing In-Service Code",
@@ -4734,7 +4755,7 @@ function getDeterministicTriageMcqs(qClean) {
   } else if (isHoisting) {
     const hasCat = /(?:cat(?:egory)?\s*(?:i{1,3}|iv|1|2|3|4)|overhaul)/i.test(qClean);
     const hasEquip = /(?:elevator|links|bail|hook|swivel|block|sheave|mast|derrick)/i.test(qClean);
-    if (!hasCat || !hasEquip) {
+    if (!isClear && (!hasCat || !hasEquip)) {
       return [
         {
           question: "Hoisting / Structural Equipment Scope",
@@ -4753,7 +4774,7 @@ function getDeterministicTriageMcqs(qClean) {
   } else if (isTubular) {
     const hasClass = /(?:premium|class 2|class 3|ds-1|80%|70%)/i.test(qClean);
     const hasPipe = /(?:drill pipe|tool joint|hwdp|drill collar|casing|tubing)/i.test(qClean);
-    if (!hasClass || !hasPipe) {
+    if (!isClear && (!hasClass || !hasPipe)) {
       return [
         {
           question: "Tubular Component Scope",
@@ -4772,7 +4793,7 @@ function getDeterministicTriageMcqs(qClean) {
   } else if (isBop) {
     const hasRwp = /(?:3000|5000|10000|15000|rwp|rated working pressure)/i.test(qClean);
     const hasTest = /(?:low pressure|high pressure|drawdown|routine|initial|operational)/i.test(qClean);
-    if (!hasRwp || !hasTest) {
+    if (!isClear && (!hasRwp || !hasTest)) {
       return [
         {
           question: "Well Control Installation Type",
@@ -6022,7 +6043,7 @@ Generate a complete, step-by-step BOP Pressure Test Sequence:
     { role: "user", content: question }
   ]
   
-  return { messages, sources, today, deterministicTriageMcqs }
+  return { messages, sources, today, deterministicTriageMcqs, isEntityClear: isClear }
 }
 
 app.post('/api/ask', async (c) => {
@@ -6223,7 +6244,7 @@ app.post('/api/ask', async (c) => {
       }
     }
 
-    const { messages, sources, today, deterministicTriageMcqs } = contextData
+    const { messages, sources, today, deterministicTriageMcqs, isEntityClear = false } = contextData
     const isStreamRequested = Boolean(c.req.query('stream') === 'true' || c.req.header('Accept')?.includes('text/event-stream'))
     
     // Step 1: Execute Pass 1 (Draft Model) internally in buffered mode
@@ -6377,7 +6398,7 @@ app.post('/api/ask', async (c) => {
               await writer.write(encoder.encode(`data: ${JSON.stringify({ 
                 type: 'complete', 
                 suggested_questions: defaultFollowups,
-                mcq_questions: activeMcqs,
+                mcq_questions: isEntityClear ? [] : activeMcqs,
                 grounding: streamGroundingResult,
                 loop_engineering: {
                   mode: 'DUAL_LLM_DRAFT_CRITIC',

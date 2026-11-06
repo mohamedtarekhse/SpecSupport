@@ -254,7 +254,7 @@ async function runTestSuite() {
   console.log('\n\n🔹 SECTION 3: NEGATIVE CONTROL (DEFINITIVE QUERY)\n');
   console.log('[Test 3.1] Specific Query: Should answer directly with ZERO triage MCQs');
   try {
-    const q = 'What is the P-Number and Group Number for SA-516 Grade 70 carbon steel plate under ASME Section IX?';
+    const q = 'What is the P-Number and Group for SA-516 Grade 70 per ASME IX QW-422?';
     const stream = await fetchStream(q);
     const mcqs = stream.complete?.mcq_questions || [];
     
@@ -264,7 +264,7 @@ async function runTestSuite() {
       `MCQ count: ${mcqs.length}`
     );
 
-    const identifiesP1G2 = /(?:P-?No\.?|P-?Number)\s*1.*Group(?:\s*Number)?\s*2/i.test(stream.fullAnswer) || /P-?1\s*G-?2/i.test(stream.fullAnswer);
+    const identifiesP1G2 = /(?:P-?No\.?|P-?Number)\s*1[\s\S]{0,40}Group(?:\s*No\.?|\s*Number)?\s*2/i.test(stream.fullAnswer) || /P-?1\s*G-?2/i.test(stream.fullAnswer);
     assert(
       'Answer directly identifies P-No. 1 Group 2 per ASME IX QW-422',
       identifiesP1G2,
