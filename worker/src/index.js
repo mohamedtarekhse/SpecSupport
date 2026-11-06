@@ -4642,6 +4642,31 @@ function validateAndSanitizeMcqs(raw) {
   })).filter(item => item.options.length >= 2)
 }
 
+function norm(str) {
+  if (!str || typeof str !== 'string') return '';
+  return str
+    .toLowerCase()
+    .replace(/[—–−]/g, '-')
+    .replace(/°\s*c\b|deg(?:rees?)?\s*c(?:elsius)?\b/gi, ' c ')
+    .replace(/°\s*f\b|deg(?:rees?)?\s*f(?:ahrenheit)?\b/gi, ' f ')
+    .replace(/\b(?:kpsi)\b/gi, 'ksi')
+    .replace(/\b(?:n\/mm2|n\/mm²)\b/gi, 'mpa')
+    .replace(/\bpsig\b/gi, 'psi')
+    .replace(/\brockwell\s*c\b/gi, 'hrc')
+    .replace(/\bbrinell\b/gi, 'hbw')
+    .replace(/\binches\b|\binch\b|\bin\b|\"/gi, ' in ')
+    .replace(/\bmillimeters\b|\bmillimeter\b|\bmm\b/gi, ' mm ')
+    .replace(/\bseconds\b|\bsecond\b|\bsec\b|\bs\b/gi, ' s ')
+    .replace(/\bminutes\b|\bminute\b|\bmin\b/gi, ' min ')
+    .replace(/\byears\b|\byear\b|\byrs?\b/gi, ' year ')
+    .replace(/p-?(?:no\.?|number)\s*/gi, 'pno ')
+    .replace(/group(?:\s*no\.?|\s*number)?\s*/gi, 'group ')
+    .replace(/(\d+(?:\.\d+)?)\s*([a-z%]+)/gi, '$1 $2')
+    .replace(/[^a-z0-9\.\/]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function isEntityClearQuery(question, entities = [], exactMatches = [], tableHits = []) {
   const qClean = (question || '').toLowerCase();
   if ((exactMatches && exactMatches.length > 0) || (tableHits && tableHits.length > 0)) return true;
@@ -4662,8 +4687,7 @@ function isEntityClearQuery(question, entities = [], exactMatches = [], tableHit
 }
 
 function getDeterministicTriageMcqs(qClean, entities = [], exactMatches = [], tableHits = []) {
-  const isClear = isEntityClearQuery(qClean, entities, exactMatches, tableHits);
-  if (isClear) return null;
+  if (isEntityClearQuery(qClean, entities, exactMatches, tableHits)) return null;
   const isWps = /(?:wps\b|welding procedure|pqr\b|welding spec|welding procedure specification|asme\s*(?:viii|8|ix|9|xi|11)|qw-?482|pressure vessel weld|pipe weld)/i.test(qClean);
   const isNdt = /(?:ndt\s*(?:inspection\s*)?procedure|ut\s*procedure|ultrasonic\s*procedure|rt\s*procedure|radiographic\s*procedure|mpi\s*procedure|magnetic\s*particle\s*procedure|penetrant\s*procedure|dye\s*penetrant\s*procedure|how to inspect (?:weld|tank|pipe|vessel|flange))/i.test(qClean);
   const isHydrotest = /(?:hydrotest procedure|hydrostatic test procedure|pressure test procedure|leak test procedure|pneumatic test procedure|how to hydrotest|hydrostatic test)/i.test(qClean);
@@ -4675,7 +4699,7 @@ function getDeterministicTriageMcqs(qClean, entities = [], exactMatches = [], ta
   if (isWps) {
     const hasBaseMetal = /(?:a106|a333|a53|api 5l|sa-?516|sa516|sa-?537|sa-?106|sa106|sa-?333|sa333|sa-?240|sa240|sa-?312|sa312|316l?|304l?|p-?no|p1|p8|p3|p4|p5a|x52|x60|x65|4130|carbon steel|stainless|pressure vessel)/i.test(qClean);
     const hasThickness = /(?:sch|schedule|wall|thickness|\bmm\b|\binch\b|\bthk\b|xxs|std|gauge|gage|\bplate\b)/i.test(qClean);
-    if (!isClear && (!hasBaseMetal || !hasThickness)) {
+    if (!hasBaseMetal || !hasThickness) {
       return [
         {
           question: "Base Metal Specification / Grade",
@@ -4698,7 +4722,7 @@ function getDeterministicTriageMcqs(qClean, entities = [], exactMatches = [], ta
   } else if (isNdt) {
     const hasMethod = /(?:ultrasonic| ut |radiograph| rt |magnetic particle| mpi | mt |penetrant| pt | dpi )/i.test(qClean);
     const hasThkOrGeom = /(?:wall|thickness|\bmm\b|\binch\b|butt weld|nozzle|fillet|pipe|plate)/i.test(qClean);
-    if (!isClear && (!hasMethod || !hasThkOrGeom)) {
+    if (!hasMethod || !hasThkOrGeom) {
       return [
         {
           question: "Target NDT Examination Method",
@@ -4717,7 +4741,7 @@ function getDeterministicTriageMcqs(qClean, entities = [], exactMatches = [], ta
   } else if (isHydrotest) {
     const hasPressure = /(?:psi|bar|kpa|class 150|class 300|class 600|design pressure|maop)/i.test(qClean);
     const hasCode = /(?:b31.3|b31.4|b31.8|asme viii|section viii|api 510)/i.test(qClean);
-    if (!isClear && (!hasPressure || !hasCode)) {
+    if (!hasPressure || !hasCode) {
       return [
         {
           question: "Governing Piping / Equipment Code",
@@ -4736,7 +4760,7 @@ function getDeterministicTriageMcqs(qClean, entities = [], exactMatches = [], ta
   } else if (isIntegrity) {
     const hasGeom = /(?:cylinder|cylindrical|sphere|spherical|head|shell|elbow|pipe|vessel|tank)/i.test(qClean);
     const hasThk = /(?:thickness|\bmm\b|\binch\b|actual|tmin|corrosion rate)/i.test(qClean);
-    if (!isClear && (!hasGeom || !hasThk)) {
+    if (!hasGeom || !hasThk) {
       return [
         {
           question: "Asset Type & Governing In-Service Code",
@@ -4755,7 +4779,7 @@ function getDeterministicTriageMcqs(qClean, entities = [], exactMatches = [], ta
   } else if (isHoisting) {
     const hasCat = /(?:cat(?:egory)?\s*(?:i{1,3}|iv|1|2|3|4)|overhaul)/i.test(qClean);
     const hasEquip = /(?:elevator|links|bail|hook|swivel|block|sheave|mast|derrick)/i.test(qClean);
-    if (!isClear && (!hasCat || !hasEquip)) {
+    if (!hasCat || !hasEquip) {
       return [
         {
           question: "Hoisting / Structural Equipment Scope",
@@ -4774,7 +4798,7 @@ function getDeterministicTriageMcqs(qClean, entities = [], exactMatches = [], ta
   } else if (isTubular) {
     const hasClass = /(?:premium|class 2|class 3|ds-1|80%|70%)/i.test(qClean);
     const hasPipe = /(?:drill pipe|tool joint|hwdp|drill collar|casing|tubing)/i.test(qClean);
-    if (!isClear && (!hasClass || !hasPipe)) {
+    if (!hasClass || !hasPipe) {
       return [
         {
           question: "Tubular Component Scope",
@@ -4793,7 +4817,7 @@ function getDeterministicTriageMcqs(qClean, entities = [], exactMatches = [], ta
   } else if (isBop) {
     const hasRwp = /(?:3000|5000|10000|15000|rwp|rated working pressure)/i.test(qClean);
     const hasTest = /(?:low pressure|high pressure|drawdown|routine|initial|operational)/i.test(qClean);
-    if (!isClear && (!hasRwp || !hasTest)) {
+    if (!hasRwp || !hasTest) {
       return [
         {
           question: "Well Control Installation Type",
@@ -4845,23 +4869,29 @@ function verifyAnswerGrounding(answer, sources, envelopeContext) {
   }
 
   // Aggregate all trusted reference text from retrieved sources and code safety envelopes
-  const sourceTexts = (sources || []).map(s => `${s.standard || ''} ${s.clause || ''} ${s.content || ''}`).join('\n');
-  const allReferenceText = `${sourceTexts}\n${envelopeContext || ''}`.toLowerCase();
+  const rawRef = ((sources || []).map(s => `${s.standard || ''} ${s.clause || ''} ${s.content || ''}`).join('\n') + '\n' + (envelopeContext || '')).toLowerCase();
+  const normRef = norm(rawRef);
 
   const flags = [];
   let totalClaims = 0;
   let verifiedClaims = 0;
 
   // 1. Verify Clause & Table Citations
-  const citationRegex = /\b(?:Table\s+[A-Za-z0-9\.\-]+|Clause\s+[A-Za-z0-9\.\-]+|UG-[0-9]+(?:\([a-z0-9]+\))?|UW-[0-9]+(?:\([a-z0-9]+\))?|QW-[0-9]+(?:\.[0-9]+)?|Section\s+[0-9]+(?:\.[0-9]+)?|Para(?:graph)?\s+[0-9]+(?:\.[0-9]+)?)\b/gi;
+  const citationRegex = /\b(?:Table\s+[A-Za-z0-9\.\-\/]+|Clause\s+[A-Za-z0-9\.\-]+|UG-[0-9]+(?:\([a-z0-9]+\))?|UW-[0-9]+(?:\([a-z0-9]+\))?|QW-[0-9]+(?:\.[0-9]+)?|QW\/QB-[0-9]+|Section\s+[0-9]+(?:\.[0-9]+)?|Para(?:graph)?\s+[0-9]+(?:\.[0-9]+)?)\b/gi;
   const foundCitations = answer.match(citationRegex) || [];
   const uniqueCitations = Array.from(new Set(foundCitations.map(c => c.trim())));
 
   for (const citation of uniqueCitations) {
     totalClaims++;
-    const citClean = citation.toLowerCase().replace(/\s+/g, ' ');
-    const strippedClause = citClean.replace('clause ', '').replace('table ', '').replace('section ', '').replace('paragraph ', '').replace('para ', '');
-    if (allReferenceText.includes(citClean) || allReferenceText.includes(strippedClause)) {
+    const normCit = norm(citation);
+    const strippedClause = norm(citation.replace(/^(?:table|clause|section|paragraph|para)\s+/i, ''));
+    const matchesSourceClause = (sources || []).some(s => {
+      if (!s.clause) return false;
+      const sNorm = norm(s.clause);
+      return sNorm.includes(strippedClause) || strippedClause.includes(sNorm) || sNorm === normCit;
+    });
+
+    if (matchesSourceClause || normRef.includes(normCit) || (strippedClause.length >= 3 && normRef.includes(strippedClause)) || rawRef.includes(citation.toLowerCase())) {
       verifiedClaims++;
     } else {
       flags.push({ type: 'UNVERIFIED_CITATION', claim: citation });
@@ -4875,12 +4905,13 @@ function verifyAnswerGrounding(answer, sources, envelopeContext) {
 
   for (const num of uniqueNumbers) {
     totalClaims++;
-    const numClean = num.toLowerCase().replace(/\s+/g, '');
-    const numCleanSpaced = num.toLowerCase().replace(/\s+/g, ' ');
-    if (allReferenceText.includes(numClean) || allReferenceText.includes(numCleanSpaced)) {
+    const normNum = norm(num);
+    const rawNumClean = num.toLowerCase().replace(/\s+/g, '');
+    const rawRefClean = rawRef.replace(/\s+/g, '');
+    if (normRef.includes(normNum) || rawRefClean.includes(rawNumClean)) {
       verifiedClaims++;
     } else {
-      if (/(?:°[cf]|hrc|hbw|psi|bar|ksi|mm|\b%\b)/i.test(num)) {
+      if (/(?:°\s*[cf]|hrc|hbw|psi|bar|ksi|mm|\b%\b)/i.test(num)) {
         flags.push({ type: 'UNVERIFIED_NUMERIC_PARAMETER', claim: num });
       } else {
         verifiedClaims++;
@@ -4888,7 +4919,22 @@ function verifyAnswerGrounding(answer, sources, envelopeContext) {
     }
   }
 
-  // 3. Extract Best Verbatim Evidence Quote (P1.3)
+  // 3. Verify P-Number and Group Assignments
+  const pnoRegex = /\b(?:P-?(?:No\.?|Number)\s*\d+(?:[\s,]+(?:Group|Grp)(?:\s*(?:No\.?|Number))?\s*\d+)?)\b/gi;
+  const foundPnos = answer.match(pnoRegex) || [];
+  const uniquePnos = Array.from(new Set(foundPnos.map(p => p.trim())));
+
+  for (const pno of uniquePnos) {
+    totalClaims++;
+    const normPno = norm(pno);
+    if (normRef.includes(normPno) || rawRef.includes(pno.toLowerCase())) {
+      verifiedClaims++;
+    } else {
+      flags.push({ type: 'UNVERIFIED_P_NUMBER_CLAIM', claim: pno });
+    }
+  }
+
+  // 4. Extract Best Verbatim Evidence Quote (P1.3)
   let bestQuote = '';
   let bestQuoteLen = 0;
   for (const s of (sources || [])) {
@@ -5585,6 +5631,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
       standard: chunk.standard_code, 
       clause: chunk.clause,
       edition: chunk.edition || null,
+      content: chunk.content || '',
       verified_db: true,
       chunk_id: chunk.id,
       pillar: chunk.pillar_type || 'GENERAL',
@@ -5701,7 +5748,13 @@ ${contextText}
       let tblText = "\n[VERIFIED STRUCTURED STANDARDS TABLES]:\n"
       tableHits.forEach(t => {
         tblText += `--- Standard: ${t.standard_code} | Table: ${t.table_id} (${t.table_title}) ---\n${t.raw_markdown}\nStructured Schema:\n${t.structured_json}\n\n`
-        sources.push({ standard: t.standard_code, clause: t.table_id, verified_db: true, type: 'table' })
+        sources.push({ 
+          standard: t.standard_code, 
+          clause: t.table_id, 
+          content: `${t.table_title || ''} ${t.raw_markdown || ''} ${t.structured_json || ''}`,
+          verified_db: true, 
+          type: 'table' 
+        })
       })
       systemPrompt += tblText
     }
@@ -5728,8 +5781,10 @@ ${contextText}
   // ==========================================
   const qClean = question.toLowerCase();
 
+  const isClear = isEntityClearQuery(question, detectedEntities, exactMatches, tableHits);
+
   // 1. Discipline Detectors
-  const deterministicTriageMcqs = getDeterministicTriageMcqs(qClean);
+  const deterministicTriageMcqs = isClear ? null : getDeterministicTriageMcqs(qClean, detectedEntities, exactMatches, tableHits);
   const isWps = /(?:wps\b|welding procedure|pqr\b|welding spec|welding procedure specification|asme\s*(?:viii|8|ix|9|xi|11)|qw-?482|pressure vessel weld|pipe weld)/i.test(qClean);
   const isNdt = /(?:ndt\s*(?:inspection\s*)?procedure|ut\s*procedure|ultrasonic\s*procedure|rt\s*procedure|radiographic\s*procedure|mpi\s*procedure|magnetic\s*particle\s*procedure|penetrant\s*procedure|dye\s*penetrant\s*procedure|how to inspect (?:weld|tank|pipe|vessel|flange))/i.test(qClean);
   const isHydrotest = /(?:hydrotest procedure|hydrostatic test procedure|pressure test procedure|leak test procedure|pneumatic test procedure|how to hydrotest|hydrostatic test)/i.test(qClean);
@@ -5742,7 +5797,7 @@ ${contextText}
     const hasBaseMetal = /(?:a106|a333|a53|api 5l|sa-?516|sa516|sa-?537|sa-?106|sa106|sa-?333|sa333|sa-?240|sa240|sa-?312|sa312|316l?|304l?|p-?no|p1|p8|p3|p4|p5a|x52|x60|x65|4130|carbon steel|stainless|pressure vessel)/i.test(qClean);
     const hasThickness = /(?:sch|schedule|wall|thickness|\bmm\b|\binch\b|\bthk\b|xxs|std|gauge|gage|\bplate\b)/i.test(qClean);
 
-    if (!hasBaseMetal || !hasThickness) {
+    if (!isClear && (!hasBaseMetal || !hasThickness)) {
       systemPrompt += `\n[INTERACTIVE PROCEDURE TRIAGE DIRECTIVE (ASME SECTION IX & B31.3)]:
 The user is requesting a welding procedure (WPS) without specifying essential variables.
 1. State in 2 clear sentences what a definitive legal WPS requires (citing ASME Section IX Form QW-482 and ASME B31.3 Table 330.1.1 / Table 331.1.1).
@@ -5837,7 +5892,7 @@ Generate a complete, audit-ready, field-executable Welding Procedure Specificati
     const hasMethod = /(?:ultrasonic|ut|radiograph|rt|magnetic particle|mpi|mt|penetrant|pt|dpi)/i.test(qClean);
     const hasThkOrGeom = /(?:wall|thickness|\bmm\b|\binch\b|butt weld|nozzle|fillet|pipe|plate)/i.test(qClean);
 
-    if (!hasMethod || !hasThkOrGeom) {
+    if (!isClear && (!hasMethod || !hasThkOrGeom)) {
       systemPrompt += `\n[INTERACTIVE NDT PROCEDURE TRIAGE (ASME V & ISO 9712)]:
 The user is requesting an NDT procedure without defining the method or component geometry.
 1. State in 2 clear sentences what a written NDT procedure requires under ASME Section V (Article 1, T-150) and ISO 9712 (Level II qualification, surface preparation, calibration standard, and acceptance criteria).
@@ -5872,7 +5927,7 @@ Generate a complete, field-executable NDT Written Procedure formatted per ASME S
     const hasPressure = /(?:psi|bar|kpa|class 150|class 300|class 600|design pressure|maop)/i.test(qClean);
     const hasCode = /(?:b31.3|b31.4|b31.8|asme viii|section viii|api 510)/i.test(qClean);
 
-    if (!hasPressure || !hasCode) {
+    if (!isClear && (!hasPressure || !hasCode)) {
       systemPrompt += `\n[INTERACTIVE HYDROTEST PROCEDURE TRIAGE (ASME B31.3 / B31.4 / B31.8)]:
 The user is requesting a hydrostatic / leak test procedure without defining the governing code or design pressure.
 1. State in 2 clear sentences what a hydrostatic test requires (test ratio, minimum hold duration, dual calibrated gauges, temperature stabilization).
@@ -5906,7 +5961,7 @@ Generate a complete, audit-ready Hydrostatic Test Procedure and Sequence:
     const hasGeom = /(?:cylinder|cylindrical|sphere|spherical|head|shell|elbow|pipe|vessel|tank)/i.test(qClean);
     const hasThk = /(?:thickness|\bmm\b|\binch\b|actual|tmin|corrosion rate)/i.test(qClean);
 
-    if (!hasGeom || !hasThk) {
+    if (!isClear && (!hasGeom || !hasThk)) {
       systemPrompt += `\n[INTERACTIVE FITNESS-FOR-SERVICE TRIAGE (API 510 / 570 / 579)]:
 The user is requesting remaining life or thickness evaluation without defining geometry or measured thickness.
 1. State in 2 clear sentences how minimum thickness and remaining life are calculated per API 510/570 and ASME VIII UG-27.
@@ -5938,7 +5993,7 @@ Execute the complete deterministic engineering calculation:
     const hasCat = /(?:cat(?:egory)?\s*(?:i{1,3}|iv|1|2|3|4)|overhaul)/i.test(qClean);
     const hasEquip = /(?:elevator|links|bail|hook|swivel|block|sheave|mast|derrick)/i.test(qClean);
 
-    if (!hasCat || !hasEquip) {
+    if (!isClear && (!hasCat || !hasEquip)) {
       systemPrompt += `\n[INTERACTIVE HOISTING & STRUCTURAL TRIAGE (API RP 8B / 4G)]:
 The user is requesting hoisting or structural inspection guidance without defining equipment type or Category.
 1. State in 2 clear sentences what API RP 8B / RP 4G mandates (Categories I through IV, mandatory NDT for critical contact areas, and 5% contact wear limit).
@@ -5970,7 +6025,7 @@ Generate a complete, field-ready Hoisting Equipment Inspection Plan:
     const hasClass = /(?:premium|class 2|class 3|ds-1|80%|70%)/i.test(qClean);
     const hasPipe = /(?:drill pipe|tool joint|hwdp|drill collar|casing|tubing)/i.test(qClean);
 
-    if (!hasClass || !hasPipe) {
+    if (!isClear && (!hasClass || !hasPipe)) {
       systemPrompt += `\n[INTERACTIVE DRILL STEM & TUBULAR TRIAGE (API RP 7G-2 & DS-1)]:
 The user is requesting drill stem or casing inspection criteria without defining pipe type or classification tier.
 1. State in 2 clear sentences what API RP 7G-2 mandates (Premium = 80% min wall, Class 2 = 70% min wall, tool joint OD wear tables).
@@ -6002,7 +6057,7 @@ Generate the complete API RP 7G-2 tubular classification criteria:
     const hasRwp = /(?:3000|5000|10000|15000|rwp|rated working pressure)/i.test(qClean);
     const hasTest = /(?:low pressure|high pressure|drawdown|routine|initial|operational)/i.test(qClean);
 
-    if (!hasRwp || !hasTest) {
+    if (!isClear && (!hasRwp || !hasTest)) {
       systemPrompt += `\n[INTERACTIVE WELL CONTROL & BOP TRIAGE (API STANDARD 53)]:
 The user is requesting BOP test procedures without defining stack pressure rating or test type.
 1. State in 2 clear sentences what API Standard 53 requires (mandatory low-pressure 250-350 psi test followed by high-pressure test to RWP, held for 5 minutes).
@@ -6272,8 +6327,8 @@ app.post('/api/ask', async (c) => {
     }
 
     // 🎯 Resolve strongly-typed active triage MCQs
-    let activeMcqs = (deterministicTriageMcqs && deterministicTriageMcqs.length > 0) ? deterministicTriageMcqs : []
-    if (activeMcqs.length === 0 && draftAnswer) {
+    let activeMcqs = isEntityClear ? [] : ((deterministicTriageMcqs && deterministicTriageMcqs.length > 0) ? deterministicTriageMcqs : [])
+    if (!isEntityClear && activeMcqs.length === 0 && draftAnswer) {
       const match = draftAnswer.match(/<!--MCQ:\s*(\[[\s\S]*?\])\s*-->/i)
       if (match) {
         try {
@@ -6452,13 +6507,15 @@ app.post('/api/ask', async (c) => {
     }
     
     // 1. Extract optional MCQ questions if model flagged a 50/50 conflict or triage needed
-    let mcqQuestions = (activeMcqs && activeMcqs.length > 0) ? activeMcqs : []
+    let mcqQuestions = isEntityClear ? [] : ((activeMcqs && activeMcqs.length > 0) ? activeMcqs : [])
     const mcqMatch = answer.match(/<!--MCQ:\s*(\[[\s\S]*?\])\s*-->/i)
     if (mcqMatch) {
-      try {
-        const parsed = validateAndSanitizeMcqs(JSON.parse(mcqMatch[1]))
-        if (parsed.length > 0) mcqQuestions = parsed
-      } catch(e){}
+      if (!isEntityClear) {
+        try {
+          const parsed = validateAndSanitizeMcqs(JSON.parse(mcqMatch[1]))
+          if (parsed.length > 0) mcqQuestions = parsed
+        } catch(e){}
+      }
       answer = answer.replace(mcqMatch[0], '').trim()
     }
 
