@@ -5435,6 +5435,30 @@ function resolveDeterministicEnvelopeAnswer(question, sources, envelopeRows, env
   return { hit: false };
 }
 
+function collapseRepetitiveLoops(text) {
+  if (!text || typeof text !== 'string') return text;
+  // 1. Collapse repetitive identical block patterns like (PARAMETER BOX: ...){2,}
+  let result = text.replace(/(PARAMETER BOX:[\s\S]*?)(?:\s*PARAMETER BOX:\s*\|[^\n]*)+/gi, '$1');
+  
+  // 2. Collapse identical consecutive lines repeated 2+ times
+  const lines = result.split('\n');
+  const cleanLines = [];
+  let prevLine = null;
+  let repCount = 0;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed && trimmed === prevLine) {
+      repCount++;
+      if (repCount >= 2) continue;
+    } else {
+      prevLine = trimmed;
+      repCount = 0;
+    }
+    cleanLines.push(line);
+  }
+  return cleanLines.join('\n').trim();
+}
+
 async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = [], mode = 'web', selected_standards = [], answer_depth = 'medium') {
   const APP_NAME = c.env.APP_NAME || 'Inspecta';
   const tPrepStart = Date.now();
@@ -7045,6 +7069,7 @@ app.post('/api/ask', async (c) => {
     let finishReason = "stop"
     if (draftJson && draftJson.choices && draftJson.choices.length > 0) {
       draftAnswer = draftJson.choices[0].message?.content || "Empty response."
+      draftAnswer = collapseRepetitiveLoops(draftAnswer)
       finishReason = draftJson.choices[0].finish_reason || "stop"
     } else {
       console.error("AI Error:", JSON.stringify(draftJson))
@@ -7305,7 +7330,7 @@ app.post('/api/ask', async (c) => {
         const criticResp = await askAIProvider(c, criticMessages, false, mode, { answer_depth: effectiveAnswerDepth, provider_role: providerRole, is_admin: isAdminRequest })
         const criticJson = await criticResp.response.json()
         if (criticJson && criticJson.choices && criticJson.choices[0]?.message?.content) {
-          const refinedAnswer = criticJson.choices[0].message.content.trim()
+          const refinedAnswer = collapseRepetitiveLoops(criticJson.choices[0].message.content.trim())
           if (refinedAnswer.length > 80 && !refinedAnswer.startsWith('AI Error:') && !/^Let me (?:analyze|audit|think|review)/i.test(refinedAnswer)) {
             answer = refinedAnswer
             criticModelUsed = criticResp.model || draftRes.model
@@ -7339,8 +7364,8 @@ app.post('/api/ask', async (c) => {
       answer = answer.replace(followupMatch[0], '').trim()
     }
 
-    // 3. Remove any remaining HTML comments from answer
-    answer = answer.replace(/<!--[\s\S]*?-->/g, '').trim()
+    // 3. Remove any remaining HTML comments and collapse repetitive token loops
+    answer = collapseRepetitiveLoops(answer.replace(/<!--[\s\S]*?-->/g, '').trim())
 
     // 4. Strip any dead question lists from the body of the response so they don't pollute the body
     // Safe question cleanup without greedy end-of-text truncation
