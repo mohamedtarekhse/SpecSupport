@@ -853,3 +853,54 @@ Target API: https://inspection-api.mohamedtarekhse.workers.dev
 | **Deployed Developments Deep Audit** (`scripts/full_test_deployed_developments.js`) | 31 End-to-End Tests: Cross-Encoder Reranker + 7 Triage Disciplines + SSE/JSON Parity | 31 / 31 | **100.0%** | **PASSED** (100.0%) |
 | **Deterministic Fast-Path Probes** | Direct Table Hit ($94\text{ms} \le 1.5\text{s}$) & Safety Envelope ($123\text{ms} \le 3.0\text{s}$) | 2 / 2 | **100.0%** | **PASSED** |
 
+---
+
+## 17. Citation-enforced architecture (2026-11-07)
+
+### 17.1 Architectural Enhancements & Production Deliverables
+
+1. **ITEM 1 — Ingest Data Contract & Write-Time Quarantine Gate (`feat(ingest)`)**:
+   - **Quarantine Table DDL**: Implemented `chunks_review` table in D1 storing `(id, standard_code, standard_name, section, clause, content, scope, organization, session_id, reject_reason, created_at)`.
+   - **Write-Time Validation Engine (`validateIngestChunk`)**:
+     - *Clause syntax gate*: Validates against `VALID_CLAUSE_REGEX` (`^(?:T-\d{3,4}(\.\d+)?|QW-(?:/QB-)?\d+(\.\d+)?|UW-\d+(\([a-z0-9]+\))?|UG-\d+(\([a-z0-9]+\))?|Sec(tion)? \d+|Table [\w./-]+|\d+(\.\d+)+|(?:Clause|Appendix) [\w./-]+)$`). Failure $\rightarrow$ rejects into quarantine with `invalid_clause`.
+     - *Encoding corruption gate*: Performs NFKC normalization; detects U+FFFD or `[?]{2,}` in Latin chunks $\rightarrow$ rejects into quarantine with `encoding_corruption`.
+     - *Locator presence gate*: Requires parseable clause or valid `section_title` (excluding empty or generic placeholders) $\rightarrow$ rejects into quarantine with `missing_locator`.
+   - **Zero Retrieval Contamination**: Quarantined rows bypass embedding generation and `standards_chunks` insertion completely.
+   - **Review Queue Management Routes**:
+     - `GET /api/admin/review-queue`: Lists quarantined chunks with optional `reason` and `limit` filtering.
+     - `POST /api/admin/review-queue/:id/approve`: Repairs/promotes quarantined chunks into `standards_chunks` with newly generated embeddings.
+     - `DELETE /api/admin/review-queue/:id`: Purges rejected chunks from quarantine.
+   - **System Doctor Health Integration**: `/api/health` reports `quarantine_count` and `quarantine_breakdown`; flags `WARN` if quarantine backlog $> 0$.
+
+2. **ITEM 2 — Citation-Enforced Decoding Protocol & Post-Processor (`feat(draft)`)**:
+   - **Draft System Prompt Directive**: `MAJOR RULE 0 — MANDATORY CITATION-ENFORCED DECODING DIRECTIVE` applied across all lanes and depths, requiring `[[SRC:n]]` tokens mapped to injected source blocks.
+   - **Post-Processor (`enforceCitationProtocol`)**:
+     - Strips unresolvable `[[SRC:n]]` references where $n > \text{sources.length}$.
+     - Anchors substantive determination and justification sentences to retrieved source chunks, code safety envelopes, and deterministic formula evaluations.
+     - Sentence-level clause audit: Matches clause designators against retrieved context and safety envelopes; identifies unresolvable/hallucinated clauses (`UNSOURCED_CLAUSE`).
+     - Zero invented clauses: Unverified clause citations (e.g. invented `T-282.1` for optical density) are sanitized to `[Unverified Clause Omitted]` and badge is capped at `UNVERIFIED_WARNING`.
+     - Table fabrication guard: Prohibits unsourced tabular inspection matrices (`FIELD ACTION SUMMARY TABLE`, hold/witness/surveillance points); strips ungrounded tables and caps badge at `UNVERIFIED_WARNING`.
+     - Deterministic engine parity: Pre-cited table fastpaths native mark `usr = 0` and `clause_resolvable_pct = 100`.
+   - **Telemetry & Traces**: `request_traces` records per-request `usr` and `clause_resolvable_pct` columns exposed via `GET /api/admin/traces`.
+
+3. **ITEM 3 — Deterministic Faithfulness & USR CI Gate (`ci(eval)`)**:
+   - Executable CI benchmark harness in `scripts/eval_faithfulness.js` evaluating Golden 14 + 5 Citation Probes.
+   - Emits structured `.eval_history/faithfulness_run.json`.
+   - Deployment blocks if $USR > 1\%$ or $\text{clause\_resolvable} < 95\%$ on any golden query.
+
+---
+
+### 17.2 Comprehensive Verification Gate Scorecard
+
+| Verification Suite | Target & Test Coverage | Pass / Total | Pass Rate | Status |
+|---|---|---|---|---|
+| **Faithfulness CI Benchmark** (`scripts/eval_faithfulness.js`) | 14 Golden Cases ($USR \le 1\%$, $\text{Resolvable} \ge 95\%$) | 14 / 14 | **100.0%** | **PASSED** ($USR = 0.0\%$, Resolvable = $100\%$) |
+| **Citation & Quarantine Probes** (`scripts/eval_faithfulness.js`) | Probes A-E: Film Density, Table Guard, Ingest Quarantine, Fastpath, Preheat | 5 / 5 | **100.0%** | **PASSED** (100.0%) |
+| **Golden Evaluations Benchmark** (`scripts/run_golden_evals.js`) | 14 Verified Engineering Ground Truth Test Cases | 14 / 14 | **100.0%** | **PASSED** (100.0%) |
+| **Planted-Error Refusal Suite** (`scripts/test_planted_suite_only.js`) | 5 In-Corpus Grounded + 5 Calibrated Out-of-Corpus Refusals | 10 / 10 | **100.0%** | **PASSED** (100% Calibrated Refusal) |
+| **Vague-Query & Table Guard Gate** (`scripts/test_vague_query_gate.js`) | Probes A-F: MCQs, Explicit bypass, Confirm/Skip flows, Doctor note, Admin Pin Trace Honesty | 6 / 6 | **100.0%** | **PASSED** (100.0%) |
+| **Phase 12 Verification Suite** (`scripts/verify_phase12_admin_pin.js`) | Tests A-D: Admin Pin, Public Low Llama 8B, Fast-Path Table ($\le 1.5$s), Fast-Path Envelope ($\le 3.0$s) | 4 / 4 | **100.0%** | **PASSED** (100.0%) |
+| **Deployed Developments Deep Audit** (`scripts/full_test_deployed_developments.js`) | 31 End-to-End Tests: Cross-Encoder Reranker + 7 Triage Disciplines + SSE/JSON Parity | 31 / 31 | **100.0%** | **PASSED** (100.0%) |
+| **Deterministic Fast-Path Probes** | Direct Table Hit ($539\text{ms} \le 1.5\text{s}$) & Safety Envelope ($2443\text{ms} \le 3.0\text{s}$) | 2 / 2 | **100.0%** | **PASSED** |
+
+

@@ -1,0 +1,174 @@
+{
+  "timestamp": "2026-11-07T02:51:22.636Z",
+  "deploy_blocked": false,
+  "golden_scorecard": {
+    "passed": 14,
+    "total": 14,
+    "all_usr_under_1_pct": true,
+    "all_clauses_resolvable_over_95_pct": true
+  },
+  "golden_cases": [
+    {
+      "id": "WPS-01",
+      "prompt": "What is the P-Number and Group Number for SA-516 Grade 70 carbon steel plate under ASME Section IX?",
+      "passed": true,
+      "usr": 0,
+      "clause_resolvable_pct": 100,
+      "unsourced_table_cells": 0,
+      "badge": "VERIFIED_CODE_GROUNDED",
+      "latency_ms": 1034
+    },
+    {
+      "id": "WPS-02",
+      "prompt": "What is the thickness threshold requiring mandatory Post Weld Heat Treatment (PWHT) for P-No 1 carbon steel piping under ASME B31.3?",
+      "passed": true,
+      "usr": 0,
+      "clause_resolvable_pct": 100,
+      "unsourced_table_cells": 0,
+      "badge": "VERIFIED_CODE_GROUNDED",
+      "latency_ms": 1810
+    },
+    {
+      "id": "WPS-03",
+      "prompt": "What are the minimum preheat temperature requirements for ASTM A106 Gr B with wall thickness over 25 mm per ASME B31.3?",
+      "passed": true,
+      "usr": 0,
+      "clause_resolvable_pct": 100,
+      "unsourced_table_cells": 0,
+      "badge": "VERIFIED_CODE_GROUNDED",
+      "latency_ms": 1741
+    },
+    {
+      "id": "WPS-04",
+      "prompt": "What is the F-Number and A-Number for ER70S-6 and E7018-1 welding electrodes under ASME Section IX?",
+      "passed": true,
+      "usr": 0,
+      "clause_resolvable_pct": 100,
+      "unsourced_table_cells": 0,
+      "badge": "VERIFIED_CODE_GROUNDED",
+      "latency_ms": 2431
+    },
+    {
+      "id": "WPS-05",
+      "prompt": "Does a welder qualified on 6G pipe test position qualify for all positions under ASME Section IX?",
+      "passed": true,
+      "usr": 0,
+      "clause_resolvable_pct": 100,
+      "unsourced_table_cells": 0,
+      "badge": "VERIFIED_CODE_GROUNDED",
+      "latency_ms": 3243
+    },
+    {
+      "id": "PV-01",
+      "prompt": "What is the standard hydrostatic test pressure formula for new pressure vessels under ASME Section VIII Div 1 UG-99(b)?",
+      "passed": true,
+      "usr": 0,
+      "clause_resolvable_pct": 100,
+      "unsourced_table_cells": 0,
+      "badge": "VERIFIED_CODE_GROUNDED",
+      "latency_ms": 1861
+    },
+    {
+      "id": "PV-02",
+      "prompt": "What is the minimum holding time for hydrostatic testing of pressure vessels under ASME Section VIII Div 1?",
+      "passed": true,
+      "usr": 0,
+      "clause_resolvable_pct": 100,
+      "unsourced_table_cells": 0,
+      "badge": "VERIFIED_CODE_GROUNDED",
+      "latency_ms": 1845
+    },
+    {
+      "id": "PV-03",
+      "prompt": "What is the maximum permissible undercut depth for Normal Fluid Service piping welds under ASME B31.3?",
+      "passed": true,
+      "usr": 0,
+      "clause_resolvable_pct": 100,
+      "unsourced_table_cells": 0,
+      "badge": "VERIFIED_CODE_GROUNDED",
+      "latency_ms": 578
+    },
+    {
+      "id": "NDT-01",
+      "prompt": "What are the radiographic film density requirements under ASME Section V Article 2 for X-ray and Gamma-ray examinations?",
+      "passed": true,
+      "usr": 0,
+      "clause_resolvable_pct": 100,
+      "unsourced_table_cells": 0,
+      "badge": "VERIFIED_CODE_GROUNDED",
+      "latency_ms": 4537
+    },
+    {
+      "id": "NDT-02",
+      "prompt": "What is the ultrasonic examination DAC recording threshold under ASME Section V Article 4?",
+      "passed": true,
+      "usr": 0,
+      "clause_resolvable_pct": 100,
+      "unsourced_table_cells": 0,
+      "badge": "VERIFIED_CODE_GROUNDED",
+      "latency_ms": 1231
+    },
+    {
+      "id": "NDT-03",
+      "prompt": "What is the minimum illumination level for visual weld inspection under ASME Section V Article 9?",
+      "passed": true,
+      "usr": 0,
+      "clause_resolvable_pct": 100,
+      "unsourced_table_cells": 0,
+      "badge": "VERIFIED_CODE_GROUNDED",
+      "latency_ms": 1355
+    },
+    {
+      "id": "RIG-01",
+      "prompt": "What is the maximum allowable hardness for AISI 4130 steel in sour service according to NACE MR0175 / ISO 15156?",
+      "passed": true,
+      "usr": 0,
+      "clause_resolvable_pct": 100,
+      "unsourced_table_cells": 0,
+      "badge": "VERIFIED_CODE_GROUNDED",
+      "latency_ms": 546
+    },
+    {
+      "id": "RIG-02",
+      "prompt": "What is the minimum remaining wall thickness percentage for Premium Class drill pipe under API RP 7G-2?",
+      "passed": true,
+      "usr": 0,
+      "clause_resolvable_pct": 100,
+      "unsourced_table_cells": 0,
+      "badge": "VERIFIED_CODE_GROUNDED",
+      "latency_ms": 657
+    },
+    {
+      "id": "RIG-03",
+      "prompt": "What are the low-pressure and high-pressure test requirements for blowout preventers under API Standard 53?",
+      "passed": true,
+      "usr": 0,
+      "clause_resolvable_pct": 100,
+      "unsourced_table_cells": 0,
+      "badge": "VERIFIED_CODE_GROUNDED",
+      "latency_ms": 2681
+    }
+  ],
+  "citation_probes": [
+    {
+      "probe": "Probe A: ASME V Film Density",
+      "passed": true
+    },
+    {
+      "probe": "Probe B: Fabricated Table Guard",
+      "passed": true
+    },
+    {
+      "probe": "Probe C: Write-time Ingest Quarantine Gate",
+      "passed": true
+    },
+    {
+      "probe": "Probe D: Deterministic Table Pre-cited",
+      "passed": true
+    },
+    {
+      "probe": "Probe E: ASME B31.3 Table 330.1.1",
+      "passed": true
+    }
+  ]
+}
