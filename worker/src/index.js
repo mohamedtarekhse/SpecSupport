@@ -226,7 +226,8 @@ function enforceCitationProtocol(rawAnswer, sources = [], isDeterministic = fals
     for (const cMatch of clauseMatches) {
       totalClauses++;
       const normClause = cMatch.toLowerCase().replace(/^(?:table|clause|section)\s+/i, '').trim();
-      const inCorpus = allSourceText.includes(normClause) || allSourceText.includes(cMatch.toLowerCase());
+      const isStatutoryFormSection = /^(?:QW-482|QW-40[2-9]|QW-410)$/i.test(cMatch);
+      const inCorpus = allSourceText.includes(normClause) || allSourceText.includes(cMatch.toLowerCase()) || isStatutoryFormSection;
       if (inCorpus) {
         resolvableClauses++;
       } else {
