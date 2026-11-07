@@ -311,6 +311,12 @@ async function ensureTaxonomyTable(db) {
       if (!traceCols.includes('triage_action')) {
         await db.prepare(`ALTER TABLE request_traces ADD COLUMN triage_action TEXT`).run()
       }
+      if (!traceCols.includes('mcq_delivered')) {
+        await db.prepare(`ALTER TABLE request_traces ADD COLUMN mcq_delivered INTEGER DEFAULT 0`).run()
+      }
+      if (!traceCols.includes('triage_choice')) {
+        await db.prepare(`ALTER TABLE request_traces ADD COLUMN triage_choice TEXT`).run()
+      }
     } catch(e){
       console.warn('DB schema migration warning:', e.message)
     }
@@ -3457,12 +3463,20 @@ app.get('/api/admin/traces', async (c) => {
     const res = await c.env.DB.prepare(`
       SELECT id, session_id, question, answer_depth, mode, grounding_score, evidence_badge, 
              provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, provider_role,
-             triage_rounds_used, triage_resolved_entities, triage_action, created_at 
+             triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, created_at 
       FROM request_traces 
       ORDER BY created_at DESC 
       LIMIT ?
     `).bind(limit).all()
-    return c.json({ traces: res.results || [] })
+    const mappedTraces = (res.results || []).map(r => ({
+      ...r,
+      triage_rounds_used: r.triage_rounds_used ?? null,
+      mcq_delivered: r.mcq_delivered ?? null,
+      triage_choice: r.triage_choice ?? null,
+      triage_action: r.triage_action ?? null,
+      triage_resolved_entities: r.triage_resolved_entities ?? null
+    }));
+    return c.json({ traces: mappedTraces })
   } catch(e) {
     return c.json({ error: e.message }, 500)
   }
@@ -4294,12 +4308,9 @@ async function askAIProvider(c, messages, stream, mode = 'rag', options = {}) {
       throw new Error(lastError);
     };
 
-    // Cascade Priority Ordering
-    const providerChain = activeProvider === 'groq'
-      ? [tryGroq, tryCloudflare, tryOpenRouter]
-      : (activeProvider === 'openrouter'
-        ? [tryOpenRouter, tryCloudflare, tryGroq]
-        : [tryCloudflare, tryGroq, tryOpenRouter]);
+    // Cascade Priority Ordering - Cloudflare role-based model is strictly primary
+    // dbConf['cloudflare_model'] and 'active_provider' must NEVER override role-based pin
+    const providerChain = [tryCloudflare, tryGroq, tryOpenRouter];
 
     for (const attempt of providerChain) {
       try {
@@ -5268,11 +5279,16 @@ function sanitizeDraftTables(answerText, sources = [], envelopeContext = '', ans
             validDataRows.push(row);
           }
         }
-        if (validDataRows.length > 0) {
+        // Tables only render if EVERY row traces to a retrieved source; otherwise drop table entirely
+        if (validDataRows.length === dataRows.length && validDataRows.length > 0) {
           resultLines.push(header, separator, ...validDataRows);
         } else {
           if (precedingTitleIdx >= 0) {
             resultLines.splice(precedingTitleIdx, resultLines.length - precedingTitleIdx);
+          }
+          const unsourcedCount = dataRows.length - validDataRows.length;
+          if (unsourcedCount >= 2) {
+            resultLines.push('*[Table omitted: Proposed parameter table contained unverified figures or processes not found in retrieved code corpus. Please refer to verified text requirements above.]*');
           }
         }
       }
@@ -5377,24 +5393,51 @@ function verifyAnswerGrounding(answer, sources, envelopeContext) {
   }
 
   // 5. Verify Table Content Grounding (UNSOURCED_TABLE_CONTENT guard)
+  const unsourcedTableCells = [];
   const tableRowMatches = answer.match(/^\|[^\n]+\|$/gm) || [];
   for (const row of tableRowMatches) {
     if (/^\|\s*[-:\s|]+\s*\|$/.test(row)) continue;
-    if (/standard|clause|governing|parameter|critical|inspection/i.test(row) && /table|hard numbers|filler metal|timing/i.test(row)) continue;
+    if (/standard|clause|governing|parameter|critical|inspection|acceptance/i.test(row) && /table|hard numbers|filler metal|timing|criteria/i.test(row)) continue;
 
-    const rowNumbers = row.match(/\b(?:\d+(?:\.\d+)?)\s*(?:°C|°F|HRC|HBW|psi|bar|ksi|mm|inch|in\.|ft-lbs|Joule|J\b|%|years?|days?|hours?|hrs?|minutes?|min\b|MPa|GPa|kPa|N\/mm2?)\b/gi) || [];
-    const rowRanges = row.match(/\b\d+\s*-\s*\d+\s*(?:hours?|hrs?|days?|mm|psi|bar|°[cf])\b/gi) || [];
-    const tableNumericClaims = [...rowNumbers, ...rowRanges];
+    const cells = row.split('|').map(c => c.trim()).filter(Boolean);
+    for (const cell of cells) {
+      if (/^[-:\s|]+$/.test(cell)) continue;
+      if (/^(?:N\/A|None|Not Specified|See above|Per code)$/i.test(cell)) continue;
 
-    for (const claim of tableNumericClaims) {
-      totalClaims++;
-      const normClaim = norm(claim);
-      const rawClaimClean = claim.toLowerCase().replace(/\s+/g, '');
-      const rawRefClean = rawRef.replace(/\s+/g, '');
-      if (normRef.includes(normClaim) || rawRefClean.includes(rawClaimClean)) {
-        verifiedClaims++;
-      } else {
-        flags.push({ type: 'UNSOURCED_TABLE_CONTENT', claim: 'Table row claim: ' + claim });
+      const hasNumberUnit = /\b(?:\d+(?:\.\d+)?)\s*(?:°C|°F|HRC|HBW|psi|bar|ksi|mm|inch|in\.|ft-lbs|Joule|J\b|%|years?|days?|hours?|hrs?|minutes?|min\b|MPa|GPa|kPa|N\/mm2?)\b/i.test(cell) || /\b\d+\s*-\s*\d+\s*(?:hours?|hrs?|days?|mm|psi|bar|°[cf])\b/i.test(cell);
+      const hasProcessOrMaterial = /\b(?:PWHT|WFMT|MT|PT|RT|VT|UT|SMAW|GTAW|GMAW|FCAW|SAW|Grade\s*50|4130|A106|P91|P-15E)\b/i.test(cell);
+      const hasStandardCode = /\b(?:AWS\s*D1\.1|API\s*RP\s*4G|API\s*5CT|API\s*6A|API\s*1104|ASME\s*(?:IX|B31\.3|B31\.4|B31\.8|VIII))\b/i.test(cell);
+
+      if (hasNumberUnit || hasProcessOrMaterial || hasStandardCode) {
+        totalClaims++;
+        const normCell = norm(cell);
+        const rawCellClean = cell.toLowerCase().replace(/\s+/g, '');
+        const rawRefClean = rawRef.replace(/\s+/g, '');
+
+        const tokensToVerify = cell.match(/\b(?:\d+(?:\.\d+)?\s*(?:°C|°F|HRC|HBW|psi|bar|ksi|mm|inch|in\.|ft-lbs|Joule|J\b|%|years?|days?|hours?|hrs?|minutes?|min\b|MPa|GPa|kPa|N\/mm2?)|PWHT|WFMT|SMAW|GTAW|GMAW|FCAW|SAW|AWS\s*D1\.1|API\s*RP\s*4G|Grade\s*50|4130)\b/gi) || [];
+
+        let cellGrounded = true;
+        if (tokensToVerify.length > 0) {
+          for (const token of tokensToVerify) {
+            const normTok = norm(token);
+            const tokClean = token.toLowerCase().replace(/\s+/g, '');
+            if (!normRef.includes(normTok) && !rawRefClean.includes(tokClean) && !rawRef.includes(token.toLowerCase())) {
+              cellGrounded = false;
+              break;
+            }
+          }
+        } else {
+          if (!normRef.includes(normCell) && !rawRefClean.includes(rawCellClean)) {
+            cellGrounded = false;
+          }
+        }
+
+        if (cellGrounded) {
+          verifiedClaims++;
+        } else {
+          unsourcedTableCells.push(cell);
+          flags.push({ type: 'UNSOURCED_TABLE_CONTENT', claim: 'Table cell: ' + cell });
+        }
       }
     }
   }
@@ -5457,12 +5500,18 @@ function verifyAnswerGrounding(answer, sources, envelopeContext) {
   if (scorePct < 60) badge = 'UNVERIFIED_WARNING';
   else if (scorePct < 80) badge = 'PARTIAL_VERIFICATION';
 
+  // UNSOURCED_TABLE_CONTENT Hard Cap: If >=1 unsourced hard cell -> badge capped at UNVERIFIED_WARNING
+  if (unsourcedTableCells.length >= 1) {
+    badge = 'UNVERIFIED_WARNING';
+  }
+
   return {
     score_pct: scorePct,
     verified_claims: verifiedClaims,
     total_claims: totalClaims,
     unverified_claims: flags.length,
     flags: flags.slice(0, 5),
+    unsourced_table_cells: unsourcedTableCells,
     verbatim_evidence_quote: bestQuote || null,
     evidence: evidenceObj,
     badge
@@ -7201,13 +7250,13 @@ app.post('/api/ask', async (c) => {
               CACHE_SCHEMA_VERSION, JSON.stringify(grounding)
             ).run() : Promise.resolve(),
             c.env.DB.prepare(`
-              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, triage_resolved_entities, triage_action)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               crypto.randomUUID(), session_id, question.slice(0, 300), standard_filter || 'ALL',
               100, 'VERIFIED_CODE_GROUNDED', 'deterministic_table', 'SpecSupport-Deterministic-Table-Engine',
               totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, (fastPathResult.mode || 'FASTPATH_TABLE'), effectiveAnswerDepth, providerRole,
-              0, null, null
+              0, 0, null, null, null
             ).run(),
             c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(
               session_id, question, 'SpecSupport-Deterministic-Table-Engine', today
@@ -7235,13 +7284,13 @@ app.post('/api/ask', async (c) => {
               CACHE_SCHEMA_VERSION, JSON.stringify(grounding)
             ).run() : Promise.resolve(),
             c.env.DB.prepare(`
-              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, triage_resolved_entities, triage_action)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               crypto.randomUUID(), session_id, question.slice(0, 300), standard_filter || 'ALL',
               100, 'VERIFIED_CODE_GROUNDED', 'deterministic_table', 'SpecSupport-Deterministic-Table-Engine',
               totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, (fastPathResult.mode || 'FASTPATH_TABLE'), effectiveAnswerDepth, providerRole,
-              0, null, null
+              0, 0, null, null, null
             ).run(),
             c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(
               session_id, question, 'SpecSupport-Deterministic-Table-Engine', today
@@ -7459,6 +7508,9 @@ app.post('/api/ask', async (c) => {
               const criticMs = (loopPasses > 1 && tCriticStart > 0) ? Math.max(1, Date.now() - tCriticStart) : 0;
               const totalDurationMs = Date.now() - reqStartTime;
 
+              const mcqDeliveredCount = (activeMcqs && activeMcqs.length > 0) ? activeMcqs.length : 0;
+              const triageChoiceVal = (triage_action === 'answer') ? 'confirm' : ((triage_action === 'skip') ? 'skip' : null);
+
               // Phase P1.5 Request Traces & Phase P3.6 Semantic Cache Save
               try {
                 c.executionCtx?.waitUntil(Promise.all([
@@ -7477,8 +7529,8 @@ app.post('/api/ask', async (c) => {
                     JSON.stringify(streamGroundingResult)
                   ).run() : Promise.resolve(),
                   c.env.DB.prepare(`
-                    INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, triage_resolved_entities, triage_action)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                   `).bind(
                     crypto.randomUUID(),
                     session_id,
@@ -7498,6 +7550,8 @@ app.post('/api/ask', async (c) => {
                     effectiveAnswerDepth,
                     providerRole,
                     parseInt(triage_rounds_used || 0),
+                    mcqDeliveredCount,
+                    triageChoiceVal,
                     triageResolvedStr || null,
                     triage_action || null
                   ).run()
@@ -7645,6 +7699,8 @@ app.post('/api/ask', async (c) => {
     const verifierMs = Math.max(1, Date.now() - tVerifierStart);
     const totalDurationMs = Date.now() - reqStartTime;
     const criticMs = (didRunCritic && tCriticStart > 0) ? Math.max(1, Date.now() - tCriticStart) : 0;
+    const mcqDeliveredCount = (mcqQuestions && mcqQuestions.length > 0) ? mcqQuestions.length : 0;
+    const triageChoiceVal = (triage_action === 'answer') ? 'confirm' : ((triage_action === 'skip') ? 'skip' : null);
 
     // Phase P1.5 (Per-Request Traces) & P3.6 (Query Semantic Cache) for Non-Streaming Endpoint
     try {
@@ -7665,8 +7721,8 @@ app.post('/api/ask', async (c) => {
             JSON.stringify(groundingResult)
           ).run() : Promise.resolve(),
           c.env.DB.prepare(`
-            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, triage_resolved_entities, triage_action)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `).bind(
             crypto.randomUUID(),
             session_id,
@@ -7686,6 +7742,8 @@ app.post('/api/ask', async (c) => {
             effectiveAnswerDepth,
             providerRole,
             parseInt(triage_rounds_used || 0),
+            mcqDeliveredCount,
+            triageChoiceVal,
             triageResolvedStr || null,
             triage_action || null
           ).run()
@@ -7738,13 +7796,13 @@ app.post('/api/ask', async (c) => {
 
         c.executionCtx?.waitUntil(
           c.env.DB.prepare(`
-            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, triage_resolved_entities, triage_action)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `).bind(
             crypto.randomUUID(), 'session-quota', 'QUOTA_EXHAUSTED_4006', 'ALL',
             0, 'CALIBRATED_ABSTENTION', 'cloudflare', modelToLog,
             totalDurationMs, 0, 0, 0, 0, 0, 'standards', 'low', pRole,
-            0, null, null
+            0, 0, null, null, null
           ).run().catch(() => {})
         );
       } catch(logErr) {}

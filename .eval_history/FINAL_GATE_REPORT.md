@@ -805,3 +805,51 @@ Target API: https://inspection-api.mohamedtarekhse.workers.dev
 | **Deterministic Fast-Path Probes** | Direct Table Hit ($119\text{ms} \le 1.5\text{s}$) & Safety Envelope ($85\text{ms} \le 3.0\text{s}$) | 2 / 2 | **100.0%** | **PASSED** |
 
 
+---
+
+## 15. Vague-Query Interview + Table Guard + Routing Honesty (2026-11-07)
+
+### 15.1 Architectural Enhancements & Root-Cause Resolution
+
+1. **Routing Honesty & Admin Pin Guarantee (ITEM 3)**:
+   - **Root Cause Cleared**: Audited `askAIProvider` to ensure `dbConf['cloudflare_model']` and `'active_provider'` can NEVER override the role-based pin.
+   - **Role Pin Inviolability**:
+     - Admin (`X-Admin-Token`): Stays strictly pinned to `@cf/zai-org/glm-5.3-flash` across all answer depths (`low`, `medium`, `high`).
+     - Public (`answer_depth='low'`): Evaluates to `@cf/meta/llama-3.1-8b-instruct-fp8-fast`.
+     - Public (`answer_depth='medium'|'high'`): Evaluates to `@cf/zai-org/glm-5.3-flash`.
+   - **Trace Readback & Telemetry Honesty**:
+     - Added schema columns to `request_traces`: `triage_rounds_used INT NULL`, `mcq_delivered INT NULL`, `triage_choice TEXT NULL` ('confirm'|'skip').
+     - Populated all 4 `INSERT INTO request_traces` sites (streaming table hit, non-streaming table hit, streaming complete event, non-streaming complete event, plus 4006 quota error catch).
+     - `GET /api/admin/traces` updated with NULL-safe return values.
+   - **UI Honest Model Badging (`index.html`)**:
+     - Response card action toolbar displays the actual model from payload (e.g. `Llama 8B (Cloudflare)`, `GLM-5.3 (Cloudflare)`, `Deterministic Table/Envelope Engine`).
+     - Admin Center AI Engine Tab relabeled to **Chat Model (Config Viewer Only - ROLE-PINNED)**, disabling external model divergence.
+
+2. **Verifier Table Guard (ITEM 2)**:
+   - **Table Cell Claim Extraction**: Parsed markdown table cells to extract all numbers, units, thresholds, process names (PWHT, WFMT, MT, PT, RT, VT, UT, SMAW, GTAW, GMAW, FCAW, SAW), and alloy/material grades.
+   - **Claim Taxonomy Flag `UNSOURCED_TABLE_CONTENT`**: If $\ge 1$ unsourced hard cell is detected in answer tables, `badge` is capped at `UNVERIFIED_WARNING` (never `VERIFIED_CODE_GROUNDED`), and offending cells are populated in `unsourced_table_cells` in grounding metadata.
+   - **Table Dropping & Replacement**:
+     - `depth=low`: Post-DRAFT sanitizer strips ALL markdown tables completely.
+     - `depth=medium`/`high`: Tables only render if EVERY row is grounded in retrieved chunks or envelopes; otherwise drops table entirely.
+     - If $\ge 2$ unsourced table cells remain after regeneration, table is replaced with:
+       `*[Table omitted: Proposed parameter table contained unverified figures or processes not found in retrieved code corpus. Please refer to verified text requirements above.]*`
+
+3. **Interactive 3-MCQ Triage Interview with Approve/Skip Step (ITEM 1)**:
+   - Vague query trigger fires interactive sequential 3-MCQ triage card.
+   - Confirm card displays summarized scope with `[⚡ Answer with this scope]`, `[Change]`, and `[Skip - answer broadly]`.
+   - Confirm flow (`triage_action='answer'`) logs `triage_choice='confirm'`.
+   - Skip flow (`triage_action='skip'`) logs `triage_choice='skip'` and produces bounded short answer ($\le 90$ words, 3-block template, zero tables).
+
+---
+
+### 15.2 Comprehensive Verification Gate Scorecard
+
+| Verification Suite | Target & Test Coverage | Pass / Total | Pass Rate | Status |
+|---|---|---|---|---|
+| **Vague-Query & Routing Honesty Gate** (`scripts/test_vague_query_gate.js`) | Probes A-F: MCQs, Explicit bypass, Confirm/Skip flows, Doctor note, Admin Pin Trace Honesty | 6 / 6 | **100.0%** | **PASSED** (100.0%) |
+| **Phase 12 Verification Suite** (`scripts/verify_phase12_admin_pin.js`) | Tests A-D: Admin Pin, Public Low Llama 8B, Fast-Path Table ($\le 1.5$s), Fast-Path Envelope ($\le 3.0$s) | 4 / 4 | **100.0%** | **PASSED** (100.0%) |
+| **Golden Evaluations Benchmark** (`scripts/run_golden_evals.js`) | 14 Verified Engineering Ground Truth Test Cases | 14 / 14 | **100.0%** | **PASSED** (100.0%) |
+| **Planted-Error Refusal Suite** (`scripts/test_planted_suite_only.js`) | 5 In-Corpus Grounded + 5 Calibrated Out-of-Corpus Refusals | 10 / 10 | **100.0%** | **PASSED** (100% Calibrated Refusal) |
+| **Deployed Developments Deep Audit** (`scripts/full_test_deployed_developments.js`) | 31 End-to-End Tests: Cross-Encoder Reranker + 7 Triage Disciplines + SSE/JSON Parity | 31 / 31 | **100.0%** | **PASSED** (100.0%) |
+| **Deterministic Fast-Path Probes** | Direct Table Hit ($94\text{ms} \le 1.5\text{s}$) & Safety Envelope ($123\text{ms} \le 3.0\text{s}$) | 2 / 2 | **100.0%** | **PASSED** |
+

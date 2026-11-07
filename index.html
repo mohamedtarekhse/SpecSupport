@@ -4652,21 +4652,25 @@
 
         <!-- TAB 3: ⚡ AI Engine & Provider Config -->
         <div id="admin-tab-ai" class="admin-tab-content" style="display:none;">
-            <label style="font-size:0.75rem; color:var(--gemini-text-muted); display:block; margin-bottom:4px;">Active AI Provider:</label>
-            <select id="active-provider" class="admin-input" onchange="toggleProviderSettings()">
-                <option value="cloudflare" selected>Cloudflare Workers AI (GLM-5.3 & Llama)</option>
-                <option value="groq">Groq (Ultra-Fast Llama 3)</option>
-                <option value="openrouter">OpenRouter (NVIDIA & Large Models)</option>
-            </select>
-
-            <div id="cf-settings">
-                <label style="font-size:0.75rem; color:var(--gemini-text-muted);">Cloudflare Model:</label>
-                <select id="model-cloudflare" class="admin-input">
-                    <option value="@cf/zai-org/glm-5.3-flash" selected>GLM-5.3 Flash (320B MoE)</option>
-                    <option value="@cf/meta/llama-3.1-8b-instruct">Meta Llama 3.1 8B (100% Free)</option>
-                    <option value="@cf/meta/llama-3.3-70b-instruct-fp8-fast">Meta Llama 3.3 70B Fast</option>
-                </select>
+            <div style="background:var(--gemini-card-bg); border:1px solid var(--gemini-border); border-radius:8px; padding:12px; margin-bottom:14px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--gemini-text-main); text-transform:uppercase; letter-spacing:0.5px;">Chat Model (Config Viewer Only)</span>
+                    <span style="font-size:0.68rem; padding:2px 6px; border-radius:4px; background:rgba(16,185,129,0.15); color:#10b981; font-weight:700;">ROLE-PINNED</span>
+                </div>
+                <div style="font-size:0.76rem; color:var(--gemini-text-muted); line-height:1.5;">
+                    Role-based routing is permanently enforced at worker level:<br>
+                    • <strong>Public Low-Depth:</strong> <code>@cf/meta/llama-3.1-8b-instruct-fp8-fast</code><br>
+                    • <strong>Admin / Medium / High:</strong> <code>@cf/zai-org/glm-5.3-flash</code><br>
+                    <em>External overrides are disabled to prevent table fabrication and maintain compliance.</em>
+                </div>
             </div>
+
+            <label style="font-size:0.75rem; color:var(--gemini-text-muted); display:block; margin-bottom:4px;">External Provider Configuration:</label>
+            <select id="active-provider" class="admin-input" onchange="toggleProviderSettings()">
+                <option value="cloudflare" selected>Cloudflare Workers AI (Enforced Default)</option>
+                <option value="groq">Groq (External API Key Required)</option>
+                <option value="openrouter">OpenRouter (External API Key Required)</option>
+            </select>
 
             <div id="groq-settings" style="display:none;">
                 <label style="font-size:0.75rem; color:var(--gemini-text-muted);">Groq API Key:</label>
@@ -6712,6 +6716,7 @@ Answer the inspector's query strictly and accurately based on the verified local
                     let streamFollowups = [];
                     let streamMcqs = [];
                     let streamGrounding = null;
+                    let streamModel = null;
 
                     while (true) {
                         const { done, value } = await reader.read();
@@ -6729,8 +6734,10 @@ Answer the inspector's query strictly and accurately based on the verified local
                                 const parsed = JSON.parse(payload);
                                 if (parsed.type === 'metadata') {
                                     streamSources = parsed.sources || [];
+                                    if (parsed.model_used) streamModel = parsed.model_used;
                                 } else if (parsed.type === 'complete') {
                                     streamFollowups = parsed.suggested_questions || [];
+                                    if (parsed.model_used) streamModel = parsed.model_used;
                                     if (Array.isArray(parsed.mcq_questions) && parsed.mcq_questions.length > 0) {
                                         streamMcqs = parsed.mcq_questions;
                                     }
@@ -6755,14 +6762,14 @@ Answer the inspector's query strictly and accurately based on the verified local
                         try { inlineStreamMcqs = JSON.parse(streamMcqMatch[1]); } catch(e){}
                     }
                     const activeStreamMcqs = (streamMcqs && streamMcqs.length > 0) ? streamMcqs : inlineStreamMcqs;
-                    streamMsg.finalize(fullAnswer, streamSources, streamFollowups, activeStreamMcqs, streamGrounding);
+                    streamMsg.finalize(fullAnswer, streamSources, streamFollowups, activeStreamMcqs, streamGrounding, streamModel);
                     chatHistory.push({ role: 'user', content: text });
                     chatHistory.push({ role: 'assistant', content: fullAnswer });
                 } else {
                     const data = await res.json();
                     if (data.error) throw new Error(data.error);
 
-                    appendMessage(data.answer, 'ai', data.sources, data.suggested_questions, data.can_continue, data.mcq_questions, data.grounding);
+                    appendMessage(data.answer, 'ai', data.sources, data.suggested_questions, data.can_continue, data.mcq_questions, data.grounding, data.model_used);
                     chatHistory.push({ role: 'user', content: text });
                     chatHistory.push({ role: 'assistant', content: data.answer });
                 }
@@ -7098,14 +7105,24 @@ Answer the inspector's query strictly and accurately based on the verified local
                     contentDiv.innerHTML = marked.parse(clean) + '<span class="streaming-cursor">▊</span>';
                     list.scrollTop = list.scrollHeight;
                 },
-                finalize: (finalText, sources = [], followups = [], mcqs = [], groundingMeta = null) => {
+                finalize: (finalText, sources = [], followups = [], mcqs = [], groundingMeta = null, modelUsed = null) => {
                     row.remove();
-                    appendMessage(finalText, 'ai', sources, followups, finalText.length > 1200, mcqs, groundingMeta);
+                    appendMessage(finalText, 'ai', sources, followups, finalText.length > 1200, mcqs, groundingMeta, modelUsed);
                 }
             };
         }
 
-        function appendMessage(text, role, sources = [], followups = [], canContinue = false, mcqs = [], groundingMeta = null) {
+        function formatModelDisplay(m) {
+            if (!m) return 'Deterministic Engine';
+            if (m.includes('llama-3.1-8b') || m.includes('llama-8b')) return 'Llama 8B (Cloudflare)';
+            if (m.includes('glm-5.3') || m.includes('glm')) return 'GLM-5.3 (Cloudflare)';
+            if (m.includes('Deterministic') || m.includes('Table-Engine') || m.includes('Envelope')) return 'Deterministic Table/Envelope Engine';
+            if (m.includes('Semantic-Cache')) return 'Deterministic Engine (Cache)';
+            if (m.includes('llama-3.3-70b')) return 'Llama 3.3 70B (Cloudflare)';
+            return m;
+        }
+
+        function appendMessage(text, role, sources = [], followups = [], canContinue = false, mcqs = [], groundingMeta = null, modelUsed = null) {
             const list = document.getElementById('messages-list');
             const row = document.createElement('div');
             row.className = `message-row ${role}`;
@@ -7369,6 +7386,7 @@ Answer the inspector's query strictly and accurately based on the verified local
                     <button class="tool-btn export-pdf-btn" onclick="exportToPdf(\`${encodeURIComponent(cleanText)}\`)">📄 Export PDF</button>
                     <button class="tool-btn export-word-btn" onclick="exportToWord(\`${encodeURIComponent(cleanText)}\`)">📝 Export Word</button>
                     <button class="tool-btn" onclick="exportNCR(\`${encodeURIComponent(cleanText)}\`)">📑 NCR Form</button>
+                    ${modelUsed ? `<span class="model-badge" style="font-size:0.72rem; color:var(--gemini-text-muted); font-weight:600; padding:3px 8px; border-radius:5px; border:1px solid var(--gemini-border); background:var(--gemini-card-bg); display:inline-flex; align-items:center; gap:4px; margin-left:auto;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> ${formatModelDisplay(modelUsed)}</span>` : ''}
                 `;
                 tailDiv.appendChild(toolbar);
 

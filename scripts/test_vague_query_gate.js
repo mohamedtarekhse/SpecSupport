@@ -12,7 +12,6 @@ function hasMarkdownTable(text) {
 
 function hasFabricatedTableClaim(text) {
   if (!text) return false;
-  // Specific hallucinated phrases from the repro
   return /24-48\s*hours\s*post-pwht/i.test(text) || /aws\s*d1\.1\s*or\s*equivalent/i.test(text);
 }
 
@@ -59,7 +58,6 @@ async function runGateProbes() {
 
     const hasMcqsOrTemplate = mcqCount >= 1 || /most probable interpretation/i.test(data.answer || '');
     const passesTables = !hasTables && !hasFabClaim;
-    const passesLatency = durMs <= 7000; // allow small network jitter
 
     if (hasMcqsOrTemplate && passesTables) {
       console.log('  -> ✅ PASS [Probe A: Vague Query Contract Satisfied]');
@@ -143,7 +141,6 @@ async function runGateProbes() {
     });
     const data = await res.json();
     const mcqCount = Array.isArray(data.mcq_questions) ? data.mcq_questions.length : 0;
-    const hasTables = hasMarkdownTable(data.answer);
     const hasFab = hasFabricatedTableClaim(data.answer);
 
     console.log(`  MCQs fired: ${mcqCount} (expected: 0)`);
@@ -217,6 +214,51 @@ async function runGateProbes() {
     }
   } catch (err) {
     console.log('  -> ❌ ERROR [Probe E]:', err.message);
+  }
+
+  // -------------------------------------------------------------------------
+  // Probe (f): Admin Routing Honesty (Admin token + low depth -> GLM-5.3)
+  // -------------------------------------------------------------------------
+  total++;
+  console.log('\n[PROBE F] Admin Routing Honesty in request_traces:');
+  try {
+    const adminSessionId = 'gate_admin_honesty_' + Date.now();
+    await fetch(`${BASE_URL}/api/ask`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Admin-Token': ADMIN_SECRET
+      },
+      body: JSON.stringify({
+        question: 'Preheat requirements for ASTM A106 Grade B piping per ASME B31.3 ' + Date.now(),
+        answer_depth: 'low',
+        session_id: adminSessionId
+      })
+    });
+    await new Promise(r => setTimeout(r, 1000));
+    const tracesRes = await fetch(`${BASE_URL}/api/admin/traces?limit=10`, {
+      headers: { 'Authorization': `Bearer ${ADMIN_SECRET}` }
+    });
+    const tracesData = await tracesRes.json();
+    const adminTrace = (tracesData.traces || []).find(t => t.session_id === adminSessionId);
+
+    console.log(`  Trace record found:`, Boolean(adminTrace));
+    if (adminTrace) {
+      console.log(`  provider_role: ${adminTrace.provider_role} (expected: admin)`);
+      console.log(`  model: ${adminTrace.model} (expected: @cf/zai-org/glm-5.3-flash)`);
+      console.log(`  mcq_delivered: ${adminTrace.mcq_delivered}, triage_choice: ${adminTrace.triage_choice}`);
+
+      if (adminTrace.provider_role === 'admin' && adminTrace.model === '@cf/zai-org/glm-5.3-flash') {
+        console.log('  -> ✅ PASS [Probe F: Admin Role Honesty Verified]');
+        passed++;
+      } else {
+        console.log('  -> ❌ FAIL [Probe F: Admin role or model mismatch]');
+      }
+    } else {
+      console.log('  -> ❌ FAIL [Probe F: Admin trace record not found]');
+    }
+  } catch (err) {
+    console.log('  -> ❌ ERROR [Probe F]:', err.message);
   }
 
   console.log('\n===============================================================');
