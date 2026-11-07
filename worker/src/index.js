@@ -654,7 +654,8 @@ async function recordAssistantMessageAndSync(env, conversationId, userKey, quest
       score: grounding?.score_pct ?? grounding?.grounding_score ?? 100,
       badge: grounding?.badge ?? grounding?.evidence_badge ?? 'VERIFIED_CODE_GROUNDED',
       model_used: modelUsed || null,
-      evidence: grounding?.evidence_grades || grounding?.evidence || []
+      evidence: grounding?.evidence_grades || grounding?.evidence || [],
+      wps_form_data: grounding?.wps_form_data || null
     });
 
     await env.DB.prepare(`
@@ -5900,6 +5901,12 @@ function isEntityClearQuery(question, entities = [], exactMatches = [], tableHit
   if (triage_action === 'answer' || triage_action === 'skip') return true;
   const qClean = (question || '').toLowerCase();
 
+  // ITEM 5: WPS authoring questions ALWAYS fire the triage interview (entity-clear must not bypass AUTHORING)
+  const isWpsAuthoring = /(?:wps\b|welding procedure|pqr\b|welding spec|welding procedure specification|qw-?482|asme\s*(?:viii|ix)\s*weld)/i.test(qClean);
+  if (isWpsAuthoring) {
+    return false;
+  }
+
   // Ambiguity trigger: vague QA/process query + equipment noun without specifiers
   const isVagueQA = /\b(?:what should i do|how do i inspect|how to inspect|how to do|what to do|what are the requirements for|inspection requirements|qa\b|quality assurance|inspection procedure|how to verify|checklist for|steps for|procedure for|how do we inspect|how to check)\b/i.test(qClean);
   const hasEquipment = /\b(?:mast\b|derrick\b|piping\b|pipe\b|pressure vessel\b|vessel\b|storage tank\b|tank\b|drill pipe\b|drill stem\b|tool joint\b|bop\b|blowout preventer\b|elevator\b|links\b|hook\b|swivel\b|sheave\b)\b/i.test(qClean);
@@ -5955,28 +5962,44 @@ function getDeterministicTriageMcqs(qClean, entities = [], exactMatches = [], ta
   const isBop = /(?:bop test procedure|bop pressure test|blowout preventer test|accumulator drawdown test|choke manifold test|api standard 53)/i.test(qClean);
 
   if (isWps) {
-    const hasBaseMetal = /(?:a106|a333|a53|api 5l|sa-?516|sa516|sa-?537|sa-?106|sa106|sa-?333|sa333|sa-?240|sa240|sa-?312|sa312|316l?|304l?|p-?no|p1|p8|p3|p4|p5a|x52|x60|x65|4130|carbon steel|stainless|pressure vessel)/i.test(qClean);
-    const hasThickness = /(?:sch|schedule|wall|thickness|\bmm\b|\binch\b|\bthk\b|xxs|std|gauge|gage|\bplate\b)/i.test(qClean);
-    if (!hasBaseMetal || !hasThickness) {
-      return [
-        {
-          question: "Base Metal Specification / Grade",
-          options: ["ASTM A106 Gr B (Carbon Steel - Most Common)", "ASTM A333 Gr 6 (Low Temp -45°C)", "Stainless Steel 316L (Austenitic P-No 8)", "Advise Most Common (A106 Gr B)"]
-        },
-        {
-          question: "Pipe Wall Thickness / Schedule",
-          options: ["Sch 40 (Standard - No PWHT <=19mm)", "Sch 80 (Heavy Wall - High Integrity)", "Sch 160 / XXS (High Pressure - Mandatory PWHT)", "Advise Based on Standard Pressure"]
-        },
-        {
-          question: "Service Severity Condition",
-          options: ["Standard Hydrocarbon (ASME B31.3 Normal Service)", "Sour Service H2S (NACE MR0175 / ISO 15156)", "High-Temperature / Severe Cyclic Service"]
-        },
-        {
-          question: "Governing Specification Policy",
-          options: ["Global International Standards (ASME B31.3 & ASME IX Baseline)", "Custom Company / Client Specification (Provide Spec)"]
-        }
-      ];
-    }
+    return [
+      {
+        question: "Base Metal Specification / Grade",
+        options: [
+          "SA-516 Gr. 70 (Pressure Vessel Carbon Steel Plate - P-No. 1)",
+          "ASTM A572 Gr. 50 (Structural High-Strength Columbium-Vanadium)",
+          "API 5L X50 (Line Pipe PSL-2)",
+          "AISI / SAE 4130 - 4140 (Cr-Mo Quenched & Tempered)",
+          "ASTM A106 Gr. B (Carbon Steel Seamless Pipe - P-No. 1 Gr. 1)"
+        ]
+      },
+      {
+        question: "Pipe Wall Thickness / Component Thickness",
+        options: [
+          "Sch 40 (Standard - No PWHT <=19mm)",
+          "Sch 80 (Heavy Wall - High Integrity)",
+          "Sch 160 / XXS (High Pressure - Mandatory PWHT)",
+          "Heavy Plate (t > 25 mm - Pre-heat 95°C / 200°F)"
+        ]
+      },
+      {
+        question: "Service Severity & Operating Environment",
+        options: [
+          "Standard Hydrocarbon Service (ASME B31.3 Normal Fluid / VIII Div 1)",
+          "Sour Service H2S (NACE MR0175 / ISO 15156 - Max Hardness 22 HRC)",
+          "Low-Temperature Severe Service (-45°C / -50°F Charpy Impact Required)",
+          "High-Temperature / Creep Service (Above 427°C / 800°F)"
+        ]
+      },
+      {
+        question: "Governing Construction Code",
+        options: [
+          "Process Piping (ASME B31.3 & ASME Section IX)",
+          "Pressure Vessels (ASME Section VIII Div 1 & ASME Section IX)",
+          "Structural Steel (AWS D1.1 / ASME Section IX)"
+        ]
+      }
+    ];
   } else if (isNdt) {
     const hasMethod = /(?:ultrasonic| ut |radiograph| rt |magnetic particle| mpi | mt |penetrant| pt | dpi )/i.test(qClean);
     const hasThkOrGeom = /(?:wall|thickness|\bmm\b|\binch\b|butt weld|nozzle|fillet|pipe|plate)/i.test(qClean);
@@ -6292,6 +6315,206 @@ function enforceAuthoringSignOff(answer, question, calcRes) {
   }
 
   return out;
+}
+
+function escapeRegex(string) {
+  if (!string || typeof string !== 'string') return '';
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function buildStructuredWpsFormData(answer, question, calcRes, evidenceGrades, sources) {
+  if (!answer || typeof answer !== 'string') return null;
+  const qLower = (question || '').toLowerCase();
+  const aLower = answer.toLowerCase();
+  const isWps = /(?:wps\b|welding procedure|pqr\b|welding spec|welding procedure specification|qw-?482|asme\s*(?:viii|ix)\s*weld)/i.test(qLower) ||
+                /(?:wps\b|form qw-482|welding procedure specification)/i.test(aLower);
+  if (!isWps) return null;
+
+  function extractVal(patterns) {
+    for (const pat of patterns) {
+      const m = answer.match(pat);
+      if (m && m[1] && m[1].trim()) {
+        const clean = m[1].trim()
+          .replace(/\s*\[(?:VERIFIED|USER-INPUT|USER-DECLARED|VERIFICATION-REQUIRED)[^\]]*\]/gi, '')
+          .replace(/^[|:\s-]+|[|:\s-]+$/g, '')
+          .trim();
+        if (clean.length > 0 && !clean.toLowerCase().includes('not specified in the retrieved')) {
+          return clean;
+        }
+      }
+    }
+    return '';
+  }
+
+  function resolveField(name, val, defaultClause, forcedGrade) {
+    if (!val || val === 'Not specified' || val === 'Not specified in procedure' || val === '[USER-INPUT]' || val === '[VERIFICATION-REQUIRED]') {
+      const isUserInput = val === '[USER-INPUT]';
+      return {
+        field: name,
+        value: isUserInput ? '[USER-INPUT]' : 'Not specified in procedure',
+        grade: isUserInput ? 'declared' : 'unverified',
+        source: isUserInput ? 'User Input' : 'Requires PQR qualification',
+        clause: defaultClause || null
+      };
+    }
+
+    if (forcedGrade) {
+      return {
+        field: name,
+        value: val,
+        grade: forcedGrade,
+        source: forcedGrade === 'verified' ? (defaultClause || 'Governing Code Baseline') : 'User Input',
+        clause: defaultClause || null
+      };
+    }
+
+    // Check if line has explicit inline tags
+    const lineM = answer.match(new RegExp(`(?:${escapeRegex(val.slice(0, 15))})[^\n]*`, 'i'));
+    const lineText = lineM ? lineM[0] : '';
+
+    if (/\[VERIFIED\]/i.test(lineText) || /\[VERIFIED\s+([^\]]+)\]/i.test(lineText)) {
+      const cit = lineText.match(/\[VERIFIED\s+([^\]]+)\]/i);
+      return {
+        field: name,
+        value: val,
+        grade: 'verified',
+        source: cit ? cit[1].trim() : (defaultClause || 'ASME Section IX / B31.3'),
+        clause: cit ? cit[1].trim() : defaultClause
+      };
+    }
+
+    if (/\[USER-INPUT\]/i.test(lineText) || /\[USER-DECLARED\]/i.test(lineText)) {
+      return {
+        field: name,
+        value: val,
+        grade: 'declared',
+        source: 'User Input / Engineering Assumption',
+        clause: null
+      };
+    }
+
+    if (/\[VERIFICATION-REQUIRED\]/i.test(lineText)) {
+      return {
+        field: name,
+        value: val,
+        grade: 'unverified',
+        source: 'Requires PQR qualification',
+        clause: defaultClause
+      };
+    }
+
+    // Match against evidenceGrades
+    const valNorm = norm(val);
+    const eg = (evidenceGrades || []).find(g => {
+      const gNorm = norm(g.text);
+      return gNorm.includes(valNorm) || (valNorm.length >= 6 && gNorm.includes(valNorm.slice(0, 8)));
+    });
+
+    if (eg) {
+      return {
+        field: name,
+        value: val,
+        grade: eg.grade || 'verified',
+        source: eg.source || defaultClause || 'Governing Code Baseline',
+        clause: defaultClause
+      };
+    }
+
+    if (/\b(?:P-No|QW-|Table|Clause|ASME|AWS)\b/i.test(val)) {
+      return {
+        field: name,
+        value: val,
+        grade: 'verified',
+        source: defaultClause || 'Governing Code Baseline',
+        clause: defaultClause
+      };
+    }
+
+    return {
+      field: name,
+      value: val,
+      grade: 'unverified',
+      source: 'Procedure draft (requires PQR qualification)',
+      clause: defaultClause
+    };
+  }
+
+  // Extract variables
+  const rawWpsNo = extractVal([/(?:wps\s*(?:no\.?|number)?|procedure\s*no\.?)\s*[:\|]\s*([A-Za-z0-9\-_\/]+)/i]);
+  const wpsNo = rawWpsNo || '[USER-INPUT]';
+
+  const rawPqr = extractVal([/(?:pqr\s*(?:no\.?|number)?|supporting\s*pqr)\s*[:\|]\s*([A-Za-z0-9\-_\/]+)/i]);
+  const pqrNo = rawPqr || '[VERIFICATION-REQUIRED]';
+
+  const revMatch = answer.match(/\b(?:revision|rev\.)\s*[:\-]?\s*([A-Za-z0-9.]+)\b/i);
+  const revVal = revMatch ? revMatch[1].trim() : 'Rev. ?';
+
+  let govCode = 'ASME B31.3 & ASME Section IX';
+  let govClause = 'Table 330.1.1 / Table 331.1.1';
+  if (calcRes && calcRes.matched) {
+    govCode = calcRes.pwht_clause ? `ASME B31.3 (${calcRes.pwht_clause}) & ASME Section IX` : 'ASME B31.3 & ASME Section IX';
+    govClause = calcRes.pwht_clause || 'Table 330.1.1';
+  } else if (aLower.includes('section viii') || qLower.includes('viii')) {
+    govCode = 'ASME Section VIII Div 1 (UCS-56) & ASME Section IX';
+    govClause = 'ASME VIII UCS-56';
+  } else if (aLower.includes('b31.3') || qLower.includes('b31.3')) {
+    govCode = 'ASME B31.3 (Para 330/331) & ASME Section IX';
+    govClause = 'ASME B31.3 Table 330.1.1';
+  }
+
+  const baseMetalVal = extractVal([
+    /(?:material\s*spec(?:ification)?|base\s*metal\s*spec(?:ification)?|base\s*metal)\s*[:\|]\s*([A-Za-z0-9\.\-\s\/]+?)(?:\n|$|\|)/i
+  ]);
+  const pnoVal = extractVal([
+    /(?:p-?no\.?\s*(?:number)?|p-number)\s*[:\|]?\s*([A-Za-z0-9\s,\/\-]+(?:Group\s*\d+)?)/i,
+    /(P-No\.?\s*\d+(?:[\s,]+(?:Group|Grp)(?:\s*(?:No\.?|Number))?\s*\d+)?)/i
+  ]);
+
+  const processVal = extractVal([
+    /(?:welding\s*process(?:es)?|process)\s*[:\|]\s*([A-Za-z0-9\+\s\/\(\)]+?)(?:\n|$|\|)/i
+  ]);
+
+  let preheatVal = extractVal([
+    /(?:preheat\s*(?:temp(?:erature)?)?\s*min(?:imum)?|preheat\s*min(?:imum)?|minimum\s*preheat)\s*[:\|]\s*([A-Za-z0-9°\.\-\s\/\(C\)\(F\)]+?)(?:\n|$|\|)/i
+  ]);
+  if (!preheatVal && calcRes && calcRes.matched && calcRes.preheat_temp_c) {
+    preheatVal = `${calcRes.preheat_temp_c} (${calcRes.preheat_temp_f}) minimum`;
+  }
+  const interpassVal = extractVal([
+    /(?:interpass\s*(?:temp(?:erature)?)?\s*max(?:imum)?|max(?:imum)?\s*interpass)\s*[:\|]\s*([A-Za-z0-9°\.\-\s\/\(C\)\(F\)]+?)(?:\n|$|\|)/i
+  ]);
+
+  let pwhtVal = extractVal([
+    /(?:pwht\s*(?:temp(?:erature)?|requirements?)?|postweld\s*heat\s*treatment)\s*[:\|]\s*([A-Za-z0-9°\.\-\s\/\(C\)\(F\):]+?)(?:\n|$|\|)/i
+  ]);
+  if (!pwhtVal && calcRes && calcRes.matched) {
+    pwhtVal = calcRes.pwht_required ? `${calcRes.pwht_temp_range_c} (${calcRes.pwht_temp_range_f})` : `Not Required (Exempt per ${calcRes.pwht_clause})`;
+  }
+
+  const jointVal = extractVal([/(?:joint\s*design|groove\s*type)\s*[:\|]\s*([A-Za-z0-9\-\s\(\)]+?)(?:\n|$|\|)/i]);
+  const fillerVal = extractVal([/(?:aws\s*class(?:ification)?|filler\s*metal)\s*[:\|]\s*([A-Za-z0-9\-\s\/\(\)]+?)(?:\n|$|\|)/i]);
+  const gasVal = extractVal([/(?:shielding\s*gas)\s*[:\|]\s*([A-Za-z0-9%\.\-\s]+?)(?:\n|$|\|)/i]);
+  const sfaVal = extractVal([/(?:sfa\s*(?:spec)?\s*[:\-]?\s*(5\.\d+))/i]);
+
+  return {
+    wps_number: resolveField('WPS Number', wpsNo, null, rawWpsNo ? 'declared' : 'declared'),
+    revision: resolveField('Revision', revVal, null, revMatch ? 'declared' : 'unverified'),
+    date: resolveField('Date', '[USER-INPUT]', null, 'declared'),
+    supporting_pqr: resolveField('Supporting PQR', pqrNo, 'QW-200.2', rawPqr ? 'declared' : 'unverified'),
+    governing_code: resolveField('Governing Code', govCode, govClause, 'verified'),
+    welding_process: resolveField('Welding Process', processVal || 'Not specified in procedure', 'QW-401', processVal ? 'verified' : 'unverified'),
+    process_type: resolveField('Process Type', 'Manual', 'QW-401', 'declared'),
+    base_metal: resolveField('Base Metal Specification', baseMetalVal || (calcRes?.material ? `ASTM ${calcRes.material}` : 'Not specified in procedure'), 'QW-403', baseMetalVal ? null : 'unverified'),
+    p_number: resolveField('P-Number & Group', pnoVal || (calcRes?.p_number ? `P-No. ${calcRes.p_number}` : 'Not specified in procedure'), 'QW-422', pnoVal ? 'verified' : 'unverified'),
+    preheat_min: resolveField('Preheat Minimum', preheatVal || 'Not specified in procedure', calcRes?.preheat_clause || 'Table 330.1.1', preheatVal ? 'verified' : 'unverified'),
+    interpass_max: resolveField('Maximum Interpass', interpassVal || 'Not specified in procedure', 'QW-406.3', interpassVal ? 'verified' : 'unverified'),
+    pwht: resolveField('Postweld Heat Treatment (PWHT)', pwhtVal || 'Not specified in procedure', calcRes?.pwht_clause || 'Table 331.1.1', pwhtVal ? 'verified' : 'unverified'),
+    joint_design: resolveField('Joint Design', jointVal || 'Not specified in procedure', 'QW-402', jointVal ? null : 'unverified'),
+    filler_metal: resolveField('Filler Metal Classification', fillerVal || 'Not specified in procedure', 'QW-404', fillerVal ? 'verified' : 'unverified'),
+    sfa_spec: resolveField('SFA Specification', sfaVal || 'Not specified in procedure', 'QW-404', sfaVal ? 'verified' : 'unverified'),
+    shielding_gas: resolveField('Shielding Gas', gasVal || 'Not specified in procedure', 'QW-408', gasVal ? 'verified' : 'unverified'),
+    nde_requirements: resolveField('NDE Requirements', '100% Visual (AWS B1.11 / ASME VIII UW-35 / B31.3 Table 341.3.2)', 'Table 341.3.2', 'verified')
+  };
 }
 
 function extractAtomicAssertions(answer) {
@@ -6832,6 +7055,7 @@ async function verifyAnswerGrounding(arg1, arg2, arg3, arg4, arg5, arg6) {
     contradictions: contradictionsCount,
     contradictions_detail: contradictionsDetail,
     evidence_grades: evidenceGrades,
+    wps_form_data: buildStructuredWpsFormData(citationProtocol.answer || answer, options.question || '', options.calcRes || null, evidenceGrades, sources),
     verbatim_evidence_quote: bestQuote || null,
     evidence: evidenceObj,
     badge
@@ -8393,6 +8617,9 @@ app.post('/api/ask', async (c) => {
             evidence: null
           };
         }
+        if (cachedGrounding && !cachedGrounding.wps_form_data) {
+          cachedGrounding.wps_form_data = buildStructuredWpsFormData(cachedCleanAnswer, question, null, cachedGrounding.evidence_grades || [], cachedSources);
+        }
 
         await recordAssistantMessageAndSync(c.env, conversationId, userKey, question, cachedCleanAnswer, cachedGrounding, 'SpecSupport-Semantic-Cache', triage_action, c.executionCtx);
 
@@ -8421,6 +8648,7 @@ app.post('/api/ask', async (c) => {
                 suggested_questions: [],
                 mcq_questions: cachedTriageMcqs,
                 grounding: cachedGrounding,
+                wps_form_data: cachedGrounding?.wps_form_data || null,
                 verbatim_evidence_quote: cachedGrounding.verbatim_evidence_quote,
                 evidence: cachedGrounding.evidence,
                 loop_engineering: {
@@ -8455,6 +8683,7 @@ app.post('/api/ask', async (c) => {
             mcq_questions: cachedTriageMcqs,
             can_continue: false,
             grounding: cachedGrounding,
+            wps_form_data: cachedGrounding?.wps_form_data || null,
             verbatim_evidence_quote: cachedGrounding.verbatim_evidence_quote,
             evidence: cachedGrounding.evidence,
             loop_engineering: {
@@ -8636,6 +8865,7 @@ app.post('/api/ask', async (c) => {
               suggested_questions: defaultFollowups,
               mcq_questions: [],
               grounding,
+              wps_form_data: grounding?.wps_form_data || null,
               verbatim_evidence_quote: grounding.verbatim_evidence_quote,
               evidence: grounding.evidence,
               timings: {
@@ -8733,6 +8963,7 @@ app.post('/api/ask', async (c) => {
           mcq_questions: [],
           can_continue: true,
           grounding,
+          wps_form_data: grounding?.wps_form_data || null,
           verbatim_evidence_quote: grounding.verbatim_evidence_quote,
           evidence: grounding.evidence,
           timings: {
@@ -8786,7 +9017,9 @@ app.post('/api/ask', async (c) => {
     const draftGroundingCheck = await verifyAnswerGrounding(c, draftAnswer, sources, envelopeContext || "", false, {
       isAdmin: isAdminRequest,
       authoritativeBlock: calcRes?.authoritative_block,
-      skipLlmJudge: (effectiveAnswerDepth === 'low')
+      skipLlmJudge: (effectiveAnswerDepth === 'low'),
+      question: question,
+      calcRes: calcRes
     })
     const hasUnsourcedTableInDraft = draftGroundingCheck.flags.some(f => f.type === 'UNSOURCED_TABLE_CONTENT')
     const hasContradictionInDraft = (draftGroundingCheck.contradictions || 0) > 0
@@ -8961,7 +9194,9 @@ Strictly regenerate the answer to eliminate all contradictions. Every requiremen
                 false,
                 {
                   isAdmin: isAdminRequest,
-                  authoritativeBlock: calcRes?.authoritative_block
+                  authoritativeBlock: calcRes?.authoritative_block,
+                  question: question,
+                  calcRes: calcRes
                 }
               );
               if (streamGroundingResult.sanitizedAnswer) {
@@ -9034,6 +9269,7 @@ Strictly regenerate the answer to eliminate all contradictions. Every requiremen
                 suggested_questions: defaultFollowups,
                 mcq_questions: isEntityClear ? [] : activeMcqs,
                 grounding: streamGroundingResult,
+                wps_form_data: streamGroundingResult.wps_form_data || null,
                 verbatim_evidence_quote: streamGroundingResult.verbatim_evidence_quote,
                 evidence: streamGroundingResult.evidence,
                 timings: {
@@ -9168,7 +9404,9 @@ Strictly regenerate the answer to eliminate all contradictions. Every requiremen
     answer = enforceAuthoringSignOff(answer, question, calcRes);
     const groundingResult = await verifyAnswerGrounding(c, answer, sources, envelopeContext, false, {
       isAdmin: isAdminRequest,
-      authoritativeBlock: calcRes?.authoritative_block
+      authoritativeBlock: calcRes?.authoritative_block,
+      question: question,
+      calcRes: calcRes
     });
     if (groundingResult.sanitizedAnswer) {
       answer = groundingResult.sanitizedAnswer;
@@ -9246,6 +9484,7 @@ Strictly regenerate the answer to eliminate all contradictions. Every requiremen
       mcq_questions: mcqQuestions,
       can_continue: finishReason === 'length' || answer.length > 1200,
       grounding: groundingResult,
+      wps_form_data: groundingResult.wps_form_data || null,
       verbatim_evidence_quote: groundingResult.verbatim_evidence_quote,
       evidence: groundingResult.evidence,
       timings: {
