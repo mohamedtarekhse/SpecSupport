@@ -1,67 +1,39 @@
-CREATE TABLE IF NOT EXISTS user_subscriptions (
-  session_id TEXT PRIMARY KEY,
-  daily_limit INTEGER DEFAULT 10,
-  expert_name TEXT,
-  expert_linkedin TEXT,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+-- Migration: Conversations, Messages, and User Memory Tables
 
-CREATE TABLE IF NOT EXISTS crowdsource_questions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  question_text TEXT NOT NULL,
-  is_gold_standard BOOLEAN DEFAULT 0,
-  gold_answer_keywords TEXT,
-  is_active BOOLEAN DEFAULT 1
-);
-
-CREATE TABLE IF NOT EXISTS crowdsource_answers (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  question_id INTEGER NOT NULL,
-  session_id TEXT NOT NULL,
-  user_answer TEXT NOT NULL,
-  status TEXT DEFAULT 'pending',
+CREATE TABLE IF NOT EXISTS conversations (
+  id TEXT PRIMARY KEY,
+  user_key TEXT NOT NULL,
+  title TEXT NOT NULL,
+  pinned INT DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY(question_id) REFERENCES crowdsource_questions(id)
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  message_count INT DEFAULT 0,
+  last_badge TEXT
 );
 
-CREATE TABLE IF NOT EXISTS ndt_rules (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  keyword TEXT NOT NULL,
-  instruction TEXT NOT NULL,
-  is_active BOOLEAN DEFAULT 1,
+CREATE INDEX IF NOT EXISTS idx_conversations_user ON conversations(user_key, pinned DESC, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS messages (
+  id TEXT PRIMARY KEY,
+  conversation_id TEXT NOT NULL,
+  role TEXT NOT NULL,
+  content TEXT NOT NULL,
+  grounding_brief TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS system_config (
-  key TEXT PRIMARY KEY,
-  value TEXT NOT NULL
+CREATE INDEX IF NOT EXISTS idx_messages_conv ON messages(conversation_id, created_at ASC);
+
+CREATE TABLE IF NOT EXISTS user_memory (
+  id TEXT PRIMARY KEY,
+  user_key TEXT NOT NULL,
+  fact TEXT NOT NULL,
+  category TEXT NOT NULL,
+  active INT DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT OR IGNORE INTO system_config (key, value) VALUES ('openrouter_api_key', '');
-INSERT OR IGNORE INTO system_config (key, value) VALUES ('openrouter_model', 'qwen/qwen3.8-27b:free');
+CREATE INDEX IF NOT EXISTS idx_user_memory_user ON user_memory(user_key, active);
 
--- Phase P2.1: Obligation Subtyping & Key Values
--- Added to standards_chunks:
--- ALTER TABLE standards_chunks ADD COLUMN obligation_type TEXT;
--- ALTER TABLE standards_chunks ADD COLUMN key_values TEXT;
-
--- Phase P2.6 / Batch B: Safety Envelopes Census & Request Trace Stage Timings
--- ALTER TABLE code_safety_envelopes ADD COLUMN primary_code TEXT;
--- ALTER TABLE code_safety_envelopes ADD COLUMN source_chunk_id INTEGER;
--- ALTER TABLE code_safety_envelopes ADD COLUMN min_remaining_wall_pct REAL;
--- ALTER TABLE code_safety_envelopes ADD COLUMN min_hydrotest_ratio REAL;
--- ALTER TABLE code_safety_envelopes ADD COLUMN notes TEXT;
--- ALTER TABLE request_traces ADD COLUMN retrieval_ms INTEGER;
--- ALTER TABLE request_traces ADD COLUMN table_ms INTEGER;
--- ALTER TABLE request_traces ADD COLUMN draft_ms INTEGER;
--- ALTER TABLE request_traces ADD COLUMN critic_ms INTEGER;
--- ALTER TABLE request_traces ADD COLUMN verifier_ms INTEGER;
--- ALTER TABLE request_traces ADD COLUMN mode TEXT;
-
--- Phase 9: Answer Depth
--- ALTER TABLE request_traces ADD COLUMN answer_depth TEXT;
-
--- Phase 11: Provider Role
--- ALTER TABLE request_traces ADD COLUMN provider_role TEXT;
-
-
+-- Add memory_used to request_traces if not present
+-- ALTER TABLE request_traces ADD COLUMN memory_used TEXT;
