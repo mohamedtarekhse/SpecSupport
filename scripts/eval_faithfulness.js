@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const BASE_URL = process.env.API_TARGET || 'https://inspection-api.mohamedtarekhse.workers.dev';
-const ADMIN_SECRET = 'specsupport-admin-2026';
+const ADMIN_SECRET = process.env.ADMIN_TOKEN || process.env.ADMIN_SECRET || "";
 
 const GOLDEN_DATASET = [
   { id: "WPS-01", prompt: "What is the P-Number and Group Number for SA-516 Grade 70 carbon steel plate under ASME Section IX?", expectedClauses: ["QW-422", "P-No. 1", "Group 2"], expectedValues: ["1", "2"] },

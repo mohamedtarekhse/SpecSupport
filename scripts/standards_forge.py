@@ -20,7 +20,7 @@ import requests
 from pathlib import Path
 
 DEFAULT_API_BASE = "https://inspection-api.mohamedtarekhse.workers.dev"
-DEFAULT_ADMIN_TOKEN = "specsupport-admin-2026"
+DEFAULT_ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", os.environ.get("ADMIN_SECRET", ""))
 
 def compute_sha256(filepath):
     h = hashlib.sha256()

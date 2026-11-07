@@ -35,7 +35,7 @@ async function ingestFile(filePath, code, title, organization) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer specsupport-admin-2026'
+        'Authorization': `Bearer ${process.env.ADMIN_TOKEN || process.env.ADMIN_SECRET || ''}`
       },
       body: JSON.stringify({
         standard_code: code,

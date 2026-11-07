@@ -985,7 +985,7 @@
             if (!tbody) return;
             tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:20px; color:var(--text-muted);">Loading traces from /api/admin/traces...</td></tr>';
             try {
-                const token = document.getElementById('admin-token')?.value || localStorage.getItem('inspecta_admin_token') || 'specsupport-admin-2026';
+                const token = document.getElementById('admin-token')?.value || sessionStorage.getItem('adminToken') || localStorage.getItem('inspecta_admin_token') || '';
                 const res = await fetch(`${API_BASE}/api/admin/traces?limit=50`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });

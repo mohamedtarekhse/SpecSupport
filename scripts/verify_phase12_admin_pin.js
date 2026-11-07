@@ -4,7 +4,7 @@
  */
 
 const API_BASE = 'https://inspection-api.mohamedtarekhse.workers.dev';
-const ADMIN_SECRET = 'inspect-admin-2026';
+const ADMIN_SECRET = process.env.ADMIN_TOKEN || process.env.ADMIN_SECRET || "";
 
 async function request(path, opts = {}) {
   const url = `${API_BASE}${path}`;

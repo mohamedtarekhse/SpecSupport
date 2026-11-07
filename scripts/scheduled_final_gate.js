@@ -10,7 +10,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 const API_BASE = 'https://inspection-api.mohamedtarekhse.workers.dev';
-const ADMIN_TOKEN = 'specsupport-admin-2026';
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || process.env.ADMIN_SECRET || "";
 const REPORT_PATH = path.join(ROOT, '.eval_history', 'FINAL_GATE_REPORT.md');
 const DEADLINE = Date.now() + 8 * 60 * 60 * 1000; // give up after 8h (07:00Z safest)
 const POLL_MS = 10 * 60 * 1000;

@@ -3,7 +3,7 @@ const https = require('https');
 const req = https.request('https://inspection-api.mohamedtarekhse.workers.dev/api/admin/cache-purge?force=true', {
   method: 'GET',
   headers: {
-    'Authorization': 'Bearer specsupport-admin-2026'
+    'Authorization': `Bearer ${process.env.ADMIN_TOKEN || process.env.ADMIN_SECRET || ''}`
   }
 }, (res) => {
   let body = '';

@@ -1141,7 +1141,7 @@ const jsLogic = `
             const clause = document.getElementById('edit-chunk-clause').value.trim();
             const section = document.getElementById('edit-chunk-section').value.trim();
             const content = document.getElementById('edit-chunk-content').value.trim();
-            const token = localStorage.getItem('inspecta_admin_token') || 'specsupport-admin-2026';
+            const token = sessionStorage.getItem('adminToken') || localStorage.getItem('inspecta_admin_token') || '';
 
             if (!standard_code || !content) return alert("Standard code and content are required.");
 
@@ -1178,7 +1178,7 @@ const jsLogic = `
         }
 
         async function toggleChunkExclude(id) {
-            const token = localStorage.getItem('inspecta_admin_token') || 'specsupport-admin-2026';
+            const token = sessionStorage.getItem('adminToken') || localStorage.getItem('inspecta_admin_token') || '';
             try {
                 const res = await fetch(\`\${API_BASE}/api/admin/chunks/\${id}/toggle-exclude\`, {
                     method: 'POST',
@@ -1197,7 +1197,7 @@ const jsLogic = `
 
         async function deleteChunk(id) {
             if (!confirm(\`Are you sure you want to permanently delete chunk #\${id} from the database?\`)) return;
-            const token = localStorage.getItem('inspecta_admin_token') || 'specsupport-admin-2026';
+            const token = sessionStorage.getItem('adminToken') || localStorage.getItem('inspecta_admin_token') || '';
             try {
                 const res = await fetch(\`\${API_BASE}/api/admin/chunks/\${id}\`, {
                     method: 'DELETE',
@@ -1217,7 +1217,7 @@ const jsLogic = `
         async function bulkToggleExclude(exclude) {
             if (selectedChunkIds.size === 0) return;
             const ids = Array.from(selectedChunkIds);
-            const token = localStorage.getItem('inspecta_admin_token') || 'specsupport-admin-2026';
+            const token = sessionStorage.getItem('adminToken') || localStorage.getItem('inspecta_admin_token') || '';
             for (const id of ids) {
                 try {
                     await fetch(\`\${API_BASE}/api/admin/chunks/\${id}/toggle-exclude\`, {
@@ -1232,7 +1232,7 @@ const jsLogic = `
         async function bulkDeleteChunks() {
             if (selectedChunkIds.size === 0) return;
             if (!confirm(\`Are you sure you want to permanently delete \${selectedChunkIds.size} selected chunks?\`)) return;
-            const token = localStorage.getItem('inspecta_admin_token') || 'specsupport-admin-2026';
+            const token = sessionStorage.getItem('adminToken') || localStorage.getItem('inspecta_admin_token') || '';
             try {
                 const res = await fetch(\`\${API_BASE}/api/admin/chunks/bulk-delete\`, {
                     method: 'POST',
@@ -1257,7 +1257,7 @@ const jsLogic = `
             const std = document.getElementById('curator-std-select')?.value;
             if (!std) return alert("Select a specific standard to purge.");
             if (!confirm(\`DANGER: Are you sure you want to PURGE ALL CHUNKS AND TABLES for "\${std}"? This action is irreversible.\`)) return;
-            const token = localStorage.getItem('inspecta_admin_token') || 'specsupport-admin-2026';
+            const token = sessionStorage.getItem('adminToken') || localStorage.getItem('inspecta_admin_token') || '';
             try {
                 const res = await fetch(\`\${API_BASE}/api/admin/standards/\${encodeURIComponent(std)}\`, {
                     method: 'DELETE',

@@ -4,7 +4,7 @@
 // =========================================================================
 
 const BASE_URL = process.env.API_TARGET || 'https://inspection-api.mohamedtarekhse.workers.dev';
-const ADMIN_SECRET = 'specsupport-admin-2026';
+const ADMIN_SECRET = process.env.ADMIN_TOKEN || process.env.ADMIN_SECRET || "";
 
 async function runElaeGate() {
   console.log('===============================================================');

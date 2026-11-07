@@ -2,7 +2,7 @@
 // Continuously calls /api/admin/backfill-embeddings until all chunks have vector embeddings.
 
 const API_BASE = 'https://inspection-api.mohamedtarekhse.workers.dev';
-const ADMIN_TOKEN = 'specsupport-admin-2026';
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || process.env.ADMIN_SECRET || "";
 
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));

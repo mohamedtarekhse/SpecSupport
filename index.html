@@ -4537,10 +4537,10 @@
                 <button onclick="closeAdminAuthModal()" style="background:none; border:none; color:var(--gemini-text-muted); font-size:1.4rem; cursor:pointer; line-height:1;">&times;</button>
             </div>
             <p style="margin:0 0 16px; font-size:0.8rem; color:var(--gemini-text-muted); line-height:1.4;">
-                Enter the ADMIN_SECRET token to unlock database curation, refiner studio, and AI model routing controls (e.g. <code>inspect-admin-2026</code>).
+                Enter the ADMIN_SECRET token to unlock database curation, refiner studio, and AI model routing controls.
             </p>
             <div style="margin-bottom:14px;">
-                <input type="password" id="admin-auth-input" class="admin-input" style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:8px; border:1px solid var(--gemini-border); background:var(--gemini-bg); color:var(--gemini-text-main); font-size:0.9rem;" placeholder="Admin Token (e.g. inspect-admin-2026)" onkeydown="if(event.key==='Enter') verifyAdminToken();">
+                <input type="password" id="admin-auth-input" class="admin-input" style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:8px; border:1px solid var(--gemini-border); background:var(--gemini-bg); color:var(--gemini-text-main); font-size:0.9rem;" placeholder="Admin Secret Token" onkeydown="if(event.key==='Enter') verifyAdminToken();">
                 <div id="admin-auth-error" style="display:none; color:#EF4444; font-size:0.78rem; margin-top:8px;"></div>
             </div>
             <div style="display:flex; gap:10px; justify-content:flex-end;">
@@ -10135,7 +10135,7 @@ Answer the inspector's query strictly and accurately based on the verified local
         let curatorViewChunkId = null;
 
         function getAdminToken() {
-            return localStorage.getItem('inspecta_admin_token') || 'specsupport-admin-2026';
+            return sessionStorage['adminToken'] || null;
         }
 
         function openKnowledgeCurator() {

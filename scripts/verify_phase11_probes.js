@@ -2,7 +2,7 @@ const https = require('https');
 const fs = require('fs');
 
 const API_BASE = 'https://inspection-api.mohamedtarekhse.workers.dev';
-const ADMIN_SECRET = process.env.ADMIN_SECRET || 'inspect-admin-2026';
+const ADMIN_SECRET = process.env.ADMIN_TOKEN || process.env.ADMIN_SECRET || "";
 
 function request(path, options = {}) {
   return new Promise((resolve, reject) => {

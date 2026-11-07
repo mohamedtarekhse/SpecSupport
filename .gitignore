@@ -19,6 +19,7 @@ Thumbs.db
 *.log
 logs/
 test*.js
+!scripts/test*.js
 test/
 
 # Backups & raw text sources

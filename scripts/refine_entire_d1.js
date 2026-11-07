@@ -2,7 +2,7 @@
 // Runs full genome refinement over all 6,971 chunks in Cloudflare D1
 
 const API_BASE = 'https://inspection-api.mohamedtarekhse.workers.dev';
-const AUTH_TOKEN = 'specsupport-admin-2026';
+const AUTH_TOKEN = process.env.ADMIN_TOKEN || process.env.ADMIN_SECRET || "";
 const BATCH_SIZE = 250;
 
 async function runRefinement() {

@@ -11,7 +11,7 @@ const fs = require('fs');
 const path = require('path');
 
 const API_BASE = 'https://inspection-api.mohamedtarekhse.workers.dev';
-const AUTH_TOKEN = 'specsupport-admin-2026';
+const AUTH_TOKEN = process.env.ADMIN_TOKEN || process.env.ADMIN_SECRET || "";
 const BATCH_SIZE = 20;
 
 function parseFile(standardsDir, filename) {

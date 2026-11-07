@@ -3,9 +3,23 @@ import { calculateCodeSafetyRequirements, parsePipeQuery } from './code_calculat
 
 const app = new Hono()
 
-// Robust CORS handles preflight OPTIONS for all routes
+// Robust CORS handles preflight OPTIONS for all routes with explicit origin validation (ITEM 3)
 app.use('*', async (c, next) => {
-  c.header('Access-Control-Allow-Origin', '*')
+  const origin = c.req.header('Origin') || ''
+  const isAllowedOrigin = !origin ||
+    origin.endsWith('.pages.dev') ||
+    origin.startsWith('http://localhost:') ||
+    origin.startsWith('http://127.0.0.1:') ||
+    (c.env.ALLOWED_ORIGIN && (c.env.ALLOWED_ORIGIN === '*' || origin === c.env.ALLOWED_ORIGIN))
+
+  if (origin && isAllowedOrigin) {
+    c.header('Access-Control-Allow-Origin', origin)
+    c.header('Vary', 'Origin')
+  } else if (!origin) {
+    c.header('Access-Control-Allow-Origin', '*')
+  } else {
+    c.header('Access-Control-Allow-Origin', c.env.ALLOWED_ORIGIN || 'https://inspection-api.pages.dev')
+  }
   c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
   c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Token, x-admin-token, x-admin-secret, X-Title, HTTP-Referer, X-Model')
   c.header('Access-Control-Max-Age', '86400')
@@ -14,6 +28,30 @@ app.use('*', async (c, next) => {
     return c.text('', 204)
   }
 
+  return next()
+})
+
+// 🛡️ Security Spine: Single secret admin verification check (ITEM 1)
+function isStudioAuthorized(c) {
+  const authHeader = c.req.header('Authorization') || ''
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim() || 
+                c.req.header('X-Admin-Token') || 
+                c.req.header('x-admin-token') || 
+                c.req.header('x-admin-secret') || 
+                c.req.query('admin_secret') || 
+                c.req.query('token') || ''
+  if (!token || !c.env.ADMIN_SECRET) return false
+  return token === c.env.ADMIN_SECRET
+}
+
+// 🛡️ Security Spine: Deny-by-default on every write/admin route (ITEM 2)
+app.use('/api/admin/*', async (c, next) => {
+  if (c.req.method === 'OPTIONS') {
+    return next()
+  }
+  if (!isStudioAuthorized(c)) {
+    return c.json({ error: 'Unauthorized' }, 401)
+  }
   return next()
 })
 
@@ -28,19 +66,6 @@ function getCorpusTables(c) {
     tablesTable: isV1 ? 'standards_tables_v1_prev' : 'standards_tables',
     envelopesTable: isV1 ? 'code_safety_envelopes_v1_prev' : 'code_safety_envelopes'
   };
-}
-
-function isStudioAuthorized(c) {
-  const authHeader = c.req.header('Authorization') || ''
-  const token = authHeader.replace(/^Bearer\s+/i, '').trim() || 
-                c.req.header('X-Admin-Token') || 
-                c.req.header('x-admin-token') || 
-                c.req.header('x-admin-secret') || 
-                c.req.query('admin_secret') || ''
-  if (!token) return false
-  const validTokens = ['specsupport-admin-2026', 'admin', 'inspecta-super-secret-key-2026', 'inspect-admin-2026']
-  if (c.env.ADMIN_SECRET) validTokens.push(c.env.ADMIN_SECRET)
-  return validTokens.includes(token)
 }
 
 let aiBindingDegradedUntil = 0;
@@ -350,6 +375,7 @@ app.get('/api/test-cf-stream', async (c) => {
 
 // Auto Database Schema Migration / Verification
 app.all('/api/admin/setup-db', async (c) => {
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401);
   try {
     await c.env.DB.prepare(`
       CREATE TABLE IF NOT EXISTS documents_catalog (
@@ -1351,11 +1377,7 @@ app.post('/api/consultations/book', async (c) => {
 
 // 🧹 Phase P1.1 / FIX A: Semantic Cache Purge & Migration Endpoint
 app.all('/api/admin/cache-purge', async (c) => {
-  const authHeader = c.req.header('Authorization') || c.req.query('token') || '';
-  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-  const validTokens = ['specsupport-admin-2026', 'admin', 'inspecta-super-secret-key-2026'];
-  if (c.env.ADMIN_SECRET) validTokens.push(c.env.ADMIN_SECRET);
-  if (!token || !validTokens.includes(token)) {
+  if (!isStudioAuthorized(c)) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
@@ -1392,8 +1414,7 @@ app.get('/api/admin/taxonomy', async (c) => {
 })
 
 app.post('/api/admin/taxonomy', async (c) => {
-  const token = c.req.header('Authorization')?.split(' ')[1]
-  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
   try {
     await ensureTaxonomyTable(c.env.DB)
     const body = await c.req.json()
@@ -1444,8 +1465,7 @@ app.post('/api/admin/taxonomy', async (c) => {
 })
 
 app.delete('/api/admin/taxonomy/:id', async (c) => {
-  const token = c.req.header('Authorization')?.split(' ')[1]
-  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
   try {
     const id = c.req.param('id')
     await c.env.DB.prepare(`DELETE FROM standards_taxonomy WHERE id = ?`).bind(id).run()
@@ -1513,8 +1533,7 @@ app.get('/api/admin/audit-quality', async (c) => {
 })
 
 app.post('/api/admin/refine-chunks', async (c) => {
-  const token = c.req.header('Authorization')?.split(' ')[1]
-  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
   try {
     const { results } = await c.env.DB.prepare(`
       SELECT id, content FROM standards_chunks 
@@ -2941,8 +2960,7 @@ app.get('/api/locaspec/bundle', async (c) => {
 
 // 🚫 Exclude / Include Toggle for Taxonomy Rules
 app.post('/api/admin/taxonomy/:id/toggle-exclude', async (c) => {
-  const token = c.req.header('Authorization')?.split(' ')[1]
-  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
   try {
     const id = c.req.param('id')
     await c.env.DB.prepare(`
@@ -2974,8 +2992,7 @@ app.get('/api/admin/schema/columns', async (c) => {
 
 // ➕ Add Column to Table Dynamically
 app.post('/api/admin/schema/add-column', async (c) => {
-  const token = c.req.header('Authorization')?.split(' ')[1]
-  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
   try {
     const { table_name, column_name, data_type = 'TEXT', default_value = null } = await c.req.json()
     
@@ -3710,8 +3727,7 @@ async function runAutoTrainingLoop(db, ai, standardCode, standardName) {
 }
 
 app.post('/api/admin/config', async (c) => {
-  const token = c.req.header('Authorization')?.split(' ')[1]
-  if (token !== c.env.ADMIN_SECRET) return c.json({ error: 'Unauthorized' }, 401)
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
   
   try {
     const data = await c.req.json()
@@ -4090,16 +4106,12 @@ app.post('/api/admin/ingest', async (c) => {
       });
     }
 
-    const token = c.req.header('Authorization')?.split(' ')[1]
-    const isAdmin = token && (token === c.env.ADMIN_SECRET || token === 'admin' || token === 'specsupport-admin-2026')
+    if (!isStudioAuthorized(c)) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
 
-    // If not admin, gracefully assign to session-scoped private sandbox (never 401 block users)
     let effectiveScope = scope
     let effectiveIsTemp = is_temporary
-    if (!isAdmin && scope === 'global') {
-      effectiveScope = 'private_temp'
-      effectiveIsTemp = true
-    }
 
     // Generate 768-d embedding
     let embedding = '[]'
@@ -4157,15 +4169,12 @@ app.post('/api/admin/ingest-batch', async (c) => {
       return c.json({ error: 'Missing standard_code or chunks array' }, 400)
     }
 
-    const token = c.req.header('Authorization')?.split(' ')[1]
-    const isAdmin = token && (token === c.env.ADMIN_SECRET || token === 'admin' || token === 'specsupport-admin-2026')
+    if (!isStudioAuthorized(c)) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
 
     let effectiveScope = scope
     let effectiveIsTemp = is_temporary
-    if (!isAdmin && scope === 'global') {
-      effectiveScope = 'private_temp'
-      effectiveIsTemp = true
-    }
 
     let expiresAt = null
     if (effectiveIsTemp || effectiveScope === 'private_temp') {
@@ -4333,15 +4342,12 @@ app.post('/api/admin/ingest-table', async (c) => {
       return c.json({ error: 'Missing required table parameters' }, 400)
     }
 
-    const token = c.req.header('Authorization')?.split(' ')[1]
-    const isAdmin = token && (token === c.env.ADMIN_SECRET || token === 'admin' || token === 'specsupport-admin-2026')
+    if (!isStudioAuthorized(c)) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
 
     let effectiveScope = scope
     let effectiveIsTemp = is_temporary
-    if (!isAdmin && scope === 'global') {
-      effectiveScope = 'private_temp'
-      effectiveIsTemp = true
-    }
 
     let expiresAt = null
     if (effectiveIsTemp || effectiveScope === 'private_temp') {
@@ -4543,8 +4549,7 @@ ${table_text.substring(0, 3500)}`
 })
 
 app.post('/api/admin/rules', async (c) => {
-  const token = c.req.header('Authorization')?.split(' ')[1]
-  if (token !== c.env.ADMIN_SECRET) {
+  if (!isStudioAuthorized(c)) {
     return c.json({ error: 'Unauthorized' }, 401)
   }
 
@@ -6642,7 +6647,7 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
 
   // Usage check
   const today = new Date().toISOString().split('T')[0]
-  if (session_id !== 'admin') {
+  if (!isStudioAuthorized(c)) {
     const usageRes = await c.env.DB.prepare(
       `SELECT count(*) as count FROM usage_log WHERE session_id = ? AND date = ?`
     ).bind(session_id, today).first()
@@ -7848,10 +7853,8 @@ app.post('/api/ask', async (c) => {
     const rawReqBody = await c.req.json()
     const { question, language, session_id, standard_filter, history, mode = 'web', selected_standards = [], triage_ctx = null, triage_action = null, triage_rounds_used = 0 } = rawReqBody
     
-    // Phase 11: Role Detection (Item 3) & Dynamic Rename Hook (Item 4)
-    const adminHeaderToken = c.req.header('X-Admin-Token') || c.req.header('x-admin-token') || (c.req.header('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
-    const adminSecret = c.env.ADMIN_SECRET || 'inspect-admin-2026';
-    const isAdminRequest = Boolean(adminHeaderToken && (adminHeaderToken === adminSecret || adminHeaderToken === 'specsupport-admin-2026'));
+    // Phase 11 & Security Spine: Single Secret Role Detection
+    const isAdminRequest = isStudioAuthorized(c);
     const providerRole = isAdminRequest ? 'admin' : 'public';
     const APP_NAME = c.env.APP_NAME || 'Q-Grey';
 
@@ -8777,8 +8780,7 @@ Strictly regenerate the answer to eliminate all contradictions. Every requiremen
       const busyAnswer = "**SPEC-SUPPORT CALIBRATED ABSTENTION NOTICE: EDGE COMPUTE ALLOCATION REACHED**\n\nThe Cloudflare Workers AI edge neural processing quota is temporarily saturated (Error 4006: Daily Allocation Ceiling). To prevent unverified claims or hallucination, automated code verification is temporarily abstaining from dynamic generation. Please consult the offline LocaSpec™ Rig Engine or retry in 10 minutes.";
       const totalDurationMs = Date.now() - reqStartTime;
       try {
-        const adminHeaderToken = c.req.header('X-Admin-Token') || c.req.header('x-admin-token') || (c.req.header('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
-        const isAdmin = Boolean(c.env.ADMIN_SECRET && adminHeaderToken === c.env.ADMIN_SECRET);
+        const isAdmin = isStudioAuthorized(c);
         const pRole = isAdmin ? 'admin' : 'public';
         const modelToLog = isAdmin ? '@cf/zai-org/glm-5.3-flash' : '@cf/meta/llama-3.1-8b-instruct-fp8-fast';
 
@@ -8826,7 +8828,7 @@ Strictly regenerate the answer to eliminate all contradictions. Every requiremen
         suggested_questions: [],
         mcq_questions: [],
         grounding: { score_pct: 0, badge: 'CALIBRATED_ABSTENTION', total_claims: 0, verified_claims: 0, verbatim_evidence_quote: '' },
-        provider_role: (c.env.ADMIN_SECRET && (c.req.header('X-Admin-Token') === c.env.ADMIN_SECRET)) ? 'admin' : 'public'
+        provider_role: isStudioAuthorized(c) ? 'admin' : 'public'
       });
     }
 

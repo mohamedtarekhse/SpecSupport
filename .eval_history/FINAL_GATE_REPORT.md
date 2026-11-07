@@ -1006,5 +1006,70 @@ All evaluation suites were executed twice: first in shadow mode (`?corpus=v2` ag
 | **Envelope Fast-Path Latency** | ASTM A106 Gr B Preheat Envelope ($\le 3.0$s) | **96 ms** | **PASSED** |
 | **ELAE Canary Probes** (`scripts/test_elae_gate.js`) | Probes 1–4: Sign-off, Dose Calculator, Entailment, Fast Path | **4 / 4 (100.0%)** | **PASSED** |
 
+---
+
+## 20. Security spine (2026-11-07)
+
+### 20.1 Hardening Summary & Backdoor Eradication (D8)
+1. **Single Secret Admin Verification Check (ITEM 1)**:
+   - Completely deleted all legacy backdoor fallback tokens (`'admin'`, `'specsupport-admin-2026'`, `'inspecta-super-secret-key-2026'`, `'inspect-admin-2026'`) across the entire codebase (`worker/src/index.js`, `index.html`, `refiner.html`, and `scripts/*`). Grep search returns exactly zero occurrences.
+   - Enforced single admin verification check strictly: `token === c.env.ADMIN_SECRET` in `isStudioAuthorized(c)`.
+   - In `index.html`, `getAdminToken()` returns `sessionStorage['adminToken'] || null`. Removed all hardcoded token placeholders and hints from login modals.
+2. **Deny-By-Default Middleware & Write Route Protection (ITEM 2)**:
+   - Mounted `app.use('/api/admin/*', ...)` middleware: any missing or incorrect token instantly yields `HTTP 401 Unauthorized` (`{ error: 'Unauthorized' }`).
+   - Completely eradicated "reduced-scope writes" fallback (previously falling back to `private_temp` on `/api/admin/ingest`, `/api/admin/ingest-batch`, `/api/admin/ingest-table`). Unauthorized writes are denied by default.
+   - Closed unauthenticated endpoints: `/api/admin/setup-db`, `/api/admin/auto-parse-table`, `/api/admin/ai-generate-rule`, `/api/admin/auto-train-standard`, `/api/admin/schema/columns`, and `/api/admin/tables`.
+   - Read/public endpoints (`/api/ask`, `/api/health`, `/api/locaspec/*`) remain fully accessible without administrative credentials.
+3. **Hygiene & Cloudflare Secret Migration (ITEM 3)**:
+   - Removed `ADMIN_SECRET` from `worker/wrangler.toml` `[vars]`.
+   - Uploaded `ADMIN_SECRET` into encrypted Cloudflare Secrets via `wrangler secret put ADMIN_SECRET`.
+   - Updated CORS to validate origins explicitly (`*.pages.dev`, `localhost`, `127.0.0.1`, or `c.env.ALLOWED_ORIGIN`), never emitting wildcard `*` alongside credential headers.
+   - Removed stale `worker/dist/` build directory to ensure deployments directly target `worker/src/index.js`.
+4. **Owner Rotation Reminder**:
+   > [!IMPORTANT]
+   > **OWNER ROTATION REQUIRED**: To rotate the production administrative token, run:
+   > ```bash
+   > npx wrangler secret put ADMIN_SECRET -c worker/wrangler.toml
+   > ```
+   > Enter your new cryptographically random secret string. The worker will automatically bind the new secret without requiring code modification or rebuilding.
+
+---
+
+### 20.2 Admin Gate Matrix Canary Suite Results (`scripts/test_admin_gate_matrix.js`)
+
+| Route Path | HTTP Method | Vector: No Token | Vector: Wrong Token | Vector: Valid Secret | Status |
+|---|---|---|---|---|---|
+| `/api/admin/ingest` | POST | 401 BLOCKED | 401 BLOCKED | N/A (Write) | **PASS** |
+| `/api/admin/ingest-batch` | POST | 401 BLOCKED | 401 BLOCKED | N/A (Write) | **PASS** |
+| `/api/admin/ingest-table` | POST | 401 BLOCKED | 401 BLOCKED | N/A (Write) | **PASS** |
+| `/api/admin/auto-parse-table` | POST | 401 BLOCKED | 401 BLOCKED | N/A (Write) | **PASS** |
+| `/api/admin/ai-generate-rule` | POST | 401 BLOCKED | 401 BLOCKED | N/A (Write) | **PASS** |
+| `/api/admin/auto-train-standard` | POST | 401 BLOCKED | 401 BLOCKED | N/A (Write) | **PASS** |
+| `/api/admin/setup-db` | POST | 401 BLOCKED | 401 BLOCKED | N/A (Admin) | **PASS** |
+| `/api/admin/cache-purge` | POST | 401 BLOCKED | 401 BLOCKED | N/A (Admin) | **PASS** |
+| `/api/admin/review-queue` | GET | 401 BLOCKED | 401 BLOCKED | 200 OK | **PASS** |
+| `/api/admin/traces` | GET | 401 BLOCKED | 401 BLOCKED | 200 OK | **PASS** |
+| `/api/admin/model-status` | GET | 401 BLOCKED | 401 BLOCKED | 200 OK | **PASS** |
+| `/api/admin/config` | GET | 401 BLOCKED | 401 BLOCKED | 200 OK | **PASS** |
+| `/api/health` | GET | 200 OK (Public) | 200 OK (Public) | 200 OK (Public) | **PASS** |
+
+**Canary Summary**: 29 / 29 checks passed (100.0%). Deny-by-default strictly enforced.
+
+---
+
+### 20.3 Full Production Regression Suite Verification
+
+| Verification Suite | Target & Test Criteria | Scorecard | Status |
+|---|---|---|---|
+| **Golden Evals Benchmark** (`scripts/verify_live_gates.js`) | 14 Ground Truth Engineering Benchmarks | **14 / 14 (100.0%)** | **PASSED** |
+| **Planted-Error Refusal Suite** (`scripts/verify_live_gates.js`) | 5 In-Corpus Grounded + 5 Calibrated Refusals | **10 / 10 (100.0%)** | **PASSED** |
+| **Out-of-Corpus Refusal Rate** | Mandatory `CORPUS SCOPE DEMARCATION NOTICE` | **5 / 5 (100.0%)** | **PASSED** |
+| **Vague-Query & Table Guard** (`scripts/test_vague_query_gate.js`) | Probes A-F: MCQs, Explicit, Confirm, Skip, Doctor, Admin Pin | **6 / 6 (100.0%)** | **PASSED** |
+| **ELAE Canary Probes** (`scripts/test_elae_gate.js`) | Probes 1–4: Sign-off, Dose Calculator, Entailment, Fast Path | **4 / 4 (100.0%)** | **PASSED** |
+| **Table Fast-Path Latency** | Pre-compiled ASME B31.3 Table 341.3.2 ($\le 1.5$s) | **242 ms** | **PASSED** |
+| **Envelope Fast-Path Latency** | ASTM A106 Gr B Preheat Envelope ($\le 3.0$s) | **284 ms** | **PASSED** |
+| **Admin Gate Matrix Canary** (`scripts/test_admin_gate_matrix.js`) | 12 Admin Routes $\times$ {No Token, Wrong Token} + Reads | **29 / 29 (100.0%)** | **PASSED** |
+
+
 
 

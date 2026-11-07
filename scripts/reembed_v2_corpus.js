@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 const API_BASE = 'https://inspection-api.mohamedtarekhse.workers.dev';
-const ADMIN_TOKEN = 'specsupport-admin-2026';
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || process.env.ADMIN_SECRET || "";
 const CHECKPOINT_FILE = path.resolve(__dirname, '..', '.backups', 'embed_v2_checkpoint.json');
 
 function sleep(ms) {

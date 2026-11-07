@@ -72,7 +72,7 @@ const newIngest = `app.post('/api/admin/ingest', async (c) => {
     if (!standard_code || !content) return c.json({ error: 'Missing standard_code or content' }, 400)
 
     const token = c.req.header('Authorization')?.split(' ')[1]
-    const isAdmin = token && (token === c.env.ADMIN_SECRET || token === 'admin' || token === 'specsupport-admin-2026')
+    const isAdmin = token && (token === c.env.ADMIN_SECRET)
 
     // If not admin, gracefully assign to session-scoped private sandbox (never 401 block users)
     let effectiveScope = scope
