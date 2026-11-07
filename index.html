@@ -6481,11 +6481,20 @@
         }
 
         // Send Message Pipeline
-        async function sendMessage(overrideText = null) {
+        async function sendMessage(overrideText = null, options = {}) {
             // alias
             window.sendQuestion = sendMessage;
+        // Escape hatch: typing anything in input mid-interview dismisses active triage interview
+        document.getElementById('user-input')?.addEventListener('input', () => {
+            const activeCard = document.querySelector('.interactive-mcq-card');
+            if (activeCard) {
+                activeCard.remove();
+            }
+        });
+
             const input = document.getElementById('user-input');
             const text = (typeof overrideText === 'string') ? overrideText : input.value.trim();
+            window.lastUserMessageText = text;
             if (!text || isGenerating) return;
 
             // Transition from Greeting to Chat View
@@ -6683,6 +6692,9 @@ Answer the inspector's query strictly and accurately based on the verified local
                         mode: effectiveMode,
                         selected_standards: getActiveStandards(),
                         answer_depth: currentAnswerDepth,
+                        triage_ctx: (options && options.triage_ctx) ? options.triage_ctx : null,
+                        triage_action: (options && options.triage_action) ? options.triage_action : null,
+                        triage_rounds_used: (options && options.triage_rounds_used) ? options.triage_rounds_used : 0,
                         history: chatHistory.slice(-10)
                     })
                 });
@@ -7146,167 +7158,125 @@ Answer the inspector's query strictly and accurately based on the verified local
                     }
                 }
 
-                // Interactive MCQ Refinement & Universal Specification Triage Card
+                // Interactive MCQ Refinement & Sequential Step-Through Triage Interview with Approve Step
                 if (mcqs && mcqs.length > 0) {
-                    let disciplineType = 'generic';
-                    const allQText = mcqs.map(m => m.question || '').join(' ').toLowerCase();
-
-                    if (allQText.includes('base metal') || allQText.includes('wps')) {
-                        disciplineType = 'wps';
-                    } else if (allQText.includes('ndt examination') || allQText.includes('ndt') || allQText.includes('target ndt')) {
-                        disciplineType = 'ndt';
-                    } else if (allQText.includes('hydrostatic') || allQText.includes('piping / equipment code') || allQText.includes('design pressure') || allQText.includes('governing piping')) {
-                        disciplineType = 'hydrotest';
-                    } else if (allQText.includes('asset type') || allQText.includes('shell component') || allQText.includes('fitness')) {
-                        disciplineType = 'integrity';
-                    } else if (allQText.includes('hoisting') || allQText.includes('structural equipment') || allQText.includes('target inspection category')) {
-                        disciplineType = 'hoisting';
-                    } else if (allQText.includes('tubular') || allQText.includes('classification tier') || allQText.includes('drill stem')) {
-                        disciplineType = 'tubular';
-                    } else if (allQText.includes('well control') || allQText.includes('bop') || allQText.includes('rated working pressure')) {
-                        disciplineType = 'bop';
-                    }
-
-                    const isTriage = disciplineType !== 'generic';
-
-                    let headerBadge = '<span class="mcq-badge">Specification Conflict Fork</span>';
-                    let headerSubtitle = 'Select applicable project path to finalize verdict:';
-                    let btnLabel = '⚡ Resolve Conflict with Selected Path';
-                    let btnBg = 'var(--gemini-blue)';
-
-                    if (disciplineType === 'wps') {
-                        headerBadge = '<span class="mcq-badge" style="background:rgba(16, 185, 129, 0.15); color:#10b981; border:1px solid rgba(16, 185, 129, 0.3);">⚡ ASME IX / B31.3 Specification Triage</span>';
-                        headerSubtitle = 'Select essential variables or apply the Global Standards Baseline:';
-                        btnLabel = '⚡ Generate Deterministic ASME Form QW-482 WPS';
-                        btnBg = 'linear-gradient(135deg, #059669, #10b981)';
-                    } else if (disciplineType === 'ndt') {
-                        headerBadge = '<span class="mcq-badge" style="background:rgba(59, 130, 246, 0.15); color:#60a5fa; border:1px solid rgba(59, 130, 246, 0.3);">⚡ ASME Section V NDT Examination Triage</span>';
-                        headerSubtitle = 'Select examination method & geometry or apply Code Baseline:';
-                        btnLabel = '⚡ Generate Deterministic NDT Written Procedure';
-                        btnBg = 'linear-gradient(135deg, #2563eb, #3b82f6)';
-                    } else if (disciplineType === 'hydrotest') {
-                        headerBadge = '<span class="mcq-badge" style="background:rgba(14, 165, 233, 0.15); color:#38bdf8; border:1px solid rgba(14, 165, 233, 0.3);">⚡ Hydrostatic & Pressure Testing Triage</span>';
-                        headerSubtitle = 'Select piping code & pressure rating or apply Code Baseline:';
-                        btnLabel = '⚡ Generate Hydrostatic Test Sequence & Hold Protocol';
-                        btnBg = 'linear-gradient(135deg, #0284c7, #0ea5e9)';
-                    } else if (disciplineType === 'integrity') {
-                        headerBadge = '<span class="mcq-badge" style="background:rgba(168, 85, 247, 0.15); color:#c084fc; border:1px solid rgba(168, 85, 247, 0.3);">⚡ API 510 / 570 Fitness-For-Service Triage</span>';
-                        headerSubtitle = 'Select asset geometry & damage mechanism:';
-                        btnLabel = '⚡ Generate API Retirement Thickness & Remaining Life Evaluation';
-                        btnBg = 'linear-gradient(135deg, #7c3aed, #a855f7)';
-                    } else if (disciplineType === 'hoisting') {
-                        headerBadge = '<span class="mcq-badge" style="background:rgba(245, 158, 11, 0.15); color:#fbbf24; border:1px solid rgba(245, 158, 11, 0.3);">⚡ API RP 8B / 4G Hoisting Equipment Triage</span>';
-                        headerSubtitle = 'Select equipment scope & Category:';
-                        btnLabel = '⚡ Generate API RP 8B Field Inspection Plan & Wear Limits';
-                        btnBg = 'linear-gradient(135deg, #d97706, #f59e0b)';
-                    } else if (disciplineType === 'tubular') {
-                        headerBadge = '<span class="mcq-badge" style="background:rgba(234, 88, 12, 0.15); color:#fb923c; border:1px solid rgba(234, 88, 12, 0.3);">⚡ API RP 7G-2 / DS-1 Tubular Triage</span>';
-                        headerSubtitle = 'Select tubular scope & target classification tier:';
-                        btnLabel = '⚡ Generate API RP 7G-2 Tubular Classification Criteria';
-                        btnBg = 'linear-gradient(135deg, #ea580c, #f97316)';
-                    } else if (disciplineType === 'bop') {
-                        headerBadge = '<span class="mcq-badge" style="background:rgba(239, 68, 68, 0.15); color:#f87171; border:1px solid rgba(239, 68, 68, 0.3);">⚡ API Standard 53 Well Control Triage</span>';
-                        headerSubtitle = 'Select BOP stack configuration & working pressure:';
-                        btnLabel = '⚡ Generate API 53 Step-by-Step BOP Test Sequence';
-                        btnBg = 'linear-gradient(135deg, #dc2626, #ef4444)';
-                    }
+                    const triageStorageKey = 'triage_ctx_' + (sessionId || 'default');
+                    let triageCtx = {};
+                    try { triageCtx = JSON.parse(sessionStorage.getItem(triageStorageKey) || '{}'); } catch(e){}
 
                     const mcqCard = document.createElement('div');
                     mcqCard.className = 'interactive-mcq-card';
-                    mcqCard.innerHTML = `
-                        <div class="mcq-card-header">
-                            ${headerBadge}
-                            <span>${headerSubtitle}</span>
-                        </div>
-                    `;
 
-                    const selectedParams = {};
-                    let customCompanySpecInput = null;
+                    function renderTriageCard() {
+                        mcqCard.innerHTML = '';
+                        const firstUnansweredIdx = mcqs.findIndex(m => !triageCtx[m.question]);
+                        const isAllAnswered = firstUnansweredIdx === -1;
 
-                    mcqs.forEach((mcq, qIdx) => {
-                        const qBlock = document.createElement('div');
-                        qBlock.className = 'mcq-question-block';
-                        qBlock.innerHTML = `<div class="mcq-question-title">${qIdx + 1}. ${mcq.question}</div>`;
+                        if (!isAllAnswered) {
+                            const qIdx = firstUnansweredIdx;
+                            const curMcq = mcqs[qIdx];
 
-                        const grid = document.createElement('div');
-                        grid.className = 'mcq-options-grid';
+                            const headerDiv = document.createElement('div');
+                            headerDiv.className = 'mcq-card-header';
+                            headerDiv.style.cssText = 'display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:12px;';
+                            headerDiv.innerHTML = `
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span class="mcq-badge">⚡ Scope Triage</span>
+                                    <span style="font-size:0.82rem; color:var(--gemini-text-muted);">Step ${qIdx + 1} of ${mcqs.length}</span>
+                                </div>
+                                <span style="font-size:0.75rem; color:var(--gemini-text-muted); cursor:pointer;" onclick="this.closest('.interactive-mcq-card').remove()">✕ Dismiss</span>
+                            `;
+                            mcqCard.appendChild(headerDiv);
 
-                        let customInputWrap = null;
+                            const qBlock = document.createElement('div');
+                            qBlock.className = 'mcq-question-block';
+                            qBlock.innerHTML = `<div class="mcq-question-title" style="font-size:0.92rem; font-weight:600; margin-bottom:10px;">${curMcq.question}</div>`;
 
-                        mcq.options.forEach(opt => {
-                            const pill = document.createElement('button');
-                            let pillClasses = 'mcq-option-pill';
-                            if (opt.includes('🌐 Global')) pillClasses += ' global-std';
-                            else if (opt.includes('🏢 Custom')) pillClasses += ' custom-spec';
-                            else if (opt.includes('💡 Advise')) pillClasses += ' advise-pill';
-                            
-                            pill.className = pillClasses;
-                            pill.textContent = opt;
+                            const grid = document.createElement('div');
+                            grid.className = 'mcq-options-grid';
+                            grid.style.cssText = 'display:flex; flex-direction:column; gap:8px;';
 
-                            pill.onclick = () => {
-                                grid.querySelectorAll('.mcq-option-pill').forEach(p => p.classList.remove('selected'));
-                                pill.classList.add('selected');
-                                selectedParams[mcq.question] = opt;
+                            curMcq.options.forEach(opt => {
+                                const pill = document.createElement('button');
+                                pill.className = 'mcq-option-pill';
+                                pill.style.cssText = 'width:100%; text-align:left; justify-content:flex-start; padding:10px 14px; border-radius:8px; font-size:0.85rem; line-height:1.4;';
+                                pill.textContent = opt;
 
-                                if (opt.includes('🏢 Custom')) {
-                                    if (!customInputWrap) {
-                                        customInputWrap = document.createElement('div');
-                                        customInputWrap.className = 'custom-spec-input-container';
-                                        customInputWrap.style.cssText = 'margin-top:10px; width:100%; animation:fadeIn 0.2s ease;';
-                                        customInputWrap.innerHTML = `
-                                            <input type="text" class="custom-spec-input-field" 
-                                                placeholder="Enter client standard (e.g. Shell DEP, Aramco SAES, ADNOC DGS, Total EP)..." 
-                                                style="width:100%; padding:8px 12px; border-radius:8px; background:var(--gemini-card-bg); border:1px solid rgba(245, 158, 11, 0.4); color:var(--gemini-text-main); font-size:0.84rem; outline:none;" />
-                                        `;
-                                        qBlock.appendChild(customInputWrap);
-                                        customCompanySpecInput = customInputWrap.querySelector('input');
-                                    } else {
-                                        customInputWrap.style.display = 'block';
-                                    }
-                                } else if (customInputWrap) {
-                                    customInputWrap.style.display = 'none';
-                                }
+                                pill.onclick = (e) => {
+                                    e.preventDefault();
+                                    triageCtx[curMcq.question] = opt;
+                                    sessionStorage.setItem(triageStorageKey, JSON.stringify(triageCtx));
+                                    renderTriageCard();
+                                };
+                                grid.appendChild(pill);
+                            });
 
-                                const refineBtn = mcqCard.querySelector('.mcq-refine-btn');
-                                if (refineBtn) refineBtn.disabled = false;
-                            };
-                            grid.appendChild(pill);
-                        });
-
-                        qBlock.appendChild(grid);
-                        mcqCard.appendChild(qBlock);
-                    });
-
-                    const actionsBar = document.createElement('div');
-                    actionsBar.className = 'mcq-actions-bar';
-                    const refineBtn = document.createElement('button');
-                    refineBtn.className = 'mcq-refine-btn';
-                    refineBtn.innerHTML = btnLabel;
-                    refineBtn.style.background = btnBg;
-                    refineBtn.disabled = true;
-
-                    refineBtn.onclick = () => {
-                        refineBtn.disabled = true;
-                        
-                        if (isTriage) {
-                            let refineQuery = `Please generate the definitive engineering procedure / specification for ${disciplineType.toUpperCase()} with the following parameters:\n`;
-                            for (const [k, v] of Object.entries(selectedParams)) {
-                                refineQuery += `- ${k}: ${v}\n`;
-                            }
-                            if (customCompanySpecInput && customCompanySpecInput.value.trim()) {
-                                refineQuery += `- Specific Company Spec: ${customCompanySpecInput.value.trim()}\n`;
-                            }
-                            refineQuery += '\nPlease provide the full deterministic code rules, formulas, hold points, and acceptance criteria based on international standards.';
-                            sendMessage(refineQuery);
+                            qBlock.appendChild(grid);
+                            mcqCard.appendChild(qBlock);
                         } else {
-                            const paramList = Object.entries(selectedParams).map(([k, v]) => `- ${k}: ${v}`).join('\n');
-                            const refineQuery = `Resolving specification conflict with the following verified project condition:\n${paramList}\n\nPlease provide the final verified clause verdict.`;
-                            sendMessage(refineQuery);
-                        }
-                    };
-                    actionsBar.appendChild(refineBtn);
-                    mcqCard.appendChild(actionsBar);
+                            // Approve Step: All answered! Render Confirm Card
+                            const headerDiv = document.createElement('div');
+                            headerDiv.className = 'mcq-card-header';
+                            headerDiv.style.cssText = 'display:flex; align-items:center; gap:8px; margin-bottom:12px;';
+                            headerDiv.innerHTML = `
+                                <span class="mcq-badge" style="background:rgba(16, 185, 129, 0.15); color:#10b981; border:1px solid rgba(16, 185, 129, 0.3);">⚡ Scope Confirmed</span>
+                                <span style="font-size:0.82rem; color:var(--gemini-text-muted);">Verify against international codes:</span>
+                            `;
+                            mcqCard.appendChild(headerDiv);
 
+                            const scopeValues = Object.values(triageCtx).map(v => v.split('(')[0].trim());
+                            const summaryScopeStr = (window.lastUserMessageText || 'Equipment QA') + ' · ' + scopeValues.join(' · ');
+
+                            const summaryBox = document.createElement('div');
+                            summaryBox.style.cssText = 'background:var(--gemini-card-bg); border:1px solid var(--gemini-border); border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:0.86rem; font-weight:600; color:var(--gemini-text-main); line-height:1.5;';
+                            summaryBox.textContent = summaryScopeStr;
+                            mcqCard.appendChild(summaryBox);
+
+                            const actionsBar = document.createElement('div');
+                            actionsBar.style.cssText = 'display:flex; gap:10px; flex-wrap:wrap; align-items:center;';
+
+                            const answerBtn = document.createElement('button');
+                            answerBtn.className = 'curator-btn primary';
+                            answerBtn.style.cssText = 'background:var(--gemini-blue); color:#fff; border:none; padding:8px 16px; border-radius:8px; font-size:0.84rem; font-weight:600; cursor:pointer;';
+                            answerBtn.textContent = '⚡ Answer with this scope';
+                            answerBtn.onclick = () => {
+                                mcqCard.remove();
+                                sendMessage(window.lastUserMessageText || 'Inspection QA', {
+                                    triage_ctx: triageCtx,
+                                    triage_action: 'answer',
+                                    triage_rounds_used: Object.keys(triageCtx).length
+                                });
+                            };
+                            actionsBar.appendChild(answerBtn);
+
+                            const changeBtn = document.createElement('button');
+                            changeBtn.style.cssText = 'background:transparent; border:1px solid var(--gemini-border); color:var(--gemini-text-main); padding:8px 14px; border-radius:8px; font-size:0.84rem; cursor:pointer;';
+                            changeBtn.textContent = 'Change';
+                            changeBtn.onclick = () => {
+                                triageCtx = {};
+                                sessionStorage.removeItem(triageStorageKey);
+                                renderTriageCard();
+                            };
+                            actionsBar.appendChild(changeBtn);
+
+                            const skipBtn = document.createElement('button');
+                            skipBtn.style.cssText = 'background:transparent; border:none; color:var(--gemini-text-muted); padding:8px 12px; font-size:0.84rem; cursor:pointer; text-decoration:underline;';
+                            skipBtn.textContent = 'Skip - answer broadly';
+                            skipBtn.onclick = () => {
+                                mcqCard.remove();
+                                sendMessage(window.lastUserMessageText || 'Inspection QA', {
+                                    triage_ctx: triageCtx,
+                                    triage_action: 'skip',
+                                    triage_rounds_used: Object.keys(triageCtx).length
+                                });
+                            };
+                            actionsBar.appendChild(skipBtn);
+
+                            mcqCard.appendChild(actionsBar);
+                        }
+                    }
+
+                    renderTriageCard();
                     tailDiv.appendChild(mcqCard);
                 }
 
