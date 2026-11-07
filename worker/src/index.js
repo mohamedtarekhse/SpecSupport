@@ -5855,10 +5855,306 @@ function enforceAuthoringSignOff(answer, question, calcRes) {
   return out;
 }
 
-function verifyAnswerGrounding(answer, sources, envelopeContext, isDeterministic = false) {
-  if (!answer || typeof answer !== 'string') {
-    return { score_pct: 100, verified_claims: 0, total_claims: 0, unverified_claims: 0, flags: [], verbatim_evidence_quote: null, evidence: null, badge: 'VERIFIED_CODE_GROUNDED', usr: 0, clause_resolvable_pct: 100, unsourced_clauses: [] };
+function extractAtomicAssertions(answer) {
+  if (!answer || typeof answer !== 'string') return [];
+  const clean = answer
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/^> ⚠️ \*\*DRAFT FOR REVIEW[\s\S]*?\n/m, '')
+    .trim();
+
+  const lines = clean.split('\n');
+  const assertions = [];
+  const seen = new Set();
+
+  for (const rawLine of lines) {
+    let line = rawLine.trim();
+    if (!line) continue;
+    if (/^#{1,6}\s+/.test(line)) continue;
+    if (/^\|[-:\s|]+\|$/.test(line)) continue;
+    if (/^[\*\-_]{3,}$/.test(line)) continue;
+    if (/^\*\*(?:SHORT ANSWER|EVIDENCE & CODE SPECIFICATION|EXPLANATION|FIELD ACTION SUMMARY|PARAMETER BOX|MANDATORY QUALITY RECORDS|QUALITY RECORDS)[^\*]*\*\*[:\s]*$/i.test(line)) continue;
+
+    const stripped = line.replace(/^[-*•\d\.\)]+\s*/, '').replace(/\[(?:VERIFIED|USER-INPUT|VERIFICATION-REQUIRED)[^\]]*\]/g, '').trim();
+    if (stripped.length < 20) continue;
+
+    const hasTechnicalClaim = /\b(?:\d+(?:\.\d+)?\s*(?:°C|°F|HRC|HBW|psi|bar|ksi|mm|inch|in\.|ft-lbs|Joule|J\b|%|years?|days?|hours?|hrs?|minutes?|min\b|MPa|GPa|kPa|N\/mm2?)|P-No|P-Number|Table\s+[A-Za-z0-9\.\-\/]+|Clause\s+[A-Za-z0-9\.\-]+|UG-[0-9]+|UW-[0-9]+|QW-[0-9]+|shall|must|mandatory|exempt|prohibited|acceptable|rejected|maximum|minimum|undercut|preheat|pwht)\b/i.test(stripped);
+
+    if (hasTechnicalClaim) {
+      const sentences = stripped.split(/(?<=[.?!])\s+(?=[A-Z0-9])/).filter(s => s.trim().length >= 20);
+      for (const sent of (sentences.length > 0 ? sentences : [stripped])) {
+        const normSent = sent.toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+        if (normSent.length >= 15 && !seen.has(normSent)) {
+          seen.add(normSent);
+          assertions.push({
+            id: assertions.length + 1,
+            text: sent.trim()
+          });
+          if (assertions.length >= 12) break;
+        }
+      }
+    }
+    if (assertions.length >= 12) break;
   }
+
+  return assertions;
+}
+
+async function judgeAnswerAssertions(c, assertions, sources, envelopeContext, authoritativeBlock, isAdmin) {
+  if (!assertions || assertions.length === 0) return [];
+
+  const calculatorContradictions = [];
+  if (authoritativeBlock) {
+    const authNorm = authoritativeBlock.toLowerCase();
+    for (const a of assertions) {
+      const aLower = a.text.toLowerCase();
+      if (authNorm.includes('200°f is not required') && (aLower.includes('200°f') || aLower.includes('95°c')) && (aLower.includes('required') || aLower.includes('mandatory') || aLower.includes('must preheat'))) {
+        calculatorContradictions.push({
+          id: a.id,
+          verdict: 'CONTRADICTED',
+          reason: 'Preheat 200°F contradicts ASME B31.3 Table 330.1.1 requirement of 10°C (50°F) for wall <= 25 mm'
+        });
+      }
+      if (authNorm.includes('pwht requirement: not required (exempt)') && /pwht\s*(?:is\s*)?(?:mandatory|strictly\s*required|must\s*be\s*performed)/i.test(aLower)) {
+        calculatorContradictions.push({
+          id: a.id,
+          verdict: 'CONTRADICTED',
+          reason: 'PWHT mandatory contradicts ASME B31.3 Table 331.1.1 exemption for wall <= 19.05 mm'
+        });
+      }
+      if (authNorm.includes('pwht requirement: mandatory') && /pwht\s*(?:is\s*)?(?:not\s*required|exempt|none)/i.test(aLower)) {
+        calculatorContradictions.push({
+          id: a.id,
+          verdict: 'CONTRADICTED',
+          reason: 'PWHT exempt contradicts ASME B31.3 Table 331.1.1 requirement for wall > 19.05 mm'
+        });
+      }
+    }
+  }
+
+  const judgeModel = isAdmin ? '@cf/zai-org/glm-5.3-flash' : '@cf/meta/llama-3.1-8b-instruct-fp8-fast';
+  const compactSources = (sources || []).slice(0, 5).map((s, i) => `[Source ${i+1}: ${s.standard || ''} ${s.clause || ''}]\n${(s.content || '').slice(0, 350)}`).join('\n\n');
+
+  const judgeSystemPrompt = `You are an expert technical compliance entailment judge for international engineering standards (ASME, API, AWS, NACE).
+For each numbered assertion, determine whether it is ENTAILED, CONTRADICTED, or NOT_IN_CORPUS relative to the provided Reference Sources.
+- ENTAILED: directly supported by facts, numbers, or rules in the sources or code calculator.
+- CONTRADICTED: conflicts with or contradicts numerical limits, temperatures, materials, thresholds, or rules in the reference sources.
+- NOT_IN_CORPUS: discusses topics or general knowledge not mentioned in the reference sources, without contradicting them.
+
+Return ONLY a valid JSON array:
+[
+  { "id": 1, "verdict": "ENTAILED" | "CONTRADICTED" | "NOT_IN_CORPUS", "reason": "short explanation" }
+]
+Output pure JSON only.`;
+
+  const judgeUserMessage = `REFERENCE SOURCES:
+${compactSources}
+
+${authoritativeBlock ? `AUTHORITATIVE CODE CALCULATOR RESULT:\n${authoritativeBlock}\n` : ''}
+
+${envelopeContext ? `SAFETY ENVELOPES:\n${envelopeContext.slice(0, 500)}\n` : ''}
+
+ASSERTIONS TO JUDGE:
+${assertions.map(a => `${a.id}. ${a.text}`).join('\n')}`;
+
+  try {
+    if (!c || !c.env || !c.env.AI) {
+      throw new Error('AI binding unavailable');
+    }
+
+    const aiRes = await c.env.AI.run(judgeModel, {
+      messages: [
+        { role: 'system', content: judgeSystemPrompt },
+        { role: 'user', content: judgeUserMessage }
+      ],
+      max_tokens: 500,
+      temperature: 0.1
+    });
+
+    let rawOut = '';
+    if (typeof aiRes === 'string') rawOut = aiRes;
+    else if (aiRes && aiRes.response) rawOut = aiRes.response;
+    else if (aiRes && aiRes.choices && aiRes.choices[0]) rawOut = aiRes.choices[0].message?.content || '';
+
+    let parsedVerdicts = [];
+    const jsonMatch = rawOut.match(/\[\s*\{[\s\S]*\}\s*\]/);
+    if (jsonMatch) {
+      try {
+        parsedVerdicts = JSON.parse(jsonMatch[0]);
+      } catch(e) {}
+    }
+
+    const resultMap = new Map();
+    for (const v of parsedVerdicts) {
+      if (v && v.id) resultMap.set(v.id, v);
+    }
+    for (const cCon of calculatorContradictions) {
+      resultMap.set(cCon.id, cCon);
+    }
+
+    return assertions.map(a => {
+      const found = resultMap.get(a.id);
+      if (found && (found.verdict === 'ENTAILED' || found.verdict === 'CONTRADICTED' || found.verdict === 'NOT_IN_CORPUS')) {
+        return {
+          id: a.id,
+          text: a.text,
+          verdict: found.verdict,
+          reason: found.reason || ''
+        };
+      }
+      const rawRef = ((sources || []).map(s => `${s.standard || ''} ${s.clause || ''} ${s.content || ''}`).join(' ') + ' ' + (envelopeContext || '')).toLowerCase();
+      const numMatch = a.text.match(/\b\d+(?:\.\d+)?\s*(?:°C|°F|mm|inch|in\.|psi|bar|HRC|ksi|MPa)\b/i);
+      const isNumInRef = numMatch ? rawRef.includes(numMatch[0].toLowerCase().trim()) : true;
+      return {
+        id: a.id,
+        text: a.text,
+        verdict: isNumInRef ? 'ENTAILED' : 'NOT_IN_CORPUS',
+        reason: 'Fallback heuristic determination'
+      };
+    });
+  } catch (err) {
+    const rawRef = ((sources || []).map(s => `${s.standard || ''} ${s.clause || ''} ${s.content || ''}`).join(' ') + ' ' + (envelopeContext || '')).toLowerCase();
+    const conIds = new Set(calculatorContradictions.map(c => c.id));
+
+    return assertions.map(a => {
+      if (conIds.has(a.id)) {
+        const cCon = calculatorContradictions.find(c => c.id === a.id);
+        return { id: a.id, text: a.text, verdict: 'CONTRADICTED', reason: cCon.reason };
+      }
+      const numMatch = a.text.match(/\b\d+(?:\.\d+)?\s*(?:°C|°F|mm|inch|in\.|psi|bar|HRC|ksi|MPa)\b/i);
+      const isNumInRef = numMatch ? rawRef.includes(numMatch[0].toLowerCase().trim()) : true;
+      return {
+        id: a.id,
+        text: a.text,
+        verdict: isNumInRef ? 'ENTAILED' : 'NOT_IN_CORPUS',
+        reason: 'Fallback heuristic (AI judge bypassed)'
+      };
+    });
+  }
+}
+
+function buildEvidenceGrades(assertions, judgedVerdicts, sources, isDeterministic, authoritativeBlock) {
+  if (isDeterministic) {
+    return (assertions || []).map(a => ({
+      text: a.text,
+      grade: 'verified',
+      source: 'Deterministic Engineering Engine'
+    }));
+  }
+
+  const grades = [];
+  const verdictMap = new Map();
+  for (const j of (judgedVerdicts || [])) {
+    verdictMap.set(j.id, j);
+  }
+
+  for (const a of (assertions || [])) {
+    const judged = verdictMap.get(a.id);
+    const textLower = a.text.toLowerCase();
+    const isDeclared = /\[USER-INPUT\]/i.test(a.text) || /\[VERIFICATION-REQUIRED\]/i.test(a.text) || /user\s*specified|given\s*parameters|assumed/i.test(textLower);
+
+    if (isDeclared) {
+      grades.push({
+        text: a.text,
+        grade: 'declared',
+        source: 'User Input / Engineering Assumption'
+      });
+    } else if (judged && judged.verdict === 'CONTRADICTED') {
+      grades.push({
+        text: a.text,
+        grade: 'unverified',
+        source: `Contradiction: ${judged.reason || 'Conflicts with governing code'}`
+      });
+    } else if (judged && judged.verdict === 'ENTAILED') {
+      let matchedSource = 'Governing Code Baseline';
+      for (const s of (sources || [])) {
+        if (s.clause && a.text.toLowerCase().includes(s.clause.toLowerCase().replace(/^(?:table|clause|section)\s+/i, '').trim())) {
+          matchedSource = `${s.standard || ''} ${s.clause || ''}`.trim();
+          break;
+        }
+      }
+      if (authoritativeBlock && matchedSource === 'Governing Code Baseline') {
+        matchedSource = 'ASME / Code Calculator';
+      }
+      grades.push({
+        text: a.text,
+        grade: 'verified',
+        source: matchedSource
+      });
+    } else {
+      grades.push({
+        text: a.text,
+        grade: 'unverified',
+        source: 'Not in verified corpus'
+      });
+    }
+  }
+
+  return grades;
+}
+
+async function verifyAnswerGrounding(arg1, arg2, arg3, arg4, arg5, arg6) {
+  let c = null, answer, sources, envelopeContext, isDeterministic = false, options = {};
+  if (arg1 && typeof arg1 === 'object' && arg1.env) {
+    c = arg1;
+    answer = arg2;
+    sources = arg3;
+    envelopeContext = arg4;
+    isDeterministic = Boolean(arg5);
+    options = arg6 || {};
+  } else {
+    answer = arg1;
+    sources = arg2;
+    envelopeContext = arg3;
+    isDeterministic = Boolean(arg4);
+    options = arg5 || {};
+  }
+
+  if (!answer || typeof answer !== 'string') {
+    return {
+      score_pct: 100,
+      verified_claims: 0,
+      total_claims: 0,
+      unverified_claims: 0,
+      flags: [],
+      verbatim_evidence_quote: null,
+      evidence: null,
+      badge: 'VERIFIED_CODE_GROUNDED',
+      usr: 0,
+      clause_resolvable_pct: 100,
+      unsourced_clauses: [],
+      assertion_entailed_pct: 100.0,
+      contradictions: 0,
+      contradictions_detail: [],
+      evidence_grades: []
+    };
+  }
+
+  // Extract atomic assertions
+  const assertions = extractAtomicAssertions(answer);
+  let judgedVerdicts = [];
+  let assertionEntailedPct = 100.0;
+  let contradictionsCount = 0;
+  let contradictionsDetail = [];
+
+  if (isDeterministic) {
+    assertionEntailedPct = 100.0;
+    contradictionsCount = 0;
+  } else {
+    if (assertions.length > 0) {
+      if (options.skipLlmJudge || !c || !c.env || !c.env.AI) {
+        judgedVerdicts = await judgeAnswerAssertions(null, assertions, sources, envelopeContext, options.authoritativeBlock, false);
+      } else {
+        judgedVerdicts = await judgeAnswerAssertions(c, assertions, sources, envelopeContext, options.authoritativeBlock, options.isAdmin);
+      }
+
+      const entailed = judgedVerdicts.filter(v => v.verdict === 'ENTAILED').length;
+      contradictionsDetail = judgedVerdicts.filter(v => v.verdict === 'CONTRADICTED');
+      contradictionsCount = contradictionsDetail.length;
+      assertionEntailedPct = assertions.length > 0 ? Math.round((entailed / assertions.length) * 100) : 100.0;
+    }
+  }
+
+  const evidenceGrades = buildEvidenceGrades(assertions, judgedVerdicts, sources, isDeterministic, options.authoritativeBlock);
 
   const citationProtocol = enforceCitationProtocol(answer, sources, isDeterministic, envelopeContext);
 
@@ -6071,6 +6367,17 @@ function verifyAnswerGrounding(answer, sources, envelopeContext, isDeterministic
     flags.push({ type: 'UNSOURCED_CLAUSE', claim: citationProtocol.unsourced_clauses.map(u => u.clause).join(', ') });
   }
 
+  // ELAE Entailment Verdict Badge Rules:
+  // Any CONTRADICTED assertion -> force UNVERIFIED_WARNING
+  if (contradictionsCount > 0) {
+    badge = 'UNVERIFIED_WARNING';
+    for (const cd of contradictionsDetail) {
+      flags.push({ type: 'ASSERTION_CONTRADICTION', claim: `${cd.text} (${cd.reason})` });
+    }
+  } else if (!isDeterministic && judgedVerdicts.some(v => v.verdict === 'NOT_IN_CORPUS') && badge === 'VERIFIED_CODE_GROUNDED') {
+    badge = 'PARTIAL_VERIFICATION';
+  }
+
   return {
     sanitizedAnswer: citationProtocol.answer || answer,
     score_pct: scorePct,
@@ -6082,6 +6389,10 @@ function verifyAnswerGrounding(answer, sources, envelopeContext, isDeterministic
     unsourced_clauses: citationProtocol.unsourced_clauses || [],
     usr: isDeterministic ? 0 : citationProtocol.usr,
     clause_resolvable_pct: isDeterministic ? 100 : citationProtocol.clause_resolvable_pct,
+    assertion_entailed_pct: assertionEntailedPct,
+    contradictions: contradictionsCount,
+    contradictions_detail: contradictionsDetail,
+    evidence_grades: evidenceGrades,
     verbatim_evidence_quote: bestQuote || null,
     evidence: evidenceObj,
     badge
@@ -7774,7 +8085,7 @@ app.post('/api/ask', async (c) => {
     }
     if (fastPathResult && fastPathResult.hit) {
       const tVerifierStart = Date.now()
-      const verifierResult = verifyAnswerGrounding(fastPathResult.answer, sources, envelopeContext, true)
+      const verifierResult = await verifyAnswerGrounding(c, fastPathResult.answer, sources, envelopeContext, true)
       const verifierMs = Math.max(1, Date.now() - tVerifierStart)
       const totalDurationMs = Date.now() - reqStartTime
 
@@ -7782,6 +8093,8 @@ app.post('/api/ask', async (c) => {
         ...verifierResult,
         score_pct: 100,
         badge: 'VERIFIED_CODE_GROUNDED',
+        assertion_entailed_pct: 100.0,
+        contradictions: 0,
         verbatim_evidence_quote: fastPathResult.evidence?.quote || verifierResult.verbatim_evidence_quote,
         evidence: fastPathResult.evidence || verifierResult.evidence
       }
@@ -7855,13 +8168,13 @@ app.post('/api/ask', async (c) => {
               CACHE_SCHEMA_VERSION, JSON.stringify(grounding)
             ).run() : Promise.resolve(),
             c.env.DB.prepare(`
-              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct, assertion_entailed_pct, contradictions)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               crypto.randomUUID(), session_id, question.slice(0, 300), standard_filter || 'ALL',
               100, 'VERIFIED_CODE_GROUNDED', 'deterministic_table', 'SpecSupport-Deterministic-Table-Engine',
               totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, (fastPathResult.mode || 'FASTPATH_TABLE'), effectiveAnswerDepth, providerRole,
-              0, 0, null, null, null, 0, 100
+              0, 0, null, null, null, 0, 100, 100.0, 0
             ).run(),
             c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(
               session_id, question, 'SpecSupport-Deterministic-Table-Engine', today
@@ -7889,13 +8202,13 @@ app.post('/api/ask', async (c) => {
               CACHE_SCHEMA_VERSION, JSON.stringify(grounding)
             ).run() : Promise.resolve(),
             c.env.DB.prepare(`
-              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct, assertion_entailed_pct, contradictions)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               crypto.randomUUID(), session_id, question.slice(0, 300), standard_filter || 'ALL',
               100, 'VERIFIED_CODE_GROUNDED', 'deterministic_table', 'SpecSupport-Deterministic-Table-Engine',
               totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, (fastPathResult.mode || 'FASTPATH_TABLE'), effectiveAnswerDepth, providerRole,
-              0, 0, null, null, null, 0, 100
+              0, 0, null, null, null, 0, 100, 100.0, 0
             ).run(),
             c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(
               session_id, question, 'SpecSupport-Deterministic-Table-Engine', today
@@ -7963,15 +8276,43 @@ app.post('/api/ask', async (c) => {
     let loopPasses = 1
     let criticModelUsed = draftRes.model
 
-    const draftGroundingCheck = verifyAnswerGrounding(draftAnswer, sources, envelopeContext || "")
+    const draftGroundingCheck = await verifyAnswerGrounding(c, draftAnswer, sources, envelopeContext || "", false, {
+      isAdmin: isAdminRequest,
+      authoritativeBlock: calcRes?.authoritative_block,
+      skipLlmJudge: (effectiveAnswerDepth === 'low')
+    })
     const hasUnsourcedTableInDraft = draftGroundingCheck.flags.some(f => f.type === 'UNSOURCED_TABLE_CONTENT')
+    const hasContradictionInDraft = (draftGroundingCheck.contradictions || 0) > 0
+
+    if (hasContradictionInDraft && draftAnswer && !draftAnswer.startsWith('AI Error:') && draftAnswer.length > 50) {
+      const contradictionLines = (draftGroundingCheck.contradictions_detail || []).map(cd => `- Contradicted: "${cd.text}" (${cd.reason})`).join('\n')
+      const regenMessages = [
+        ...messages,
+        { role: 'assistant', content: draftAnswer },
+        { role: 'user', content: `[CRITICAL CODE CONTRADICTION DETECTED - REGENERATION REQUIRED]:
+The draft answer contained claims that contradict authoritative code requirements:
+${contradictionLines}
+${calcRes?.authoritative_block || ''}
+
+Strictly regenerate the answer to eliminate all contradictions. Every requirement and numerical limit must strictly adhere to the governing code.` }
+      ]
+      try {
+        const regenRes = await askAIProvider(c, regenMessages, false, mode, { answer_depth: effectiveAnswerDepth, provider_role: providerRole, is_admin: isAdminRequest })
+        const regenJson = await regenRes.response.json()
+        if (regenJson?.choices?.[0]?.message?.content) {
+          draftAnswer = collapseRepetitiveLoops(regenJson.choices[0].message.content)
+          draftAnswer = sanitizeDraftTables(draftAnswer, sources, envelopeContext || "", effectiveAnswerDepth)
+          draftAnswer = enforceAuthoringSignOff(draftAnswer, question, calcRes)
+        }
+      } catch(e) {}
+    }
 
     let shouldRunCritic = false
     if (draftAnswer && !draftAnswer.startsWith('AI Error:') && draftAnswer.length > 50) {
       if (effectiveAnswerDepth === 'high') {
         shouldRunCritic = true // Critic MANDATORY on Think depth
       } else if (effectiveAnswerDepth === 'low') {
-        shouldRunCritic = (draftGroundingCheck.score_pct < 50 || hasUnsourcedTableInDraft) // ONLY if grounding < 50 or table fabrication
+        shouldRunCritic = (draftGroundingCheck.score_pct < 50 || hasUnsourcedTableInDraft || hasContradictionInDraft)
       } else {
         shouldRunCritic = true // Medium depth: standard behavior
       }
@@ -8105,10 +8446,16 @@ app.post('/api/ask', async (c) => {
               streamedFullText = sanitizeDraftTables(streamedFullText, sources, contextData.envelopeContextText || "", effectiveAnswerDepth);
               streamedFullText = enforceAuthoringSignOff(streamedFullText, question, calcRes);
               const tVerifierStart = Date.now();
-              const streamGroundingResult = verifyAnswerGrounding(
+              const streamGroundingResult = await verifyAnswerGrounding(
+                c,
                 streamedFullText,
                 sources,
-                contextData.envelopeContextText || ""
+                contextData.envelopeContextText || "",
+                false,
+                {
+                  isAdmin: isAdminRequest,
+                  authoritativeBlock: calcRes?.authoritative_block
+                }
               );
               if (streamGroundingResult.sanitizedAnswer) {
                 streamedFullText = streamGroundingResult.sanitizedAnswer;
@@ -8138,8 +8485,8 @@ app.post('/api/ask', async (c) => {
                     JSON.stringify(streamGroundingResult)
                   ).run() : Promise.resolve(),
                   c.env.DB.prepare(`
-                    INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct, assertion_entailed_pct, contradictions)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                   `).bind(
                     crypto.randomUUID(),
                     session_id,
@@ -8164,10 +8511,13 @@ app.post('/api/ask', async (c) => {
                     triageResolvedStr || null,
                     triage_action || null,
                     streamGroundingResult.usr ?? 0,
-                    streamGroundingResult.clause_resolvable_pct ?? 100
+                    streamGroundingResult.clause_resolvable_pct ?? 100,
+                    streamGroundingResult.assertion_entailed_pct ?? 100.0,
+                    streamGroundingResult.contradictions ?? 0
                   ).run()
                 ]));
               } catch(e) {}
+
 
               await writer.write(encoder.encode(`data: ${JSON.stringify({ 
                 type: 'complete', 
@@ -8307,7 +8657,10 @@ app.post('/api/ask', async (c) => {
     
     const tVerifierStart = Date.now();
     answer = enforceAuthoringSignOff(answer, question, calcRes);
-    const groundingResult = verifyAnswerGrounding(answer, sources, envelopeContext);
+    const groundingResult = await verifyAnswerGrounding(c, answer, sources, envelopeContext, false, {
+      isAdmin: isAdminRequest,
+      authoritativeBlock: calcRes?.authoritative_block
+    });
     if (groundingResult.sanitizedAnswer) {
       answer = groundingResult.sanitizedAnswer;
     }
@@ -8336,8 +8689,8 @@ app.post('/api/ask', async (c) => {
             JSON.stringify(groundingResult)
           ).run() : Promise.resolve(),
           c.env.DB.prepare(`
-            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct, assertion_entailed_pct, contradictions)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `).bind(
             crypto.randomUUID(),
             session_id,
@@ -8362,11 +8715,14 @@ app.post('/api/ask', async (c) => {
             triageResolvedStr || null,
             triage_action || null,
             groundingResult.usr ?? 0,
-            groundingResult.clause_resolvable_pct ?? 100
+            groundingResult.clause_resolvable_pct ?? 100,
+            groundingResult.assertion_entailed_pct ?? 100.0,
+            groundingResult.contradictions ?? 0
           ).run()
         ]));
       }
     } catch(e) {}
+
 
     return c.json({ 
       answer, 
