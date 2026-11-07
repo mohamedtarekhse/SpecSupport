@@ -159,7 +159,8 @@ Goal: attack retrieval failures — the true 80% root cause.
 | P2.4 | Coverage parity audit ≥95% per ingest wired to gate | M |
 | P2.5 | **`edition` column + edition anchoring** in chunks and answer headers | M |
 | P2.6 | Envelope completeness census: P-Number + group levels across all 41 standards via envelope wipes | M |
-| P2.7 | Full re-ingest with typed coverage after 2.1–2.6 are set | L |
+| P2.7 | Full re-ingest with typed coverage after 2.1–2.6 are set (Rosetta 2.0 Corpus Rebuild) | L |
+| P2.7b | Anthropic-style contextual preface one-liner per chunk via llama-8b (queued follow-up ticket; enable only if shadow eval shows gains) | S |
 
 **P2 exit gate:** holdout retrieval hit-rate ≥90%; 60-Q retrieval benchmark all-PASS through typed paths; 0 mixed-edition silent answers.
 

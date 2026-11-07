@@ -16,7 +16,19 @@ app.use('*', async (c, next) => {
   return next()
 })
 
-const CACHE_SCHEMA_VERSION = '8';
+const CACHE_SCHEMA_VERSION = '9';
+
+function getCorpusTables(c) {
+  const param = c.req.query('corpus');
+  const env = c.env.CORPUS_VERSION;
+  const isV2 = param === 'v2' || env === 'v2' || env === 'live-v2';
+  return {
+    isV2,
+    chunksTable: isV2 ? 'standards_chunks_v2' : 'standards_chunks',
+    tablesTable: isV2 ? 'standards_tables_v2' : 'standards_tables',
+    envelopesTable: isV2 ? 'code_safety_envelopes_v2' : 'code_safety_envelopes'
+  };
+}
 
 function isStudioAuthorized(c) {
   const authHeader = c.req.header('Authorization') || ''
@@ -1757,9 +1769,11 @@ app.put('/api/admin/chunks/:id', async (c) => {
 app.post('/api/admin/backfill-embeddings', async (c) => {
   if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
   try {
-    const limit = Math.min(parseInt(c.req.query('limit') || '25'), 50)
+    const isV2 = c.req.query('corpus') === 'v2' || c.env.CORPUS_VERSION === 'v2' || c.env.CORPUS_VERSION === 'live-v2';
+    const targetTable = isV2 ? 'standards_chunks_v2' : 'standards_chunks';
+    const limit = Math.min(parseInt(c.req.query('limit') || '20'), 50)
     const { results } = await c.env.DB.prepare(
-      'SELECT id, standard_code, clause, content FROM standards_chunks WHERE embedding IS NULL LIMIT ?'
+      `SELECT id, standard_code, clause, content FROM ${targetTable} WHERE embedding IS NULL LIMIT ?`
     ).bind(limit).all()
 
     if (!results || results.length === 0) {
@@ -1771,7 +1785,16 @@ app.post('/api/admin/backfill-embeddings', async (c) => {
     }
 
     const texts = results.map(r => `${r.standard_code || ''} ${r.clause || ''}: ${r.content || ''}`.substring(0, 1000))
-    const aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: texts })
+    let aiResp;
+    try {
+      aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: texts })
+    } catch (aiErr) {
+      const errMsg = aiErr.message || '';
+      if (errMsg.includes('4006') || errMsg.includes('quota') || errMsg.includes('rate limit')) {
+        return c.json({ error: errMsg, code: 4006, quota_exceeded: true }, 429);
+      }
+      throw aiErr;
+    }
     const embeddings = aiResp.data ?? aiResp ?? []
 
     const stmts = []
@@ -1779,7 +1802,7 @@ app.post('/api/admin/backfill-embeddings', async (c) => {
       const emb = embeddings[i]
       if (Array.isArray(emb) && emb.length > 0) {
         stmts.push(
-          c.env.DB.prepare('UPDATE standards_chunks SET embedding = ? WHERE id = ?').bind(JSON.stringify(emb), results[i].id)
+          c.env.DB.prepare(`UPDATE ${targetTable} SET embedding = ? WHERE id = ?`).bind(JSON.stringify(emb), results[i].id)
         )
       }
     }
@@ -1788,7 +1811,7 @@ app.post('/api/admin/backfill-embeddings', async (c) => {
       await c.env.DB.batch(stmts)
     }
 
-    const countRes = await c.env.DB.prepare('SELECT COUNT(*) as count FROM standards_chunks WHERE embedding IS NULL').first()
+    const countRes = await c.env.DB.prepare(`SELECT COUNT(*) as count FROM ${targetTable} WHERE embedding IS NULL`).first()
 
     return c.json({
       success: true,
@@ -1796,6 +1819,10 @@ app.post('/api/admin/backfill-embeddings', async (c) => {
       remaining: countRes?.count || 0
     })
   } catch (e) {
+    const errMsg = e.message || '';
+    if (errMsg.includes('4006') || errMsg.includes('quota')) {
+      return c.json({ error: errMsg, code: 4006, quota_exceeded: true }, 429);
+    }
     return c.json({ error: e.message }, 500)
   }
 })
@@ -5335,11 +5362,11 @@ function expandRosettaKeywords(question, detectedStd, targetPillars) {
   return expansions.length > 0 ? (question + ' ' + expansions.join(' ')) : question;
 }
 
-async function loadSafetyEnvelopes(db) {
+async function loadSafetyEnvelopes(db, tableName = 'code_safety_envelopes') {
   let envelopeContext = '';
   let rows = [];
   try {
-    const envRows = await db.prepare('SELECT material_group, min_preheat_f, min_preheat_c, max_interpass_f, max_interpass_c, pwht_thickness_threshold_mm, pwht_min_temp_c, pwht_max_temp_c, max_hardness_hrc, governing_standard, primary_code, min_remaining_wall_pct, min_hydrotest_ratio, notes, source_chunk_id FROM code_safety_envelopes WHERE is_active = 1').all();
+    const envRows = await db.prepare(`SELECT material_group, min_preheat_f, min_preheat_c, max_interpass_f, max_interpass_c, pwht_thickness_threshold_mm, pwht_min_temp_c, pwht_max_temp_c, max_hardness_hrc, governing_standard, primary_code, min_remaining_wall_pct, min_hydrotest_ratio, notes, source_chunk_id FROM ${tableName} WHERE is_active = 1`).all();
     if (envRows && envRows.results && envRows.results.length > 0) {
       rows = envRows.results;
       envelopeContext = `\nDETERMINISTIC CODE SAFETY ENVELOPES (MANDATORY D1 GROUND TRUTH LIMITS):\n` +
@@ -6641,6 +6668,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   // ==========================================
   // UNIFIED RAG RETRIEVAL (DATABASE-FIRST ENGINE)
   // ==========================================
+  const { isV2: isV2Retrieval, chunksTable, tablesTable, envelopesTable } = getCorpusTables(c);
   // 1. Exact Alphanumeric Clause & Standard Entity Extraction
   const detectedEntities = extractAlphanumericEntities(question)
   let exactMatches = []
@@ -6651,7 +6679,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
       try {
         let sql = `
           SELECT id, standard_code, standard_name, section, clause, content, scope, organization, obligation_type, key_values 
-          FROM standards_chunks 
+          FROM ${chunksTable} 
           WHERE (clause LIKE ? OR section LIKE ?)
             AND (is_excluded = 0 OR is_excluded IS NULL)
         `
@@ -6709,7 +6737,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
     SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization,
            pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs, edition,
            obligation_type, key_values 
-    FROM standards_chunks 
+    FROM ${chunksTable} 
     WHERE (scope = 'global' OR scope IS NULL OR (scope = 'private_temp' AND session_id = ?))
       AND (is_excluded = 0 OR is_excluded IS NULL)
   `
@@ -6735,7 +6763,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   // Zero-Variable Injection for FTS integer IDs:
   // ftsMatchedIds are pure integers (rowid). Slicing and validating as integers allows direct safe interpolation,
   // consuming ZERO SQL host variables (? slots) to strictly prevent SQLite "too many SQL variables" (max 100).
-  const safeFtsIds = ftsMatchedIds.filter(id => Number.isInteger(id) && id > 0).slice(0, 80);
+  const safeFtsIds = isV2Retrieval ? [] : ftsMatchedIds.filter(id => Number.isInteger(id) && id > 0).slice(0, 80);
   if (safeFtsIds.length > 0) {
     query += ` AND id IN (${safeFtsIds.join(',')}) LIMIT 80`;
   } else {
@@ -6746,7 +6774,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   let candidates = results || [];
   if (detectedStd && candidates.length < 5) {
     try {
-      const fbSql = `SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization, pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs, edition, obligation_type, key_values FROM standards_chunks WHERE (scope = 'global' OR scope IS NULL) AND (is_excluded = 0 OR is_excluded IS NULL) AND standard_code LIKE ? LIMIT 40`;
+      const fbSql = `SELECT id, standard_code, standard_name, section, clause, content, embedding, scope, organization, pillar_type, acceptance_limits, rejection_limits, normative_refs, qa_docs, edition, obligation_type, key_values FROM ${chunksTable} WHERE (scope = 'global' OR scope IS NULL) AND (is_excluded = 0 OR is_excluded IS NULL) AND standard_code LIKE ? LIMIT 40`;
       const { results: fbRes } = await c.env.DB.prepare(fbSql).bind(`%${detectedStd}%`).all();
       if (fbRes && fbRes.length > 0) {
         candidates = candidates.concat(fbRes);
@@ -6912,7 +6940,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
     if (tableIdMatch) {
       let tblQuery = `
         SELECT standard_code, edition, table_id, table_title, raw_markdown, structured_json 
-        FROM standards_tables 
+        FROM ${tablesTable} 
         WHERE (table_id LIKE ? OR table_title LIKE ?)`
       let tblParams = [`%${tableIdMatch[1]}%`, `%${tableIdMatch[1]}%`]
       if (Array.isArray(selected_standards) && selected_standards.length > 0 && !selected_standards.includes('ALL')) {
@@ -6939,7 +6967,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
         if (qLower.includes(kw)) {
           let kwQuery = `
             SELECT standard_code, edition, table_id, table_title, raw_markdown, structured_json 
-            FROM standards_tables 
+            FROM ${tablesTable} 
             WHERE (table_title LIKE ? OR raw_markdown LIKE ?)
               AND standard_code LIKE ?
             LIMIT 2`
@@ -7673,7 +7701,8 @@ app.post('/api/ask', async (c) => {
     const isStreamRequested = Boolean(c.req.query('stream') === 'true' || c.req.header('Accept')?.includes('text/event-stream'))
 
     // Step 0: Load Safety Envelopes for Fast Path, Critic Agent, and Grounding Verifier
-    const envelopeRes = await loadSafetyEnvelopes(c.env.DB)
+    const { envelopesTable } = getCorpusTables(c)
+    const envelopeRes = await loadSafetyEnvelopes(c.env.DB, envelopesTable)
     let envelopeContext = typeof envelopeRes === 'string' ? envelopeRes : (envelopeRes.text || '')
     if (formulaEvaluation) {
       envelopeContext = (envelopeContext ? envelopeContext + '\n\n' : '') + formulaEvaluation;
