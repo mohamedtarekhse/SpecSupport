@@ -3377,6 +3377,56 @@
             border-radius: 0 4px 4px 0;
         }
 
+        /* ELAE Per-Line EvidenceGrades */
+        .evidence-grade-strip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            margin: 6px 0 2px 0;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            line-height: 1.3;
+        }
+        .evidence-grade-strip.grade-verified {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.4);
+            color: #10b981;
+        }
+        .evidence-grade-strip.grade-declared {
+            background: rgba(245, 158, 11, 0.12);
+            border-color: rgba(245, 158, 11, 0.4);
+            color: #f59e0b;
+        }
+        .evidence-grade-strip.grade-unverified {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #ef4444;
+        }
+        .evidence-grade-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.04em;
+        }
+        .evidence-grade-source {
+            font-weight: 500;
+            opacity: 0.85;
+            font-size: 10.5px;
+        }
+        body.rtl .evidence-grade-strip {
+            direction: rtl;
+            text-align: right;
+        }
+        body.rtl .evidence-grade-source {
+            direction: ltr;
+            unicode-bidi: isolate;
+        }
+
     </style>
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1E3A5F">
@@ -7122,6 +7172,45 @@ Answer the inspector's query strictly and accurately based on the verified local
             return m;
         }
 
+        function applyEvidenceGradesToContent(contentDiv, evidenceGrades) {
+            if (!contentDiv || !Array.isArray(evidenceGrades) || evidenceGrades.length === 0) return;
+            const targetElements = Array.from(contentDiv.querySelectorAll('p, li, blockquote, tr'));
+            const matchedElements = new Set();
+
+            evidenceGrades.forEach(gradeItem => {
+                if (!gradeItem || !gradeItem.text) return;
+                const needle = gradeItem.text.replace(/[^a-zA-Z0-9]/g, ' ').toLowerCase().trim();
+                const needleTokens = needle.split(/\s+/).filter(t => t.length >= 4);
+
+                let bestEl = null;
+                let maxOverlap = 0;
+
+                for (const el of targetElements) {
+                    if (matchedElements.has(el)) continue;
+                    const elText = el.textContent.toLowerCase();
+                    let overlap = 0;
+                    for (const tok of needleTokens) {
+                        if (elText.includes(tok)) overlap++;
+                    }
+                    if (overlap > maxOverlap && overlap >= Math.min(2, needleTokens.length)) {
+                        maxOverlap = overlap;
+                        bestEl = el;
+                    }
+                }
+
+                const strip = document.createElement('div');
+                strip.className = `evidence-grade-strip grade-${gradeItem.grade || 'verified'}`;
+                const icon = gradeItem.grade === 'verified' ? '✓' : (gradeItem.grade === 'declared' ? '⚙️' : '✕');
+                const label = gradeItem.grade === 'verified' ? 'VERIFIED' : (gradeItem.grade === 'declared' ? 'DECLARED' : 'UNSOURCED');
+                strip.innerHTML = `<span class="evidence-grade-pill">${icon} ${label}</span><span class="evidence-grade-source">${gradeItem.source || 'Standard Reference'}</span>`;
+
+                if (bestEl && bestEl.parentNode) {
+                    matchedElements.add(bestEl);
+                    bestEl.parentNode.insertBefore(strip, bestEl);
+                }
+            });
+        }
+
         function appendMessage(text, role, sources = [], followups = [], canContinue = false, mcqs = [], groundingMeta = null, modelUsed = null) {
             const list = document.getElementById('messages-list');
             const row = document.createElement('div');
@@ -7149,6 +7238,11 @@ Answer the inspector's query strictly and accurately based on the verified local
                 parsedHtml = formatExecutiveVerdictCard(parsedHtml);
                 parsedHtml = formatParameterBox(parsedHtml);
                 contentDiv.innerHTML = parsedHtml;
+
+                if (groundingMeta && Array.isArray(groundingMeta.evidence_grades) && groundingMeta.evidence_grades.length > 0) {
+                    applyEvidenceGradesToContent(contentDiv, groundingMeta.evidence_grades);
+                }
+
                 body.appendChild(contentDiv);
 
                 // 2. Dedicated Response Tail Container (positioned strictly at the bottom)
