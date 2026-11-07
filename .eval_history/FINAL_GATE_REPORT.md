@@ -1072,6 +1072,70 @@ All evaluation suites were executed twice: first in shadow mode (`?corpus=v2` ag
 
 ---
 
+## 22. WPS export integrity (2026-11-07)
+
+### 22.1 Architecture & Single-Source Field Contract
+1. **Single Source of Truth (`wps_form_data`)**:
+   - Eliminated regex prose re-parsing and fabricated defaults in frontend exports.
+   - Authoring engine in `worker/src/index.js` builds structured `wps_form_data` field map at generation time (`buildStructuredWpsFormData`): `{field, value, grade: verified|declared|unverified, source, clause}`.
+   - Persisted across all generation paths and recorded into `messages.grounding_brief` in D1 (`wps_form_data: grounding?.wps_form_data || null`).
+   - Exposed directly in API responses and cached alongside semantic entries for sub-second retrieval.
+
+2. **Honest Printed Artifact & Zero-Fabrication Contract (Form QW-482)**:
+   - Completely eradicated hardcoded fabrication defaults (`WPS-ASME-VIII-*`, `PQR-ASME-*`, `SSR-*`, fake joint angles `60°-75°`, default base metals, default preheat/PWHT). Unresolved fields strictly render `"Not specified in procedure"` with grade `unverified`.
+   - Every field in QW-482 HTML is visibly tagged: `[VERIFIED <clause>]` (green), `[USER-DECLARED]` (blue), and `[⚠ VERIFICATION REQUIRED — do not use]` (amber/red).
+   - Compliance Line: Replaced unconditional green `Compliance: VERIFIED PASS` with computed audit count:
+     `DRAFT — <N> VERIFIED / <M> UNSOURCED fields — requires PQR + Level III sign-off`.
+   - Watermark Warning: Embedded prominent banner on Page 1:
+     `⚠️ TECHNICAL DRAFT — NOT QUALIFIED — DO NOT USE FOR PRODUCTION WELDING UNTIL PQR ATTACHED AND LEVEL III SIGNED`.
+   - Replaced `Certified Engineering Reference` in all PDF, Word, and QW-482 footers with:
+     `Evidence-Locked Technical Draft (Not Submittable without PQR qualification)`.
+   - Embedded full `Evidence-Locked Grounding Audit & Clause Citation Trace` table at bottom of export.
+   - Deterministic Report Ref: Derived from session/trace ID (`DOC-...`), eradicating `Math.random()` and `SSR-*`.
+
+3. **Truncation Guard**:
+   - `isAnswerTruncated(text, finishReason)` detects abrupt model termination (`finish_reason === 'length'`), mid-table row cuts (`|...` without closing delimiter), and broken tokens (e.g. `Argon 99.`).
+   - `exportToPdf`, `exportToWord`, and `openWpsFormModal` block broken artifact generation and display:
+     `TRUNCATED SOURCE ANSWER — export blocked until regenerated`.
+
+4. **Authoring Routing Honesty**:
+   - Vague WPS requests trigger the 4-MCQ interview without bypassing entity resolution (e.g., "Grade 50" ambiguity across SA-516-70, A572-50, API 5L X50, and 4130-4140).
+   - Word boundary revision regex `/\b(?:revision|rev\.)\s*[:\-]?\s*([A-Za-z0-9.]+)\b/i` fixes the defect where `"REVIEW"` captured `"IEW"`.
+
+---
+
+### 22.2 Canary Suite Results (`scripts/test_wps_export_gate.js`)
+
+| Probe | Test Scope | Verification Criteria | Result | Status |
+|---|---|---|---|---|
+| **Probe A** | Live /api/ask wps_form_data Contract | Structured field map returned with verified clauses matching code baseline | `wps_form_data` present, base metal, governing code & preheat verified | **PASS** |
+| **Probe B** | Unverified Field & Compliance Summary | Setting claim unverified triggers `[⚠ VERIFICATION REQUIRED]` and decrements verified count | Correctly counted as unsourced, summary reflects 11 verified / 1 unsourced | **PASS** |
+| **Probe C** | Truncation Detection Guard | Detects decimal cuts (`Argon 99.`), mid-table cuts, and `finish_reason === 'length'` | All truncation vectors blocked with error banner | **PASS** |
+| **Probe D** | Fabricated Defaults Grep List | 0 occurrences of `WPS-ASME-VIII-*`, `PQR-ASME-*`, `SSR-*`, `Compliance: VERIFIED PASS`, `Certified Engineering Reference` | Exactly 0 occurrences in `index.html` | **PASS** |
+| **Probe E** | Revision Parsing Honesty | Word boundary regex parses `Rev. 0`, `Rev. A`, does not capture `IEW` from `REVIEW` | Clean parsing, zero `IEW` false captures | **PASS** |
+
+**Canary Summary**: 21 / 21 checks passed (100.0%).
+
+---
+
+### 22.3 Production Regression Verification Scorecard
+
+| Verification Suite | Target & Test Criteria | Scorecard | Status |
+|---|---|---|---|
+| **Evidence-Locked WPS Export Canary** (`scripts/test_wps_export_gate.js`) | Probes A-E: Field contract, truncation guard, computed compliance, grep audit | **21 / 21 (100.0%)** | **PASSED** |
+| **Golden Evals Benchmark** (`scripts/verify_live_gates.js`) | 14 Ground Truth Engineering Benchmarks | **14 / 14 (100.0%)** | **PASSED** |
+| **Planted-Error Refusal Suite** (`scripts/verify_live_gates.js`) | 5 In-Corpus Grounded + 5 Calibrated Refusals | **10 / 10 (100.0%)** | **PASSED** |
+| **Out-of-Corpus Refusal Rate** | Mandatory `CORPUS SCOPE DEMARCATION NOTICE` | **5 / 5 (100.0%)** | **PASSED** |
+| **Vague-Query & Table Guard** (`scripts/test_vague_query_gate.js`) | Probes A-F: MCQs, Explicit, Confirm, Skip, Doctor, Admin Pin | **6 / 6 (100.0%)** | **PASSED** |
+| **ELAE Canary Probes** (`scripts/test_elae_gate.js`) | Probes 1–4: Sign-off, Dose Calculator, Entailment, Fast Path | **4 / 4 (100.0%)** | **PASSED** |
+| **Sessions & Memory Canary** (`scripts/test_sessions_memory_gate.js`) | Session Tabs, Server History, Memory Injection, Tenant Isolation | **34 / 34 (100.0%)** | **PASSED** |
+| **Admin Gate Matrix Canary** (`scripts/test_admin_gate_matrix.js`) | 12 Admin Routes $\times$ {No Token, Wrong Token} + Reads | **29 / 29 (100.0%)** | **PASSED** |
+| **Table Fast-Path Latency** | Pre-compiled ASME B31.3 Table 341.3.2 ($\le 1.5$s) | **306 ms** | **PASSED** |
+| **Envelope Fast-Path Latency** | ASTM A106 Gr B Preheat Envelope ($\le 3.0$s) | **285 ms** | **PASSED** |
+
+
+---
+
 ## 21. Sessions & memory (2026-11-07)
 
 ### 21.1 Architectural Implementation Summary
@@ -1130,6 +1194,70 @@ All evaluation suites were executed twice: first in shadow mode (`?corpus=v2` ag
 | **Table Fast-Path Latency** | Pre-compiled ASME B31.3 Table 341.3.2 ($\le 1.5$s) | **272 ms** | **PASSED** |
 | **Envelope Fast-Path Latency** | ASTM A106 Gr B Preheat Envelope ($\le 3.0$s) | **352 ms** | **PASSED** |
 | **Admin Gate Matrix Canary** (`scripts/test_admin_gate_matrix.js`) | 12 Admin Routes $\times$ {No Token, Wrong Token} + Reads | **29 / 29 (100.0%)** | **PASSED** |
+
+---
+
+## 22. WPS export integrity (2026-11-07)
+
+### 22.1 Architecture & Single-Source Field Contract
+1. **Single Source of Truth (`wps_form_data`)**:
+   - Eliminated regex prose re-parsing and fabricated defaults in frontend exports.
+   - Authoring engine in `worker/src/index.js` builds structured `wps_form_data` field map at generation time (`buildStructuredWpsFormData`): `{field, value, grade: verified|declared|unverified, source, clause}`.
+   - Persisted across all generation paths and recorded into `messages.grounding_brief` in D1 (`wps_form_data: grounding?.wps_form_data || null`).
+   - Exposed directly in API responses and cached alongside semantic entries for sub-second retrieval.
+
+2. **Honest Printed Artifact & Zero-Fabrication Contract (Form QW-482)**:
+   - Completely eradicated hardcoded fabrication defaults (`WPS-ASME-VIII-*`, `PQR-ASME-*`, `SSR-*`, fake joint angles `60°-75°`, default base metals, default preheat/PWHT). Unresolved fields strictly render `"Not specified in procedure"` with grade `unverified`.
+   - Every field in QW-482 HTML is visibly tagged: `[VERIFIED <clause>]` (green), `[USER-DECLARED]` (blue), and `[⚠ VERIFICATION REQUIRED — do not use]` (amber/red).
+   - Compliance Line: Replaced unconditional green `Compliance: VERIFIED PASS` with computed audit count:
+     `DRAFT — <N> VERIFIED / <M> UNSOURCED fields — requires PQR + Level III sign-off`.
+   - Watermark Warning: Embedded prominent banner on Page 1:
+     `⚠️ TECHNICAL DRAFT — NOT QUALIFIED — DO NOT USE FOR PRODUCTION WELDING UNTIL PQR ATTACHED AND LEVEL III SIGNED`.
+   - Replaced `Certified Engineering Reference` in all PDF, Word, and QW-482 footers with:
+     `Evidence-Locked Technical Draft (Not Submittable without PQR qualification)`.
+   - Embedded full `Evidence-Locked Grounding Audit & Clause Citation Trace` table at bottom of export.
+   - Deterministic Report Ref: Derived from session/trace ID (`DOC-...`), eradicating `Math.random()` and `SSR-*`.
+
+3. **Truncation Guard**:
+   - `isAnswerTruncated(text, finishReason)` detects abrupt model termination (`finish_reason === 'length'`), mid-table row cuts (`|...` without closing delimiter), and broken tokens (e.g. `Argon 99.`).
+   - `exportToPdf`, `exportToWord`, and `openWpsFormModal` block broken artifact generation and display:
+     `TRUNCATED SOURCE ANSWER — export blocked until regenerated`.
+
+4. **Authoring Routing Honesty**:
+   - Vague WPS requests trigger the 4-MCQ interview without bypassing entity resolution (e.g., "Grade 50" ambiguity across SA-516-70, A572-50, API 5L X50, and 4130-4140).
+   - Word boundary revision regex `/\b(?:revision|rev\.)\s*[:\-]?\s*([A-Za-z0-9.]+)\b/i` fixes the defect where `"REVIEW"` captured `"IEW"`.
+
+---
+
+### 22.2 Canary Suite Results (`scripts/test_wps_export_gate.js`)
+
+| Probe | Test Scope | Verification Criteria | Result | Status |
+|---|---|---|---|---|
+| **Probe A** | Live /api/ask wps_form_data Contract | Structured field map returned with verified clauses matching code baseline | `wps_form_data` present, base metal, governing code & preheat verified | **PASS** |
+| **Probe B** | Unverified Field & Compliance Summary | Setting claim unverified triggers `[⚠ VERIFICATION REQUIRED]` and decrements verified count | Correctly counted as unsourced, summary reflects 11 verified / 1 unsourced | **PASS** |
+| **Probe C** | Truncation Detection Guard | Detects decimal cuts (`Argon 99.`), mid-table cuts, and `finish_reason === 'length'` | All truncation vectors blocked with error banner | **PASS** |
+| **Probe D** | Fabricated Defaults Grep List | 0 occurrences of `WPS-ASME-VIII-*`, `PQR-ASME-*`, `SSR-*`, `Compliance: VERIFIED PASS`, `Certified Engineering Reference` | Exactly 0 occurrences in `index.html` | **PASS** |
+| **Probe E** | Revision Parsing Honesty | Word boundary regex parses `Rev. 0`, `Rev. A`, does not capture `IEW` from `REVIEW` | Clean parsing, zero `IEW` false captures | **PASS** |
+
+**Canary Summary**: 21 / 21 checks passed (100.0%).
+
+---
+
+### 22.3 Production Regression Verification Scorecard
+
+| Verification Suite | Target & Test Criteria | Scorecard | Status |
+|---|---|---|---|
+| **Evidence-Locked WPS Export Canary** (`scripts/test_wps_export_gate.js`) | Probes A-E: Field contract, truncation guard, computed compliance, grep audit | **21 / 21 (100.0%)** | **PASSED** |
+| **Golden Evals Benchmark** (`scripts/verify_live_gates.js`) | 14 Ground Truth Engineering Benchmarks | **14 / 14 (100.0%)** | **PASSED** |
+| **Planted-Error Refusal Suite** (`scripts/verify_live_gates.js`) | 5 In-Corpus Grounded + 5 Calibrated Refusals | **10 / 10 (100.0%)** | **PASSED** |
+| **Out-of-Corpus Refusal Rate** | Mandatory `CORPUS SCOPE DEMARCATION NOTICE` | **5 / 5 (100.0%)** | **PASSED** |
+| **Vague-Query & Table Guard** (`scripts/test_vague_query_gate.js`) | Probes A-F: MCQs, Explicit, Confirm, Skip, Doctor, Admin Pin | **6 / 6 (100.0%)** | **PASSED** |
+| **ELAE Canary Probes** (`scripts/test_elae_gate.js`) | Probes 1–4: Sign-off, Dose Calculator, Entailment, Fast Path | **4 / 4 (100.0%)** | **PASSED** |
+| **Sessions & Memory Canary** (`scripts/test_sessions_memory_gate.js`) | Session Tabs, Server History, Memory Injection, Tenant Isolation | **34 / 34 (100.0%)** | **PASSED** |
+| **Admin Gate Matrix Canary** (`scripts/test_admin_gate_matrix.js`) | 12 Admin Routes $\times$ {No Token, Wrong Token} + Reads | **29 / 29 (100.0%)** | **PASSED** |
+| **Table Fast-Path Latency** | Pre-compiled ASME B31.3 Table 341.3.2 ($\le 1.5$s) | **306 ms** | **PASSED** |
+| **Envelope Fast-Path Latency** | ASTM A106 Gr B Preheat Envelope ($\le 3.0$s) | **285 ms** | **PASSED** |
+
 
 
 
