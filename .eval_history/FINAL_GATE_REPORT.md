@@ -960,4 +960,51 @@ All evaluation suites were executed twice: first in shadow mode (`?corpus=v2` ag
    ```
    Or restore from `.backups/corpus_v1_2026-11-07.json`.
 
+---
+
+## 19. Evidence-Locked Answer Engine (ELAE) (2026-11-07)
+
+### 19.1 Architecture & Core Components Implemented
+1. **ITEM 1 — Assertion-Level Entailment Verifier (`worker/src/index.js`)**:
+   - `extractAtomicAssertions`: Automatically segments generated answers into up to 12 atomic technical assertions, filtering stylistic markdown and disclaimers.
+   - `judgeAnswerAssertions`: Executes an authoritative entailment check via role-pinned models (`@cf/zai-org/glm-5.3-flash` for admins, `@cf/meta/llama-3.1-8b-instruct-fp8-fast` for public). Verdicts strictly output JSON (`ENTAILED`, `CONTRADICTED`, `NOT_IN_CORPUS`).
+   - Contradiction Guard & Auto-Regeneration: Any `CONTRADICTED` claim triggers an automatic regeneration pass with an explicit critique directive. Persistent contradictions cap the evidence badge at `UNVERIFIED_WARNING`.
+   - Telemetry Traces: Logs `assertion_entailed_pct` and `contradictions` across all execution paths into `request_traces`.
+2. **ITEM 2 — Per-Line EvidenceGrades in UI (`index.html`)**:
+   - `evidence_grades`: Structured metadata attached to `grounding` JSON (`[{ text, grade: 'verified'|'declared'|'unverified', source: '...' }]`).
+   - UI Grade Strips: Visual grade pill (`✓ VERIFIED`, `⚙️ DECLARED`, `✕ UNSOURCED`) rendered above key answer elements with green/amber/red borders. Supports bidirectional Arabic RTL with isolated LTR code locators.
+3. **ITEM 3 — Code Safety Calculator (`worker/src/code_calculator.js`)**:
+   - Deterministic dose-calculator module for ASME B36.10M / B36.19M dimensions, ASME IX QW/QB-422 material database, ASME B31.3 Table 330.1.1 preheat minimums, Table 331.1.1 PWHT thresholds, and NACE MR0175 sour service limits.
+   - Zero LLM hallucination: Injected as an authoritative context block `[CODE CALCULATOR RESULT - authoritative]` into the LLM context.
+4. **ITEM 4 — Authoring Sign-Off Contract (`worker/src/index.js`)**:
+   - Form QW-482 / WPS mode enforce mandatory top banner:
+     `> ⚠️ **DRAFT FOR REVIEW - NOT SUBMITTABLE: requires PQR and Level III authorization before use.**`
+   - Explicit field tagging: `[VERIFIED]` for code-calculated requirements, `[USER-INPUT]` for prompt parameters, `[VERIFICATION-REQUIRED]` for coupon craft geometry.
+
+---
+
+### 19.2 Canary Suite Benchmark (`scripts/test_elae_gate.js`)
+
+| Probe | Test Scope | Verification Criteria | Measured Result | Status |
+|---|---|---|---|---|
+| **Probe 1** | WPS Authoring Sign-Off Contract | Top banner present, Form QW-482 structure, `[VERIFIED]`, `[USER-INPUT]`, `[VERIFICATION-REQUIRED]` tags | Banner present, QW-482 structure intact, all field tags populated | **PASS** |
+| **Probe 2** | Code Calculator Dose: 6 NPS Sch 80 A106 | Wall: 10.97 mm, Preheat: 10°C (50°F), 200°F ruled out, PWHT exempt | Wall 10.97 mm, 10°C / 50°F ambient, 0 Contradictions | **PASS** |
+| **Probe 3** | Assertion Entailment & Per-Line Grades | `grounding.evidence_grades` populated with verified sources | 7 Evidence grades, 7 verified, Badge: `VERIFIED_CODE_GROUNDED` | **PASS** |
+| **Probe 4** | Deterministic Fast-Path Latency | SA-516 Gr 70 lookup latency $\le 1500\text{ms}$ | **431 ms** (Fast path sub-second response) | **PASS** |
+
+---
+
+### 19.3 Regression Gate Scorecard
+
+| Verification Suite | Target & Criteria | Result | Status |
+|---|---|---|---|
+| **Golden Evals Benchmark** (`scripts/verify_live_gates.js`) | 14 Ground Truth Engineering Benchmarks | **14 / 14 (100.0%)** | **PASSED** |
+| **Planted-Error Refusal Suite** (`scripts/verify_live_gates.js`) | 5 In-Corpus Grounded + 5 Calibrated Refusals | **10 / 10 (100.0%)** | **PASSED** |
+| **Out-of-Corpus Refusal Rate** | Refusal on out-of-scope standards | **5 / 5 (100.0%)** | **PASSED** |
+| **Vague-Query & Table Guard** (`scripts/test_vague_query_gate.js`) | Probes A-F: MCQs, Explicit, Confirm, Skip, Doctor, Admin Pin | **6 / 6 (100.0%)** | **PASSED** |
+| **Table Fast-Path Latency** | Pre-compiled ASME B31.3 Table 341.3.2 ($\le 1.5$s) | **95 ms** | **PASSED** |
+| **Envelope Fast-Path Latency** | ASTM A106 Gr B Preheat Envelope ($\le 3.0$s) | **96 ms** | **PASSED** |
+| **ELAE Canary Probes** (`scripts/test_elae_gate.js`) | Probes 1–4: Sign-off, Dose Calculator, Entailment, Fast Path | **4 / 4 (100.0%)** | **PASSED** |
+
+
 
