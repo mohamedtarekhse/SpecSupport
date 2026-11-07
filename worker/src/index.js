@@ -642,8 +642,8 @@ app.post('/api/admin/purge-memory', async (c) => {
   return c.json({ success: true, message: 'All user memory purged across system' });
 });
 
-async function recordAssistantMessageAndSync(env, conversationId, userKey, question, answer, grounding, modelUsed, triageAction) {
-  if (!conversationId || !env.DB) return;
+async function recordAssistantMessageAndSync(env, conversationId, userKey, question, answer, grounding, modelUsed, triageAction, executionCtx) {
+  if (!conversationId || !env || !env.DB) return;
   try {
     const asstMsgId = crypto.randomUUID();
     const briefJson = JSON.stringify({
@@ -667,31 +667,36 @@ async function recordAssistantMessageAndSync(env, conversationId, userKey, quest
       WHERE id = ?
     `).bind(lastBadge, conversationId).run();
 
-    // FIFO delete grounding_brief beyond 100 & prune messages beyond 400
-    await env.DB.prepare(`
-      UPDATE messages
-      SET grounding_brief = NULL
-      WHERE conversation_id = ? AND id NOT IN (
-        SELECT id FROM messages
-        WHERE conversation_id = ? AND role = 'assistant'
-        ORDER BY created_at DESC LIMIT 100
-      ) AND grounding_brief IS NOT NULL
-    `).bind(conversationId, conversationId).run().catch(() => {});
+    if (executionCtx && typeof executionCtx.waitUntil === 'function') {
+      executionCtx.waitUntil((async () => {
+        try {
+          await env.DB.prepare(`
+            UPDATE messages
+            SET grounding_brief = NULL
+            WHERE conversation_id = ? AND id NOT IN (
+              SELECT id FROM messages
+              WHERE conversation_id = ? AND role = 'assistant'
+              ORDER BY created_at DESC LIMIT 100
+            ) AND grounding_brief IS NOT NULL
+          `).bind(conversationId, conversationId).run().catch(() => {});
 
-    const totalMsgs = await env.DB.prepare(`SELECT count(*) as count FROM messages WHERE conversation_id = ?`).bind(conversationId).first();
-    if (totalMsgs && totalMsgs.count > 400) {
-      await env.DB.prepare(`
-        DELETE FROM messages
-        WHERE conversation_id = ? AND id NOT IN (
-          SELECT id FROM messages
-          WHERE conversation_id = ?
-          ORDER BY created_at DESC LIMIT 400
-        )
-      `).bind(conversationId, conversationId).run().catch(() => {});
+          const totalMsgs = await env.DB.prepare(`SELECT count(*) as count FROM messages WHERE conversation_id = ?`).bind(conversationId).first();
+          if (totalMsgs && totalMsgs.count > 400) {
+            await env.DB.prepare(`
+              DELETE FROM messages
+              WHERE conversation_id = ? AND id NOT IN (
+                SELECT id FROM messages
+                WHERE conversation_id = ?
+                ORDER BY created_at DESC LIMIT 400
+              )
+            `).bind(conversationId, conversationId).run().catch(() => {});
+          }
+
+          const msgCount = totalMsgs?.count || 2;
+          await extractAndSaveUserMemory(env, userKey, question, conversationId, msgCount, triageAction);
+        } catch(e) {}
+      })());
     }
-
-    const msgCount = totalMsgs?.count || 2;
-    await extractAndSaveUserMemory(env, userKey, question, conversationId, msgCount, triageAction);
   } catch (err) {
     console.error("recordAssistantMessageAndSync error:", err);
   }
@@ -8383,6 +8388,8 @@ app.post('/api/ask', async (c) => {
           };
         }
 
+        await recordAssistantMessageAndSync(c.env, conversationId, userKey, question, cachedCleanAnswer, cachedGrounding, 'SpecSupport-Semantic-Cache', triage_action, c.executionCtx);
+
         const isStreamReq = Boolean(c.req.query('stream') === 'true' || c.req.header('Accept')?.includes('text/event-stream'));
         if (isStreamReq) {
           const encoder = new TextEncoder();
@@ -8469,6 +8476,7 @@ app.post('/api/ask', async (c) => {
     // 🛡️ Phase P1.2: Check Calibrated Abstention Gate
     if (contextData.isAbstention) {
       const abstentionText = contextData.abstentionText;
+      await recordAssistantMessageAndSync(c.env, conversationId, userKey, question, abstentionText, { score_pct: 0, badge: 'CALIBRATED_ABSTENTION' }, 'SpecSupport-Abstention-Gate', triage_action, c.executionCtx);
       const reportedModel = 'SpecSupport-Abstention-Gate';
       const isStreamRequestedEarly = Boolean(c.req.query('stream') === 'true' || c.req.header('Accept')?.includes('text/event-stream'));
       
@@ -8649,6 +8657,7 @@ app.post('/api/ask', async (c) => {
         })()
 
         try {
+          await recordAssistantMessageAndSync(c.env, conversationId, userKey, question, fastPathResult.answer, grounding, 'SpecSupport-Deterministic-Table-Engine', triage_action, c.executionCtx);
           c.executionCtx?.waitUntil(Promise.all([
             queryHash ? c.env.DB.prepare(`
               INSERT OR REPLACE INTO query_semantic_cache (query_hash, question, standard_filter, answer, grounding_score, evidence_badge, sources_json, schema_version, grounding_json)
@@ -8659,13 +8668,13 @@ app.post('/api/ask', async (c) => {
               CACHE_SCHEMA_VERSION, JSON.stringify(grounding)
             ).run() : Promise.resolve(),
             c.env.DB.prepare(`
-              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct, assertion_entailed_pct, contradictions)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct, assertion_entailed_pct, contradictions, memory_used)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               crypto.randomUUID(), session_id, question.slice(0, 300), standard_filter || 'ALL',
               100, 'VERIFIED_CODE_GROUNDED', 'deterministic_table', 'SpecSupport-Deterministic-Table-Engine',
               totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, (fastPathResult.mode || 'FASTPATH_TABLE'), effectiveAnswerDepth, providerRole,
-              0, 0, null, null, null, 0, 100, 100.0, 0
+              0, 0, null, null, null, 0, 100, 100.0, 0, memoryUsedIds.join(',') || null
             ).run(),
             c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(
               session_id, question, 'SpecSupport-Deterministic-Table-Engine', today
@@ -8683,6 +8692,7 @@ app.post('/api/ask', async (c) => {
         })
       } else {
         try {
+          await recordAssistantMessageAndSync(c.env, conversationId, userKey, question, fastPathResult.answer, grounding, 'SpecSupport-Deterministic-Table-Engine', triage_action, c.executionCtx);
           c.executionCtx?.waitUntil(Promise.all([
             queryHash ? c.env.DB.prepare(`
               INSERT OR REPLACE INTO query_semantic_cache (query_hash, question, standard_filter, answer, grounding_score, evidence_badge, sources_json, schema_version, grounding_json)
@@ -8693,13 +8703,13 @@ app.post('/api/ask', async (c) => {
               CACHE_SCHEMA_VERSION, JSON.stringify(grounding)
             ).run() : Promise.resolve(),
             c.env.DB.prepare(`
-              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct, assertion_entailed_pct, contradictions)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct, assertion_entailed_pct, contradictions, memory_used)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               crypto.randomUUID(), session_id, question.slice(0, 300), standard_filter || 'ALL',
               100, 'VERIFIED_CODE_GROUNDED', 'deterministic_table', 'SpecSupport-Deterministic-Table-Engine',
               totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, (fastPathResult.mode || 'FASTPATH_TABLE'), effectiveAnswerDepth, providerRole,
-              0, 0, null, null, null, 0, 100, 100.0, 0
+              0, 0, null, null, null, 0, 100, 100.0, 0, memoryUsedIds.join(',') || null
             ).run(),
             c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(
               session_id, question, 'SpecSupport-Deterministic-Table-Engine', today
@@ -8960,6 +8970,7 @@ Strictly regenerate the answer to eliminate all contradictions. Every requiremen
 
               // Phase P1.5 Request Traces & Phase P3.6 Semantic Cache Save
               try {
+                await recordAssistantMessageAndSync(c.env, conversationId, userKey, question, streamedFullText, streamGroundingResult, criticModelUsed || reportedModel, triage_action, c.executionCtx);
                 c.executionCtx?.waitUntil(Promise.all([
                   queryHash ? c.env.DB.prepare(`
                     INSERT OR REPLACE INTO query_semantic_cache (query_hash, question, standard_filter, answer, grounding_score, evidence_badge, sources_json, schema_version, grounding_json)
@@ -8976,8 +8987,8 @@ Strictly regenerate the answer to eliminate all contradictions. Every requiremen
                     JSON.stringify(streamGroundingResult)
                   ).run() : Promise.resolve(),
                   c.env.DB.prepare(`
-                    INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct, assertion_entailed_pct, contradictions)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct, assertion_entailed_pct, contradictions, memory_used)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                   `).bind(
                     crypto.randomUUID(),
                     session_id,
@@ -9004,7 +9015,8 @@ Strictly regenerate the answer to eliminate all contradictions. Every requiremen
                     streamGroundingResult.usr ?? 0,
                     streamGroundingResult.clause_resolvable_pct ?? 100,
                     streamGroundingResult.assertion_entailed_pct ?? 100.0,
-                    streamGroundingResult.contradictions ?? 0
+                    streamGroundingResult.contradictions ?? 0,
+                    memoryUsedIds.join(',') || null
                   ).run()
                 ]));
               } catch(e) {}
@@ -9163,6 +9175,7 @@ Strictly regenerate the answer to eliminate all contradictions. Every requiremen
 
     // Phase P1.5 (Per-Request Traces) & P3.6 (Query Semantic Cache) for Non-Streaming Endpoint
     try {
+      await recordAssistantMessageAndSync(c.env, conversationId, userKey, question, answer, groundingResult, reportedModel, triage_action, c.executionCtx);
       if (c.executionCtx && typeof c.executionCtx.waitUntil === 'function') {
         c.executionCtx.waitUntil(Promise.allSettled([
           queryHash ? c.env.DB.prepare(`
@@ -9180,8 +9193,8 @@ Strictly regenerate the answer to eliminate all contradictions. Every requiremen
             JSON.stringify(groundingResult)
           ).run() : Promise.resolve(),
           c.env.DB.prepare(`
-            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct, assertion_entailed_pct, contradictions)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct, assertion_entailed_pct, contradictions, memory_used)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `).bind(
             crypto.randomUUID(),
             session_id,
@@ -9208,7 +9221,8 @@ Strictly regenerate the answer to eliminate all contradictions. Every requiremen
             groundingResult.usr ?? 0,
             groundingResult.clause_resolvable_pct ?? 100,
             groundingResult.assertion_entailed_pct ?? 100.0,
-            groundingResult.contradictions ?? 0
+            groundingResult.contradictions ?? 0,
+            memoryUsedIds.join(',') || null
           ).run()
         ]));
       }

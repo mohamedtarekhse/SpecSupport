@@ -1070,6 +1070,68 @@ All evaluation suites were executed twice: first in shadow mode (`?corpus=v2` ag
 | **Envelope Fast-Path Latency** | ASTM A106 Gr B Preheat Envelope ($\le 3.0$s) | **284 ms** | **PASSED** |
 | **Admin Gate Matrix Canary** (`scripts/test_admin_gate_matrix.js`) | 12 Admin Routes $\times$ {No Token, Wrong Token} + Reads | **29 / 29 (100.0%)** | **PASSED** |
 
+---
+
+## 21. Sessions & memory (2026-11-07)
+
+### 21.1 Architectural Implementation Summary
+1. **Server-Side Conversations & Messages (`D1`)**:
+   - Deployed relational conversation store (`conversations`, `messages`, `user_memory`) with composite indexes `idx_conversations_user`, `idx_messages_conv`, and `idx_user_memory_user`.
+   - Replaced client-supplied history with authenticated server-side history lookup (last 24 turns strictly fetched from `messages` table for the target `conversation_id`).
+   - Synchronous persistence across all generation exit points (semantic cache hit, calibrated abstention, deterministic table fast-path, envelope fast-path, streaming complete, and standard buffered JSON).
+   - Server-side pruning: grounding brief pruning (FIFO beyond 100 turns) and message truncation (beyond 400 turns) handled asynchronously via `executionCtx.waitUntil(...)`.
+
+2. **Per-Device Identity & Tenant Isolation (`user_key`)**:
+   - Generated client-side stable identity `user_key` (`crypto.randomUUID()`) seeded into `localStorage['user_key']`.
+   - Sent on every request via `X-User-Key` header; admins inherit global super-user scoping (`user_key === 'admin'`).
+   - Tenant isolation strictly verified: queries filter `WHERE user_key = ? OR ? = 'admin'`. Cross-tenant reads or updates return `404 Not Found`.
+   - Conversation creation rate-limited to 30 per rolling 24-hour window per user.
+
+3. **Q-Grey Session Tabs & Navigation UI (`index.html`)**:
+   - Added persistent "Chat Tabs" shelf in `#notebooklm-sidebar` above Sources & Specs with `#new-chat-btn`, active indicator, pin toggles, inline rename, and deletion buttons.
+   - Fully integrated Lucide icons (`#i-pin`, `#i-trash`, `#i-edit`, `#i-message-square`).
+   - RTL layout QA verified: dynamic left/right active indicator border switching (`border-right` in RTL, `border-left` in LTR).
+   - Offline IndexedDB caching layer (`QGreyOfflineStore` / `active_conversation`) provides instantaneous message rendering on page reload prior to remote fetch completion.
+
+4. **Rig Context & Per-User Memory ("The App Remembers My Rig")**:
+   - Built background memory extraction pipeline (`extractAndSaveUserMemory`): automatically extracts persistent rig operating parameters, preferred units, and governing specs into `user_memory` (capped at 160 characters per fact).
+   - Injected top-5 active rig facts into system prompt under `[USER MEMORY]`.
+   - User control: added "Rig Context & Memory" modal (`#user-memory-modal`) via `#header-params-popover`, offering global toggle, individual fact deletion, and one-click clear.
+   - Admin purge endpoint (`POST /api/admin/purge-memory`) gated with `ADMIN_SECRET`.
+   - Telemetry: added `memory_used TEXT` column to `request_traces` recording injected fact IDs.
+
+---
+
+### 21.2 Sessions & Memory Canary Suite Results (`scripts/test_sessions_memory_gate.js`)
+
+| Probe Vector | Test Description | Sub-checks | Result | Latency / Metric |
+|---|---|---|---|---|
+| **Test A: Session Lifecycle & Ordering** | CRUD, 30/day limit, pinned sorting, rename, cascade delete | 11 / 11 | **PASS** | 339 ms (Create) |
+| **Test B: Multi-Turn Message Integrity** | 2-turn Q&A, server history retrieval, grounding brief persistence | 7 / 7 | **PASS** | 111 ms (Fetch) |
+| **Test C: Tenant Partitioning & Isolation** | User B cannot view, query, or patch User A's conversations | 3 / 3 | **PASS** | 404 Enforced |
+| **Test D: Rig Memory Extraction & Injection** | Facts retrieval, toggle, prompt injection, user memory purge | 4 / 4 | **PASS** | 200 OK |
+| **Test E: RTL & Frontend Markup Integrity** | SVG icons, modal DOM, sidebar tabs, RTL border rules | 5 / 5 | **PASS** | DOM Verified |
+| **Test F: Latency Budget & SLA Verification** | `/api/sessions` list round-trip budget $\le 500$ ms | 4 / 4 | **PASS** | **89 ms** |
+
+**Canary Summary**: 34 / 34 checks passed (100.0%). All session and memory requirements satisfied.
+
+---
+
+### 21.3 Full Production Regression Scorecard
+
+| Verification Suite | Target & Test Criteria | Scorecard | Status |
+|---|---|---|---|
+| **Sessions & Memory Canary** (`scripts/test_sessions_memory_gate.js`) | Session Tabs, Server History, Memory Injection, Tenant Isolation | **34 / 34 (100.0%)** | **PASSED** |
+| **Golden Evals Benchmark** (`scripts/verify_live_gates.js`) | 14 Ground Truth Engineering Benchmarks | **14 / 14 (100.0%)** | **PASSED** |
+| **Planted-Error Refusal Suite** (`scripts/verify_live_gates.js`) | 5 In-Corpus Grounded + 5 Calibrated Refusals | **10 / 10 (100.0%)** | **PASSED** |
+| **Out-of-Corpus Refusal Rate** | Mandatory `CORPUS SCOPE DEMARCATION NOTICE` | **5 / 5 (100.0%)** | **PASSED** |
+| **Vague-Query & Table Guard** (`scripts/test_vague_query_gate.js`) | Probes A-F: MCQs, Explicit, Confirm, Skip, Doctor, Admin Pin | **6 / 6 (100.0%)** | **PASSED** |
+| **ELAE Canary Probes** (`scripts/test_elae_gate.js`) | Probes 1–4: Sign-off, Dose Calculator, Entailment, Fast Path | **4 / 4 (100.0%)** | **PASSED** |
+| **Table Fast-Path Latency** | Pre-compiled ASME B31.3 Table 341.3.2 ($\le 1.5$s) | **272 ms** | **PASSED** |
+| **Envelope Fast-Path Latency** | ASTM A106 Gr B Preheat Envelope ($\le 3.0$s) | **352 ms** | **PASSED** |
+| **Admin Gate Matrix Canary** (`scripts/test_admin_gate_matrix.js`) | 12 Admin Routes $\times$ {No Token, Wrong Token} + Reads | **29 / 29 (100.0%)** | **PASSED** |
+
+
 
 
 
