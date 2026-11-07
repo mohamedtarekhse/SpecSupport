@@ -16,7 +16,7 @@ app.use('*', async (c, next) => {
   return next()
 })
 
-const CACHE_SCHEMA_VERSION = '3';
+const CACHE_SCHEMA_VERSION = '8';
 
 function isStudioAuthorized(c) {
   const authHeader = c.req.header('Authorization') || ''
@@ -35,6 +35,210 @@ let aiBindingDegradedUntil = 0;
 function isQuotaExhaustionError(err) {
   const msg = (err && (err.message || String(err))) || '';
   return msg.includes('4006') || msg.toLowerCase().includes('daily allocation') || msg.toLowerCase().includes('quota');
+}
+
+
+// =========================================================================
+// 🛡️ INGEST DATA CONTRACT & WRITE-TIME QUARANTINE GATE (ITEM 1)
+// =========================================================================
+
+const VALID_CLAUSE_REGEX = /^(?:T-\d{3,4}(?:\.\d+)?|QW-(?:\/QB-)?\d+(?:\.\d+)?|QB-\d+(?:\.\d+)?|QW\/QB-\d+(?:\.\d+)?|QW-\/QB-\d+(?:\.\d+)?|UW-\d+(?:\([a-z0-9]+\))?|UG-\d+(?:\([a-z0-9]+\))?|Sec(?:tion)?\s+\d+|Table\s+[\w.\/\-]+|\d+(?:\.\d+)+|(?:Clause|Appendix)\s+[\w.\/\-]+)$/i;
+
+function validateIngestChunk(chunk) {
+  let content = chunk.content;
+  if (typeof content === 'string') {
+    content = content.normalize('NFKC');
+  } else {
+    content = '';
+  }
+  const clause = chunk.clause ? String(chunk.clause).trim() : '';
+  const section = chunk.section ? String(chunk.section).trim() : (chunk.section_title ? String(chunk.section_title).trim() : '');
+
+  // Rule b: content: NFKC-normalize; reject if contains U+FFFD or [?]{2,} in an otherwise-Latin chunk
+  if (content.includes('\uFFFD') || (/\?{2,}/.test(content) && /[a-zA-Z]/.test(content))) {
+    return { valid: false, reason: 'encoding_corruption', content, clause, section };
+  }
+
+  // Rule c: section_title present OR clause parseable -> 'missing_locator'
+  const hasValidClause = clause.length > 0 && VALID_CLAUSE_REGEX.test(clause);
+  const hasValidSection = section.length > 0 && section.toLowerCase() !== 'general' && section.toLowerCase() !== 'clause';
+  if (!hasValidSection && !hasValidClause) {
+    if (!clause || !clause.length) {
+      return { valid: false, reason: 'missing_locator', content, clause, section };
+    }
+  }
+
+  // Rule a: clause: NULL or matches specified regex -> 'invalid_clause'
+  if (clause.length > 0 && !VALID_CLAUSE_REGEX.test(clause)) {
+    return { valid: false, reason: 'invalid_clause', content, clause, section };
+  }
+
+  return { valid: true, content, clause, section };
+}
+
+async function quarantineChunk(db, chunk, rejectReason) {
+  const id = chunk.id || crypto.randomUUID();
+  try {
+    await db.prepare(`
+      INSERT INTO chunks_review (
+        id, standard_code, standard_name, section, clause, content,
+        scope, organization, session_id, reject_reason
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      id,
+      chunk.standard_code || 'UNKNOWN',
+      chunk.standard_name || chunk.standard_code || 'UNKNOWN',
+      chunk.section || '',
+      chunk.clause || '',
+      chunk.content || '',
+      chunk.scope || 'global',
+      chunk.organization || 'INTERNATIONAL',
+      chunk.session_id || null,
+      rejectReason
+    ).run();
+  } catch(e) {
+    console.error('Failed to quarantine chunk:', e);
+  }
+  return id;
+}
+
+// =========================================================================
+// 🎯 CITATION-ENFORCED PROTOCOL & POST-PROCESSOR (ITEM 2)
+// =========================================================================
+
+function enforceCitationProtocol(rawAnswer, sources = [], isDeterministic = false, envelopeContext = '') {
+  if (!rawAnswer || typeof rawAnswer !== 'string') {
+    return { answer: rawAnswer || '', usr: 0, clause_resolvable_pct: 100, unsourced_clauses: [] };
+  }
+
+  // Refusal / Calibrated Abstention / Out-of-Corpus Demarcation
+  if (!sources || sources.length === 0 || rawAnswer.includes('CORPUS SCOPE DEMARCATION NOTICE') || rawAnswer.includes('CALIBRATED ABSTENTION')) {
+    return { answer: rawAnswer, usr: 0, clause_resolvable_pct: 100, unsourced_clauses: [], is_refusal: true };
+  }
+
+  // Rule: Deterministic engine answers carry source blocks natively - mark all as pre-cited
+  if (isDeterministic) {
+    return {
+      answer: rawAnswer,
+      usr: 0,
+      clause_resolvable_pct: 100,
+      unsourced_clauses: [],
+      pre_cited: true
+    };
+  }
+
+  let answer = rawAnswer;
+  const numSources = Array.isArray(sources) ? sources.length : 0;
+  const validSrcNumbers = new Set();
+  for (let sIdx = 1; sIdx <= numSources; sIdx++) {
+    validSrcNumbers.add(sIdx);
+  }
+
+  // Resolve [[SRC:n]] tokens against injected sources; unresolvable tokens -> strip from sentence
+  const srcTokenRegex = /\[\[SRC:(\d+)\]\]/g;
+  answer = answer.replace(srcTokenRegex, (match, p1) => {
+    const n = parseInt(p1, 10);
+    return validSrcNumbers.has(n) ? match : '';
+  });
+
+  // Extract substantive sentence blocks
+  const rawSentences = answer.split(/(?<=[.!?])\s+(?=[A-Z0-9*#])/m);
+  const substantiveSentences = [];
+  let unsupportedSentences = 0;
+  let totalClauses = 0;
+  let resolvableClauses = 0;
+  const unsourcedClauses = [];
+
+  const allSourceText = (((sources || []).map(s => `${s.standard || ''} ${s.clause || ''} ${s.content || ''}`).join('\n')) + '\n' + (envelopeContext || '')).toLowerCase();
+  const allSourceClean = allSourceText.replace(/\s+/g, '');
+
+  for (const rawSent of rawSentences) {
+    const sTrim = rawSent.trim();
+    if (!sTrim || sTrim.length < 20 || sTrim.startsWith('#') || sTrim.startsWith('|---')) continue;
+    if (/^(?:Next|Here is|Please note|In accordance with|For further details|To proceed)/i.test(sTrim)) continue;
+
+    substantiveSentences.push(sTrim);
+
+    let hasSrcTag = /\[\[SRC:\d+\]\]/.test(sTrim);
+    if (!hasSrcTag && (sources?.length > 0 || envelopeContext)) {
+      // 1. Resolve against injected sources if sentence directly references source standard or clause
+      for (let sIdx = 0; sIdx < (sources || []).length; sIdx++) {
+        const src = sources[sIdx];
+        const normClause = src.clause ? src.clause.toLowerCase().replace(/^(?:table|clause|section)\s+/i, '').trim() : '';
+        const normStd = src.standard ? src.standard.toLowerCase() : '';
+        const sLower = sTrim.toLowerCase();
+        if ((normClause && normClause.length >= 3 && sLower.includes(normClause)) || 
+            (normStd && sLower.includes(normStd) && src.clause && sLower.includes(src.clause.toLowerCase()))) {
+          hasSrcTag = true;
+          break;
+        }
+      }
+
+      // 2. Resolve against sources if sentence numbers / units match grounded sources
+      if (!hasSrcTag) {
+        const numMatches = sTrim.match(/\b(?:\d+(?:\.\d+)?)\s*(?:°C|°F|HRC|HBW|psi|bar|ksi|mm|inch|in\b|in\.|ft-lbs|Joule|J\b|%|MPa|GPa|kPa)\b|\b(?:Group|P-No\.?|F-No\.?|A-No\.?)\s*\d+\b/gi) || [];
+        if (numMatches.length > 0) {
+          const allNumsGrounded = numMatches.every(num => {
+            const rawNum = num.toLowerCase().replace(/\s+/g, '');
+            return allSourceClean.includes(rawNum);
+          });
+          if (allNumsGrounded) {
+            hasSrcTag = true;
+          }
+        }
+      }
+
+      // 3. Resolve determination headers, code names, standard titles, or list bullet lines
+      if (!hasSrcTag) {
+        const isHeaderOrDeterm = /VERIFIED CODE DETERMINATION|SHORT ANSWER|EVIDENCE & CODE SPECIFICATION|Acceptance Criteria|Rejection Criteria|Single Film|Composite Viewing|General Baseline|Allowable Density|Holding Time|Hydrostatic Test|Governing Standard|Source:|WHY THIS ANSWER IS RIGHT|PHYSICAL JUSTIFICATION|EXPLANATION|JUSTIFICATION|RECOMMENDED|PARAMETER/i.test(sTrim);
+        if (isHeaderOrDeterm) {
+          hasSrcTag = true;
+        } else {
+          // Check if substantive words in sentence (len >= 4, non-stopword) trace to sources / envelope text
+          const stopWords = new Set(['this', 'that', 'with', 'from', 'have', 'been', 'when', 'where', 'which', 'they', 'their', 'about', 'these', 'those', 'shall', 'would', 'should', 'could', 'because', 'according', 'there', 'other', 'most', 'such', 'after', 'before']);
+          const words = (sTrim.toLowerCase().match(/\b[a-z]{4,}\b/g) || []).filter(w => !stopWords.has(w));
+          const matchedWords = words.filter(w => allSourceText.includes(w));
+          if (matchedWords.length >= 2 || (words.length === 1 && matchedWords.length === 1)) {
+            hasSrcTag = true;
+          }
+        }
+      }
+    }
+
+    if (!hasSrcTag) {
+      unsupportedSentences++;
+    }
+
+    // Extract clause designators in this sentence
+    const clauseMatches = sTrim.match(/\b(?:T-\d{3,4}(?:\.\d+)?|QW-[0-9]+(?:\.[0-9]+)?|UW-[0-9]+(?:\([a-z0-9]+\))?|UG-[0-9]+|Table\s+[A-Za-z0-9\.\-\/]+|Clause\s+[A-Za-z0-9\.\-]+|Sec(?:tion)?\s+[0-9]+|\d+\.\d+(?:\.\d+)+)\b/gi) || [];
+    for (const cMatch of clauseMatches) {
+      totalClauses++;
+      const normClause = cMatch.toLowerCase().replace(/^(?:table|clause|section)\s+/i, '').trim();
+      const inCorpus = allSourceText.includes(normClause) || allSourceText.includes(cMatch.toLowerCase());
+      if (inCorpus) {
+        resolvableClauses++;
+      } else {
+        unsourcedClauses.push({ clause: cMatch, sentence: sTrim });
+      }
+    }
+  }
+
+  // Enforce zero invented clauses (e.g. invented T-282.1 impossible)
+  for (const un of unsourcedClauses) {
+    const cleanEscaped = un.clause.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    answer = answer.replace(new RegExp('\\b' + cleanEscaped + '\\b', 'g'), '[Unverified Clause Omitted]');
+  }
+
+  const totalSents = substantiveSentences.length || 1;
+  const usr = Math.round((unsupportedSentences / totalSents) * 1000) / 1000;
+  const clauseResolvablePct = totalClauses > 0 ? Math.round((resolvableClauses / totalClauses) * 100) : 100;
+
+  return {
+    answer,
+    usr,
+    clause_resolvable_pct: clauseResolvablePct,
+    unsourced_clauses: unsourcedClauses
+  };
 }
 
 app.get('/api/health', async (c) => {
