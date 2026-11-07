@@ -3427,6 +3427,136 @@
             unicode-bidi: isolate;
         }
 
+        /* 🗂️ Q-Grey Chat Tabs & History Styling */
+        .sidebar-chat-tabs-section {
+            padding: 10px 12px 6px;
+            border-bottom: 1px solid var(--gemini-border);
+            flex-shrink: 0;
+            background: var(--gemini-surface);
+        }
+        .chat-tabs-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .new-chat-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--gemini-bg);
+            border: 1px solid var(--gemini-border);
+            border-radius: 6px;
+            padding: 4px 9px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--gemini-text-main);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .new-chat-btn:hover {
+            background: var(--gemini-hover);
+            border-color: var(--sap-blue);
+            color: var(--sap-blue);
+        }
+        .chat-tabs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            max-height: 190px;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+        .chat-tab-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--gemini-text-main);
+            background: transparent;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+        .chat-tab-item:hover {
+            background: var(--gemini-hover);
+        }
+        .chat-tab-item.active {
+            background: rgba(30, 58, 95, 0.08);
+            border-left: 3px solid var(--navy-700);
+            font-weight: 600;
+        }
+        body.rtl .chat-tab-item.active {
+            border-left: none;
+            border-right: 3px solid var(--navy-700);
+        }
+        .chat-tab-title {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 6px;
+        }
+        body.rtl .chat-tab-title {
+            margin-right: 0;
+            margin-left: 6px;
+        }
+        .chat-tab-badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--ok, #10B981);
+            margin-right: 6px;
+            flex-shrink: 0;
+        }
+        body.rtl .chat-tab-badge-dot {
+            margin-right: 0;
+            margin-left: 6px;
+        }
+        .chat-tab-actions {
+            display: none;
+            align-items: center;
+            gap: 3px;
+        }
+        .chat-tab-item:hover .chat-tab-actions,
+        .chat-tab-item.active .chat-tab-actions {
+            display: inline-flex;
+        }
+        .chat-tab-action-btn {
+            background: none;
+            border: none;
+            padding: 2px 3px;
+            cursor: pointer;
+            color: var(--gemini-text-muted);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .chat-tab-action-btn:hover {
+            color: var(--gemini-text-main);
+            background: rgba(0,0,0,0.06);
+        }
+        .chat-tab-action-btn.pinned {
+            color: var(--sap-blue);
+        }
+        .memory-cat-pill {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .memory-cat-scope { background: rgba(59, 130, 246, 0.15); color: #2563eb; }
+        .memory-cat-units { background: rgba(16, 185, 129, 0.15); color: #059669; }
+        .memory-cat-role { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+        .memory-cat-materials { background: rgba(139, 92, 246, 0.15); color: #7c3aed; }
+        .memory-cat-general { background: rgba(100, 116, 139, 0.15); color: #475569; }
+
     </style>
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1E3A5F">
@@ -3460,6 +3590,10 @@
         <symbol id="i-panel-left" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></symbol>
         <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
         <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+        <symbol id="i-pin" viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></symbol>
+        <symbol id="i-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></symbol>
+        <symbol id="i-message-square" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
       </defs>
     </svg>
 
@@ -3514,6 +3648,11 @@
                         <span class="params-item-tag green">Install</span>
                     </button>
                     <div class="params-divider"></div>
+                    <button class="params-item" onclick="openMemoryModal(); closeParamsPopover();">
+                        <svg class="lucide-icon" style="stroke:var(--sap-blue);"><use href="#i-sparkles"></use></svg>
+                        <span>Rig Context & Memory</span>
+                        <span class="params-item-tag" id="popover-memory-tag">Active</span>
+                    </button>
                     <button class="params-item" onclick="toggleSourcesSidebar(); closeParamsPopover();">
                         <svg class="lucide-icon"><use href="#i-panel-left"></use></svg>
                         <span>Sources & Specs Scope Panel</span>
@@ -3530,6 +3669,10 @@
                         <button class="params-item admin-only" onclick="forceCachePurge(); closeParamsPopover();">
                             <svg class="lucide-icon"><use href="#i-eraser"></use></svg>
                             <span>Purge Semantic Cache</span>
+                        </button>
+                        <button class="params-item admin-only" onclick="adminPurgeMemory(); closeParamsPopover();">
+                            <svg class="lucide-icon"><use href="#i-trash"></use></svg>
+                            <span>Purge All User Memory</span>
                         </button>
                         <a href="refiner.html" class="params-item admin-only" style="text-decoration:none;">
                             <svg class="lucide-icon"><use href="#i-wrench"></use></svg>
@@ -3633,6 +3776,23 @@
 
         <!-- NotebookLM Sources Sidebar -->
         <aside id="notebooklm-sidebar" class="sources-sidebar">
+            <!-- 🗂️ Chat Tabs Section (ITEM 2) -->
+            <div class="sidebar-chat-tabs-section">
+                <div class="chat-tabs-header">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <svg class="lucide-icon" style="width:15px; height:15px; stroke:var(--navy-700);"><use href="#i-message-square"></use></svg>
+                        <span style="font-weight:700; font-size:0.84rem; color:var(--gemini-text-main);">Chat Tabs</span>
+                    </div>
+                    <button class="new-chat-btn" id="new-chat-btn" onclick="startNewConversation()" title="Start New Conversation">
+                        <svg class="lucide-icon" style="width:13px; height:13px;"><use href="#i-plus"></use></svg>
+                        <span>New Chat</span>
+                    </button>
+                </div>
+                <div id="chat-tabs-list" class="chat-tabs-list">
+                    <div style="font-size:0.75rem; color:var(--gemini-text-muted); text-align:center; padding:12px 0;">Loading sessions...</div>
+                </div>
+            </div>
+
             <div class="sidebar-header">
                 <div class="sidebar-title-row">
                     <div class="sidebar-title">
@@ -5049,6 +5209,556 @@
 
         // Initialize Theme & Mode on Load
         
+        // =========================================================================
+        // 🗂️ CHAT SESSIONS & PER-USER MEMORY CLIENT SYSTEM (ITEM 1, 2, 3, 4)
+        // =========================================================================
+        function getUserKey() {
+            let key = localStorage.getItem('user_key');
+            if (!key) {
+                key = 'usr_' + ((window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15));
+                localStorage.setItem('user_key', key);
+            }
+            return key;
+        }
+
+        let activeConversationId = localStorage.getItem('activeConversation') || null;
+        let conversationsList = [];
+
+        const OFFLINE_CACHE_DB = 'QGreyOfflineStore';
+        const OFFLINE_CONV_STORE = 'active_conversation';
+
+        function openOfflineDB() {
+            return new Promise((resolve) => {
+                if (!window.indexedDB) return resolve(null);
+                const req = indexedDB.open(OFFLINE_CACHE_DB, 1);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(OFFLINE_CONV_STORE)) {
+                        db.createObjectStore(OFFLINE_CONV_STORE, { keyPath: 'id' });
+                    }
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => resolve(null);
+            });
+        }
+
+        async function saveConversationOffline(convId, title, messages) {
+            try {
+                const db = await openOfflineDB();
+                if (!db) return;
+                const tx = db.transaction(OFFLINE_CONV_STORE, 'readwrite');
+                tx.objectStore(OFFLINE_CONV_STORE).put({
+                    id: 'last_active',
+                    convId,
+                    title,
+                    messages,
+                    savedAt: Date.now()
+                });
+            } catch(e) {}
+        }
+
+        async function loadConversationOffline() {
+            try {
+                const db = await openOfflineDB();
+                if (!db) return null;
+                return new Promise((resolve) => {
+                    const tx = db.transaction(OFFLINE_CONV_STORE, 'readonly');
+                    const req = tx.objectStore(OFFLINE_CONV_STORE).get('last_active');
+                    req.onsuccess = () => resolve(req.result || null);
+                    req.onerror = () => resolve(null);
+                });
+            } catch(e) {
+                return null;
+            }
+        }
+
+        async function loadConversationsList() {
+            const tabsListEl = document.getElementById('chat-tabs-list');
+            try {
+                const adminToken = (typeof getAdminToken === 'function') ? getAdminToken() : null;
+                const headers = { 'X-User-Key': getUserKey() };
+                if (adminToken) {
+                    headers['Authorization'] = `Bearer ${adminToken}`;
+                    headers['X-Admin-Token'] = adminToken;
+                }
+                const res = await fetch(`${API_BASE}/api/sessions`, { headers });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                conversationsList = data.conversations || [];
+                renderChatTabs();
+
+                if (conversationsList.length > 0) {
+                    const savedActive = localStorage.getItem('activeConversation');
+                    const exists = conversationsList.some(c => c.id === savedActive);
+                    const targetId = exists ? savedActive : conversationsList[0].id;
+                    if (activeConversationId !== targetId) {
+                        switchConversation(targetId);
+                    }
+                } else {
+                    startNewConversation();
+                }
+            } catch (err) {
+                console.warn("Failed to load server conversations, checking offline cache:", err);
+                const offlineData = await loadConversationOffline();
+                if (offlineData && offlineData.messages && offlineData.messages.length > 0) {
+                    conversationsList = [{
+                        id: offlineData.convId || 'offline-sess',
+                        title: offlineData.title || 'Offline Chat',
+                        pinned: 0,
+                        message_count: offlineData.messages.length
+                    }];
+                    activeConversationId = offlineData.convId || 'offline-sess';
+                    renderChatTabs();
+                    renderOfflineMessages(offlineData.messages, offlineData.title);
+                } else {
+                    if (tabsListEl) {
+                        tabsListEl.innerHTML = `<div style="font-size:0.75rem; color:var(--gemini-text-muted); text-align:center; padding:8px 0;">No saved chats</div>`;
+                    }
+                }
+            }
+        }
+
+        function renderChatTabs() {
+            const listEl = document.getElementById('chat-tabs-list');
+            if (!listEl) return;
+            if (conversationsList.length === 0) {
+                listEl.innerHTML = `<div style="font-size:0.75rem; color:var(--gemini-text-muted); text-align:center; padding:8px 0;">No saved chats</div>`;
+                return;
+            }
+
+            listEl.innerHTML = conversationsList.map(c => {
+                const isActive = c.id === activeConversationId;
+                const isPinned = Boolean(c.pinned);
+                const badgeDot = c.last_badge ? `<span class="chat-tab-badge-dot" title="${c.last_badge}"></span>` : '';
+                return `
+                    <div class="chat-tab-item ${isActive ? 'active' : ''}" onclick="switchConversation('${c.id}')" data-id="${c.id}" title="${escapeHtml(c.title)}">
+                        <div style="display:flex; align-items:center; min-width:0; flex:1;">
+                            ${badgeDot}
+                            <span class="chat-tab-title" id="tab-title-${c.id}">${escapeHtml(c.title)}</span>
+                        </div>
+                        <div class="chat-tab-actions" onclick="event.stopPropagation()">
+                            <button class="chat-tab-action-btn ${isPinned ? 'pinned' : ''}" onclick="togglePinConversation('${c.id}', ${isPinned})" title="${isPinned ? 'Unpin' : 'Pin'}">
+                                <svg class="lucide-icon" style="width:12px; height:12px;"><use href="#i-pin"></use></svg>
+                            </button>
+                            <button class="chat-tab-action-btn" onclick="renameConversation('${c.id}', '${escapeHtml(c.title).replace(/'/g, "\\'")}')" title="Rename">
+                                <svg class="lucide-icon" style="width:12px; height:12px;"><use href="#i-edit"></use></svg>
+                            </button>
+                            <button class="chat-tab-action-btn" onclick="deleteConversation('${c.id}')" title="Delete">
+                                <svg class="lucide-icon" style="width:12px; height:12px;"><use href="#i-trash"></use></svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function startNewConversation() {
+            const newId = ((window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('conv_' + Math.random().toString(36).substring(2, 12)));
+            activeConversationId = newId;
+            sessionId = newId;
+            localStorage.setItem('activeConversation', newId);
+            localStorage.setItem('inspecta_session', newId);
+
+            chatHistory = [];
+            clearChatContainer();
+
+            try {
+                const adminToken = (typeof getAdminToken === 'function') ? getAdminToken() : null;
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'X-User-Key': getUserKey()
+                };
+                if (adminToken) {
+                    headers['Authorization'] = `Bearer ${adminToken}`;
+                    headers['X-Admin-Token'] = adminToken;
+                }
+                await fetch(`${API_BASE}/api/sessions`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ id: newId, title: 'New Chat' })
+                });
+                conversationsList.unshift({
+                    id: newId,
+                    title: 'New Chat',
+                    pinned: 0,
+                    message_count: 0
+                });
+                renderChatTabs();
+            } catch(e) {
+                conversationsList.unshift({
+                    id: newId,
+                    title: 'New Chat',
+                    pinned: 0,
+                    message_count: 0
+                });
+                renderChatTabs();
+            }
+        }
+
+        async function switchConversation(id) {
+            if (!id) return;
+            activeConversationId = id;
+            sessionId = id;
+            localStorage.setItem('activeConversation', id);
+            localStorage.setItem('inspecta_session', id);
+            renderChatTabs();
+
+            clearChatContainer();
+            chatHistory = [];
+
+            try {
+                const adminToken = (typeof getAdminToken === 'function') ? getAdminToken() : null;
+                const headers = { 'X-User-Key': getUserKey() };
+                if (adminToken) {
+                    headers['Authorization'] = `Bearer ${adminToken}`;
+                    headers['X-Admin-Token'] = adminToken;
+                }
+                const res = await fetch(`${API_BASE}/api/sessions/${id}/messages`, { headers });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                const msgs = data.messages || [];
+
+                msgs.forEach(m => {
+                    if (m.role === 'user') {
+                        appendMessage(m.content, 'user');
+                        chatHistory.push({ role: 'user', content: m.content });
+                    } else {
+                        const gb = m.grounding_brief || {};
+                        const gObj = gb.score !== undefined ? {
+                            score_pct: gb.score,
+                            badge: gb.badge,
+                            evidence_grades: gb.evidence || []
+                        } : null;
+                        appendMessage(m.content, 'ai', gb.sources || [], gb.suggested_questions || [], false, null, gObj, gb.model_used);
+                        chatHistory.push({ role: 'assistant', content: m.content });
+                    }
+                });
+
+                const currentConv = conversationsList.find(c => c.id === id);
+                saveConversationOffline(id, currentConv?.title || 'Chat', msgs);
+            } catch(err) {
+                console.warn("Failed to load messages from server, checking offline cache:", err);
+                const offlineData = await loadConversationOffline();
+                if (offlineData && offlineData.convId === id && offlineData.messages) {
+                    renderOfflineMessages(offlineData.messages, offlineData.title);
+                }
+            }
+        }
+
+        function clearChatContainer() {
+            const container = document.getElementById('chat-messages');
+            if (!container) return;
+            container.innerHTML = `
+                <div class="empty-state-welcome" id="empty-state-welcome" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 16px; text-align:center;">
+                    <div style="width:48px; height:48px; border-radius:12px; background:rgba(30, 58, 95, 0.08); display:flex; align-items:center; justify-content:center; margin-bottom:12px;">
+                        <svg class="lucide-icon" style="width:24px; height:24px; stroke:var(--navy-700);"><use href="#i-sparkles"></use></svg>
+                    </div>
+                    <h3 style="font-size:1.15rem; font-weight:700; color:var(--gemini-text-main); margin:0 0 6px;">Q-Grey Engineering Assistant</h3>
+                    <p style="font-size:0.84rem; color:var(--gemini-text-muted); max-width:440px; margin:0 0 16px;">Verified standards comprehension, multi-disciplinary triage, and code-governed calculations.</p>
+                </div>
+            `;
+        }
+
+        function renderOfflineMessages(msgs, title) {
+            clearChatContainer();
+            const container = document.getElementById('chat-messages');
+            if (container) {
+                const banner = document.createElement('div');
+                banner.style.cssText = 'background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.3); border-radius:8px; padding:8px 12px; font-size:0.78rem; color:#b45309; text-align:center; margin-bottom:12px;';
+                banner.textContent = '⚡ Offline Read-Only Mode: Viewing cached session history.';
+                container.appendChild(banner);
+            }
+            msgs.forEach(m => {
+                if (m.role === 'user') {
+                    appendMessage(m.content, 'user');
+                } else {
+                    const gb = m.grounding_brief || {};
+                    const gObj = gb.score !== undefined ? { score_pct: gb.score, badge: gb.badge, evidence_grades: gb.evidence } : null;
+                    appendMessage(m.content, 'ai', gb.sources || [], gb.suggested_questions || [], false, null, gObj, gb.model_used);
+                }
+            });
+        }
+
+        async function renameConversation(id, oldTitle) {
+            const newTitle = prompt("Enter conversation title:", oldTitle);
+            if (!newTitle || newTitle.trim() === '' || newTitle === oldTitle) return;
+            const cleanTitle = newTitle.trim().slice(0, 48);
+
+            try {
+                const adminToken = (typeof getAdminToken === 'function') ? getAdminToken() : null;
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'X-User-Key': getUserKey()
+                };
+                if (adminToken) {
+                    headers['Authorization'] = `Bearer ${adminToken}`;
+                    headers['X-Admin-Token'] = adminToken;
+                }
+                await fetch(`${API_BASE}/api/sessions/${id}`, {
+                    method: 'PATCH',
+                    headers,
+                    body: JSON.stringify({ title: cleanTitle })
+                });
+                const c = conversationsList.find(item => item.id === id);
+                if (c) c.title = cleanTitle;
+                renderChatTabs();
+            } catch(e) {
+                alert("Failed to rename conversation: " + e.message);
+            }
+        }
+
+        async function togglePinConversation(id, isPinned) {
+            try {
+                const adminToken = (typeof getAdminToken === 'function') ? getAdminToken() : null;
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'X-User-Key': getUserKey()
+                };
+                if (adminToken) {
+                    headers['Authorization'] = `Bearer ${adminToken}`;
+                    headers['X-Admin-Token'] = adminToken;
+                }
+                await fetch(`${API_BASE}/api/sessions/${id}`, {
+                    method: 'PATCH',
+                    headers,
+                    body: JSON.stringify({ pinned: !isPinned })
+                });
+                const c = conversationsList.find(item => item.id === id);
+                if (c) c.pinned = !isPinned ? 1 : 0;
+                conversationsList.sort((a,b) => (b.pinned || 0) - (a.pinned || 0));
+                renderChatTabs();
+            } catch(e) {
+                console.warn("Failed to pin conversation:", e);
+            }
+        }
+
+        async function deleteConversation(id) {
+            if (!confirm("Are you sure you want to delete this conversation?")) return;
+            try {
+                const adminToken = (typeof getAdminToken === 'function') ? getAdminToken() : null;
+                const headers = { 'X-User-Key': getUserKey() };
+                if (adminToken) {
+                    headers['Authorization'] = `Bearer ${adminToken}`;
+                    headers['X-Admin-Token'] = adminToken;
+                }
+                await fetch(`${API_BASE}/api/sessions/${id}`, {
+                    method: 'DELETE',
+                    headers
+                });
+                conversationsList = conversationsList.filter(c => c.id !== id);
+                if (activeConversationId === id) {
+                    if (conversationsList.length > 0) {
+                        switchConversation(conversationsList[0].id);
+                    } else {
+                        startNewConversation();
+                    }
+                } else {
+                    renderChatTabs();
+                }
+            } catch(e) {
+                alert("Failed to delete conversation: " + e.message);
+            }
+        }
+
+        function updateActiveConversationOnAnswer(userQ, answerText, grounding) {
+            if (conversationsList.length > 0) {
+                const cur = conversationsList.find(c => c.id === activeConversationId);
+                if (cur) {
+                    if (cur.title === 'New Chat' || cur.message_count === 0) {
+                        cur.title = userQ.slice(0, 48);
+                    }
+                    cur.message_count = (cur.message_count || 0) + 2;
+                    if (grounding && grounding.badge) cur.last_badge = grounding.badge;
+                    renderChatTabs();
+                }
+            }
+            const msgs = chatHistory.map((m, idx) => ({
+                id: 'msg_' + idx,
+                role: m.role,
+                content: m.content,
+                grounding_brief: m.role === 'assistant' ? { score: grounding?.score_pct, badge: grounding?.badge, evidence: grounding?.evidence_grades } : null
+            }));
+            const cItem = conversationsList.find(c => c.id === activeConversationId);
+            saveConversationOffline(activeConversationId, cItem?.title || 'Chat', msgs);
+        }
+
+        function openMemoryModal() {
+            const modal = document.getElementById('user-memory-modal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            const isEnabled = localStorage.getItem('memoryEnabled') !== 'false';
+            const toggleEl = document.getElementById('memory-global-toggle');
+            const sliderEl = document.getElementById('memory-toggle-slider');
+            if (toggleEl) toggleEl.checked = isEnabled;
+            if (sliderEl) sliderEl.style.background = isEnabled ? '#10B981' : '#94A3B8';
+            loadUserMemory();
+        }
+
+        function closeMemoryModal() {
+            const modal = document.getElementById('user-memory-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function toggleMemoryGlobal(enabled) {
+            localStorage.setItem('memoryEnabled', enabled ? 'true' : 'false');
+            const sliderEl = document.getElementById('memory-toggle-slider');
+            const popTag = document.getElementById('popover-memory-tag');
+            if (sliderEl) sliderEl.style.background = enabled ? '#10B981' : '#94A3B8';
+            if (popTag) {
+                popTag.textContent = enabled ? 'Active' : 'Off';
+                popTag.style.background = enabled ? 'rgba(16, 185, 129, 0.15)' : 'rgba(148, 163, 184, 0.15)';
+                popTag.style.color = enabled ? '#059669' : '#64748B';
+            }
+        }
+
+        async function loadUserMemory() {
+            const listEl = document.getElementById('memory-items-list');
+            const countEl = document.getElementById('memory-count-label');
+            if (!listEl) return;
+            listEl.innerHTML = `<div style="font-size:0.75rem; color:var(--gemini-text-muted); text-align:center; padding:20px 0;">Loading memory facts...</div>`;
+
+            try {
+                const adminToken = (typeof getAdminToken === 'function') ? getAdminToken() : null;
+                const headers = { 'X-User-Key': getUserKey() };
+                if (adminToken) {
+                    headers['Authorization'] = `Bearer ${adminToken}`;
+                    headers['X-Admin-Token'] = adminToken;
+                }
+                const res = await fetch(`${API_BASE}/api/user-memory`, { headers });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                const facts = data.memory || [];
+                if (countEl) countEl.textContent = facts.length;
+
+                if (facts.length === 0) {
+                    listEl.innerHTML = `
+                        <div style="font-size:0.78rem; color:var(--gemini-text-muted); text-align:center; padding:30px 16px;">
+                            No rig facts recorded yet.<br>
+                            <span style="font-size:0.72rem; opacity:0.8;">Facts are automatically learned when you specify rig details (e.g. "We operate 5-inch 19.5 lb/ft S-135 drill pipe with 10k BOP").</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                listEl.innerHTML = facts.map(f => {
+                    const cat = f.category || 'general';
+                    return `
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 10px; background:var(--gemini-bg); border:1px solid var(--gemini-border); border-radius:8px; gap:8px;">
+                            <div style="display:flex; flex-direction:column; gap:4px; flex:1; min-width:0;">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <span class="memory-cat-pill memory-cat-${cat}">${escapeHtml(cat)}</span>
+                                    <span style="font-size:0.72rem; color:var(--gemini-text-muted);">${new Date(f.created_at).toLocaleDateString()}</span>
+                                </div>
+                                <span style="font-size:0.8rem; color:var(--gemini-text-main); word-break:break-word;">${escapeHtml(f.fact)}</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <input type="checkbox" ${f.active ? 'checked' : ''} onchange="toggleMemoryItem('${f.id}', this.checked)" title="Toggle active">
+                                <button class="chat-tab-action-btn" onclick="deleteMemoryItem('${f.id}')" title="Delete">
+                                    <svg class="lucide-icon" style="width:14px; height:14px;"><use href="#i-trash"></use></svg>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch(err) {
+                listEl.innerHTML = `<div style="font-size:0.75rem; color:#ef4444; text-align:center; padding:10px 0;">Failed to load memory: ${err.message}</div>`;
+            }
+        }
+
+        async function toggleMemoryItem(id, active) {
+            try {
+                const adminToken = (typeof getAdminToken === 'function') ? getAdminToken() : null;
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'X-User-Key': getUserKey()
+                };
+                if (adminToken) {
+                    headers['Authorization'] = `Bearer ${adminToken}`;
+                    headers['X-Admin-Token'] = adminToken;
+                }
+                await fetch(`${API_BASE}/api/user-memory/${id}`, {
+                    method: 'PATCH',
+                    headers,
+                    body: JSON.stringify({ active: active ? 1 : 0 })
+                });
+            } catch(e) {
+                console.warn("Failed to toggle memory item:", e);
+            }
+        }
+
+        async function deleteMemoryItem(id) {
+            try {
+                const adminToken = (typeof getAdminToken === 'function') ? getAdminToken() : null;
+                const headers = { 'X-User-Key': getUserKey() };
+                if (adminToken) {
+                    headers['Authorization'] = `Bearer ${adminToken}`;
+                    headers['X-Admin-Token'] = adminToken;
+                }
+                await fetch(`${API_BASE}/api/user-memory/${id}`, {
+                    method: 'DELETE',
+                    headers
+                });
+                loadUserMemory();
+            } catch(e) {
+                alert("Failed to delete memory item: " + e.message);
+            }
+        }
+
+        async function clearAllUserMemories() {
+            if (!confirm("Are you sure you want to clear all stored rig facts?")) return;
+            try {
+                const adminToken = (typeof getAdminToken === 'function') ? getAdminToken() : null;
+                const headers = { 'X-User-Key': getUserKey() };
+                if (adminToken) {
+                    headers['Authorization'] = `Bearer ${adminToken}`;
+                    headers['X-Admin-Token'] = adminToken;
+                }
+                await fetch(`${API_BASE}/api/user-memory`, {
+                    method: 'DELETE',
+                    headers
+                });
+                loadUserMemory();
+            } catch(e) {
+                alert("Failed to clear memory: " + e.message);
+            }
+        }
+
+        async function adminPurgeMemory() {
+            if (!confirm("ADMIN CONFIRMATION: Purge ALL user memory rows system-wide across all users?")) return;
+            try {
+                const adminToken = (typeof getAdminToken === 'function') ? getAdminToken() : null;
+                if (!adminToken) return alert("Admin token required.");
+                const res = await fetch(`${API_BASE}/api/admin/purge-memory`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'X-Admin-Token': adminToken
+                    }
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert("Success: " + (data.message || "All user memory purged"));
+                    loadUserMemory();
+                } else {
+                    alert("Error: " + (data.error || "Failed to purge memory"));
+                }
+            } catch(e) {
+                alert("Error: " + e.message);
+            }
+        }
+
+        window.openMemoryModal = openMemoryModal;
+        window.closeMemoryModal = closeMemoryModal;
+        window.toggleMemoryGlobal = toggleMemoryGlobal;
+        window.deleteMemoryItem = deleteMemoryItem;
+        window.clearAllUserMemories = clearAllUserMemories;
+        window.adminPurgeMemory = adminPurgeMemory;
+        window.startNewConversation = startNewConversation;
+        window.switchConversation = switchConversation;
+        window.renameConversation = renameConversation;
+        window.togglePinConversation = togglePinConversation;
+        window.deleteConversation = deleteConversation;
+
         // =========================================================================
         // 🛰️ LOCASPEC™ ENTERPRISE OFFLINE RIG ENGINE (IndexedDB + Rig Server)
         // Zero-Connectivity Verification & Local Retrieval for Remote Desert/Offshore
@@ -6735,13 +7445,16 @@ Answer the inspector's query strictly and accurately based on the verified local
                     reqHeaders['X-Admin-Token'] = adminToken;
                     reqHeaders['Authorization'] = `Bearer ${adminToken}`;
                 }
+                reqHeaders['X-User-Key'] = getUserKey();
+                const activeConvId = activeConversationId || sessionId;
                 const res = await fetch(`${API_BASE}/api/ask?stream=true`, {
                     method: 'POST',
                     headers: reqHeaders,
                     body: JSON.stringify({
                         question: text,
                         language: isArabic ? 'ar' : 'en',
-                        session_id: sessionId,
+                        conversation_id: activeConvId,
+                        session_id: activeConvId,
                         standard_filter: effectiveMode === 'web' ? '🌐 GENERAL AI' : (getActiveStandards().length > 0 ? getActiveStandards().join(', ') : '🌐 DATABASE MODE'),
                         mode: effectiveMode,
                         selected_standards: getActiveStandards(),
@@ -6815,6 +7528,7 @@ Answer the inspector's query strictly and accurately based on the verified local
                     streamMsg.finalize(fullAnswer, streamSources, streamFollowups, activeStreamMcqs, streamGrounding, streamModel);
                     chatHistory.push({ role: 'user', content: text });
                     chatHistory.push({ role: 'assistant', content: fullAnswer });
+                    updateActiveConversationOnAnswer(text, fullAnswer, streamGrounding);
                 } else {
                     const data = await res.json();
                     if (data.error) throw new Error(data.error);
@@ -6822,6 +7536,7 @@ Answer the inspector's query strictly and accurately based on the verified local
                     appendMessage(data.answer, 'ai', data.sources, data.suggested_questions, data.can_continue, data.mcq_questions, data.grounding, data.model_used);
                     chatHistory.push({ role: 'user', content: text });
                     chatHistory.push({ role: 'assistant', content: data.answer });
+                    updateActiveConversationOnAnswer(text, data.answer, data.grounding);
                 }
 
             } catch (err) {
@@ -11337,6 +12052,7 @@ Answer the inspector's query strictly and accurately based on the verified local
             const tokenInput = document.getElementById('admin-token');
             if (tokenInput && savedToken) tokenInput.value = savedToken;
             initNotebookLMSidebar();
+            loadConversationsList();
         });
     </script>
 </body>
