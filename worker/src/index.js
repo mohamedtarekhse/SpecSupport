@@ -3,25 +3,29 @@ import { calculateCodeSafetyRequirements, parsePipeQuery } from './code_calculat
 
 const app = new Hono()
 
-// Robust CORS handles preflight OPTIONS for all routes with explicit origin validation (ITEM 3)
-app.use('*', async (c, next) => {
+function getCorsOrigin(c) {
   const origin = c.req.header('Origin') || ''
   const isAllowedOrigin = !origin ||
     origin.endsWith('.pages.dev') ||
     origin.startsWith('http://localhost:') ||
     origin.startsWith('http://127.0.0.1:') ||
     (c.env.ALLOWED_ORIGIN && (c.env.ALLOWED_ORIGIN === '*' || origin === c.env.ALLOWED_ORIGIN))
+  if (origin && isAllowedOrigin) return origin
+  if (!origin) return '*'
+  return c.env.ALLOWED_ORIGIN || '*'
+}
 
-  if (origin && isAllowedOrigin) {
-    c.header('Access-Control-Allow-Origin', origin)
+// Robust CORS handles preflight OPTIONS for all routes with explicit origin validation (ITEM 3)
+app.use('*', async (c, next) => {
+  const origin = getCorsOrigin(c)
+  c.header('Access-Control-Allow-Origin', origin)
+  if (origin !== '*') {
     c.header('Vary', 'Origin')
-  } else if (!origin) {
-    c.header('Access-Control-Allow-Origin', '*')
-  } else {
-    c.header('Access-Control-Allow-Origin', c.env.ALLOWED_ORIGIN || 'https://inspection-api.pages.dev')
   }
   c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Token, x-admin-token, x-admin-secret, X-Title, HTTP-Referer, X-Model')
+  const requestedHeaders = c.req.header('Access-Control-Request-Headers')
+  const defaultAllowedHeaders = 'Content-Type, Authorization, X-Admin-Token, x-admin-token, x-admin-secret, X-Title, HTTP-Referer, X-Model, X-User-Key, x-user-key, Accept, Cache-Control, Pragma'
+  c.header('Access-Control-Allow-Headers', requestedHeaders ? `${requestedHeaders}, ${defaultAllowedHeaders}` : defaultAllowedHeaders)
   c.header('Access-Control-Max-Age', '86400')
 
   if (c.req.method === 'OPTIONS') {
@@ -3522,9 +3526,8 @@ app.post('/api/admin/check-hash', async (c) => {
   }
 })
 
-// Public/Admin Catalog Inspection Endpoint
 // Public/Admin Catalog Inspection Endpoint with Real-Time Verification Badges
-app.get('/api/admin/catalog', async (c) => {
+async function getCatalogResponse(c) {
   try {
     const totalChunksRes = await c.env.DB.prepare(`SELECT count(*) as count FROM standards_chunks`).first()
     const totalChunks = totalChunksRes ? totalChunksRes.count : 0
@@ -3579,7 +3582,10 @@ app.get('/api/admin/catalog', async (c) => {
   } catch(e) {
     return c.json({ error: e.message }, 500)
   }
-})
+}
+
+app.get('/api/catalog', getCatalogResponse)
+app.get('/api/admin/catalog', getCatalogResponse)
 
 // Automated Background Testing, Training, Verification & Adaptation Loop
 app.post('/api/admin/auto-train-standard', async (c) => {
@@ -8434,7 +8440,7 @@ app.post('/api/ask', async (c) => {
               'Content-Type': 'text/event-stream',
               'Cache-Control': 'no-cache',
               'Connection': 'keep-alive',
-              'Access-Control-Allow-Origin': c.env.ALLOWED_ORIGIN || '*'
+              'Access-Control-Allow-Origin': getCorsOrigin(c)
             }
           });
         } else {
@@ -8530,7 +8536,7 @@ app.post('/api/ask', async (c) => {
             'Content-Type': 'text/event-stream',
             'Cache-Control': 'no-cache',
             'Connection': 'keep-alive',
-            'Access-Control-Allow-Origin': c.env.ALLOWED_ORIGIN || '*'
+            'Access-Control-Allow-Origin': getCorsOrigin(c)
           }
         });
       } else {
@@ -8687,7 +8693,7 @@ app.post('/api/ask', async (c) => {
             'Content-Type': 'text/event-stream',
             'Cache-Control': 'no-cache',
             'Connection': 'keep-alive',
-            'Access-Control-Allow-Origin': c.env.ALLOWED_ORIGIN || '*'
+            'Access-Control-Allow-Origin': getCorsOrigin(c)
           }
         })
       } else {
@@ -9061,7 +9067,7 @@ Strictly regenerate the answer to eliminate all contradictions. Every requiremen
               'Content-Type': 'text/event-stream',
               'Cache-Control': 'no-cache',
               'Connection': 'keep-alive',
-              'Access-Control-Allow-Origin': c.env.ALLOWED_ORIGIN || '*'
+              'Access-Control-Allow-Origin': getCorsOrigin(c)
             }
           })
         }
@@ -9304,7 +9310,7 @@ Strictly regenerate the answer to eliminate all contradictions. Every requiremen
             'Content-Type': 'text/event-stream',
             'Cache-Control': 'no-cache',
             'Connection': 'keep-alive',
-            'Access-Control-Allow-Origin': c.env.ALLOWED_ORIGIN || '*'
+            'Access-Control-Allow-Origin': getCorsOrigin(c)
           }
         });
       }

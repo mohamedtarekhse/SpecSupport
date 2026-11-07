@@ -237,6 +237,9 @@ async function runSessionMemoryGates() {
   });
   assert(askMemRes.status === 200, `Follow-up query with memory active executed`);
 
+  // Brief pause for background tasks to settle before clearing
+  await new Promise(r => setTimeout(r, 800));
+
   // Delete all memory for memUser
   const delMemRes = await fetch(`${BASE_URL}/api/user-memory`, {
     method: 'DELETE',

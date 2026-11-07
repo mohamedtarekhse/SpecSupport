@@ -10026,7 +10026,7 @@ Answer the inspector's query strictly and accurately based on the verified local
             if (!listEl) return;
 
             try {
-                const res = await fetch(`${API_BASE}/api/admin/catalog`);
+                const res = await fetch(`${API_BASE}/api/catalog`);
                 const data = await res.json();
 
                 if (totalEl) totalEl.textContent = data.total_chunks || 0;
@@ -10580,7 +10580,7 @@ Answer the inspector's query strictly and accurately based on the verified local
             }
 
             try {
-                const res = await fetch(`${API_BASE}/api/admin/catalog`);
+                const res = await fetch(`${API_BASE}/api/catalog`);
                 const data = await res.json();
                 loadedCatalogStandards = data.standards || [];
                 totalDatabaseChunks = data.total_chunks || 0;
