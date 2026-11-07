@@ -68,6 +68,65 @@ function getCorpusTables(c) {
   };
 }
 
+let isConversationsInitialized = false;
+async function ensureConversationsTables(db) {
+  if (isConversationsInitialized || !db) return;
+  try {
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS conversations (
+        id TEXT PRIMARY KEY,
+        user_key TEXT NOT NULL,
+        title TEXT NOT NULL,
+        pinned INT DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        message_count INT DEFAULT 0,
+        last_badge TEXT
+      )
+    `).run();
+    await db.prepare(`CREATE INDEX IF NOT EXISTS idx_conversations_user ON conversations(user_key, pinned DESC, updated_at DESC)`).run();
+
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS messages (
+        id TEXT PRIMARY KEY,
+        conversation_id TEXT NOT NULL,
+        role TEXT NOT NULL,
+        content TEXT NOT NULL,
+        grounding_brief TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `).run();
+    await db.prepare(`CREATE INDEX IF NOT EXISTS idx_messages_conv ON messages(conversation_id, created_at ASC)`).run();
+
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS user_memory (
+        id TEXT PRIMARY KEY,
+        user_key TEXT NOT NULL,
+        fact TEXT NOT NULL,
+        category TEXT NOT NULL,
+        active INT DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `).run();
+    await db.prepare(`CREATE INDEX IF NOT EXISTS idx_user_memory_user ON user_memory(user_key, active)`).run();
+
+    const traceCols = (await db.prepare(`PRAGMA table_info(request_traces)`).all()).results?.map(r => r.name) || [];
+    if (!traceCols.includes('memory_used')) {
+      await db.prepare(`ALTER TABLE request_traces ADD COLUMN memory_used TEXT`).run().catch(() => {});
+    }
+
+    isConversationsInitialized = true;
+  } catch (err) {
+    console.error("ensureConversationsTables error:", err);
+  }
+}
+
+function getRequestUserKey(c) {
+  if (isStudioAuthorized(c)) return 'admin';
+  const k = (c.req.header('X-User-Key') || c.req.header('x-user-key') || c.req.query('user_key') || '').trim();
+  return k;
+}
+
 let aiBindingDegradedUntil = 0;
 function isQuotaExhaustionError(err) {
   const msg = (err && (err.message || String(err))) || '';
@@ -372,6 +431,355 @@ app.get('/api/test-cf-stream', async (c) => {
     return c.json({ error: e.message }, 500);
   }
 })
+
+// =========================================================================
+// 🗂️ CHAT SESSIONS & PER-USER MEMORY ENDPOINTS (ITEM 1 & ITEM 3)
+// =========================================================================
+
+// List Conversations
+app.get('/api/sessions', async (c) => {
+  await ensureConversationsTables(c.env.DB);
+  const userKey = getRequestUserKey(c);
+  if (!userKey) return c.json({ error: 'Missing X-User-Key header' }, 400);
+
+  const { results } = await c.env.DB.prepare(`
+    SELECT id, title, pinned, created_at, updated_at, message_count, last_badge
+    FROM conversations
+    WHERE user_key = ? OR ? = 'admin'
+    ORDER BY pinned DESC, updated_at DESC
+    LIMIT 100
+  `).bind(userKey, userKey).all();
+
+  return c.json({ success: true, conversations: results || [] });
+});
+
+// Create Conversation (Rate limited to max 30/day/user)
+app.post('/api/sessions', async (c) => {
+  await ensureConversationsTables(c.env.DB);
+  const userKey = getRequestUserKey(c);
+  if (!userKey) return c.json({ error: 'Missing X-User-Key header' }, 400);
+
+  const countRes = await c.env.DB.prepare(`
+    SELECT count(*) as count FROM conversations
+    WHERE user_key = ? AND created_at >= datetime('now', '-24 hours')
+  `).bind(userKey).first();
+  const createdToday = countRes?.count || 0;
+  if (createdToday >= 30 && userKey !== 'admin') {
+    return c.json({ error: 'Daily conversation limit reached (max 30/day)' }, 429);
+  }
+
+  const body = await c.req.json().catch(() => ({}));
+  const id = body.id || crypto.randomUUID();
+  const title = (body.title || 'New Chat').slice(0, 48);
+
+  await c.env.DB.prepare(`
+    INSERT INTO conversations (id, user_key, title, pinned, message_count)
+    VALUES (?, ?, ?, 0, 0)
+  `).bind(id, userKey, title).run();
+
+  return c.json({ success: true, conversation: { id, user_key: userKey, title, pinned: 0, message_count: 0 } });
+});
+
+// Get Messages for Conversation
+app.get('/api/sessions/:id/messages', async (c) => {
+  await ensureConversationsTables(c.env.DB);
+  const userKey = getRequestUserKey(c);
+  const id = c.req.param('id');
+  if (!userKey) return c.json({ error: 'Missing X-User-Key header' }, 400);
+
+  const conv = await c.env.DB.prepare(`
+    SELECT id, user_key, title, pinned, message_count, last_badge FROM conversations
+    WHERE id = ? AND (user_key = ? OR ? = 'admin')
+  `).bind(id, userKey, userKey).first();
+  if (!conv) return c.json({ error: 'Conversation not found' }, 404);
+
+  const { results } = await c.env.DB.prepare(`
+    SELECT id, conversation_id, role, content, grounding_brief, created_at
+    FROM messages
+    WHERE conversation_id = ?
+    ORDER BY created_at ASC
+  `).bind(id).all();
+
+  const messages = (results || []).map(m => {
+    let brief = null;
+    if (m.grounding_brief) {
+      try { brief = JSON.parse(m.grounding_brief); } catch(e) {}
+    }
+    return {
+      id: m.id,
+      role: m.role,
+      content: m.content,
+      grounding_brief: brief,
+      created_at: m.created_at
+    };
+  });
+
+  return c.json({ success: true, conversation: conv, messages });
+});
+
+// Update Conversation Title or Pinned
+app.patch('/api/sessions/:id', async (c) => {
+  await ensureConversationsTables(c.env.DB);
+  const userKey = getRequestUserKey(c);
+  const id = c.req.param('id');
+  if (!userKey) return c.json({ error: 'Missing X-User-Key header' }, 400);
+
+  const body = await c.req.json().catch(() => ({}));
+  const updates = [];
+  const params = [];
+
+  if (typeof body.title === 'string') {
+    updates.push('title = ?');
+    params.push(body.title.slice(0, 48));
+  }
+  if (typeof body.pinned === 'number' || typeof body.pinned === 'boolean') {
+    updates.push('pinned = ?');
+    params.push(body.pinned ? 1 : 0);
+  }
+  if (updates.length === 0) return c.json({ error: 'No fields to update' }, 400);
+
+  updates.push("updated_at = datetime('now')");
+  params.push(id, userKey, userKey);
+
+  const res = await c.env.DB.prepare(`
+    UPDATE conversations
+    SET ${updates.join(', ')}
+    WHERE id = ? AND (user_key = ? OR ? = 'admin')
+  `).bind(...params).run();
+
+  if (res?.meta?.changes === 0) {
+    return c.json({ error: 'Conversation not found or unauthorized' }, 404);
+  }
+
+  return c.json({ success: true });
+});
+
+// Delete Conversation
+app.delete('/api/sessions/:id', async (c) => {
+  await ensureConversationsTables(c.env.DB);
+  const userKey = getRequestUserKey(c);
+  const id = c.req.param('id');
+  if (!userKey) return c.json({ error: 'Missing X-User-Key header' }, 400);
+
+  const conv = await c.env.DB.prepare(`
+    SELECT id FROM conversations WHERE id = ? AND (user_key = ? OR ? = 'admin')
+  `).bind(id, userKey, userKey).first();
+  if (!conv) return c.json({ error: 'Conversation not found or unauthorized' }, 404);
+
+  await c.env.DB.batch([
+    c.env.DB.prepare(`DELETE FROM messages WHERE conversation_id = ?`).bind(id),
+    c.env.DB.prepare(`DELETE FROM conversations WHERE id = ?`).bind(id)
+  ]);
+
+  return c.json({ success: true });
+});
+
+// Get User Memory Facts
+app.get('/api/user-memory', async (c) => {
+  await ensureConversationsTables(c.env.DB);
+  const userKey = getRequestUserKey(c);
+  if (!userKey) return c.json({ error: 'Missing X-User-Key header' }, 400);
+
+  const { results } = await c.env.DB.prepare(`
+    SELECT id, fact, category, active, created_at
+    FROM user_memory
+    WHERE user_key = ? OR ? = 'admin'
+    ORDER BY created_at DESC
+    LIMIT 50
+  `).bind(userKey, userKey).all();
+
+  return c.json({ success: true, memory: results || [] });
+});
+
+// Toggle Active status on User Memory Fact
+app.patch('/api/user-memory/:id', async (c) => {
+  await ensureConversationsTables(c.env.DB);
+  const userKey = getRequestUserKey(c);
+  const id = c.req.param('id');
+  if (!userKey) return c.json({ error: 'Missing X-User-Key header' }, 400);
+
+  const body = await c.req.json().catch(() => ({}));
+  const activeVal = body.active === 0 || body.active === false ? 0 : 1;
+
+  const res = await c.env.DB.prepare(`
+    UPDATE user_memory SET active = ? WHERE id = ? AND (user_key = ? OR ? = 'admin')
+  `).bind(activeVal, id, userKey, userKey).run();
+
+  return c.json({ success: true, active: activeVal });
+});
+
+// Delete specific User Memory Fact
+app.delete('/api/user-memory/:id', async (c) => {
+  await ensureConversationsTables(c.env.DB);
+  const userKey = getRequestUserKey(c);
+  const id = c.req.param('id');
+  if (!userKey) return c.json({ error: 'Missing X-User-Key header' }, 400);
+
+  await c.env.DB.prepare(`
+    DELETE FROM user_memory WHERE id = ? AND (user_key = ? OR ? = 'admin')
+  `).bind(id, userKey, userKey).run();
+
+  return c.json({ success: true });
+});
+
+// Clear all User Memory Facts for user
+app.delete('/api/user-memory', async (c) => {
+  await ensureConversationsTables(c.env.DB);
+  const userKey = getRequestUserKey(c);
+  if (!userKey) return c.json({ error: 'Missing X-User-Key header' }, 400);
+
+  await c.env.DB.prepare(`
+    DELETE FROM user_memory WHERE user_key = ?
+  `).bind(userKey).run();
+
+  return c.json({ success: true });
+});
+
+// Admin Purge all memory system-wide (Admin Secret protected)
+app.post('/api/admin/purge-memory', async (c) => {
+  await ensureConversationsTables(c.env.DB);
+  await c.env.DB.prepare(`DELETE FROM user_memory`).run();
+  return c.json({ success: true, message: 'All user memory purged across system' });
+});
+
+async function recordAssistantMessageAndSync(env, conversationId, userKey, question, answer, grounding, modelUsed, triageAction) {
+  if (!conversationId || !env.DB) return;
+  try {
+    const asstMsgId = crypto.randomUUID();
+    const briefJson = JSON.stringify({
+      score: grounding?.score_pct ?? grounding?.grounding_score ?? 100,
+      badge: grounding?.badge ?? grounding?.evidence_badge ?? 'VERIFIED_CODE_GROUNDED',
+      model_used: modelUsed || null,
+      evidence: grounding?.evidence_grades || grounding?.evidence || []
+    });
+
+    await env.DB.prepare(`
+      INSERT INTO messages (id, conversation_id, role, content, grounding_brief)
+      VALUES (?, ?, 'assistant', ?, ?)
+    `).bind(asstMsgId, conversationId, (answer || '').slice(0, 12000), briefJson).run();
+
+    const lastBadge = grounding?.badge ?? grounding?.evidence_badge ?? 'VERIFIED_CODE_GROUNDED';
+    await env.DB.prepare(`
+      UPDATE conversations
+      SET message_count = message_count + 1,
+          last_badge = ?,
+          updated_at = datetime('now')
+      WHERE id = ?
+    `).bind(lastBadge, conversationId).run();
+
+    // FIFO delete grounding_brief beyond 100 & prune messages beyond 400
+    await env.DB.prepare(`
+      UPDATE messages
+      SET grounding_brief = NULL
+      WHERE conversation_id = ? AND id NOT IN (
+        SELECT id FROM messages
+        WHERE conversation_id = ? AND role = 'assistant'
+        ORDER BY created_at DESC LIMIT 100
+      ) AND grounding_brief IS NOT NULL
+    `).bind(conversationId, conversationId).run().catch(() => {});
+
+    const totalMsgs = await env.DB.prepare(`SELECT count(*) as count FROM messages WHERE conversation_id = ?`).bind(conversationId).first();
+    if (totalMsgs && totalMsgs.count > 400) {
+      await env.DB.prepare(`
+        DELETE FROM messages
+        WHERE conversation_id = ? AND id NOT IN (
+          SELECT id FROM messages
+          WHERE conversation_id = ?
+          ORDER BY created_at DESC LIMIT 400
+        )
+      `).bind(conversationId, conversationId).run().catch(() => {});
+    }
+
+    const msgCount = totalMsgs?.count || 2;
+    await extractAndSaveUserMemory(env, userKey, question, conversationId, msgCount, triageAction);
+  } catch (err) {
+    console.error("recordAssistantMessageAndSync error:", err);
+  }
+}
+
+async function extractAndSaveUserMemory(env, userKey, question, convId, messageCount, triageAction) {
+  if (!userKey || userKey === 'admin' || !env.AI || !env.DB) return;
+  const isTriggered = (messageCount % 6 === 0) || (triageAction === 'answer') || (question.length > 50 && /rig|bop|tubing|casing|psi|well|drill|pipe|grade|in\.|mm\b/i.test(question));
+  if (!isTriggered) return;
+
+  try {
+    const prompt = `You are an engineering context extractor for an Oil & Gas inspection assistant.
+Analyze this technical message from an engineer to identify if they are declaring persistent facts about their rig equipment, operating limits, standards scope, units, or materials.
+USER MESSAGE:
+"""
+${question.slice(0, 1500)}
+"""
+
+RULES:
+1. Extract ONLY persistent facts about equipment specifications, operating envelopes, materials, units, or scope.
+2. DO NOT extract ephemeral questions or standard textbook lookup requests.
+3. Each fact must be <= 160 characters.
+4. Categories allowed: "scope", "units", "role", "language", "materials", "general".
+5. Return ONLY a valid JSON object matching:
+{
+  "facts": [
+    { "fact": "example fact <= 160 chars", "category": "scope" }
+  ]
+}
+If no persistent facts, return { "facts": [] }.`;
+
+    const aiResp = await env.AI.run('@cf/meta/llama-3.1-8b-instruct-fp8-fast', {
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 300,
+      temperature: 0.1
+    });
+
+    const text = (aiResp && (aiResp.response || aiResp.choices?.[0]?.message?.content || '')) || '';
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return;
+    const parsed = JSON.parse(match[0]);
+    if (!Array.isArray(parsed.facts) || parsed.facts.length === 0) return;
+
+    const existing = await env.DB.prepare(`
+      SELECT fact, category FROM user_memory WHERE user_key = ?
+    `).bind(userKey).all();
+    const existingFacts = existing.results || [];
+
+    for (const item of parsed.facts) {
+      if (!item.fact || typeof item.fact !== 'string') continue;
+      const cleanFact = item.fact.trim().slice(0, 160);
+      const category = ['scope', 'units', 'role', 'language', 'materials', 'general'].includes(item.category) ? item.category : 'general';
+
+      // Deduplication check: exact text match or word overlap
+      const wordsNew = new Set(cleanFact.toLowerCase().split(/\s+/).filter(w => w.length > 2));
+      let isDuplicate = false;
+      for (const ef of existingFacts) {
+        if (ef.fact.toLowerCase() === cleanFact.toLowerCase()) {
+          isDuplicate = true;
+          break;
+        }
+        if (ef.category === category) {
+          const wordsOld = new Set(ef.fact.toLowerCase().split(/\s+/).filter(w => w.length > 2));
+          let intersection = 0;
+          for (const w of wordsNew) {
+            if (wordsOld.has(w)) intersection++;
+          }
+          const union = new Set([...wordsNew, ...wordsOld]).size;
+          if (union > 0 && (intersection / union) > 0.6) {
+            isDuplicate = true;
+            break;
+          }
+        }
+      }
+
+      if (!isDuplicate) {
+        const memId = crypto.randomUUID();
+        await env.DB.prepare(`
+          INSERT INTO user_memory (id, user_key, fact, category, active)
+          VALUES (?, ?, ?, ?, 1)
+        `).bind(memId, userKey, cleanFact, category).run();
+        existingFacts.push({ fact: cleanFact, category });
+      }
+    }
+  } catch (err) {
+    console.warn("extractAndSaveUserMemory error:", err);
+  }
+}
 
 // Auto Database Schema Migration / Verification
 app.all('/api/admin/setup-db', async (c) => {
@@ -6615,7 +7023,7 @@ function collapseRepetitiveLoops(text) {
   return cleanLines.join('\n').trim();
 }
 
-async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = [], mode = 'web', selected_standards = [], answer_depth = 'medium', triage_ctx = null, triage_action = null, triage_rounds_used = 0) {
+async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = [], mode = 'web', selected_standards = [], answer_depth = 'medium', triage_ctx = null, triage_action = null, triage_rounds_used = 0, activeMemoryFacts = []) {
   const APP_NAME = c.env.APP_NAME || 'Q-Grey';
   const tPrepStart = Date.now();
   let retrievalMs = 0;
@@ -7838,6 +8246,12 @@ The user skipped detailed triage and requested a broad short answer. Strictly ad
     systemPrompt = `${taxonomyGovernanceNote}\n${systemPrompt}`
   }
 
+  // Prepend [USER MEMORY] block (ITEM 3)
+  if (Array.isArray(activeMemoryFacts) && activeMemoryFacts.length > 0) {
+    const memoryLines = activeMemoryFacts.map(m => `- [${m.category || 'general'}] ${m.fact}`).join('\n');
+    systemPrompt = `[USER MEMORY]\nActive rig & user preferences:\n${memoryLines}\n\n${systemPrompt}`;
+  }
+
   const messages = [
     { role: "system", content: systemPrompt },
     ...(history || []),
@@ -7857,6 +8271,65 @@ app.post('/api/ask', async (c) => {
     const isAdminRequest = isStudioAuthorized(c);
     const providerRole = isAdminRequest ? 'admin' : 'public';
     const APP_NAME = c.env.APP_NAME || 'Q-Grey';
+
+    const userKey = getRequestUserKey(c) || 'default-user';
+    const conversationId = rawReqBody.conversation_id || rawReqBody.session_id || session_id;
+    await ensureConversationsTables(c.env.DB);
+
+    // ITEM 1: Server-side conversation history (single source of truth)
+    let serverHistory = [];
+    if (conversationId && c.env.DB) {
+      try {
+        const histRes = await c.env.DB.prepare(`
+          SELECT role, content FROM messages
+          WHERE conversation_id = ?
+          ORDER BY created_at ASC
+          LIMIT 24
+        `).bind(conversationId).all();
+        serverHistory = (histRes.results || []).map(r => ({ role: r.role, content: r.content }));
+      } catch(e) {}
+    }
+    const effectiveHistory = serverHistory.length > 0 ? serverHistory : (Array.isArray(history) ? history : []);
+
+    // ITEM 3: Query Top-5 Active Memory Facts
+    let activeMemoryFacts = [];
+    let memoryUsedIds = [];
+    if (userKey && c.env.DB && rawReqBody.memory_enabled !== false) {
+      try {
+        const memRes = await c.env.DB.prepare(`
+          SELECT id, fact, category FROM user_memory
+          WHERE (user_key = ? OR ? = 'admin') AND active = 1
+          ORDER BY created_at DESC
+          LIMIT 5
+        `).bind(userKey, userKey).all();
+        activeMemoryFacts = memRes.results || [];
+        memoryUsedIds = activeMemoryFacts.map(m => m.id);
+      } catch(e) {}
+    }
+
+    // Persist User Message to messages table & ensure conversation exists
+    if (conversationId && c.env.DB && question) {
+      try {
+        const convExists = await c.env.DB.prepare(`SELECT id, message_count, title FROM conversations WHERE id = ?`).bind(conversationId).first();
+        if (!convExists) {
+          const autoTitle = question.slice(0, 48);
+          await c.env.DB.prepare(`
+            INSERT INTO conversations (id, user_key, title, pinned, message_count)
+            VALUES (?, ?, ?, 0, 1)
+          `).bind(conversationId, userKey, autoTitle).run();
+        } else {
+          if (convExists.message_count === 0 && (!convExists.title || convExists.title === 'New Chat')) {
+            const autoTitle = question.slice(0, 48);
+            await c.env.DB.prepare(`UPDATE conversations SET title = ? WHERE id = ?`).bind(autoTitle, conversationId).run();
+          }
+          await c.env.DB.prepare(`UPDATE conversations SET message_count = message_count + 1 WHERE id = ?`).bind(conversationId).run();
+        }
+        await c.env.DB.prepare(`
+          INSERT INTO messages (id, conversation_id, role, content)
+          VALUES (?, ?, 'user', ?)
+        `).bind(crypto.randomUUID(), conversationId, question.slice(0, 12000)).run();
+      } catch(e) {}
+    }
 
     let effectiveAnswerDepth = (rawReqBody.answer_depth || c.req.query('answer_depth') || rawReqBody.reasoning_effort || c.req.query('reasoning_effort') || 'medium').toLowerCase()
     if (effectiveAnswerDepth === 'fast') effectiveAnswerDepth = 'low'
@@ -7987,7 +8460,7 @@ app.post('/api/ask', async (c) => {
     
     let contextData
     try {
-      contextData = await prepareContextAndMessages(c, question, language, session_id, standard_filter, history, mode, selected_standards, effectiveAnswerDepth, triage_ctx, triage_action, triage_rounds_used)
+      contextData = await prepareContextAndMessages(c, question, language, session_id, standard_filter, effectiveHistory, mode, selected_standards, effectiveAnswerDepth, triage_ctx, triage_action, triage_rounds_used, activeMemoryFacts)
     } catch(e) {
       if (e.message === 'RATE_LIMIT') return c.json({ error: 'Limit reached' }, 429)
       throw e
@@ -8786,13 +9259,13 @@ Strictly regenerate the answer to eliminate all contradictions. Every requiremen
 
         c.executionCtx?.waitUntil(
           c.env.DB.prepare(`
-            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct, memory_used)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `).bind(
             crypto.randomUUID(), 'session-quota', 'QUOTA_EXHAUSTED_4006', 'ALL',
             0, 'CALIBRATED_ABSTENTION', 'cloudflare', modelToLog,
             totalDurationMs, 0, 0, 0, 0, 0, 'standards', 'low', pRole,
-            0, 0, null, null, null, 0, 100
+            0, 0, null, null, null, 0, 100, memoryUsedIds.join(',') || null
           ).run().catch(() => {})
         );
       } catch(logErr) {}
