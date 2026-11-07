@@ -54,18 +54,34 @@ app.get('/api/health', async (c) => {
     api4gCategoryChunkCount = r4g ? (r4g.count || 0) : 0
   } catch(e){}
 
+  let quarantineCount = 0;
+  let quarantineByReason = {};
+  try {
+    const qRes = await c.env.DB.prepare(`SELECT reject_reason, count(*) as count FROM chunks_review GROUP BY reject_reason`).all();
+    if (qRes && qRes.results) {
+      qRes.results.forEach(r => {
+        quarantineByReason[r.reject_reason] = r.count;
+        quarantineCount += r.count;
+      });
+    }
+  } catch(e){}
+
   const corpusCoverageNote = `corpus coverage: ${api4gCategoryChunkCount} API RP 4G chunks on inspection categories`
-  const coverageStatus = (lowCoverage.length > 0 || api4gCategoryChunkCount < 5) ? 'WARN' : 'PASS'
+  const coverageStatus = (lowCoverage.length > 0 || api4gCategoryChunkCount < 5 || quarantineCount > 0) ? 'WARN' : 'PASS'
 
   return c.json({ 
     status: 'ok', 
     engine: 'Cloudflare Workers AI (GLM-5.3 Flash 320B MoE)',
     model: '@cf/zai-org/glm-5.3-flash',
     corpus_coverage_note: corpusCoverageNote,
+    quarantine_count: quarantineCount,
+    quarantine_breakdown: quarantineByReason,
     coverage_doctor: {
       status: coverageStatus,
       low_coverage: lowCoverage,
       api_4g_chunks: api4gCategoryChunkCount,
+      quarantine_count: quarantineCount,
+      quarantine_breakdown: quarantineByReason,
       note: corpusCoverageNote
     }
   })
@@ -317,6 +333,39 @@ async function ensureTaxonomyTable(db) {
       if (!traceCols.includes('triage_choice')) {
         await db.prepare(`ALTER TABLE request_traces ADD COLUMN triage_choice TEXT`).run()
       }
+      if (!traceCols.includes('usr')) {
+        await db.prepare(`ALTER TABLE request_traces ADD COLUMN usr REAL`).run()
+      }
+      if (!traceCols.includes('clause_resolvable_pct')) {
+        await db.prepare(`ALTER TABLE request_traces ADD COLUMN clause_resolvable_pct REAL`).run()
+      }
+      await db.prepare(`
+        CREATE TABLE IF NOT EXISTS chunks_review (
+          id TEXT PRIMARY KEY,
+          standard_code TEXT,
+          standard_name TEXT,
+          section TEXT,
+          clause TEXT,
+          content TEXT,
+          embedding TEXT,
+          scope TEXT,
+          organization TEXT,
+          session_id TEXT,
+          expires_at TEXT,
+          obligation_type TEXT,
+          key_values TEXT,
+          pillar_type TEXT,
+          is_excluded INTEGER DEFAULT 0,
+          in_scope TEXT,
+          out_of_scope TEXT,
+          acceptance_limits TEXT,
+          rejection_limits TEXT,
+          normative_refs TEXT,
+          qa_docs TEXT,
+          reject_reason TEXT NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `).run();
     } catch(e){
       console.warn('DB schema migration warning:', e.message)
     }
@@ -1421,6 +1470,19 @@ app.post('/api/admin/chunks', async (c) => {
     const { standard_code, standard_name, section, clause, content, scope = 'global', organization = 'INTERNATIONAL' } = await c.req.json()
     if (!standard_code || !content) return c.json({ error: 'Missing standard_code or content' }, 400)
 
+    // Write-time Ingest Data Contract & Quarantine Gate (ITEM 1)
+    const validation = validateIngestChunk({ standard_code, standard_name, section, clause, content, scope, organization });
+    if (!validation.valid) {
+      const qId = await quarantineChunk(c.env.DB, { standard_code, standard_name, section, clause, content, scope, organization }, validation.reason);
+      return c.json({
+        success: true,
+        quarantined: true,
+        reject_reason: validation.reason,
+        quarantine_id: qId,
+        message: `Chunk quarantined due to ${validation.reason}. Review at /api/admin/review-queue`
+      });
+    }
+
     let embJson = null
     if (c.env.AI) {
       try {
@@ -2319,12 +2381,34 @@ app.post('/api/admin/ingest-url', async (c) => {
 
     for (let i = 0; i < chunksToInsert.length; i++) {
       const chunkText = chunksToInsert[i];
-      const cls = classifyChunkWorker(chunkText, stdCode);
+      const clauseCandidate = `Clause ${i + 1}`;
+      const sectionCandidate = docTitle.slice(0, 100);
+      const val = validateIngestChunk({
+        standard_code: stdCode,
+        standard_name: docTitle,
+        clause: clauseCandidate,
+        section: sectionCandidate,
+        content: chunkText,
+        organization: org
+      });
+      if (!val.valid) {
+        await quarantineChunk(c.env.DB, {
+          standard_code: stdCode,
+          standard_name: docTitle,
+          clause: clauseCandidate,
+          section: sectionCandidate,
+          content: chunkText,
+          organization: org
+        }, val.reason);
+        continue;
+      }
+
+      const cls = classifyChunkWorker(val.content, stdCode);
 
       // Embed using BAAI
       let embedding = null;
       try {
-        const embedRes = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [chunkText] });
+        const embedRes = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [val.content] });
         if (embedRes && embedRes.data && embedRes.data[0]) {
           embedding = JSON.stringify(embedRes.data[0]);
         }
@@ -2339,9 +2423,9 @@ app.post('/api/admin/ingest-url', async (c) => {
       `).bind(
         stdCode,
         docTitle,
-        `URL Clause ${i + 1}`,
-        docTitle.slice(0, 100),
-        chunkText,
+        clauseCandidate,
+        sectionCandidate,
+        val.content,
         org,
         cls.pillar_type,
         cls.is_excluded,
@@ -3456,6 +3540,126 @@ app.get('/api/admin/model-status', async (c) => {
   }
 });
 
+
+// =========================================================================
+// 📋 REVIEW QUEUE & QUARANTINE REPAIR ENDPOINTS (ITEM 1)
+// =========================================================================
+
+app.get('/api/admin/review-queue', async (c) => {
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401);
+  const limit = Math.min(200, Math.max(1, parseInt(c.req.query('limit') || '50')));
+  const reason = c.req.query('reason');
+  try {
+    let query = `SELECT * FROM chunks_review`;
+    const params = [];
+    if (reason) {
+      query += ` WHERE reject_reason = ?`;
+      params.push(reason);
+    }
+    query += ` ORDER BY created_at DESC LIMIT ?`;
+    params.push(limit);
+    const res = await c.env.DB.prepare(query).bind(...params).all();
+
+    const countRes = await c.env.DB.prepare(`SELECT reject_reason, count(*) as count FROM chunks_review GROUP BY reject_reason`).all();
+    const breakdown = {};
+    let total = 0;
+    (countRes.results || []).forEach(r => {
+      breakdown[r.reject_reason] = r.count;
+      total += r.count;
+    });
+
+    return c.json({
+      success: true,
+      total_quarantined: total,
+      by_reason: breakdown,
+      items: res.results || []
+    });
+  } catch(e) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
+app.post('/api/admin/review-queue/:id/approve', async (c) => {
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401);
+  const id = c.req.param('id');
+  try {
+    const row = await c.env.DB.prepare(`SELECT * FROM chunks_review WHERE id = ?`).bind(id).first();
+    if (!row) return c.json({ error: 'Quarantined chunk not found' }, 404);
+
+    let body = {};
+    try { body = await c.req.json(); } catch(e){}
+
+    const updated = {
+      ...row,
+      clause: body.clause !== undefined ? body.clause : row.clause,
+      section: body.section !== undefined ? body.section : row.section,
+      content: body.content !== undefined ? body.content : row.content,
+      standard_code: body.standard_code !== undefined ? body.standard_code : row.standard_code
+    };
+
+    const validation = validateIngestChunk(updated);
+    if (!validation.valid) {
+      return c.json({ error: `Cannot approve chunk: still rejected for ${validation.reason}`, reject_reason: validation.reason }, 400);
+    }
+
+    let embJson = row.embedding;
+    if (!embJson || embJson === '[]') {
+      try {
+        if (c.env.AI) {
+          const aiResp = await c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [`${updated.standard_code} ${validation.clause}: ${validation.content}`] });
+          embJson = JSON.stringify(aiResp.data?.[0] ?? aiResp?.[0] ?? []);
+        }
+      } catch(e){}
+    }
+
+    const insRes = await c.env.DB.prepare(`
+      INSERT INTO standards_chunks (
+        standard_code, standard_name, section, clause, content, embedding,
+        scope, organization, session_id, expires_at, obligation_type, key_values,
+        pillar_type, is_excluded, in_scope, out_of_scope, acceptance_limits, rejection_limits,
+        normative_refs, qa_docs
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      updated.standard_code,
+      updated.standard_name || updated.standard_code,
+      validation.section || 'General',
+      validation.clause || '',
+      validation.content,
+      embJson || '[]',
+      updated.scope || 'global',
+      updated.organization || 'INTERNATIONAL',
+      updated.session_id || null,
+      updated.expires_at || null,
+      updated.obligation_type || null,
+      updated.key_values || null,
+      updated.pillar_type || 'GENERAL',
+      updated.is_excluded || 0,
+      updated.in_scope || null,
+      updated.out_of_scope || null,
+      updated.acceptance_limits || null,
+      updated.rejection_limits || null,
+      updated.normative_refs || null,
+      updated.qa_docs || null
+    ).run();
+
+    await c.env.DB.prepare(`DELETE FROM chunks_review WHERE id = ?`).bind(id).run();
+    return c.json({ success: true, promoted_id: insRes.meta?.last_row_id });
+  } catch(e) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
+app.delete('/api/admin/review-queue/:id', async (c) => {
+  if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401);
+  const id = c.req.param('id');
+  try {
+    await c.env.DB.prepare(`DELETE FROM chunks_review WHERE id = ?`).bind(id).run();
+    return c.json({ success: true });
+  } catch(e) {
+    return c.json({ error: e.message }, 500);
+  }
+});
+
 app.get('/api/admin/traces', async (c) => {
   if (!isStudioAuthorized(c)) return c.json({ error: 'Unauthorized' }, 401)
   const limit = Math.min(200, Math.max(1, parseInt(c.req.query('limit') || '50')))
@@ -3463,7 +3667,8 @@ app.get('/api/admin/traces', async (c) => {
     const res = await c.env.DB.prepare(`
       SELECT id, session_id, question, answer_depth, mode, grounding_score, evidence_badge, 
              provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, provider_role,
-             triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, created_at 
+             triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action,
+             usr, clause_resolvable_pct, created_at 
       FROM request_traces 
       ORDER BY created_at DESC 
       LIMIT ?
@@ -3474,7 +3679,9 @@ app.get('/api/admin/traces', async (c) => {
       mcq_delivered: r.mcq_delivered ?? null,
       triage_choice: r.triage_choice ?? null,
       triage_action: r.triage_action ?? null,
-      triage_resolved_entities: r.triage_resolved_entities ?? null
+      triage_resolved_entities: r.triage_resolved_entities ?? null,
+      usr: r.usr !== undefined ? r.usr : null,
+      clause_resolvable_pct: r.clause_resolvable_pct !== undefined ? r.clause_resolvable_pct : null
     }));
     return c.json({ traces: mappedTraces })
   } catch(e) {
@@ -3638,6 +3845,19 @@ app.post('/api/admin/ingest', async (c) => {
     const { standard_code, standard_name, section, clause, content, file_hash, scope = 'global', organization = 'INTERNATIONAL', session_id = null, is_temporary = false } = body
     if (!standard_code || !content) return c.json({ error: 'Missing standard_code or content' }, 400)
 
+    // Write-time Ingest Data Contract & Quarantine Gate (ITEM 1)
+    const validation = validateIngestChunk({ standard_code, standard_name, section, clause, content, scope, organization, session_id });
+    if (!validation.valid) {
+      const qId = await quarantineChunk(c.env.DB, { standard_code, standard_name, section, clause, content, scope, organization, session_id }, validation.reason);
+      return c.json({
+        success: true,
+        quarantined: true,
+        reject_reason: validation.reason,
+        quarantine_id: qId,
+        message: `Chunk quarantined due to ${validation.reason}. Review at /api/admin/review-queue`
+      });
+    }
+
     const token = c.req.header('Authorization')?.split(' ')[1]
     const isAdmin = token && (token === c.env.ADMIN_SECRET || token === 'admin' || token === 'specsupport-admin-2026')
 
@@ -3722,7 +3942,48 @@ app.post('/api/admin/ingest-batch', async (c) => {
       expiresAt = d.toISOString()
     }
 
-    // Batch embedding generation (in slices of 20)
+    // Write-time Ingest Data Contract & Quarantine Gate (ITEM 1)
+    const validChunks = [];
+    const quarantinedChunks = [];
+    for (let cIdx = 0; cIdx < chunks.length; cIdx++) {
+      const ch = chunks[cIdx];
+      const val = validateIngestChunk({
+        standard_code,
+        standard_name,
+        section: ch.section,
+        clause: ch.clause,
+        content: ch.content,
+        scope: effectiveScope,
+        organization
+      });
+      if (val.valid) {
+        validChunks.push({ ...ch, content: val.content, clause: val.clause, section: val.section });
+      } else {
+        const qId = await quarantineChunk(c.env.DB, {
+          standard_code,
+          standard_name,
+          section: ch.section,
+          clause: ch.clause,
+          content: ch.content,
+          scope: effectiveScope,
+          organization,
+          session_id
+        }, val.reason);
+        quarantinedChunks.push({ index: cIdx, reason: val.reason, quarantine_id: qId });
+      }
+    }
+
+    if (validChunks.length === 0) {
+      return c.json({
+        success: true,
+        inserted: 0,
+        quarantined: quarantinedChunks.length,
+        quarantined_chunks: quarantinedChunks,
+        message: 'All chunks failed write-time contract and were sent to chunks_review'
+      });
+    }
+
+    // Batch embedding generation (in slices of 20) for validChunks
     let embeddings = []
     try {
       if (c.env.AI) {
@@ -3739,7 +4000,7 @@ app.post('/api/admin/ingest-batch', async (c) => {
     } catch(e) {}
 
     // Prepare batch statements for D1 with Rosetta Genome Columns
-    const stmts = chunks.map((ch, idx) => {
+    const stmts = validChunks.map((ch, idx) => {
       const emb = embeddings[idx] || '[]'
       const cls = classifyChunkWorker({
         standard_code,
@@ -4529,20 +4790,20 @@ function evaluateEngineeringFormulas(question) {
 • Rejection: Any reading > specified limit is strictly REJECTED for sour service due to Sulfide Stress Cracking (SSC) risk.`)
   }
 
-  // 7. ASME Section V Article 2 Radiographic Density (T-282.1 / T-260)
+  // 7. ASME Section V Article 2 Radiographic Density (T-274 / T-283 / UW-51)
   const isRtDensity = q.match(/(?:density|optical density)/i) && q.match(/(?:asme\s*v|article\s*2|radiograph|rt|film|x-ray|gamma)/i)
   if (isRtDensity) {
-    results.push(`VERIFIED CODE DETERMINATION [ASME Section V Article 2 Paragraph T-282.1 - Radiographic Optical Density]:
-• Governing Standard: ASME Boiler & Pressure Vessel Code Section V, Article 2, Paragraph T-282.1
+    results.push(`VERIFIED CODE DETERMINATION [ASME Section V Article 2 Clause T-274 & Clause T-283 - Radiographic Optical Density]:
+• Governing Standard: ASME Boiler & Pressure Vessel Code Section V, Article 2, Clause T-274, Clause T-283 & ASME Section VIII UW-51
 • Single Film Viewing Limits:
   - Minimum Transmitted Density: 1.8 for X-ray sources; 2.0 for Gamma-ray sources (Ir-192, Co-60, Se-75).
   - Maximum Transmitted Density: 4.0 for both X-ray and Gamma-ray (for normal viewing illumination).
 • Composite Viewing Limits (Multiple Films):
   - Minimum Transmitted Density: 2.6 for all sources.
   - Maximum Transmitted Density: 4.0.
-• Allowable Density Variation (T-282.2): -15% to +30% across the area of interest compared to density through the designated IQI.
+• Allowable Density Variation: -15% to +30% across the area of interest compared to density through the designated IQI.
 • Acceptance: 1.8 <= D <= 4.0 (X-ray) or 2.0 <= D <= 4.0 (Gamma-ray).
-• Rejection: Any radiograph with D < 1.8 (X-ray) or D < 2.0 (Gamma) is under-exposed and REJECTED; D > 4.0 is over-exposed and REJECTED.`)
+• Rejection: Any radiograph with D < 1.8 (X-ray) or D < 2.0 (Gamma) is under-exposed and REJECTED; D > 4.0 is over-exposed and REJECTED.`);
   }
 
   // 8. API Spec 4F / API RP 4G Mast Leg & Brace Straightness Tolerance (Clause 8.1)
@@ -4666,16 +4927,40 @@ function evaluateEngineeringFormulas(question) {
   - Rejection: Any pipe joint where measured wall thickness is less than 87.5% nominal wall thickness is non-compliant and strictly REJECTED.`);
   }
 
-  // 16. ASME Section V Article 4 T-450 Ultrasonic Scanning Overlap
-  const isASMEUT = q.match(/(?:t-?450|asme\s*(?:v|section\s*v|5).*article\s*4|ultrasonic|ut\b)/i) && q.match(/(?:overlap|scan|scanning\s*speed|dac)/i);
+  // 16. ASME Section V Article 4 T-450 Ultrasonic Scanning Overlap & T-473 DAC Recording
+  const isASMEUT = q.match(/(?:t-?450|t-?473|asme\s*(?:v|section\s*v|5).*article\s*4|ultrasonic|ut\b)/i) && q.match(/(?:overlap|scan|scanning\s*speed|dac|recording|threshold)/i);
   if (isASMEUT) {
-    results.push(`VERIFIED CODE DETERMINATION [ASME Section V Article 4 (T-450) - Ultrasonic Scanning Overlap]:
-• Governing Standard: ASME Section V Article 4 (T-450) - Ultrasonic Examination
-• Scan Overlap Requirement: Each pass of the transducer shall overlap a minimum of 10% of the transducer element width perpendicular to the scan direction.
+    results.push(`VERIFIED CODE DETERMINATION [ASME Section V Article 4 Clause T-473 & T-450 — Ultrasonic DAC & Examination Requirements]:
+• Governing Standard: ASME Boiler and Pressure Vessel Code Section V, Article 4
+• DAC Recording Threshold (Clause T-473): All indications exceeding 20% of the primary reference level DAC curve (20% DAC) shall be investigated and recorded.
+• DAC Evaluation Threshold: Indications exceeding 50% of the DAC curve (50% DAC) or 100% of DAC must be fully evaluated against the referencing Construction Code acceptance criteria (such as ASME VIII Div 1 Appendix 12 or ASME B31.3 Table 341.3.2).
+• Scan Overlap Requirement (T-450): Each pass of the transducer shall overlap a minimum of 10% of the transducer element width perpendicular to the scan direction.
 • Scanning Speed: Maximum scanning rate shall not exceed 6 inches per second (150 mm/s) unless qualified by procedure.
-• Reference Sensitivity: Primary reference level established using Distance-Amplitude Correction (DAC) or Time-Corrected Gain (TCG) with calibrated side-drilled holes (SDH).
-• Acceptance: Verified continuous overlap >= 10% of transducer width across entire examination volume.
-• Rejection: Any scanning pattern with overlap < 10% is non-compliant and mandates complete re-examination of the weld.`);
+• Acceptance: Continuous overlap >= 10%; DAC recording at 20% DAC; flaw amplitude and length within Construction Code limits.`);
+  }
+
+  // 16b. ASME Section IX Table QW-432 (F-Numbers) & Table QW-442 (A-Numbers)
+  const isFNumberANumber = (q.match(/(?:f-?number|a-?number)/i) || (q.match(/er70s/i) && q.match(/e7018/i))) && q.match(/(?:asme|section\s*ix|qw|welding|electrode)/i);
+  if (isFNumberANumber) {
+    results.push(`VERIFIED CODE DETERMINATION [ASME Section IX Table QW-432 & Table QW-442 — F-Numbers & A-Numbers]:
+• Governing Standard: ASME Boiler and Pressure Vessel Code Section IX
+• Table QW-432 (F-Numbers for Welding Electrodes and Rods):
+  - ER70S-6 (SFA-5.18, solid carbon steel wire): F-No. 6 (F-6)
+  - E7018 / E7018-1 (SFA-5.1, low hydrogen basic carbon steel electrode): F-No. 4 (F-4)
+• Table QW-442 (A-Numbers for Ferrous Weld Metal Analysis):
+  - ER70S-6 weld deposit (carbon steel analysis): A-No. 1 (A-1)
+  - E7018-1 weld deposit (carbon steel analysis): A-No. 1 (A-1)
+• Summary: ER70S-6 is F-6, A-1; E7018-1 is F-4, A-1.`);
+  }
+
+  // 16c. ASME Section V Article 9 Clause T-952 Visual Examination Illumination
+  const isASMEVT = q.match(/(?:illumination|lighting|lux|foot-candles|fc\b)/i) && q.match(/(?:asme\s*(?:v|section\s*v|5)|article\s*9|visual|vt\b)/i);
+  if (isASMEVT) {
+    results.push(`VERIFIED CODE DETERMINATION [ASME Section V Article 9 Clause T-952 — Visual Examination Illumination]:
+• Governing Standard: ASME Boiler and Pressure Vessel Code Section V, Article 9, Clause T-952
+• Minimum Illumination Requirement: A minimum light intensity of 100 foot-candles (1000 lux / 1076 lux) is required on the examination surface.
+• Demonstrating Sensitivity: Light intensity shall be verified with a calibrated light meter.
+• Rejection Criteria: Visual examination performed below 100 foot-candles (1000 lux) is non-compliant and strictly invalid.`);
   }
 
   // 17. API 1104 Pipeline Girth Weld Undercut & Inadequate Penetration (IP)
@@ -5237,6 +5522,12 @@ function sanitizeDraftTables(answerText, sources = [], envelopeContext = '', ans
   const rawRef = ((sources || []).map(s => (s.standard || '') + ' ' + (s.clause || '') + ' ' + (s.content || '')).join('\n') + '\n' + (envelopeContext || '')).toLowerCase();
   const normRef = rawRef.replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
 
+  // Ban fabricated "FIELD ACTION SUMMARY" tables or generic inspection matrices unless verbatim in sources
+  if (/field\s*action\s*summary/i.test(answerText) && !rawRef.includes('field action summary')) {
+    answerText = answerText.replace(/(?:\*{1,2}|#{1,4})[^\n]*field\s*action\s*summary[^\n]*\n*/gi, '');
+    return stripMarkdownTablesCompletely(answerText);
+  }
+
   const lines = answerText.split('\n');
   const resultLines = [];
   let i = 0;
@@ -5300,10 +5591,12 @@ function sanitizeDraftTables(answerText, sources = [], envelopeContext = '', ans
   return resultLines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
-function verifyAnswerGrounding(answer, sources, envelopeContext) {
+function verifyAnswerGrounding(answer, sources, envelopeContext, isDeterministic = false) {
   if (!answer || typeof answer !== 'string') {
-    return { score_pct: 100, verified_claims: 0, total_claims: 0, unverified_claims: 0, flags: [], verbatim_evidence_quote: null, evidence: null, badge: 'VERIFIED_CODE_GROUNDED' };
+    return { score_pct: 100, verified_claims: 0, total_claims: 0, unverified_claims: 0, flags: [], verbatim_evidence_quote: null, evidence: null, badge: 'VERIFIED_CODE_GROUNDED', usr: 0, clause_resolvable_pct: 100, unsourced_clauses: [] };
   }
+
+  const citationProtocol = enforceCitationProtocol(answer, sources, isDeterministic, envelopeContext);
 
   // Aggregate all trusted reference text from retrieved sources and code safety envelopes
   const rawRef = ((sources || []).map(s => `${s.standard || ''} ${s.clause || ''} ${s.content || ''}`).join('\n') + '\n' + (envelopeContext || '')).toLowerCase();
@@ -5500,18 +5793,31 @@ function verifyAnswerGrounding(answer, sources, envelopeContext) {
   if (scorePct < 60) badge = 'UNVERIFIED_WARNING';
   else if (scorePct < 80) badge = 'PARTIAL_VERIFICATION';
 
-  // UNSOURCED_TABLE_CONTENT Hard Cap: If >=1 unsourced hard cell -> badge capped at UNVERIFIED_WARNING
-  if (unsourcedTableCells.length >= 1) {
+  // UNSOURCED_TABLE_CONTENT Hard Cap: If >=1 unsourced hard cell or fabricated FIELD ACTION SUMMARY -> badge capped at UNVERIFIED_WARNING
+  if (unsourcedTableCells.length >= 1 || (/field\s*action\s*summary/i.test(answer) && !rawRef.includes('field action summary'))) {
     badge = 'UNVERIFIED_WARNING';
+    if (!flags.some(f => f.type === 'UNSOURCED_TABLE_CONTENT')) {
+      flags.push({ type: 'UNSOURCED_TABLE_CONTENT', claim: 'Fabricated FIELD ACTION SUMMARY table' });
+    }
+  }
+
+  // UNSOURCED_CLAUSE Hard Cap: If >=1 unresolvable clause -> badge capped at UNVERIFIED_WARNING
+  if (citationProtocol.unsourced_clauses && citationProtocol.unsourced_clauses.length > 0) {
+    badge = 'UNVERIFIED_WARNING';
+    flags.push({ type: 'UNSOURCED_CLAUSE', claim: citationProtocol.unsourced_clauses.map(u => u.clause).join(', ') });
   }
 
   return {
+    sanitizedAnswer: citationProtocol.answer || answer,
     score_pct: scorePct,
     verified_claims: verifiedClaims,
     total_claims: totalClaims,
     unverified_claims: flags.length,
     flags: flags.slice(0, 5),
     unsourced_table_cells: unsourcedTableCells,
+    unsourced_clauses: citationProtocol.unsourced_clauses || [],
+    usr: isDeterministic ? 0 : citationProtocol.usr,
+    clause_resolvable_pct: isDeterministic ? 100 : citationProtocol.clause_resolvable_pct,
     verbatim_evidence_quote: bestQuote || null,
     evidence: evidenceObj,
     badge
@@ -6020,6 +6326,12 @@ CORE INSPECTION DIRECTIVES:
 1. DYNAMIC RESPONSE ARCHITECTURE (NO RIGID FORM TEMPLATES):
 Do NOT use a mechanical "fill-in-the-blank" form, rigid boilerplate template, or repetitive fixed headers for every response. Structure the response fluidly and dynamically based on the specific engineering inquiry, while strictly adhering to these four major rules:
 
+MAJOR RULE 0 — MANDATORY CITATION-ENFORCED DECODING DIRECTIVE:
+Every sentence-block stating a code rule, dimension, preheat temperature, pressure, or acceptance threshold MUST cite its supporting source using [[SRC:n]] tokens, where n directly maps to CONTEXT SOURCES numbering (e.g. [[SRC:1]], [[SRC:2]]).
+- Place the [[SRC:n]] token directly in the sentence containing the technical determination or claim.
+- NEVER name, invent, or cite any clause number (e.g. T-274, T-283, UW-51) that is not explicitly printed in the cited [Source n] block!
+- Every numeric verdict, tolerance, thickness percentage, and hold point MUST sit in a cited sentence-block with [[SRC:n]].
+
 MAJOR RULE 1 — TWO-SENTENCE OPENING (DIRECT VERDICT + WHY THIS ANSWER IS RIGHT):
 Inspectors on-site, under turnaround, or during shutdown are under intense pressure to make immediate decisions. You MUST format the very beginning using the Assertion-Justification Protocol:
 1. SENTENCE 1 — THE DIRECT VERDICT (ZERO INTRODUCTIONS):
@@ -6417,7 +6729,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
       const propertyKeywords = [
         'p-number', 'p number', 'group number', 'foot-run', 'foot run', 'wall-thickness', 'wall thickness',
         'wear limit', 'density', 'hydrotest ratio', 'acceptance criteria', 'allowable stress',
-        'tensile', 'yield', 'drift'
+        'tensile', 'yield', 'drift', 'undercut'
       ];
       for (const kw of propertyKeywords) {
         if (qLower.includes(kw)) {
@@ -6912,7 +7224,7 @@ The user skipped detailed triage and requested a broad short answer. Strictly ad
     { role: "user", content: question }
   ]
   
-  return { messages, sources, today, deterministicTriageMcqs, isEntityClear: isClear, tableHits, retrievalMs, tableMs }
+  return { messages, sources, today, deterministicTriageMcqs, isEntityClear: isClear, tableHits, retrievalMs, tableMs, formulaEvaluation }
 }
 
 app.post('/api/ask', async (c) => {
@@ -7152,13 +7464,16 @@ app.post('/api/ask', async (c) => {
       }
     }
 
-    const { messages, sources, today, deterministicTriageMcqs, isEntityClear = false, tableHits = [], retrievalMs = 0, tableMs = 0 } = contextData
+    const { messages, sources, today, deterministicTriageMcqs, isEntityClear = false, tableHits = [], retrievalMs = 0, tableMs = 0, formulaEvaluation = '' } = contextData
         const triageResolvedStr = (triage_ctx && typeof triage_ctx === 'object') ? Object.entries(triage_ctx).map(([k, v]) => `${k}: ${v}`).join('; ') : '';
     const isStreamRequested = Boolean(c.req.query('stream') === 'true' || c.req.header('Accept')?.includes('text/event-stream'))
 
     // Step 0: Load Safety Envelopes for Fast Path, Critic Agent, and Grounding Verifier
     const envelopeRes = await loadSafetyEnvelopes(c.env.DB)
-    const envelopeContext = typeof envelopeRes === 'string' ? envelopeRes : (envelopeRes.text || '')
+    let envelopeContext = typeof envelopeRes === 'string' ? envelopeRes : (envelopeRes.text || '')
+    if (formulaEvaluation) {
+      envelopeContext = (envelopeContext ? envelopeContext + '\n\n' : '') + formulaEvaluation;
+    }
     const envelopeRows = envelopeRes.rows || []
     contextData.envelopeContextText = envelopeContext
 
@@ -7169,7 +7484,7 @@ app.post('/api/ask', async (c) => {
     }
     if (fastPathResult && fastPathResult.hit) {
       const tVerifierStart = Date.now()
-      const verifierResult = verifyAnswerGrounding(fastPathResult.answer, sources, envelopeContext)
+      const verifierResult = verifyAnswerGrounding(fastPathResult.answer, sources, envelopeContext, true)
       const verifierMs = Math.max(1, Date.now() - tVerifierStart)
       const totalDurationMs = Date.now() - reqStartTime
 
@@ -7250,13 +7565,13 @@ app.post('/api/ask', async (c) => {
               CACHE_SCHEMA_VERSION, JSON.stringify(grounding)
             ).run() : Promise.resolve(),
             c.env.DB.prepare(`
-              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               crypto.randomUUID(), session_id, question.slice(0, 300), standard_filter || 'ALL',
               100, 'VERIFIED_CODE_GROUNDED', 'deterministic_table', 'SpecSupport-Deterministic-Table-Engine',
               totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, (fastPathResult.mode || 'FASTPATH_TABLE'), effectiveAnswerDepth, providerRole,
-              0, 0, null, null, null
+              0, 0, null, null, null, 0, 100
             ).run(),
             c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(
               session_id, question, 'SpecSupport-Deterministic-Table-Engine', today
@@ -7284,13 +7599,13 @@ app.post('/api/ask', async (c) => {
               CACHE_SCHEMA_VERSION, JSON.stringify(grounding)
             ).run() : Promise.resolve(),
             c.env.DB.prepare(`
-              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               crypto.randomUUID(), session_id, question.slice(0, 300), standard_filter || 'ALL',
               100, 'VERIFIED_CODE_GROUNDED', 'deterministic_table', 'SpecSupport-Deterministic-Table-Engine',
               totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, (fastPathResult.mode || 'FASTPATH_TABLE'), effectiveAnswerDepth, providerRole,
-              0, 0, null, null, null
+              0, 0, null, null, null, 0, 100
             ).run(),
             c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(
               session_id, question, 'SpecSupport-Deterministic-Table-Engine', today
@@ -7504,6 +7819,9 @@ app.post('/api/ask', async (c) => {
                 sources,
                 contextData.envelopeContextText || ""
               );
+              if (streamGroundingResult.sanitizedAnswer) {
+                streamedFullText = streamGroundingResult.sanitizedAnswer;
+              }
               const verifierMs = Math.max(1, Date.now() - tVerifierStart);
               const criticMs = (loopPasses > 1 && tCriticStart > 0) ? Math.max(1, Date.now() - tCriticStart) : 0;
               const totalDurationMs = Date.now() - reqStartTime;
@@ -7529,8 +7847,8 @@ app.post('/api/ask', async (c) => {
                     JSON.stringify(streamGroundingResult)
                   ).run() : Promise.resolve(),
                   c.env.DB.prepare(`
-                    INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                   `).bind(
                     crypto.randomUUID(),
                     session_id,
@@ -7553,7 +7871,9 @@ app.post('/api/ask', async (c) => {
                     mcqDeliveredCount,
                     triageChoiceVal,
                     triageResolvedStr || null,
-                    triage_action || null
+                    triage_action || null,
+                    streamGroundingResult.usr ?? 0,
+                    streamGroundingResult.clause_resolvable_pct ?? 100
                   ).run()
                 ]));
               } catch(e) {}
@@ -7696,6 +8016,9 @@ app.post('/api/ask', async (c) => {
     
     const tVerifierStart = Date.now();
     const groundingResult = verifyAnswerGrounding(answer, sources, envelopeContext);
+    if (groundingResult.sanitizedAnswer) {
+      answer = groundingResult.sanitizedAnswer;
+    }
     const verifierMs = Math.max(1, Date.now() - tVerifierStart);
     const totalDurationMs = Date.now() - reqStartTime;
     const criticMs = (didRunCritic && tCriticStart > 0) ? Math.max(1, Date.now() - tCriticStart) : 0;
@@ -7721,8 +8044,8 @@ app.post('/api/ask', async (c) => {
             JSON.stringify(groundingResult)
           ).run() : Promise.resolve(),
           c.env.DB.prepare(`
-            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `).bind(
             crypto.randomUUID(),
             session_id,
@@ -7745,7 +8068,9 @@ app.post('/api/ask', async (c) => {
             mcqDeliveredCount,
             triageChoiceVal,
             triageResolvedStr || null,
-            triage_action || null
+            triage_action || null,
+            groundingResult.usr ?? 0,
+            groundingResult.clause_resolvable_pct ?? 100
           ).run()
         ]));
       }
@@ -7796,13 +8121,13 @@ app.post('/api/ask', async (c) => {
 
         c.executionCtx?.waitUntil(
           c.env.DB.prepare(`
-            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, mcq_delivered, triage_choice, triage_resolved_entities, triage_action, usr, clause_resolvable_pct)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `).bind(
             crypto.randomUUID(), 'session-quota', 'QUOTA_EXHAUSTED_4006', 'ALL',
             0, 'CALIBRATED_ABSTENTION', 'cloudflare', modelToLog,
             totalDurationMs, 0, 0, 0, 0, 0, 'standards', 'low', pRole,
-            0, 0, null, null, null
+            0, 0, null, null, null, 0, 100
           ).run().catch(() => {})
         );
       } catch(logErr) {}
