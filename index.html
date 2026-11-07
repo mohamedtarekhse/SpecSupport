@@ -8221,16 +8221,28 @@ Answer the inspector's query strictly and accurately based on the verified local
                 }
 
                 // Action Toolbar (at tail)
+                const msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+                window.messageRegistry = window.messageRegistry || new Map();
+                window.messageRegistry.set(msgId, {
+                    text: cleanText,
+                    rawText: cleanText,
+                    finishReason: canContinue ? 'length' : 'stop',
+                    groundingMeta: groundingMeta,
+                    wpsFormData: (groundingMeta && groundingMeta.wps_form_data) ? groundingMeta.wps_form_data : null,
+                    sources: sources,
+                    modelUsed: modelUsed
+                });
+
                 const toolbar = document.createElement('div');
                 toolbar.className = 'response-toolbar';
                 toolbar.innerHTML = `
-                    <button class="tool-btn" onclick="copyAnswer(this, \`${encodeURIComponent(cleanText)}\`)">📋 Copy</button>
-                    <button class="tool-btn stamp-accept" onclick="submitLoop2Feedback(this, 'ACCEPTED', '\${sessionId}')" title="Stamp this response into D1 Field Quality Ledger">🛡️ Level III Verify</button>
-                    <button class="tool-btn stamp-reject" onclick="openDiscrepancyModal(this, '\${sessionId}')" title="Flag a code discrepancy">⚠️ Flag Discrepancy</button>
-                    ${(cleanText.toLowerCase().includes('qw-482') || cleanText.toLowerCase().includes('wps') || cleanText.toLowerCase().includes('welding procedure') || cleanText.toLowerCase().includes('asme viii') || cleanText.toLowerCase().includes('asme xi')) ? `<button class="tool-btn wps-form-btn" onclick="openWpsFormModal(\`${encodeURIComponent(cleanText)}\`)">📑 ASME Form QW-482</button>` : ''}
-                    <button class="tool-btn export-pdf-btn" onclick="exportToPdf(\`${encodeURIComponent(cleanText)}\`)">📄 Export PDF</button>
-                    <button class="tool-btn export-word-btn" onclick="exportToWord(\`${encodeURIComponent(cleanText)}\`)">📝 Export Word</button>
-                    <button class="tool-btn" onclick="exportNCR(\`${encodeURIComponent(cleanText)}\`)">📑 NCR Form</button>
+                    <button class="tool-btn" onclick="copyAnswer(this, '${msgId}')">📋 Copy</button>
+                    <button class="tool-btn stamp-accept" onclick="submitLoop2Feedback(this, 'ACCEPTED', '${sessionId}')" title="Stamp this response into D1 Field Quality Ledger">🛡️ Level III Verify</button>
+                    <button class="tool-btn stamp-reject" onclick="openDiscrepancyModal(this, '${sessionId}')" title="Flag a code discrepancy">⚠️ Flag Discrepancy</button>
+                    ${(cleanText.toLowerCase().includes('qw-482') || cleanText.toLowerCase().includes('wps') || cleanText.toLowerCase().includes('welding procedure') || cleanText.toLowerCase().includes('asme viii') || cleanText.toLowerCase().includes('asme xi')) ? `<button class="tool-btn wps-form-btn" onclick="openWpsFormModal('${msgId}')">📑 ASME Form QW-482</button>` : ''}
+                    <button class="tool-btn export-pdf-btn" onclick="exportToPdf('${msgId}')">📄 Export PDF</button>
+                    <button class="tool-btn export-word-btn" onclick="exportToWord('${msgId}')">📝 Export Word</button>
+                    <button class="tool-btn" onclick="exportNCR('${msgId}')">📑 NCR Form</button>
                     ${modelUsed ? `<span class="model-badge" style="font-size:0.72rem; color:var(--gemini-text-muted); font-weight:600; padding:3px 8px; border-radius:5px; border:1px solid var(--gemini-border); background:var(--gemini-card-bg); display:inline-flex; align-items:center; gap:4px; margin-left:auto;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> ${formatModelDisplay(modelUsed)}</span>` : ''}
                 `;
                 tailDiv.appendChild(toolbar);
@@ -8250,135 +8262,263 @@ Answer the inspector's query strictly and accurately based on the verified local
 
         
         // =========================================================================
-        // 📑 OFFICIAL ASME SECTION IX FORM QW-482 ENGINE
+        // 📑 OFFICIAL ASME SECTION IX FORM QW-482 ENGINE (EVIDENCE-LOCKED)
         // Standard Format for ASME Section VIII Div 1/2, ASME B31.3 & ASME Section XI
         // =========================================================================
 
         let currentActiveWpsData = null;
+        window.messageRegistry = window.messageRegistry || new Map();
 
-        function parseWpsData(rawText) {
-            // 1. Try parsing structured machine-readable JSON tag <!--WPS_METRICS: {...}-->
-            const tagMatch = rawText.match(/<!--WPS_METRICS:\s*([\s\S]*?)-->/);
-            if (tagMatch) {
-                try {
-                    const parsed = JSON.parse(tagMatch[1].trim());
-                    if (parsed && parsed.wpsNumber) return enrichWpsData(parsed, rawText);
-                } catch (e) {
-                    console.warn("Could not parse WPS_METRICS tag, falling back to regex extraction:", e);
-                }
+        function resolveMessageTarget(arg) {
+            if (!arg) return { rawText: '', text: '', finishReason: 'stop', wpsFormData: null, groundingMeta: null, sources: [] };
+            if (typeof arg === 'object') return arg;
+            if (window.messageRegistry && window.messageRegistry.has(arg)) {
+                return window.messageRegistry.get(arg);
             }
-
-            // 2. Robust Regex Fallback on markdown text
-            const extract = (pattern, def = "As Specified") => {
+            let text = arg;
+            try {
+                text = decodeURIComponent(arg);
+            } catch(e) {}
+            if (typeof text === 'string' && text.trim().startsWith('{') && text.trim().endsWith('}')) {
                 try {
-                    const m = rawText.match(pattern);
-                    if (!m) return def;
-                    const val = (m[1] !== undefined && m[1] !== null) ? m[1] : m[0];
-                    return (typeof val === 'string' && val.trim().length > 0) ? val.trim() : def;
-                } catch (e) {
-                    return def;
-                }
-            };
-
-            const rawWpsNo = extract(/(?:wps\s*(?:no\.?|number)?|procedure\s*no\.?)\s*[:\-#]\s*([A-Za-z0-9\-_\/]+)/i, "");
-            const wpsNumber = (rawWpsNo && !['for', 'the', 'and', 'with', 'to', 'in', 'is', 'as'].includes(rawWpsNo.toLowerCase())) 
-                ? rawWpsNo 
-                : ("WPS-ASME-VIII-" + new Date().getFullYear() + "-01");
-            const revision = extract(/(?:revision|rev\.?)\s*[:\-]?\s*([A-Za-z0-9]+)/i, "Rev. 0");
-
-            const data = {
-                wpsNumber: wpsNumber,
-                revision: revision,
-                date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-                supportingPqr: extract(/(?:pqr\s*(?:no\.?|number)?|supporting\s*pqr)\s*[:\-]?\s*([A-Z0-9\-_\/]+)/i, "PQR-ASME-" + new Date().getFullYear() + "-01"),
-                process: extract(/(?:welding\s*process(?:es)?|process)\s*[:\-]?\s*([A-Za-z0-9\+\s\/\(\)]+?)(?:\n|$|\|)/i, "GTAW (Root) + SMAW (Fill/Cap)"),
-                type: extract(/(?:type\(s\)|process\s*type)\s*[:\-]?\s*([A-Za-z\-\s]+)/i, "Manual"),
-                governingCode: rawText.toLowerCase().includes('section xi') ? "ASME Section XI & Section IX" : (rawText.toLowerCase().includes('b31.3') ? "ASME B31.3 & ASME Section IX" : "ASME Section VIII Div 1 & ASME Section IX"),
-                
-                // Joints QW-402
-                jointDesign: extract(/(?:joint\s*design|groove\s*type)\s*[:\-]?\s*([A-Za-z0-9\-\s]+)/i, "Single V-Groove (Bevel 60°-75°)"),
-                backing: extract(/(?:backing)\s*[:\-]?\s*([A-Za-z0-9\s\(\)]+)/i, "No (Open Root)"),
-                rootOpening: extract(/(?:root\s*opening|root\s*gap)\s*[:\-]?\s*([A-Za-z0-9\.\-\s\/]+)/i, "2.0 - 3.2 mm (3/32 - 1/8 in)"),
-                rootFace: extract(/(?:root\s*face|land)\s*[:\-]?\s*([A-Za-z0-9\.\-\s\/]+)/i, "1.5 - 2.5 mm (1/16 - 3/32 in)"),
-                grooveAngle: extract(/(?:groove\s*angle|included\s*angle|bevel\s*angle)\s*[:\-]?\s*([A-Za-z0-9°\.\-\s]+)/i, "60° - 75° Included"),
-                backgouging: extract(/(?:back\s*gouging|backgouging)\s*[:\-]?\s*([A-Za-z0-9\s\(\)]+)/i, "None (or Grinding to sound metal)"),
-                capReinforcement: extract(/(?:cap\s*reinforcement|weld\s*reinforcement|crown\s*height|cap\s*height)\s*[:\-]?\s*([A-Za-z0-9°\.\-\s\/]+)/i, "1.5 - 3.0 mm (max per UW-35)"),
-                filletSize: extract(/(?:fillet\s*size|fillet\s*leg|leg\s*size)\s*[:\-]?\s*([A-Za-z0-9\.\-\s\/]+)/i, "Equal to or exceeding thinner member"),
-                nominalThickness: extract(/(?:nominal\s*thickness|wall\s*thickness|thickness)\s*[:\-]?\s*([A-Za-z0-9\.\-\s\/]+)/i, "12.7 mm (1/2 in)"),
-
-                // Base Metals QW-403
-                baseMetalSpec: extract(/(?:material\s*spec(?:ification)?|base\s*metal\s*spec(?:ification)?|material)\s*[:\-]?\s*([A-Za-z0-9\.\-\s\/]+?)(?:\n|$|\|)/i, "SA-516 Gr. 70 / ASTM A106 Gr. B"),
-                pNoFrom: extract(/p-?no\.?\s*(\d+)(?:\s*group\s*(\d+))?/i, "P-No. 1, Group 1/2"),
-                pNoTo: "P-No. 1, Group 1/2",
-                thicknessRangeGroove: extract(/(?:thickness\s*range|qualified\s*thickness|base\s*metal\s*thickness)\s*[:\-]?\s*([A-Za-z0-9\.\-\s\/]+)/i, "1.5 mm to 38.1 mm (0.062 to 1.50 in)"),
-                thicknessRangeFillet: "All Fillet Thicknesses & Sizes",
-                diameterRange: extract(/(?:pipe\s*diameter|diameter\s*range)\s*[:\-]?\s*([A-Za-z0-9\.\-\s\/]+)/i, "All Pipe Diameters (NPS 2 in and larger)"),
-
-                // Filler Metals QW-404
-                fillerProcess1: "GTAW",
-                sfaSpec1: extract(/(?:sfa\s*(?:spec)?\s*[:\-]?\s*(5\.\d+))/i, "SFA 5.18"),
-                awsClass1: extract(/(?:er70s-6|er80s|er316l|inconel\s*\d+)/i, "ER70S-6"),
-                fNo1: "F-No. 6",
-                aNo1: "A-No. 1",
-                fillerSize1: extract(/(?:size\s*of\s*filler|filler\s*dia(?:meter)?)\s*[:\-]?\s*([A-Za-z0-9\.\-\s\/]+)/i, "2.4 mm (3/32 in)"),
-                depositThk1: "3.5 mm max",
-
-                fillerProcess2: "SMAW",
-                sfaSpec2: "SFA 5.1",
-                awsClass2: extract(/(?:e7018(?:-1)?|e6010|e8018|e316l-16)/i, "E7018-1 H4R"),
-                fNo2: "F-No. 4",
-                aNo2: "A-No. 1",
-                fillerSize2: "3.2 mm & 4.0 mm (1/8 & 5/32 in)",
-                depositThk2: "34.6 mm max",
-
-                // Positions QW-405
-                positionGroove: extract(/(?:position(?:s)?\s*of\s*groove|position)\s*[:\-]?\s*([A-Za-z0-9\s\(\)]+)/i, "6G Fixed (All Positions)"),
-                progression: extract(/(?:progression|welding\s*progression)\s*[:\-]?\s*([A-Za-z]+)/i, "Uphill"),
-
-                // Preheat QW-406
-                preheatMin: extract(/(?:preheat\s*(?:temp(?:erature)?)?\s*min(?:imum)?|preheat\s*min(?:imum)?)\s*[:\-]?\s*([A-Za-z0-9°\.\-\s\/\(C\)\(F\)]+)/i, "10°C (50°F) [95°C / 200°F if t > 25 mm]"),
-                interpassMax: extract(/(?:interpass\s*(?:temp(?:erature)?)?\s*max(?:imum)?)\s*[:\-]?\s*([A-Za-z0-9°\.\-\s\/\(C\)\(F\)]+)/i, "230°C (450°F) max"),
-                preheatMaint: "Continuous until completion of hot pass; slow cool under insulated wrap",
-
-                // PWHT QW-407
-                pwhtTemp: extract(/(?:pwht\s*temp(?:erature)?|postweld\s*heat\s*treatment)\s*[:\-]?\s*([A-Za-z0-9°\.\-\s\/\(C\)\(F\)]+)/i, "595°C - 650°C (1100°F - 1200°F) per ASME VIII UCS-56 [None if t <= 19 mm]"),
-                pwhtTime: extract(/(?:pwht\s*time|holding\s*time)\s*[:\-]?\s*([A-Za-z0-9\.\-\s\/]+)/i, "1 hr per 25 mm (1 in) thickness; 15 min minimum hold"),
-
-                // Gas QW-408
-                shieldingGas: extract(/(?:shielding\s*gas)\s*[:\-]?\s*([A-Za-z0-9%\.\-\s]+)/i, "Argon 99.99% (Industrial Grade)"),
-                gasFlow: extract(/(?:flow\s*rate|gas\s*flow)\s*[:\-]?\s*([A-Za-z0-9\.\-\s\/]+)/i, "10 - 15 L/min (20 - 30 CFH)"),
-                backingGas: extract(/(?:backing\s*gas)\s*[:\-]?\s*([A-Za-z0-9%\.\-\s]+)/i, "None (Pure Argon for Stainless)"),
-
-                // Electrical QW-409 & Technique QW-410
-                currentPolarity: extract(/(?:current\s*(?:and|&)?\s*polarity|polarity)\s*[:\-]?\s*([A-Za-z0-9\s\/\-]+)/i, "GTAW: DCEN (Straight) / SMAW: DCEP (Reverse)"),
-                technique: extract(/(?:stringer|weave)\s*[:\-]?\s*([A-Za-z0-9\s\/\-]+)/i, "Stringer or Weave Bead (Max weave width 3x core diameter)"),
-                cleaning: "Initial brushing & solvent degrease; interpass grinding and power wire brushing",
-                multiplePass: "Multiple passes per side; slag thoroughly chipped between passes",
-                ndeRequirements: "100% Visual (AWS B1.11 / ASME VIII UW-35) + 100% RT (ASME V Art. 2 / ASME VIII UW-51 / B31.3 Table 341.3.2) or UT (ASME V Art. 4)"
-            };
-
-            return enrichWpsData(data, rawText);
+                    const parsed = JSON.parse(text.trim());
+                    if (parsed && (parsed.wps_form_data || parsed.wpsFormData || parsed.text || parsed.rawText)) {
+                        return {
+                            rawText: parsed.rawText || parsed.text || '',
+                            text: parsed.text || parsed.rawText || '',
+                            finishReason: parsed.finishReason || 'stop',
+                            wpsFormData: parsed.wps_form_data || parsed.wpsFormData || null,
+                            groundingMeta: parsed.groundingMeta || null,
+                            sources: parsed.sources || []
+                        };
+                    }
+                } catch(e) {}
+            }
+            return { rawText: text, text: text, finishReason: 'stop', wpsFormData: null, groundingMeta: null, sources: [] };
         }
 
-        function enrichWpsData(d, rawText) {
-            d.rawText = rawText;
-            if (!d.date) d.date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-            if (!d.wpsNumber) d.wpsNumber = "WPS-ASME-" + Math.floor(1000 + Math.random() * 9000);
-            if (!d.supportingPqr) d.supportingPqr = "PQR-ASME-" + Math.floor(1000 + Math.random() * 9000);
+        function isAnswerTruncated(text, finishReason) {
+            if (finishReason === 'length') return true;
+            if (!text || typeof text !== 'string') return false;
+            const trimmed = text.trim();
+            if (!trimmed) return false;
+            // Mid-table row without closing separator
+            if (/\|[^|\r\n]+$/.test(trimmed)) return true;
+            // Trailing cut token like "Argon 99."
+            if (/\b(?:[A-Za-z]+)\s+\d+\.$/.test(trimmed)) return true;
+            // Trailing dangling separator or open bracket
+            if (/[,;:([\-–—]\s*$/.test(trimmed)) return true;
+            const lines = trimmed.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            if (lines.length > 0) {
+                const lastLine = lines[lines.length - 1];
+                if (lastLine.startsWith('|') && !lastLine.endsWith('|')) return true;
+                if (/\b[A-Za-z]+\s+\d+\.$/.test(lastLine)) return true;
+            }
+            return false;
+        }
+
+        function getDeterministicDocRef(seed) {
+            if (seed && typeof seed === 'string' && seed.length > 5) {
+                return "DOC-" + seed.replace(/[^a-zA-Z0-9]/g, '').slice(-12).toUpperCase();
+            }
+            if (window.lastTraceId) {
+                return "DOC-" + window.lastTraceId.replace(/[^a-zA-Z0-9]/g, '').slice(-12).toUpperCase();
+            }
+            if (window.currentSessionId) {
+                return "DOC-" + window.currentSessionId.replace(/[^a-zA-Z0-9]/g, '').slice(-12).toUpperCase();
+            }
+            return "DOC-" + Math.floor(Date.now() / 1000).toString(16).toUpperCase();
+        }
+
+        function renderWpsField(f) {
+            if (!f) {
+                return '<span class="qw482-val-unverified">Not specified in procedure <span class="qw482-badge-unverified">[⚠ VERIFICATION REQUIRED — do not use]</span></span>';
+            }
+            const val = (typeof f === 'object' ? (f.value || 'Not specified in procedure') : String(f)).trim();
+            const grade = (typeof f === 'object' ? f.grade : 'unverified') || 'unverified';
+            const clause = (typeof f === 'object' ? (f.clause || f.source || '') : '');
+
+            if (val === 'Not specified in procedure' || grade === 'unverified') {
+                return '<span class="qw482-val-unverified">' + escapeHtml(val) + ' <span class="qw482-badge-unverified">[⚠ VERIFICATION REQUIRED — do not use]</span></span>';
+            }
+            if (grade === 'declared' || val === '[USER-INPUT]') {
+                return '<span class="qw482-val-declared">' + escapeHtml(val) + ' <span class="qw482-badge-declared">[USER-DECLARED]</span></span>';
+            }
+            if (grade === 'verified') {
+                const citTag = clause ? ('[VERIFIED ' + escapeHtml(clause) + ']') : '[VERIFIED]';
+                return '<span class="qw482-val-verified">' + escapeHtml(val) + ' <span class="qw482-badge-verified">' + citTag + '</span></span>';
+            }
+            return '<span class="qw482-val-unverified">' + escapeHtml(val) + ' <span class="qw482-badge-unverified">[⚠ VERIFICATION REQUIRED — do not use]</span></span>';
+        }
+
+        function buildWpsViewModel(msg) {
+            const rawText = msg.rawText || msg.text || '';
+            const structured = msg.wpsFormData || null;
+            const grounding = msg.groundingMeta || null;
+
+            if (structured) {
+                const d = {
+                    rawText: rawText,
+                    docRef: getDeterministicDocRef(msg.sessionId || msg.traceId),
+                    wpsNumber: structured.wps_number || { value: '[USER-INPUT]', grade: 'declared', clause: null },
+                    revision: structured.revision || { value: 'Rev. ?', grade: 'unverified', clause: null },
+                    date: structured.date || { value: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), grade: 'declared', clause: null },
+                    supportingPqr: structured.supporting_pqr || { value: '[VERIFICATION-REQUIRED]', grade: 'unverified', clause: 'QW-200.2' },
+                    governingCode: structured.governing_code || { value: 'ASME Boiler & Pressure Vessel Code', grade: 'verified', clause: 'Section IX' },
+                    process: structured.welding_process || { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-401' },
+                    type: structured.process_type || { value: 'Manual', grade: 'declared', clause: 'QW-401' },
+                    jointDesign: structured.joint_design || { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-402' },
+                    backing: { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-402' },
+                    rootOpening: { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-402' },
+                    rootFace: { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-402' },
+                    grooveAngle: { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-402' },
+                    capReinforcement: { value: 'Not specified in procedure', grade: 'unverified', clause: 'UW-35' },
+                    filletSize: { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-402' },
+                    backgouging: { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-402' },
+                    baseMetalSpec: structured.base_metal || { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-403' },
+                    pNoFrom: structured.p_number || { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-422' },
+                    pNoTo: structured.p_number || { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-422' },
+                    thicknessRangeGroove: { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-403' },
+                    thicknessRangeFillet: { value: 'All Fillet Thicknesses & Sizes', grade: 'verified', clause: 'QW-451.4' },
+                    diameterRange: { value: 'All Pipe Diameters (NPS 2 in and larger)', grade: 'verified', clause: 'QW-452.3' },
+                    fillerProcess1: structured.welding_process || { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-404' },
+                    sfaSpec1: structured.sfa_spec || { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-404' },
+                    awsClass1: structured.filler_metal || { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-404' },
+                    fNo1: { value: 'F-No. per Section IX QW-432', grade: 'verified', clause: 'QW-432' },
+                    aNo1: { value: 'A-No. 1 (Carbon Steel Analysis)', grade: 'verified', clause: 'QW-442' },
+                    preheatMin: structured.preheat_min || { value: 'Not specified in procedure', grade: 'unverified', clause: 'Table 330.1.1' },
+                    interpassMax: structured.interpass_max || { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-406.3' },
+                    pwhtTemp: structured.pwht || { value: 'Not specified in procedure', grade: 'unverified', clause: 'Table 331.1.1' },
+                    shieldingGas: structured.shielding_gas || { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-408' },
+                    ndeRequirements: structured.nde_requirements || { value: '100% Visual (AWS B1.11 / ASME VIII UW-35)', grade: 'verified', clause: 'Table 341.3.2' },
+                    evidenceGrades: grounding?.evidence_grades || (grounding?.evidence && Array.isArray(grounding.evidence) ? grounding.evidence : [])
+                };
+
+                let verifiedCount = 0;
+                let unsourcedCount = 0;
+                const audited = [
+                    d.wpsNumber, d.revision, d.supportingPqr, d.governingCode,
+                    d.process, d.baseMetalSpec, d.pNoFrom, d.preheatMin,
+                    d.interpassMax, d.pwhtTemp, d.jointDesign, d.awsClass1,
+                    d.sfaSpec1, d.shieldingGas, d.ndeRequirements
+                ];
+                for (const f of audited) {
+                    if (f && f.grade === 'verified') verifiedCount++;
+                    else if (f && f.grade === 'declared') {}
+                    else unsourcedCount++;
+                }
+                d.verifiedCount = verifiedCount;
+                d.unsourcedCount = unsourcedCount;
+                d.complianceSummary = 'DRAFT — ' + verifiedCount + ' VERIFIED / ' + unsourcedCount + ' UNSOURCED fields — requires PQR + Level III sign-off';
+                return d;
+            }
+
+            // Fallback parser: Zero fabricated defaults!
+            const extract = (pattern) => {
+                try {
+                    const m = rawText.match(pattern);
+                    if (!m) return null;
+                    const val = (m[1] !== undefined && m[1] !== null) ? m[1] : m[0];
+                    return (typeof val === 'string' && val.trim().length > 0) ? val.trim() : null;
+                } catch(e) { return null; }
+            };
+
+            const rawWps = extract(/(?:wps\s*(?:no\.?|number)?|procedure\s*no\.?)\s*[:\-#]\s*([A-Za-z0-9\-_\/]+)/i);
+            const rawRev = extract(/\b(?:revision|rev\.)\s*[:\-]?\s*([A-Za-z0-9.]+)\b/i);
+            const rawPqr = extract(/(?:pqr\s*(?:no\.?|number)?|supporting\s*pqr)\s*[:\-]?\s*([A-Z0-9\-_\/]+)/i);
+            const rawProc = extract(/(?:welding\s*process(?:es)?|process)\s*[:\-]?\s*([A-Za-z0-9\+\s\/()]+?)(?:\n|$|\|)/i);
+            const rawMat = extract(/(?:material\s*spec(?:ification)?|base\s*metal\s*spec(?:ification)?|material)\s*[:\-]?\s*([A-Za-z0-9\.\-\s\/]+?)(?:\n|$|\|)/i);
+            const rawPno = extract(/p-?no\.?\s*(\d+(?:\s*group\s*\d+)?)/i);
+            const rawPreheat = extract(/(?:preheat\s*(?:temp(?:erature)?)?\s*min(?:imum)?|preheat\s*min(?:imum)?)\s*[:\-]?\s*([A-Za-z0-9°\.\-\s\/()CF]+?)(?:\n|$|\|)/i);
+            const rawInterpass = extract(/(?:interpass\s*(?:temp(?:erature)?)?\s*max(?:imum)?)\s*[:\-]?\s*([A-Za-z0-9°\.\-\s\/()CF]+?)(?:\n|$|\|)/i);
+            const rawPwht = extract(/(?:pwht\s*temp(?:erature)?|postweld\s*heat\s*treatment)\s*[:\-]?\s*([A-Za-z0-9°\.\-\s\/()CF:]+?)(?:\n|$|\|)/i);
+            const rawJoint = extract(/(?:joint\s*design|groove\s*type)\s*[:\-]?\s*([A-Za-z0-9\-\s()]+?)(?:\n|$|\|)/i);
+            const rawFiller = extract(/(?:aws\s*class(?:ification)?|filler\s*metal)\s*[:\-]?\s*([A-Za-z0-9\-\s\/()]+?)(?:\n|$|\|)/i);
+            const rawSfa = extract(/(?:sfa\s*(?:spec)?\s*[:\-]?\s*(5\.\d+))/i);
+            const rawGas = extract(/(?:shielding\s*gas)\s*[:\-]?\s*([A-Za-z0-9%\.\-\s]+?)(?:\n|$|\|)/i);
+
+            const wrap = (val, defName, defaultClause, isDeclared = false) => {
+                if (!val) {
+                    return { value: 'Not specified in procedure', grade: 'unverified', clause: null };
+                }
+                return {
+                    value: val,
+                    grade: isDeclared ? 'declared' : 'unverified',
+                    clause: defaultClause || null
+                };
+            };
+
+            const d = {
+                rawText: rawText,
+                docRef: getDeterministicDocRef(msg.sessionId || msg.traceId),
+                wpsNumber: rawWps ? { value: rawWps, grade: 'declared', clause: null } : { value: '[USER-INPUT]', grade: 'declared', clause: null },
+                revision: rawRev ? { value: rawRev, grade: 'declared', clause: null } : { value: 'Rev. ?', grade: 'unverified', clause: null },
+                date: { value: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), grade: 'declared', clause: null },
+                supportingPqr: rawPqr ? { value: rawPqr, grade: 'declared', clause: 'QW-200.2' } : { value: '[VERIFICATION-REQUIRED]', grade: 'unverified', clause: 'QW-200.2' },
+                governingCode: { value: rawText.toLowerCase().includes('b31.3') ? 'ASME B31.3 & ASME Section IX' : 'ASME Boiler & Pressure Vessel Code Section IX', grade: 'verified', clause: 'Section IX' },
+                process: wrap(rawProc, 'Welding Process', 'QW-401'),
+                type: { value: 'Manual', grade: 'declared', clause: 'QW-401' },
+                jointDesign: wrap(rawJoint, 'Joint Design', 'QW-402'),
+                backing: { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-402' },
+                rootOpening: { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-402' },
+                rootFace: { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-402' },
+                grooveAngle: { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-402' },
+                capReinforcement: { value: 'Not specified in procedure', grade: 'unverified', clause: 'UW-35' },
+                filletSize: { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-402' },
+                backgouging: { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-402' },
+                baseMetalSpec: wrap(rawMat, 'Base Metal Specification', 'QW-403'),
+                pNoFrom: wrap(rawPno, 'P-Number', 'QW-422'),
+                pNoTo: wrap(rawPno, 'P-Number', 'QW-422'),
+                thicknessRangeGroove: { value: 'Not specified in procedure', grade: 'unverified', clause: 'QW-403' },
+                thicknessRangeFillet: { value: 'All Fillet Thicknesses & Sizes', grade: 'verified', clause: 'QW-451.4' },
+                diameterRange: { value: 'All Pipe Diameters (NPS 2 in and larger)', grade: 'verified', clause: 'QW-452.3' },
+                fillerProcess1: wrap(rawProc, 'Process 1', 'QW-404'),
+                sfaSpec1: wrap(rawSfa, 'SFA Spec', 'QW-404'),
+                awsClass1: wrap(rawFiller, 'AWS Class', 'QW-404'),
+                fNo1: { value: 'F-No. per Section IX QW-432', grade: 'verified', clause: 'QW-432' },
+                aNo1: { value: 'A-No. 1 (Carbon Steel Analysis)', grade: 'verified', clause: 'QW-442' },
+                preheatMin: wrap(rawPreheat, 'Preheat Minimum', 'Table 330.1.1'),
+                interpassMax: wrap(rawInterpass, 'Maximum Interpass', 'QW-406.3'),
+                pwhtTemp: wrap(rawPwht, 'PWHT', 'Table 331.1.1'),
+                shieldingGas: wrap(rawGas, 'Shielding Gas', 'QW-408'),
+                ndeRequirements: { value: '100% Visual (AWS B1.11 / ASME VIII UW-35)', grade: 'verified', clause: 'Table 341.3.2' },
+                evidenceGrades: grounding?.evidence_grades || (grounding?.evidence && Array.isArray(grounding.evidence) ? grounding.evidence : [])
+            };
+
+            let verifiedCount = 0;
+            let unsourcedCount = 0;
+            const audited = [
+                d.wpsNumber, d.revision, d.supportingPqr, d.governingCode,
+                d.process, d.baseMetalSpec, d.pNoFrom, d.preheatMin,
+                d.interpassMax, d.pwhtTemp, d.jointDesign, d.awsClass1,
+                d.sfaSpec1, d.shieldingGas, d.ndeRequirements
+            ];
+            for (const f of audited) {
+                if (f && f.grade === 'verified') verifiedCount++;
+                else if (f && f.grade === 'declared') {}
+                else unsourcedCount++;
+            }
+            d.verifiedCount = verifiedCount;
+            d.unsourcedCount = unsourcedCount;
+            d.complianceSummary = 'DRAFT — ' + verifiedCount + ' VERIFIED / ' + unsourcedCount + ' UNSOURCED fields — requires PQR + Level III sign-off';
             return d;
         }
 
-        
-        function generateWeldingJointSvg(d) {
-            const isFillet = (d.jointDesign && d.jointDesign.toLowerCase().includes('fillet')) || 
-                             (d.thicknessRangeFillet && d.thicknessRangeFillet.toLowerCase().includes('only'));
+        function parseWpsData(rawText) {
+            const msg = resolveMessageTarget(rawText);
+            return buildWpsViewModel(msg);
+        }
 
-            const bevelAngle = d.grooveAngle || "60° - 75°";
-            const rootOpening = d.rootOpening || "2.0 - 3.2 mm";
-            const rootFace = d.rootFace || "1.5 - 2.5 mm";
-            const thickness = d.nominalThickness || (d.thicknessRangeGroove ? d.thicknessRangeGroove.split(' ')[0] + ' mm' : "12.7 mm");
-            const capReinf = d.capReinforcement || "1.5 - 3.0 mm";
-            const filletLeg = d.filletSize || "8.0 - 10.0 mm";
+        function generateWeldingJointSvg(d) {
+            const jointVal = (typeof d.jointDesign === 'object' ? d.jointDesign?.value : d.jointDesign) || '';
+            const isFillet = jointVal.toLowerCase().includes('fillet');
+
+            const bevelAngle = (typeof d.grooveAngle === 'object' ? d.grooveAngle?.value : d.grooveAngle) || "60° Included (Qualified)";
+            const rootOpening = (typeof d.rootOpening === 'object' ? d.rootOpening?.value : d.rootOpening) || "2.0 - 3.2 mm";
+            const rootFace = (typeof d.rootFace === 'object' ? d.rootFace?.value : d.rootFace) || "1.5 - 2.5 mm";
+            const thickness = (typeof d.thicknessRangeGroove === 'object' ? d.thicknessRangeGroove?.value : d.thicknessRangeGroove) || "Qualified (t)";
+            const capReinf = (typeof d.capReinforcement === 'object' ? d.capReinforcement?.value : d.capReinforcement) || "1.5 - 3.0 mm";
+            const filletLeg = (typeof d.filletSize === 'object' ? d.filletSize?.value : d.filletSize) || "Per Qualified WPS";
 
             if (isFillet) {
                 return `
@@ -8387,50 +8527,27 @@ Answer the inspector's query strictly and accurately based on the verified local
                         <marker id="wps-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
                             <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#0070F2"/>
                         </marker>
-                        <marker id="wps-arrow-dark" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-                            <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#334155"/>
-                        </marker>
                         <pattern id="wps-hatch" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
                             <line x1="0" y1="0" x2="0" y2="8" stroke="#cbd5e1" stroke-width="1.2" />
                         </pattern>
                     </defs>
-
-                    <!-- Base Member (Horizontal) -->
                     <rect x="70" y="130" width="340" height="35" fill="url(#wps-hatch)" stroke="#334155" stroke-width="1.8"/>
                     <rect x="70" y="130" width="340" height="35" fill="#f1f5f9" fill-opacity="0.6" stroke="#334155" stroke-width="1.8"/>
-
-                    <!-- Attached Member (Vertical T-Joint) -->
                     <rect x="215" y="25" width="45" height="105" fill="url(#wps-hatch)" stroke="#334155" stroke-width="1.8"/>
                     <rect x="215" y="25" width="45" height="105" fill="#f1f5f9" fill-opacity="0.6" stroke="#334155" stroke-width="1.8"/>
-
-                    <!-- Fillet Weld Bead Left -->
                     <path d="M 180 130 Q 205 122 215 95 L 215 130 Z" fill="#93c5fd" stroke="#0070F2" stroke-width="1.6"/>
-                    <!-- Fillet Weld Bead Right -->
                     <path d="M 260 95 Q 270 122 295 130 L 260 130 Z" fill="#93c5fd" stroke="#0070F2" stroke-width="1.6"/>
-
-                    <!-- Dimension: Vertical Plate Thickness -->
                     <line x1="215" y1="18" x2="260" y2="18" stroke="#0070F2" stroke-width="1.4" marker-start="url(#wps-arrow)" marker-end="url(#wps-arrow)"/>
                     <text x="237" y="12" fill="#0070F2" font-size="9" font-weight="700" text-anchor="middle">Thickness (t): ${escapeHtml(thickness)}</text>
-
-                    <!-- Dimension: Fillet Leg Length (Vertical) -->
                     <line x1="172" y1="95" x2="172" y2="130" stroke="#0070F2" stroke-width="1.4" marker-start="url(#wps-arrow)" marker-end="url(#wps-arrow)"/>
                     <text x="166" y="115" fill="#0070F2" font-size="8.5" font-weight="700" text-anchor="end">Leg (z): ${escapeHtml(filletLeg)}</text>
-
-                    <!-- Dimension: Fillet Leg Length (Horizontal) -->
                     <line x1="260" y1="142" x2="295" y2="142" stroke="#0070F2" stroke-width="1.4" marker-start="url(#wps-arrow)" marker-end="url(#wps-arrow)"/>
                     <text x="277" y="154" fill="#0070F2" font-size="8.5" font-weight="700" text-anchor="middle">Leg (z): ${escapeHtml(filletLeg)}</text>
-
-                    <!-- Theoretical Throat Check -->
-                    <path d="M 260 95 L 295 130" stroke="#64748b" stroke-dasharray="2 2" stroke-width="1"/>
-                    <text x="310" y="112" fill="#0f172a" font-size="8" font-weight="700">Theoretical Throat (a) &le; 0.707 &times; z</text>
-
-                    <!-- Title & Code Callout -->
                     <text x="15" y="20" fill="#0f172a" font-size="9.5" font-weight="800">QW-402 FILLET / T-JOINT SCHEMATIC</text>
-                    <text x="15" y="32" fill="#64748b" font-size="7.5">ASME Section IX &bull; Fillet Size &amp; Throat Profile</text>
+                    <text x="15" y="32" fill="#64748b" font-size="7.5">ASME Section IX • Fillet Size &amp; Profile</text>
                 </svg>`;
             }
 
-            // Default: Single V-Groove Butt Weld schematic with Bevel, Root Face, Root Opening, Cap, and Thickness
             return `
             <svg viewBox="0 0 520 205" width="100%" height="190" xmlns="http://www.w3.org/2000/svg" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; font-family:'Segoe UI', Calibri, sans-serif;">
                 <defs>
@@ -8444,78 +8561,61 @@ Answer the inspector's query strictly and accurately based on the verified local
                         <line x1="0" y1="0" x2="0" y2="8" stroke="#cbd5e1" stroke-width="1.2" />
                     </pattern>
                 </defs>
-
-                <!-- Plate 1 (Left Base Metal) -->
                 <polygon points="50,55 210,55 230,115 230,135 50,135" fill="url(#wps-hatch)" stroke="#334155" stroke-width="1.8"/>
                 <polygon points="50,55 210,55 230,115 230,135 50,135" fill="#f1f5f9" fill-opacity="0.6" stroke="#334155" stroke-width="1.8"/>
-
-                <!-- Plate 2 (Right Base Metal) -->
                 <polygon points="270,115 290,55 450,55 450,135 270,135" fill="url(#wps-hatch)" stroke="#334155" stroke-width="1.8"/>
                 <polygon points="270,115 290,55 450,55 450,135 270,135" fill="#f1f5f9" fill-opacity="0.6" stroke="#334155" stroke-width="1.8"/>
-
-                <!-- Deposited Weld Metal Layers -->
-                <!-- Root Pass -->
                 <path d="M 230 135 Q 250 143 270 135 L 268 117 Q 250 121 232 117 Z" fill="#38bdf8" stroke="#0284c7" stroke-width="1.1"/>
-                <!-- Fill Passes -->
                 <path d="M 232 117 Q 250 121 268 117 L 285 70 Q 250 73 215 70 Z" fill="#93c5fd" stroke="#0070F2" stroke-width="1.1"/>
-                <!-- Cap / Crown Reinforcement -->
                 <path d="M 205 55 Q 250 38 295 55 Q 250 51 205 55 Z" fill="#60a5fa" stroke="#1d4ed8" stroke-width="1.4"/>
-
-                <!-- DIMENSION: Base Metal Thickness (t) -->
                 <line x1="38" y1="55" x2="38" y2="135" stroke="#0070F2" stroke-width="1.4" marker-start="url(#wps-arrow)" marker-end="url(#wps-arrow)"/>
                 <text x="32" y="98" fill="#0070F2" font-size="8.5" font-weight="700" text-anchor="end">Wall (t): ${escapeHtml(thickness)}</text>
-
-                <!-- DIMENSION: Bevel Angle / Included Angle (QW-402) -->
                 <path d="M 224 75 Q 250 83 276 75" fill="none" stroke="#dc2626" stroke-width="1.3" marker-start="url(#wps-arrow-red)" marker-end="url(#wps-arrow-red)"/>
                 <text x="250" y="96" fill="#dc2626" font-size="9" font-weight="700" text-anchor="middle">Bevel: ${escapeHtml(bevelAngle)}</text>
-
-                <!-- DIMENSION: Root Opening / Gap (R) -->
                 <line x1="230" y1="146" x2="270" y2="146" stroke="#0070F2" stroke-width="1.4" marker-start="url(#wps-arrow)" marker-end="url(#wps-arrow)"/>
                 <text x="250" y="159" fill="#0070F2" font-size="8.5" font-weight="700" text-anchor="middle">Root Gap (R): ${escapeHtml(rootOpening)}</text>
-
-                <!-- DIMENSION: Root Face / Land (f) -->
                 <line x1="280" y1="115" x2="280" y2="135" stroke="#0070F2" stroke-width="1.3" marker-start="url(#wps-arrow)" marker-end="url(#wps-arrow)"/>
                 <text x="288" y="128" fill="#0070F2" font-size="8.5" font-weight="700">Root Land (f): ${escapeHtml(rootFace)}</text>
-
-                <!-- DIMENSION: Weld Cap / Crown Reinforcement -->
                 <line x1="305" y1="40" x2="305" y2="55" stroke="#1d4ed8" stroke-width="1.3" marker-start="url(#wps-arrow)" marker-end="url(#wps-arrow)"/>
                 <text x="314" y="49" fill="#1d4ed8" font-size="8.5" font-weight="700">Cap Height: ${escapeHtml(capReinf)}</text>
-
-                <!-- Root Penetration & Undercut Limits -->
-                <line x1="250" y1="141" x2="250" y2="175" stroke="#64748b" stroke-width="1" stroke-dasharray="2 2"/>
-                <text x="250" y="186" fill="#475569" font-size="7.5" text-anchor="middle">Root Penetration (Flush to +1.5 mm)</text>
-
-                <!-- Title / ASME Standard Tag -->
-                <text x="15" y="20" fill="#0f172a" font-size="9.5" font-weight="800">QW-402 GROOVE JOINT SCHEMATIC &amp; PASS PROFILE</text>
-                <text x="15" y="32" fill="#64748b" font-size="7.5">ASME Boiler &amp; Pressure Vessel Code Section IX &bull; Form QW-482</text>
+                <text x="15" y="20" fill="#0f172a" font-size="9.5" font-weight="800">QW-402 GROOVE JOINT SCHEMATIC &amp; PROFILE</text>
+                <text x="15" y="32" fill="#64748b" font-size="7.5">ASME Boiler &amp; Pressure Vessel Code Section IX • Form QW-482</text>
             </svg>`;
         }
 
         function generateAsmeFormQw482Html(d) {
             return `
             <div class="qw482-paper">
+                <!-- WATERMARK BANNER -->
+                <div class="qw482-watermark-banner">
+                    ⚠️ TECHNICAL DRAFT — NOT QUALIFIED — DO NOT USE FOR PRODUCTION WELDING UNTIL PQR ATTACHED AND LEVEL III SIGNED
+                </div>
+
                 <!-- FORM HEADER -->
                 <div class="qw482-header">
                     <div style="font-size:8pt; font-weight:700; color:#0070F2; text-transform:uppercase; margin-bottom:2px;">SpecSupport Engineering Quality Assurance System</div>
                     <div class="qw482-title">FORM QW-482 SUGGESTED FORMAT FOR WELDING PROCEDURE SPECIFICATIONS (WPS)</div>
                     <div class="qw482-sub">(See QW-200.1, Section IX, ASME Boiler and Pressure Vessel Code)</div>
+                    <div style="margin-top:5px; font-size:8pt; font-weight:700; color:${d.unsourcedCount > 0 ? '#b91c1c' : '#047857'};">
+                        ${escapeHtml(d.complianceSummary || 'DRAFT — requires PQR + Level III sign-off')}
+                    </div>
                 </div>
 
                 <!-- IDENTIFICATION BLOCK -->
                 <table class="qw482-grid">
                     <tr>
                         <td style="width:34%;"><span class="qw482-field-lbl">Company Name:</span> <span class="qw482-field-val">SpecSupport Certified Engineering</span></td>
-                        <td style="width:33%;"><span class="qw482-field-lbl">WPS Number:</span> <span class="qw482-field-val">${escapeHtml(d.wpsNumber)}</span></td>
-                        <td style="width:33%;"><span class="qw482-field-lbl">Revision:</span> <span class="qw482-field-val">${escapeHtml(d.revision)}</span></td>
+                        <td style="width:33%;"><span class="qw482-field-lbl">WPS Number:</span> <span class="qw482-field-val">${renderWpsField(d.wpsNumber)}</span></td>
+                        <td style="width:33%;"><span class="qw482-field-lbl">Revision:</span> <span class="qw482-field-val">${renderWpsField(d.revision)}</span></td>
                     </tr>
                     <tr>
-                        <td><span class="qw482-field-lbl">Governing Code:</span> <span class="qw482-field-val">${escapeHtml(d.governingCode)}</span></td>
-                        <td><span class="qw482-field-lbl">Supporting PQR No.(s):</span> <span class="qw482-field-val">${escapeHtml(d.supportingPqr)}</span></td>
-                        <td><span class="qw482-field-lbl">Date:</span> <span class="qw482-field-val">${escapeHtml(d.date)}</span></td>
+                        <td><span class="qw482-field-lbl">Governing Code:</span> <span class="qw482-field-val">${renderWpsField(d.governingCode)}</span></td>
+                        <td><span class="qw482-field-lbl">Supporting PQR No.(s):</span> <span class="qw482-field-val">${renderWpsField(d.supportingPqr)}</span></td>
+                        <td><span class="qw482-field-lbl">Date:</span> <span class="qw482-field-val">${renderWpsField(d.date)}</span></td>
                     </tr>
                     <tr>
-                        <td colspan="2"><span class="qw482-field-lbl">Welding Process(es):</span> <span class="qw482-field-val">${escapeHtml(d.process)}</span></td>
-                        <td><span class="qw482-field-lbl">Type(s):</span> <span class="qw482-field-val">${escapeHtml(d.type)} (Manual / Semi-Auto)</span></td>
+                        <td colspan="2"><span class="qw482-field-lbl">Welding Process(es):</span> <span class="qw482-field-val">${renderWpsField(d.process)}</span></td>
+                        <td><span class="qw482-field-lbl">Type(s):</span> <span class="qw482-field-val">${renderWpsField(d.type)}</span></td>
                     </tr>
                 </table>
 
@@ -8530,21 +8630,21 @@ Answer the inspector's query strictly and accurately based on the verified local
                             <div style="margin-bottom:8px;">
                                 ${generateWeldingJointSvg(d)}
                             </div>
-                            <div><span class="qw482-field-lbl">Joint Design:</span> <span class="qw482-field-val">${escapeHtml(d.jointDesign)}</span></div>
-                            <div><span class="qw482-field-lbl">Backing:</span> <span class="qw482-field-val">${escapeHtml(d.backing)}</span></div>
-                            <div><span class="qw482-field-lbl">Root Opening (Gap):</span> <span class="qw482-field-val">${escapeHtml(d.rootOpening)}</span></div>
-                            <div><span class="qw482-field-lbl">Root Face (Land):</span> <span class="qw482-field-val">${escapeHtml(d.rootFace)}</span></div>
-                            <div><span class="qw482-field-lbl">Groove Angle:</span> <span class="qw482-field-val">${escapeHtml(d.grooveAngle)}</span></div>
-                            <div><span class="qw482-field-lbl">Cap Reinforcement:</span> <span class="qw482-field-val">${escapeHtml(d.capReinforcement || "1.5 - 3.0 mm (max)")}</span></div>
-                            <div><span class="qw482-field-lbl">Fillet Leg / Throat:</span> <span class="qw482-field-val">${escapeHtml(d.filletSize || "All Thicknesses")}</span></div>
-                            <div><span class="qw482-field-lbl">Backgouging:</span> <span class="qw482-field-val">${escapeHtml(d.backgouging)}</span></div>
+                            <div><span class="qw482-field-lbl">Joint Design:</span> <span class="qw482-field-val">${renderWpsField(d.jointDesign)}</span></div>
+                            <div><span class="qw482-field-lbl">Backing:</span> <span class="qw482-field-val">${renderWpsField(d.backing)}</span></div>
+                            <div><span class="qw482-field-lbl">Root Opening (Gap):</span> <span class="qw482-field-val">${renderWpsField(d.rootOpening)}</span></div>
+                            <div><span class="qw482-field-lbl">Root Face (Land):</span> <span class="qw482-field-val">${renderWpsField(d.rootFace)}</span></div>
+                            <div><span class="qw482-field-lbl">Groove Angle:</span> <span class="qw482-field-val">${renderWpsField(d.grooveAngle)}</span></div>
+                            <div><span class="qw482-field-lbl">Cap Reinforcement:</span> <span class="qw482-field-val">${renderWpsField(d.capReinforcement)}</span></div>
+                            <div><span class="qw482-field-lbl">Fillet Leg / Throat:</span> <span class="qw482-field-val">${renderWpsField(d.filletSize)}</span></div>
+                            <div><span class="qw482-field-lbl">Backgouging:</span> <span class="qw482-field-val">${renderWpsField(d.backgouging)}</span></div>
                         </td>
                         <td>
-                            <div><span class="qw482-field-lbl">Material Specification:</span> <span class="qw482-field-val">${escapeHtml(d.baseMetalSpec)}</span></div>
-                            <div><span class="qw482-field-lbl">P-No. & Group:</span> <span class="qw482-field-val">${escapeHtml(d.pNoFrom)} to ${escapeHtml(d.pNoTo)}</span></div>
-                            <div><span class="qw482-field-lbl">Thickness Range (Groove):</span> <span class="qw482-field-val">${escapeHtml(d.thicknessRangeGroove)}</span></div>
-                            <div><span class="qw482-field-lbl">Thickness Range (Fillet):</span> <span class="qw482-field-val">${escapeHtml(d.thicknessRangeFillet)}</span></div>
-                            <div><span class="qw482-field-lbl">Pipe Diameter Range:</span> <span class="qw482-field-val">${escapeHtml(d.diameterRange)}</span></div>
+                            <div><span class="qw482-field-lbl">Material Specification:</span> <span class="qw482-field-val">${renderWpsField(d.baseMetalSpec)}</span></div>
+                            <div><span class="qw482-field-lbl">P-No. & Group:</span> <span class="qw482-field-val">${renderWpsField(d.pNoFrom)}</span></div>
+                            <div><span class="qw482-field-lbl">Thickness Range (Groove):</span> <span class="qw482-field-val">${renderWpsField(d.thicknessRangeGroove)}</span></div>
+                            <div><span class="qw482-field-lbl">Thickness Range (Fillet):</span> <span class="qw482-field-val">${renderWpsField(d.thicknessRangeFillet)}</span></div>
+                            <div><span class="qw482-field-lbl">Pipe Diameter Range:</span> <span class="qw482-field-val">${renderWpsField(d.diameterRange)}</span></div>
                         </td>
                     </tr>
                 </table>
@@ -8555,160 +8655,87 @@ Answer the inspector's query strictly and accurately based on the verified local
                         <th class="qw482-sec-title" colspan="3">FILLER METALS (QW-404)</th>
                     </tr>
                     <tr>
-                        <td style="width:33%;"><span class="qw482-field-lbl">Welding Process:</span> <span class="qw482-field-val">${escapeHtml(d.fillerProcess1 || "GTAW")}</span></td>
-                        <td style="width:33%;"><span class="qw482-field-lbl">Welding Process:</span> <span class="qw482-field-val">${escapeHtml(d.fillerProcess2 || "SMAW")}</span></td>
-                        <td style="width:34%;"><span class="qw482-field-lbl">Deposited Weld Metal Range:</span></td>
+                        <td style="width:33%;"><span class="qw482-field-lbl">Welding Process:</span> <span class="qw482-field-val">${renderWpsField(d.fillerProcess1)}</span></td>
+                        <td style="width:33%;"><span class="qw482-field-lbl">SFA Specification:</span> <span class="qw482-field-val">${renderWpsField(d.sfaSpec1)}</span></td>
+                        <td style="width:34%;"><span class="qw482-field-lbl">AWS Classification:</span> <span class="qw482-field-val">${renderWpsField(d.awsClass1)}</span></td>
                     </tr>
                     <tr>
                         <td>
-                            <div><span class="qw482-field-lbl">SFA Specification:</span> <span class="qw482-field-val">${escapeHtml(d.sfaSpec1 || "SFA 5.18")}</span></div>
-                            <div><span class="qw482-field-lbl">AWS Classification:</span> <span class="qw482-field-val">${escapeHtml(d.awsClass1 || "ER70S-6")}</span></div>
-                            <div><span class="qw482-field-lbl">F-No. / A-No.:</span> <span class="qw482-field-val">${escapeHtml(d.fNo1 || "F-6")} / ${escapeHtml(d.aNo1 || "A-1")}</span></div>
-                            <div><span class="qw482-field-lbl">Size of Filler Metal:</span> <span class="qw482-field-val">${escapeHtml(d.fillerSize1 || "2.4 mm (3/32 in)")}</span></div>
+                            <div><span class="qw482-field-lbl">F-No.:</span> <span class="qw482-field-val">${renderWpsField(d.fNo1)}</span></div>
+                            <div><span class="qw482-field-lbl">A-No.:</span> <span class="qw482-field-val">${renderWpsField(d.aNo1)}</span></div>
                         </td>
-                        <td>
-                            <div><span class="qw482-field-lbl">SFA Specification:</span> <span class="qw482-field-val">${escapeHtml(d.sfaSpec2 || "SFA 5.1")}</span></div>
-                            <div><span class="qw482-field-lbl">AWS Classification:</span> <span class="qw482-field-val">${escapeHtml(d.awsClass2 || "E7018-1 H4R")}</span></div>
-                            <div><span class="qw482-field-lbl">F-No. / A-No.:</span> <span class="qw482-field-val">${escapeHtml(d.fNo2 || "F-4")} / ${escapeHtml(d.aNo2 || "A-1")}</span></div>
-                            <div><span class="qw482-field-lbl">Size of Filler Metal:</span> <span class="qw482-field-val">${escapeHtml(d.fillerSize2 || "3.2 mm & 4.0 mm")}</span></div>
-                        </td>
-                        <td>
-                            <div><span class="qw482-field-lbl">Groove Thickness (Process 1):</span> <span class="qw482-field-val">${escapeHtml(d.depositThk1 || "3.5 mm max")}</span></div>
-                            <div><span class="qw482-field-lbl">Groove Thickness (Process 2):</span> <span class="qw482-field-val">${escapeHtml(d.depositThk2 || "34.6 mm max")}</span></div>
-                            <div><span class="qw482-field-lbl">Consumable Insert:</span> <span class="qw482-field-val">None</span></div>
+                        <td colspan="2">
+                            <div><span class="qw482-field-lbl">Filler Guidance:</span> <span class="qw482-field-val">Consumables must comply with ASME Section II Part C / Section IX Table QW-432</span></div>
                         </td>
                     </tr>
                 </table>
 
-                <!-- SECTION 3: POSITIONS (QW-405), PREHEAT (QW-406), PWHT (QW-407) & GAS (QW-408) -->
+                <!-- SECTION 3: PREHEAT, PWHT & GAS -->
                 <table class="qw482-grid" style="border-top:2px solid #0f172a;">
                     <tr>
-                        <th class="qw482-sec-title" style="width:25%;">POSITIONS (QW-405)</th>
-                        <th class="qw482-sec-title" style="width:25%;">PREHEAT (QW-406)</th>
-                        <th class="qw482-sec-title" style="width:25%;">PWHT (QW-407)</th>
-                        <th class="qw482-sec-title" style="width:25%;">GAS (QW-408)</th>
+                        <th class="qw482-sec-title" style="width:33.3%;">PREHEAT (QW-406)</th>
+                        <th class="qw482-sec-title" style="width:33.3%;">PWHT (QW-407)</th>
+                        <th class="qw482-sec-title" style="width:33.3%;">GAS (QW-408)</th>
                     </tr>
                     <tr>
                         <td>
-                            <div><span class="qw482-field-lbl">Groove:</span> <span class="qw482-field-val">${escapeHtml(d.positionGroove)}</span></div>
-                            <div><span class="qw482-field-lbl">Progression:</span> <span class="qw482-field-val">[✓] ${escapeHtml(d.progression)}</span></div>
-                            <div><span class="qw482-field-lbl">Fillet:</span> <span class="qw482-field-val">All Positions</span></div>
+                            <div><span class="qw482-field-lbl">Min Preheat:</span> <span class="qw482-field-val">${renderWpsField(d.preheatMin)}</span></div>
+                            <div><span class="qw482-field-lbl">Max Interpass:</span> <span class="qw482-field-val">${renderWpsField(d.interpassMax)}</span></div>
                         </td>
                         <td>
-                            <div><span class="qw482-field-lbl">Min Preheat:</span> <span class="qw482-field-val">${escapeHtml(d.preheatMin)}</span></div>
-                            <div><span class="qw482-field-lbl">Max Interpass:</span> <span class="qw482-field-val">${escapeHtml(d.interpassMax)}</span></div>
-                            <div><span class="qw482-field-lbl">Maintenance:</span> <span class="qw482-field-val">${escapeHtml(d.preheatMaint)}</span></div>
+                            <div><span class="qw482-field-lbl">PWHT Requirements:</span> <span class="qw482-field-val">${renderWpsField(d.pwhtTemp)}</span></div>
                         </td>
                         <td>
-                            <div><span class="qw482-field-lbl">Temp Range:</span> <span class="qw482-field-val">${escapeHtml(d.pwhtTemp)}</span></div>
-                            <div><span class="qw482-field-lbl">Hold Time:</span> <span class="qw482-field-val">${escapeHtml(d.pwhtTime)}</span></div>
-                        </td>
-                        <td>
-                            <div><span class="qw482-field-lbl">Shielding:</span> <span class="qw482-field-val">${escapeHtml(d.shieldingGas)}</span></div>
-                            <div><span class="qw482-field-lbl">Flow Rate:</span> <span class="qw482-field-val">${escapeHtml(d.gasFlow)}</span></div>
-                            <div><span class="qw482-field-lbl">Backing Gas:</span> <span class="qw482-field-val">${escapeHtml(d.backingGas)}</span></div>
+                            <div><span class="qw482-field-lbl">Shielding Gas:</span> <span class="qw482-field-val">${renderWpsField(d.shieldingGas)}</span></div>
                         </td>
                     </tr>
                 </table>
 
-                <!-- SECTION 4: ELECTRICAL CHARACTERISTICS (QW-409) & TECHNIQUE (QW-410) -->
-                <table class="qw482-grid" style="border-top:2px solid #0f172a;">
-                    <tr>
-                        <th class="qw482-sec-title" colspan="2">ELECTRICAL CHARACTERISTICS (QW-409) & TECHNIQUE (QW-410)</th>
-                    </tr>
-                    <tr>
-                        <td colspan="2" style="padding:0;">
-                            <table class="qw482-table">
-                                <thead>
-                                    <tr>
-                                        <th>Weld Layer(s)</th>
-                                        <th>Process</th>
-                                        <th>Filler Class</th>
-                                        <th>Diameter</th>
-                                        <th>Current / Polarity</th>
-                                        <th>Amperage Range</th>
-                                        <th>Voltage Range</th>
-                                        <th>Travel Speed</th>
-                                        <th>Max Heat Input</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Root Pass</td>
-                                        <td>GTAW</td>
-                                        <td>ER70S-6</td>
-                                        <td>2.4 mm (3/32")</td>
-                                        <td>DCEN (Straight)</td>
-                                        <td>80 - 110 A</td>
-                                        <td>10 - 14 V</td>
-                                        <td>60 - 90 mm/min</td>
-                                        <td>1.2 kJ/mm</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Hot Pass</td>
-                                        <td>GTAW</td>
-                                        <td>ER70S-6</td>
-                                        <td>2.4 mm (3/32")</td>
-                                        <td>DCEN (Straight)</td>
-                                        <td>100 - 135 A</td>
-                                        <td>12 - 15 V</td>
-                                        <td>70 - 110 mm/min</td>
-                                        <td>1.3 kJ/mm</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Fill Passes</td>
-                                        <td>SMAW</td>
-                                        <td>E7018-1 H4R</td>
-                                        <td>3.2 mm (1/8")</td>
-                                        <td>DCEP (Reverse)</td>
-                                        <td>110 - 145 A</td>
-                                        <td>21 - 25 V</td>
-                                        <td>100 - 140 mm/min</td>
-                                        <td>1.8 kJ/mm</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Cap / Cover</td>
-                                        <td>SMAW</td>
-                                        <td>E7018-1 H4R</td>
-                                        <td>3.2 / 4.0 mm</td>
-                                        <td>DCEP (Reverse)</td>
-                                        <td>125 - 165 A</td>
-                                        <td>22 - 26 V</td>
-                                        <td>110 - 160 mm/min</td>
-                                        <td>1.9 kJ/mm</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="width:50%;">
-                            <div><span class="qw482-field-lbl">Stringer or Weave Bead:</span> <span class="qw482-field-val">${escapeHtml(d.technique)}</span></div>
-                            <div><span class="qw482-field-lbl">Initial & Interpass Cleaning:</span> <span class="qw482-field-val">${escapeHtml(d.cleaning)}</span></div>
-                        </td>
-                        <td style="width:50%;">
-                            <div><span class="qw482-field-lbl">Multiple or Single Pass per side:</span> <span class="qw482-field-val">${escapeHtml(d.multiplePass)}</span></div>
-                            <div><span class="qw482-field-lbl">Tungsten Electrode Size/Type:</span> <span class="qw482-field-val">2.4 mm (3/32") EWTh-2 (2% Thoriated) or EWG</span></div>
-                        </td>
-                    </tr>
-                </table>
-
-                <!-- SECTION 5: NDE & CODE ACCEPTANCE CRITERIA -->
+                <!-- SECTION 4: NDE & CODE ACCEPTANCE CRITERIA -->
                 <table class="qw482-grid" style="border-top:2px solid #0f172a;">
                     <tr>
                         <th class="qw482-sec-title">NON-DESTRUCTIVE EXAMINATION (NDE) & MANDATORY HOLD POINTS</th>
                     </tr>
                     <tr>
                         <td>
-                            <div><strong>Visual Examination:</strong> 100% Visual per AWS B1.11 & ASME VIII UW-35 / ASME B31.3 (Zero cracks, undercut &le; 0.5 mm).</div>
-                            <div><strong>Volumetric Examination:</strong> 100% Radiographic Testing (RT per ASME Section V Article 2 & ASME VIII UW-51 / B31.3 Table 341.3.2) or Ultrasonic Testing (UT per Article 4).</div>
-                            <div><strong>Surface NDT:</strong> 100% Wet Fluorescent Magnetic Particle (WFMT) or Liquid Penetrant (PT) on bevel preparation and completed cap.</div>
+                            <div><span class="qw482-field-lbl">Mandatory NDE:</span> <span class="qw482-field-val">${renderWpsField(d.ndeRequirements)}</span></div>
                         </td>
                     </tr>
                 </table>
 
+                ${(d.evidenceGrades && Array.isArray(d.evidenceGrades) && d.evidenceGrades.length > 0) ? `
+                <!-- SECTION 5: EVIDENCE-LOCKED ASSERTION ENTAILMENT & CITATION AUDIT -->
+                <div style="margin-top:14px; page-break-inside:avoid;">
+                    <div style="font-size:8pt; font-weight:800; color:#0f172a; text-transform:uppercase; margin-bottom:4px; border-bottom:1.5px solid #0f172a; padding-bottom:2px;">
+                        Evidence-Locked Grounding Audit &amp; Clause Citation Trace
+                    </div>
+                    <table class="qw482-grid" style="font-size:7pt; width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:#f1f5f9;">
+                                <th style="padding:4px 6px; text-align:left; width:55%;">Extracted Claim / Procedure Requirement</th>
+                                <th style="padding:4px 6px; text-align:center; width:15%;">Entailment Grade</th>
+                                <th style="padding:4px 6px; text-align:left; width:30%;">Normative Standard / Clause</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${d.evidenceGrades.map(g => `
+                                <tr>
+                                    <td style="padding:3px 6px;">${escapeHtml(g.text)}</td>
+                                    <td style="padding:3px 6px; text-align:center;">
+                                        <span class="${g.grade === 'verified' ? 'qw482-badge-verified' : (g.grade === 'declared' ? 'qw482-badge-declared' : 'qw482-badge-unverified')}">
+                                            ${escapeHtml(g.grade ? g.grade.toUpperCase() : 'UNVERIFIED')}
+                                        </span>
+                                    </td>
+                                    <td style="padding:3px 6px;">${escapeHtml(g.source || 'Requires PQR')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                ` : ''}
+
                 <!-- SECTION 6: CERTIFICATION & SIGN-OFF BLOCK -->
-                <table class="qw482-grid" style="border-top:2px solid #0f172a;">
+                <table class="qw482-grid" style="border-top:2px solid #0f172a; margin-top:10px;">
                     <tr>
                         <td colspan="3" style="background:#f8fafc; font-size:7.5pt; text-align:center; color:#334155;">
                             We certify that the statements in this record are correct and that the test welds were prepared, welded, and tested in accordance with the requirements of Section IX and Section VIII of the ASME Boiler and Pressure Vessel Code.
@@ -8720,14 +8747,14 @@ Answer the inspector's query strictly and accurately based on the verified local
                             Name: ____________________________<br>
                             Title: Welding Specialist / CSWIP 3.1<br>
                             Signature: _______________________<br>
-                            Date: ${escapeHtml(d.date)}
+                            Date: ${escapeHtml(d.date ? (typeof d.date === 'object' ? d.date.value : d.date) : '')}
                         </td>
                         <td style="width:33.3%;">
                             <strong>Approved By (Manufacturer QA):</strong><br><br>
                             Name: ____________________________<br>
                             Title: QA/QC Manager / IWE<br>
                             Stamp: __________________________<br>
-                            Date: ${escapeHtml(d.date)}
+                            Date: ${escapeHtml(d.date ? (typeof d.date === 'object' ? d.date.value : d.date) : '')}
                         </td>
                         <td style="width:33.3%;">
                             <strong>Authorized Inspector (AI) Witness:</strong><br><br>
@@ -8740,22 +8767,42 @@ Answer the inspector's query strictly and accurately based on the verified local
                 </table>
 
                 <div style="padding:6px 12px; font-size:7pt; color:#64748b; text-align:center; border-top:1px solid #cbd5e1; background:#ffffff;">
-                    Generated via SpecSupport Enterprise AI • Certified ASME Section IX Form QW-482 Protocol • Document Ref: ${escapeHtml(d.wpsNumber)}
+                    Generated via SpecSupport Enterprise AI • Evidence-Locked Technical Draft (Not Submittable without PQR qualification) • Document Ref: ${escapeHtml(d.docRef || (d.wpsNumber ? d.wpsNumber.value : 'DRAFT'))}
                 </div>
             </div>
             `;
         }
 
-        function openWpsFormModal(encodedText) {
-            const raw = decodeURIComponent(encodedText);
-            const wpsData = parseWpsData(raw);
+        function openWpsFormModal(target) {
+            const msg = resolveMessageTarget(target);
+            const rawText = msg.rawText || msg.text || '';
+            const finishReason = msg.finishReason || 'stop';
+            const modalBody = document.getElementById('wps-form-modal-body');
+            const modal = document.getElementById('wps-form-modal');
+
+            if (isAnswerTruncated(rawText, finishReason)) {
+                currentActiveWpsData = null;
+                if (modalBody) {
+                    modalBody.innerHTML = `
+                        <div style="padding: 30px; text-align: center; background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; margin: 24px;">
+                            <div style="font-size: 1.3rem; font-weight: 800; color: #b91c1c; margin-bottom: 10px;">⚠️ TRUNCATED SOURCE ANSWER — export blocked until regenerated</div>
+                            <p style="color: #7f1d1d; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px;">
+                                The model output ended abruptly or was truncated at the compute budget limit. To prevent unverified parameters or safety violations from being used in production welding, ASME Form QW-482 generation is blocked until the procedure is continued or regenerated.
+                            </p>
+                            <button class="tool-btn" onclick="closeWpsFormModal(); askContinuedProcedure();" style="background:#dc2626; color:#fff; font-weight:700; padding:10px 20px; font-size:0.9rem; border-radius:6px; cursor:pointer;">🔄 Continue Procedure Generation</button>
+                        </div>
+                    `;
+                }
+                if (modal) modal.style.display = 'flex';
+                return;
+            }
+
+            const wpsData = buildWpsViewModel(msg);
             currentActiveWpsData = wpsData;
 
-            const modalBody = document.getElementById('wps-form-modal-body');
             if (modalBody) {
                 modalBody.innerHTML = generateAsmeFormQw482Html(wpsData);
             }
-            const modal = document.getElementById('wps-form-modal');
             if (modal) modal.style.display = 'flex';
         }
 
@@ -8766,16 +8813,17 @@ Answer the inspector's query strictly and accurately based on the verified local
 
         function printWpsFormFromModal() {
             if (!currentActiveWpsData) return;
-            exportToPdf(encodeURIComponent(currentActiveWpsData.rawText));
+            exportToPdf(currentActiveWpsData);
         }
 
         function exportWpsWordFromModal() {
             if (!currentActiveWpsData) return;
-            exportToWord(encodeURIComponent(currentActiveWpsData.rawText));
+            exportToWord(currentActiveWpsData);
         }
 
-        function copyAnswer(btn, encodedText) {
-            const raw = decodeURIComponent(encodedText);
+        function copyAnswer(btn, target) {
+            const msg = resolveMessageTarget(target);
+            const raw = msg.rawText || msg.text || '';
             navigator.clipboard.writeText(raw).then(() => {
                 const orig = btn.innerHTML;
                 btn.innerHTML = '✓ Copied!';
@@ -8783,10 +8831,15 @@ Answer the inspector's query strictly and accurately based on the verified local
             });
         }
 
-                // =========================================================
+        // =========================================================
         // 📄 EXECUTIVE DOCUMENT EXPORT SUITE (PDF, WORD & NCR)
         // =========================================================
-        function prepareDocumentData(rawText) {
+        function prepareDocumentData(target) {
+            const msg = resolveMessageTarget(target);
+            const rawText = msg.rawText || msg.text || '';
+            const finishReason = msg.finishReason || 'stop';
+            const isTruncated = isAnswerTruncated(rawText, finishReason);
+
             const lower = rawText.toLowerCase();
             let docTitle = "OFFICIAL TECHNICAL SPECIFICATION & COMPLIANCE VERDICT";
             let docSub = "SpecSupport Enterprise AI Quality Engineering Certificate";
@@ -8814,31 +8867,46 @@ Answer the inspector's query strictly and accurately based on the verified local
                 docSub = "API RP 7G-2 / TH Hill DS-1 Inspection & Discard Assessment";
             }
 
-            const reportNo = "SSR-" + new Date().getFullYear() + "-" + Math.floor(100000 + Math.random() * 900000);
+            const reportNo = getDeterministicDocRef(msg.sessionId || msg.traceId);
             const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-            
-            // Render markdown to HTML
-            let renderedHtml = marked.parse(rawText);
 
+            let renderedHtml = marked.parse(rawText);
             const isWpsDoc = lower.includes('wps') || lower.includes('welding procedure') || lower.includes('qw-482') || lower.includes('asme viii') || lower.includes('asme xi');
+            let docMeta = {
+                complianceSummary: 'Evidence-Locked Technical Draft (Requires PQR qualification)',
+                unsourcedCount: 0,
+                verifiedCount: 0
+            };
+
             if (isWpsDoc) {
-                const wpsData = parseWpsData(rawText);
+                const wpsData = buildWpsViewModel(msg);
+                docMeta = wpsData;
                 renderedHtml = generateAsmeFormQw482Html(wpsData);
             }
 
             renderedHtml = renderedHtml.replace(/<!--[\s\S]*?-->/g, '');
 
-            return { docTitle, docSub, reportNo, dateStr, renderedHtml };
+            return { docTitle, docSub, reportNo, dateStr, renderedHtml, docMeta, isTruncated };
         }
 
-        function exportToWord(encodedText) {
-            const raw = decodeURIComponent(encodedText);
-            const { docTitle, docSub, reportNo, dateStr, renderedHtml } = prepareDocumentData(raw);
+        function exportToWord(target) {
+            const msg = resolveMessageTarget(target);
+            const rawText = msg.rawText || msg.text || '';
+            const finishReason = msg.finishReason || 'stop';
+            if (isAnswerTruncated(rawText, finishReason)) {
+                alert('TRUNCATED SOURCE ANSWER — export blocked until regenerated. Incomplete procedure cannot be certified.');
+                return;
+            }
+
+            const { docTitle, docSub, reportNo, dateStr, renderedHtml, docMeta } = prepareDocumentData(msg);
+
+            const complianceColor = (docMeta && docMeta.unsourcedCount > 0) ? '#b91c1c' : '#047857';
+            const complianceText = (docMeta && docMeta.complianceSummary) ? docMeta.complianceSummary : 'Evidence-Locked Technical Draft (Requires PQR qualification)';
 
             const wordContent = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
 <head>
     <meta charset="utf-8">
-    <title>${docTitle}</title>
+    <title>${escapeHtml(docTitle)}</title>
     <!--[if gte mso 9]>
     <xml>
         <w:WordDocument>
@@ -8870,6 +8938,10 @@ Answer the inspector's query strictly and accurately based on the verified local
         .signoff-table th { background: #f1f5f9; color: #0f172a; border: 1pt solid #cbd5e1; font-size: 8.5pt; }
         .signoff-table td { border: 1pt solid #cbd5e1; height: 50pt; font-size: 8pt; vertical-align: top; padding: 6pt; }
         .doc-footer { margin-top: 20pt; font-size: 7.5pt; color: #64748b; border-top: 1pt solid #e2e8f0; padding-top: 6pt; text-align: center; }
+        .qw482-badge-verified { color: #047857; font-weight: bold; font-size: 7.5pt; }
+        .qw482-badge-declared { color: #1d4ed8; font-weight: bold; font-size: 7.5pt; }
+        .qw482-badge-unverified { color: #b91c1c; font-weight: bold; font-size: 7.5pt; }
+        .qw482-watermark-banner { background: #fff1f2; border: 2pt solid #e11d48; color: #9f1239; padding: 8pt; font-weight: bold; text-align: center; margin-bottom: 12pt; }
     </style>
 </head>
 <body>
@@ -8877,13 +8949,13 @@ Answer the inspector's query strictly and accurately based on the verified local
         <tr>
             <td style="width: 70%;">
                 <div class="badge">SPECSUPPORT • QUALITY & ENGINEERING AUDIT</div>
-                <div class="title">${docTitle}</div>
-                <div class="subtitle">${docSub}</div>
+                <div class="title">${escapeHtml(docTitle)}</div>
+                <div class="subtitle">${escapeHtml(docSub)}</div>
             </td>
             <td style="width: 30%; text-align: right;">
-                <div style="font-size: 9pt; font-weight: bold; color: #0f172a;">REPORT #: ${reportNo}</div>
-                <div style="font-size: 8pt; color: #64748b;">DATE: ${dateStr}</div>
-                <div style="color: #059669; font-weight: bold; font-size: 8.5pt; margin-top: 3pt;">STATUS: PASS / CERTIFIED</div>
+                <div style="font-size: 9pt; font-weight: bold; color: #0f172a;">REPORT #: ${escapeHtml(reportNo)}</div>
+                <div style="font-size: 8pt; color: #64748b;">DATE: ${escapeHtml(dateStr)}</div>
+                <div style="color: ${complianceColor}; font-weight: bold; font-size: 8.5pt; margin-top: 3pt;">${escapeHtml(complianceText)}</div>
             </td>
         </tr>
     </table>
@@ -8894,7 +8966,7 @@ Answer the inspector's query strictly and accurately based on the verified local
                 <td style="width: 25%;"><span class="meta-label">Inspection Project:</span> Field Quality Assurance</td>
                 <td style="width: 25%;"><span class="meta-label">Governing Standards:</span> ASME / API / ISO</td>
                 <td style="width: 25%;"><span class="meta-label">Audit Engine:</span> SpecSupport Rig AI</td>
-                <td style="width: 25%;"><span class="meta-label">Digital Hash:</span> ${reportNo.replace('SSR-', '0x')}</td>
+                <td style="width: 25%;"><span class="meta-label">Digital Hash:</span> 0x${escapeHtml(reportNo.replace(/[^A-Za-z0-9]/g, ''))}</td>
             </tr>
         </table>
     </div>
@@ -8916,7 +8988,7 @@ Answer the inspector's query strictly and accurately based on the verified local
                     <strong>Name:</strong> ________________________<br>
                     <strong>Qualification:</strong> CSWIP 3.1 / ASNT Level II<br>
                     <strong>Signature:</strong> _____________________<br>
-                    <strong>Date:</strong> ${dateStr}
+                    <strong>Date:</strong> ${escapeHtml(dateStr)}
                 </td>
                 <td>
                     <strong>Name:</strong> ________________________<br>
@@ -8935,7 +9007,7 @@ Answer the inspector's query strictly and accurately based on the verified local
     </div>
 
     <div class="doc-footer">
-        Generated via SpecSupport Enterprise AI • Certified Engineering Reference • Doc Ref: ${reportNo}
+        Generated via SpecSupport Enterprise AI • Evidence-Locked Technical Draft (Not Submittable without PQR qualification) • Doc Ref: ${escapeHtml(reportNo)}
     </div>
 </body>
 </html>`;
@@ -8951,9 +9023,16 @@ Answer the inspector's query strictly and accurately based on the verified local
             URL.revokeObjectURL(url);
         }
 
-        function exportToPdf(encodedText) {
-            const raw = decodeURIComponent(encodedText);
-            const { docTitle, docSub, reportNo, dateStr, renderedHtml } = prepareDocumentData(raw);
+        function exportToPdf(target) {
+            const msg = resolveMessageTarget(target);
+            const rawText = msg.rawText || msg.text || '';
+            const finishReason = msg.finishReason || 'stop';
+            if (isAnswerTruncated(rawText, finishReason)) {
+                alert('TRUNCATED SOURCE ANSWER — export blocked until regenerated. Incomplete procedure cannot be certified.');
+                return;
+            }
+
+            const { docTitle, docSub, reportNo, dateStr, renderedHtml, docMeta } = prepareDocumentData(msg);
 
             const printWin = window.open('', '_blank');
             if (!printWin) {
@@ -8961,12 +9040,14 @@ Answer the inspector's query strictly and accurately based on the verified local
                 return;
             }
 
-            // CRITICAL: Escape <\/script> so the parent HTML parser does NOT terminate the main <script> tag!
+            const complianceColor = (docMeta && docMeta.unsourcedCount > 0) ? '#b91c1c' : '#047857';
+            const complianceText = (docMeta && docMeta.complianceSummary) ? docMeta.complianceSummary : 'Evidence-Locked Technical Draft (Requires PQR qualification)';
+
             printWin.document.write(`<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>${docTitle} - ${reportNo}</title>
+    <title>${escapeHtml(docTitle)} - ${escapeHtml(reportNo)}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -9118,6 +9199,52 @@ Answer the inspector's query strictly and accurately based on the verified local
             font-size: 7pt;
             color: #94a3b8;
         }
+        .qw482-badge-verified {
+            display: inline-block;
+            padding: 1px 5px;
+            font-size: 7pt;
+            font-weight: 700;
+            color: #047857;
+            background: #ecfdf5;
+            border: 1px solid #10b981;
+            border-radius: 3px;
+            margin-left: 3px;
+        }
+        .qw482-badge-declared {
+            display: inline-block;
+            padding: 1px 5px;
+            font-size: 7pt;
+            font-weight: 700;
+            color: #1d4ed8;
+            background: #eff6ff;
+            border: 1px solid #3b82f6;
+            border-radius: 3px;
+            margin-left: 3px;
+        }
+        .qw482-badge-unverified {
+            display: inline-block;
+            padding: 1px 5px;
+            font-size: 7pt;
+            font-weight: 700;
+            color: #b91c1c;
+            background: #fef2f2;
+            border: 1px solid #ef4444;
+            border-radius: 3px;
+            margin-left: 3px;
+        }
+        .qw482-watermark-banner {
+            background: #fff1f2;
+            border: 2px solid #e11d48;
+            color: #9f1239;
+            padding: 8px 12px;
+            font-size: 8pt;
+            font-weight: 800;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+        }
         @media print {
             .no-print-bar { display: none !important; }
             body { padding: 0; }
@@ -9138,13 +9265,13 @@ Answer the inspector's query strictly and accurately based on the verified local
         <div class="doc-header-card">
             <div class="doc-header-main">
                 <div class="org-badge">SpecSupport • Asset Integrity & Quality Assurance</div>
-                <h1 class="doc-title">${docTitle}</h1>
-                <div class="doc-sub">${docSub}</div>
+                <h1 class="doc-title">${escapeHtml(docTitle)}</h1>
+                <div class="doc-sub">${escapeHtml(docSub)}</div>
             </div>
             <div class="doc-header-meta">
-                <div class="meta-item"><span class="meta-label">Report Ref:</span> <span class="meta-val">${reportNo}</span></div>
-                <div class="meta-item"><span class="meta-label">Date:</span> <span class="meta-val">${dateStr}</span></div>
-                <div class="meta-item"><span class="meta-label">Compliance:</span> <span class="meta-val" style="color:#059669;">VERIFIED PASS</span></div>
+                <div class="meta-item"><span class="meta-label">Report Ref:</span> <span class="meta-val">${escapeHtml(reportNo)}</span></div>
+                <div class="meta-item"><span class="meta-label">Date:</span> <span class="meta-val">${escapeHtml(dateStr)}</span></div>
+                <div class="meta-item"><span class="meta-label">Compliance:</span> <span class="meta-val" style="color:${complianceColor}; font-weight:700;">${escapeHtml(complianceText)}</span></div>
                 <div class="meta-item"><span class="meta-label">Engine:</span> <span class="meta-val">SpecSupport AI</span></div>
             </div>
         </div>
@@ -9161,7 +9288,7 @@ Answer the inspector's query strictly and accurately based on the verified local
                     Name: ________________________<br>
                     Qual: CSWIP 3.1 / ASNT Level II<br>
                     Sign: ________________________<br>
-                    Date: ${dateStr}
+                    Date: ${escapeHtml(dateStr)}
                 </div>
                 <div class="signoff-col">
                     <strong>Reviewed By (QA/QC):</strong><br><br>
@@ -9181,8 +9308,8 @@ Answer the inspector's query strictly and accurately based on the verified local
         </div>
 
         <div class="doc-footer">
-            <span>Generated via SpecSupport Enterprise AI • Certified Engineering Reference</span>
-            <span>Document Ref: ${reportNo} • Page 1 of 1</span>
+            <span>Generated via SpecSupport Enterprise AI • Evidence-Locked Technical Draft (Not Submittable without PQR qualification)</span>
+            <span>Document Ref: ${escapeHtml(reportNo)} • Page 1 of 1</span>
         </div>
     </div>
     <script>
