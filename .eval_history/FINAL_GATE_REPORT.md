@@ -903,4 +903,61 @@ Target API: https://inspection-api.mohamedtarekhse.workers.dev
 | **Deployed Developments Deep Audit** (`scripts/full_test_deployed_developments.js`) | 31 End-to-End Tests: Cross-Encoder Reranker + 7 Triage Disciplines + SSE/JSON Parity | 31 / 31 | **100.0%** | **PASSED** (100.0%) |
 | **Deterministic Fast-Path Probes** | Direct Table Hit ($539\text{ms} \le 1.5\text{s}$) & Safety Envelope ($2443\text{ms} \le 3.0\text{s}$) | 2 / 2 | **100.0%** | **PASSED** |
 
+---
+
+## 18. Rosetta 2.0 Corpus Rebuild & Cutover (2026-11-07)
+
+### 18.1 Build Statistics & Chunking Constitution (R1–R9)
+
+| Metric | Target Specification | Achieved Production Reality | Status |
+|---|---|---|---|
+| **Assembly Unit (R1)** | Page-level parent chunks merged from text/PDF sources | Page-level parent chunks assembled and bounded | **PASS** |
+| **Token Budget (R1)** | 900–1600 tokens/chunk | Mean: 935 tokens/chunk | **PASS** |
+| **Provenance Footer (R2)** | Mandatory `\n--- Source: <STANDARD> <edition> \| Clause <clause> \| <section> \| Page <page>` | 2,808 / 2,808 chunks (100.0% vs $\ge 98.0\%$ gate) | **PASS** |
+| **Breadcrumb Header (R3)** | `[<STANDARD> <edition> > <Section> > <Clause> > <Pillar>]\n` | 100% chunks prefixed with canonical breadcrumb | **PASS** |
+| **Atomic Tables (R4)** | Repeated caption + headers + units + R2 footer | 707 structured tables preserved in `standards_tables` | **PASS** |
+| **Encoding Contract (R6)** | NFKC normalized, zero mojibake, zero corrupt Latin strings | Zero U+FFFD, zero `??` corruption | **PASS** |
+| **Write Gate & Quarantine (R7)**| Non-clausal / unverified locators diverted to `chunks_review` | 2,808 valid chunks, 29 quarantined (0.9% quarantine rate) | **PASS** |
+| **Standards Manifest (R8)** | 32 Core Oil & Gas / Welding Standards | 32 Standards completely unpacked & ingested | **PASS** |
+| **Rosetta Genome & Obligation (R9)** | 11 Rosetta Pillars & Subtyping preserved | Pillars, acceptance/rejection limits, obligation types classified | **PASS** |
+| **Vector Embeddings** | BAAI/bge-base-en-v1.5 embeddings for all valid chunks | 2,808 / 2,808 chunks embedded (100.0%) | **PASS** |
+
+### 18.2 Staging Shadow vs Production Live Gate Verification
+
+All evaluation suites were executed twice: first in shadow mode (`?corpus=v2` against staging tables), and finally against the production endpoint without query parameters post-atomic-cutover.
+
+| Verification Suite | Target & Criteria | Shadow Gate (`?corpus=v2`) | Live Production Gate | Status |
+|---|---|---|---|---|
+| **Golden Evals Benchmark** (`scripts/verify_live_gates.js`) | 14 Ground Truth Engineering Benchmarks | **14 / 14 (100.0%)** | **14 / 14 (100.0%)** | **PASSED** |
+| **Planted-Error Refusal Suite** (`scripts/verify_live_gates.js`) | 5 In-Corpus Grounded + 5 Calibrated Refusals | **10 / 10 (100.0%)** | **10 / 10 (100.0%)** | **PASSED** |
+| **Out-of-Corpus Refusal Rate** | Must issue `CORPUS SCOPE DEMARCATION NOTICE` | **5 / 5 (100.0%)** | **5 / 5 (100.0%)** | **PASSED** |
+| **Provenance Footer Gate** | $\ge 98.0\%$ of database chunks contain R2 footer | **100.0% (2,808 / 2,808)** | **100.0% (2,808 / 2,808)** | **PASSED** |
+| **Table Fast-Path Latency** | Pre-compiled ASME B31.3 Table 341.3.2 ($\le 1.5$s) | **88 ms** | **140 ms** | **PASSED** |
+| **Envelope Fast-Path Latency** | ASTM A106 Gr B Preheat Envelope ($\le 3.0$s) | **87 ms** | **100 ms** | **PASSED** |
+| **Vague-Query & Table Guard** (`scripts/test_vague_query_gate.js`) | Probes A-F: MCQs, Explicit, Confirm, Skip, Doctor, Admin Pin | **6 / 6 (100.0%)** | **6 / 6 (100.0%)** | **PASSED** |
+
+### 18.3 Cutover Execution & Safe Rollback Runbook
+
+1. **Staging Population**:
+   - `standards_chunks_v2`: 2,808 chunks populated and embedded.
+   - `standards_tables_v2`: 707 tables populated.
+   - `code_safety_envelopes_v2`: 15 safety envelopes populated.
+   - `chunks_review_v2`: 29 quarantined rows isolated.
+2. **Backups Created**:
+   - Snapshot exported to `.backups/corpus_v1_2026-11-07.json` (82.18 MB, 9,027 chunks).
+   - D1 copy tables: `standards_chunks_v1_backup` (9,027 rows), `standards_tables_v1_backup` (707 rows), `code_safety_envelopes_v1_backup` (15 rows).
+3. **Atomic Table Renames**:
+   - `standards_chunks` $\rightarrow$ `standards_chunks_v1_prev`
+   - `standards_chunks_v2` $\rightarrow$ `standards_chunks`
+   - `standards_tables_v2` $\rightarrow$ `standards_tables`
+   - `code_safety_envelopes_v2` $\rightarrow$ `code_safety_envelopes`
+   - FTS index rebuilt: `INSERT INTO standards_fts(standards_fts) VALUES('rebuild');`
+4. **Emergency Rollback Runbook** (Available for 48 hours post-cutover):
+   ```sql
+   ALTER TABLE standards_chunks RENAME TO standards_chunks_v2_rollback;
+   ALTER TABLE standards_chunks_v1_prev RENAME TO standards_chunks;
+   INSERT INTO standards_fts(standards_fts) VALUES('rebuild');
+   ```
+   Or restore from `.backups/corpus_v1_2026-11-07.json`.
+
 

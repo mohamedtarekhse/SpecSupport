@@ -20,13 +20,12 @@ const CACHE_SCHEMA_VERSION = '9';
 
 function getCorpusTables(c) {
   const param = c.req.query('corpus');
-  const env = c.env.CORPUS_VERSION;
-  const isV2 = param === 'v2' || env === 'v2' || env === 'live-v2';
+  const isV1 = param === 'v1';
   return {
-    isV2,
-    chunksTable: isV2 ? 'standards_chunks_v2' : 'standards_chunks',
-    tablesTable: isV2 ? 'standards_tables_v2' : 'standards_tables',
-    envelopesTable: isV2 ? 'code_safety_envelopes_v2' : 'code_safety_envelopes'
+    isV2: !isV1,
+    chunksTable: isV1 ? 'standards_chunks_v1_prev' : 'standards_chunks',
+    tablesTable: isV1 ? 'standards_tables_v1_prev' : 'standards_tables',
+    envelopesTable: isV1 ? 'code_safety_envelopes_v1_prev' : 'code_safety_envelopes'
   };
 }
 
@@ -4868,7 +4867,12 @@ function extractAlphanumericEntities(text) {
   for (const pat of clausePatterns) {
     let match
     while ((match = pat.exec(text)) !== null) {
-      entities.push({ type: 'clause', value: match[1].trim() })
+      const val = match[1].trim();
+      // Skip BPVC Section Roman Numerals — these are standard names (e.g. Section V, Section VIII, Section IX), not clauses!
+      if (/^Section\s*(?:I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII)$/i.test(val)) {
+        continue;
+      }
+      entities.push({ type: 'clause', value: val })
     }
   }
 
@@ -6438,9 +6442,9 @@ async function prepareContextAndMessages(c, question, language, session_id, stan
 
   // Intelligent Governing Standard Detection
   let detectedStd = null
-  let stdMatch = question.match(/(ASME\s*(?:(?:Section|Sec)\s*)?(?:VIII(?:\s*Div(?:ision)?\s*[12])?|B31\.[1348]|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5\s*CT|RP\s*5C1|5\s*C1|1104|16\s*D|16\s*A|16\s*C|16\s*AR|6\s*A|6\s*AR|7\s*K|RP\s*2X|2X|RP\s*7G-2|7\s*G-?2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:15156|3834-2|13534)|NACE\s*(?:MR0175|MR\s*0175))/i)
+  let stdMatch = question.match(/\b(ASME\s*(?:(?:Section|Sec)\s*)?(?:VIII(?:\s*Div(?:ision)?\s*[12])?|B31\.[1348]|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|\b53\b|RP\s*4G|Spec\s*4F|\b4F\b|RP\s*8B|Spec\s*8C|\b8C\b|Spec\s*5CT|\b5\s*CT\b|RP\s*5C1|\b5\s*C1\b|\b1104\b|\b16\s*D\b|\b16\s*A\b|\b16\s*C\b|\b16\s*AR\b|\b6\s*A\b|\b6\s*AR\b|\b7\s*K\b|RP\s*2X|\b2X\b|RP\s*7G-2|\b7\s*G-?2\b)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:15156|3834-2|13534)|NACE\s*(?:MR0175|MR\s*0175))\b/i)
   if (!stdMatch && inheritedContextStr) {
-    stdMatch = contextualQuestion.match(/(ASME\s*(?:(?:Section|Sec)\s*)?(?:VIII(?:\s*Div(?:ision)?\s*[12])?|B31\.[1348]|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|53|RP\s*4G|Spec\s*4F|4F|RP\s*8B|Spec\s*8C|8C|Spec\s*5CT|5\s*CT|RP\s*5C1|5\s*C1|1104|16\s*D|16\s*A|16\s*C|16\s*AR|6\s*A|6\s*AR|7\s*K|RP\s*2X|2X|RP\s*7G-2|7\s*G-?2)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:15156|3834-2|13534)|NACE\s*(?:MR0175|MR\s*0175))/i)
+    stdMatch = contextualQuestion.match(/\b(ASME\s*(?:(?:Section|Sec)\s*)?(?:VIII(?:\s*Div(?:ision)?\s*[12])?|B31\.[1348]|V|IX)|(?:API\s*)?(?:Standard\s*53|Std\s*53|RP\s*53|\b53\b|RP\s*4G|Spec\s*4F|\b4F\b|RP\s*8B|Spec\s*8C|\b8C\b|Spec\s*5CT|\b5\s*CT\b|RP\s*5C1|\b5\s*C1\b|\b1104\b|\b16\s*D\b|\b16\s*A\b|\b16\s*C\b|\b16\s*AR\b|\b6\s*A\b|\b6\s*AR\b|\b7\s*K\b|RP\s*2X|\b2X\b|RP\s*7G-2|\b7\s*G-?2\b)|IADC(?:\s*WellSharp)?|Cameron(?:\s*Type\s*U)?|Hydril(?:\s*GK)?|Shaffer|Koomey|AWS\s*(?:D1\.1|B1\.11)|ISO\s*(?:15156|3834-2|13534)|NACE\s*(?:MR0175|MR\s*0175))\b/i)
   }
   if (stdMatch) {
     let raw = (stdMatch[1] || stdMatch[0]).replace(/Section\s*/i, '').replace(/Sec\s*/i, '').trim().toUpperCase();
@@ -6677,27 +6681,34 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   if (clauseEntities.length > 0) {
     for (const ent of clauseEntities) {
       try {
+        const cleanVal = ent.value.replace(/QW\/QB/i, 'QW').trim();
+        const artMatch = cleanVal.match(/Article\s*([0-9]+)/i);
         let sql = `
           SELECT id, standard_code, standard_name, section, clause, content, scope, organization, obligation_type, key_values 
           FROM ${chunksTable} 
-          WHERE (clause LIKE ? OR section LIKE ?)
+          WHERE (clause LIKE ? OR section LIKE ? OR content LIKE ?${artMatch ? ' OR section LIKE ? OR clause LIKE ?' : ''})
             AND (is_excluded = 0 OR is_excluded IS NULL)
-        `
-        const cleanVal = ent.value.replace(/QW\/QB/i, 'QW').trim();
-        const param = `%${cleanVal}%`
-        const sqlParams = [param, param]
+        `;
+        const param = `%${cleanVal}%`;
+        const sqlParams = artMatch 
+          ? [param, param, param, `%${artMatch[1]} —%`, `T-${artMatch[1]}%`]
+          : [param, param, param];
         if (detectedStd) {
-          sql += ` AND standard_code LIKE ?`
-          sqlParams.push(`%${detectedStd}%`)
+          sql += ` AND standard_code LIKE ?`;
+          sqlParams.push(`%${detectedStd}%`);
         } else if (Array.isArray(selected_standards) && selected_standards.length > 0 && !selected_standards.includes('ALL')) {
-          const placeholders = selected_standards.map(() => '?').join(',')
-          sql += ` AND standard_code IN (${placeholders})`
-          sqlParams.push(...selected_standards)
+          const placeholders = selected_standards.map(() => '?').join(',');
+          sql += ` AND standard_code IN (${placeholders})`;
+          sqlParams.push(...selected_standards);
         }
-        sql += ` LIMIT 3`
-        const { results: exactRes } = await c.env.DB.prepare(sql).bind(...sqlParams).all()
-        if (exactRes && exactRes.length > 0) {
-          exactMatches.push(...exactRes)
+        // Do not force top-3 arbitrary intro chunks for broad chapter/article entities;
+        // let the ranked candidate pool (all chunks of standard) select the most semantically relevant clauses!
+        if (!artMatch) {
+          sql += ` LIMIT 3`;
+          const { results: exactRes } = await c.env.DB.prepare(sql).bind(...sqlParams).all();
+          if (exactRes && exactRes.length > 0) {
+            exactMatches.push(...exactRes);
+          }
         }
       } catch(e){}
     }
@@ -6713,9 +6724,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   const ftsTerm = ftsTokens.slice(0, 15).join(" OR ");
 
   const [vectorRes, ftsDbRes] = await Promise.all([
-    (!exactMatches || exactMatches.length === 0)
-      ? c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [searchQuestion] }).catch(() => null)
-      : Promise.resolve(null),
+    c.env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [searchQuestion] }).catch(() => null),
     (ftsTerm)
       ? c.env.DB.prepare(`SELECT rowid, bm25(standards_fts) as bm25_score FROM standards_fts WHERE standards_fts MATCH ? LIMIT 100`).bind(ftsTerm).all().catch(() => ({ results: [] }))
       : Promise.resolve({ results: [] })
@@ -6767,7 +6776,7 @@ CRITICAL RULES FOR FOLLOW-UP CHIPS:
   if (safeFtsIds.length > 0) {
     query += ` AND id IN (${safeFtsIds.join(',')}) LIMIT 80`;
   } else {
-    query += ` LIMIT 80`;
+    query += ` LIMIT 150`;
   }
 
   const { results } = await c.env.DB.prepare(query).bind(...params).all();

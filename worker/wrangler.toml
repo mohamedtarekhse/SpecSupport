@@ -7,6 +7,7 @@ OPENROUTER_MODEL = "google/gemma-4-31b-it:free"
 ALLOWED_ORIGIN = "*"
 ADMIN_SECRET = "inspect-admin-2026"
 APP_NAME = "Q-Grey"
+CORPUS_VERSION = "live-v2"
 
 [[d1_databases]]
 binding = "DB"
