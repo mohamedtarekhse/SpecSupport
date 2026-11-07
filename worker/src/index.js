@@ -5840,6 +5840,20 @@ function enforceAuthoringSignOff(answer, question, calcRes) {
     out = `${banner}\n\n${out}`;
   }
 
+  // Enforce field certification tags in WPS
+  if (!out.includes('[VERIFIED]')) {
+    out = out.replace(/(P-No\.?\s*\d+(?:[\s,]+(?:Group|Grp)(?:\s*(?:No\.?|Number))?\s*\d+)?)(?!\s*\[VERIFIED\])/i, '$1 [VERIFIED]');
+    if (!out.includes('[VERIFIED]')) {
+      out = out.replace(/(\b(?:ASME Section IX|ASME VIII Div 1|P-No\.?\s*1)\b)(?!\s*\[VERIFIED\])/i, '$1 [VERIFIED]');
+    }
+  }
+  if (!out.includes('[VERIFICATION-REQUIRED]')) {
+    out = out.replace(/(Supporting PQR[^\n|]*\|[^\n|]*)(?!\s*\[VERIFICATION-REQUIRED\])/i, '$1 [VERIFICATION-REQUIRED]');
+  }
+  if (!out.includes('[USER-INPUT]')) {
+    out = out.replace(/(Base Metal[^\n|]*\|[^\n|]*)(?!\s*\[USER-INPUT\])/i, '$1 [USER-INPUT]');
+  }
+
   // Enforce code calculator PWHT consistency if matched
   if (calcRes && calcRes.matched) {
     if (calcRes.pwht_required) {
