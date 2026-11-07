@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { calculateCodeSafetyRequirements, parsePipeQuery } from './code_calculator.js'
 
 const app = new Hono()
 
@@ -5826,6 +5827,34 @@ function sanitizeDraftTables(answerText, sources = [], envelopeContext = '', ans
   return resultLines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
+function enforceAuthoringSignOff(answer, question, calcRes) {
+  if (!answer || typeof answer !== 'string') return answer;
+  const qLower = (question || '').toLowerCase();
+  const isWpsQuery = /(?:wps\b|welding procedure|pqr\b|welding spec|welding procedure specification|qw-?482|asme\s*(?:viii|ix)\s*weld)/i.test(qLower);
+  if (!isWpsQuery) return answer;
+
+  const banner = '> ⚠️ **DRAFT FOR REVIEW - NOT SUBMITTABLE: requires PQR and Level III authorization before use.**';
+  let out = answer.trim();
+  if (!out.includes('DRAFT FOR REVIEW - NOT SUBMITTABLE')) {
+    out = `${banner}\n\n${out}`;
+  }
+
+  // Enforce code calculator PWHT consistency if matched
+  if (calcRes && calcRes.matched) {
+    if (calcRes.pwht_required) {
+      if (/pwht\s*(?::|is)?\s*(?:not\s*required|exempt|none)/i.test(out)) {
+        out = out.replace(/pwht\s*(?::|is)?\s*(?:not\s*required|exempt|none[^\n.]*)/gi, `PWHT: MANDATORY (${calcRes.pwht_temp_range_c} / ${calcRes.pwht_temp_range_f} per ${calcRes.pwht_clause}) [VERIFIED]`);
+      }
+    } else {
+      if (/pwht\s*(?::|is)?\s*(?:mandatory|strictly\s*required)/i.test(out)) {
+        out = out.replace(/pwht\s*(?::|is)?\s*(?:mandatory|strictly\s*required[^\n.]*)/gi, `PWHT: NOT REQUIRED (EXEMPT per ${calcRes.pwht_clause} for wall thickness <= ${calcRes.pwht_threshold_mm} mm) [VERIFIED]`);
+      }
+    }
+  }
+
+  return out;
+}
+
 function verifyAnswerGrounding(answer, sources, envelopeContext, isDeterministic = false) {
   if (!answer || typeof answer !== 'string') {
     return { score_pct: 100, verified_claims: 0, total_claims: 0, unverified_claims: 0, flags: [], verbatim_evidence_quote: null, evidence: null, badge: 'VERIFIED_CODE_GROUNDED', usr: 0, clause_resolvable_pct: 100, unsourced_clauses: [] };
@@ -7117,6 +7146,14 @@ ${contextText}
     systemPrompt += `\n${formulaEvaluation}\n`
   }
 
+  // Deterministic Code Safety Calculator (ELAE Dose-Calculator Engine)
+  const calcRes = calculateCodeSafetyRequirements(contextualQuestion || question);
+  if (calcRes.matched) {
+    const codeCalculatorContext = `\n${calcRes.authoritative_block}\n[MANDATORY CODE CALCULATOR DIRECTIVE]:
+Any output numerical claims or requirements regarding pipe wall thickness, outer diameter, preheat temperatures, or PWHT necessity MUST strictly match the CODE CALCULATOR RESULT above. Contradicting these numbers (e.g., claiming 200°F preheat when 50°F is calculated, or claiming PWHT is exempt when wall thickness exceeds threshold) is strictly prohibited.\n`;
+    systemPrompt += codeCalculatorContext;
+  }
+
   // ==========================================
   // 🧬 UNIVERSAL PROGRESSIVE ELICITATION & SENSIBLE DEFAULTS PROTOCOL
   // Covering: Welding, NDT, Hydrotest, In-Service Integrity, Rig Hoisting, Tubulars, Well Control
@@ -7164,19 +7201,30 @@ The user is requesting a welding procedure (WPS) without specifying essential va
   }
 ]-->\n`;
     } else {
-      systemPrompt += `\n[DETERMINISTIC ASME FORM QW-482 PROCEDURE DIRECTIVE]:
+      systemPrompt += `\n[DETERMINISTIC ASME FORM QW-482 PROCEDURE DIRECTIVE - AUTHORING SIGN-OFF CONTRACT]:
 Generate a complete, audit-ready, field-executable Welding Procedure Specification formatted strictly according to ASME Boiler and Pressure Vessel Code Section IX Form QW-482 (Applicable to ASME Section VIII Div 1/2 Pressure Vessels, ASME B31.3 Piping, and ASME Section XI Inservice Repairs):
-1. HEADER & IDENTIFICATION: Company Name (SpecSupport Certified Engineering), WPS Number (e.g. WPS-ASME-VIII-2026-01), Revision (Rev. 0), Date, Supporting PQR Number(s), Welding Process(es) (e.g. GTAW + SMAW), Type(s) (Manual / Semi-Automatic).
-2. JOINTS (QW-402): Joint Design (Single V-Groove / Fillet), Backing (With/Without), Backing Material, Root Opening (1.5-3.2 mm), Root Face (1.5-2.5 mm), Groove Angle (60°-75°), Backgouging Method (Grinding / Air Carbon Arc).
-3. BASE METALS (QW-403): Material Specification (e.g. SA-516 Gr 70 for ASME VIII or SA-106 Gr B / SA-333 Gr 6), P-No. & Group No. to P-No. & Group No., Thickness Range Qualified per QW-451.1 (Groove & Fillet), Pipe Diameter Range.
-4. FILLER METALS (QW-404): Process, SFA Specification (e.g. SFA 5.18 / SFA 5.1), AWS Classification (ER70S-6 / E7018-1 H4R), F-No. & A-No., Filler Sizes (2.4 mm, 3.2 mm, 4.0 mm), Deposited Weld Metal Thickness range, Consumable Insert.
-5. POSITIONS (QW-405): Position(s) of Groove (1G to 6G / All Positions), Progression (Uphill), Fillet Positions.
-6. PREHEAT (QW-406): Preheat Temp Min (°C / °F) per ASME VIII / B31.3 Table 330.1.1, Interpass Temp Max, Preheat Maintenance.
-7. POSTWELD HEAT TREATMENT (QW-407): Temperature Range per ASME VIII UCS-56 or B31.3 Table 331.1.1 (e.g. 595°C-650°C if thickness > 19 mm, or "None required for thickness <= 19 mm"), Holding Time (1 hr/inch).
-8. SHIELDING GAS (QW-408): Shielding Gas (100% Argon / 80% Ar + 20% CO2), Flow Rate (10-15 L/min), Backing Gas (99.99% Ar or None).
-9. ELECTRICAL SCHEDULE (QW-409): Complete markdown table with Layers/Passes (Root, Hot Pass, Fill, Cap), Process, Filler Metal Class & Dia, Current/Polarity (DCEN/DCEP), Amperage Range, Voltage Range, Travel Speed Range, Maximum Heat Input (kJ/mm).
-10. TECHNIQUE (QW-410): String or Weave Bead, Orifice/Gas Cup Size, Initial & Interpass Cleaning (Wire brush & grind), Method of Back Gouging, Peening, Multiple or Single Pass per side.
-11. NDE & HOLD POINTS: 100% Visual (AWS B1.11 / ASME VIII UW-35) + 100% RT (ASME V Art. 2 / ASME VIII UW-51 / B31.3 Table 341.3.2) or UT (ASME V Art. 4).
+
+MANDATORY SIGN-OFF BANNER AT TOP:
+You MUST start the response with this EXACT banner on line 1:
+> ⚠️ **DRAFT FOR REVIEW - NOT SUBMITTABLE: requires PQR and Level III authorization before use.**
+
+FIELD CERTIFICATION CONSTRAINTS (MANDATORY ANNOTATIONS):
+Every field in the procedure must be annotated with its verification status tag:
+- [VERIFIED]: For variables calculated from code tables or calculator (e.g. Base Metal P-Number, Qualified Thickness Range per QW-451.1, Preheat Min per Table 330.1.1, PWHT Requirement & Temperature per Table 331.1.1, Hardness limit <= 22 HRC per NACE MR0175).
+- [USER-INPUT]: For parameters supplied by user prompt (e.g. Pipe Diameter / NPS, Nominal Wall / Schedule, Specified Grade).
+- [VERIFICATION-REQUIRED]: For shop craft & geometry details that require PQR coupon testing and weld engineer sign-off (e.g. Joint Design, Root Opening, Root Face, Groove Angle, Amperage / Voltage Ranges, Travel Speed).
+
+1. HEADER & IDENTIFICATION: Company Name (SpecSupport Certified Engineering), WPS Number (e.g. WPS-ASME-VIII-2026-01), Revision (Rev. 0), Date, Supporting PQR Number(s), Welding Process(es) (e.g. GTAW + SMAW), Type(s) (Manual / Semi-Automatic) [VERIFIED].
+2. JOINTS (QW-402): Joint Design (Single V-Groove / Fillet), Backing (With/Without), Backing Material, Root Opening (1.5-3.2 mm), Root Face (1.5-2.5 mm), Groove Angle (60°-75°), Backgouging Method (Grinding / Air Carbon Arc) [VERIFICATION-REQUIRED].
+3. BASE METALS (QW-403): Material Specification [USER-INPUT], P-No. & Group No. to P-No. & Group No. [VERIFIED], Thickness Range Qualified per QW-451.1 (Groove & Fillet) [VERIFIED], Pipe Diameter Range [VERIFIED].
+4. FILLER METALS (QW-404): Process, SFA Specification (e.g. SFA 5.18 / SFA 5.1), AWS Classification (ER70S-6 / E7018-1 H4R), F-No. & A-No., Filler Sizes (2.4 mm, 3.2 mm, 4.0 mm), Deposited Weld Metal Thickness range, Consumable Insert [VERIFIED].
+5. POSITIONS (QW-405): Position(s) of Groove (1G to 6G / All Positions), Progression (Uphill), Fillet Positions [VERIFIED].
+6. PREHEAT (QW-406): Preheat Temp Min (°C / °F) per ASME VIII / B31.3 Table 330.1.1, Interpass Temp Max, Preheat Maintenance [VERIFIED].
+7. POSTWELD HEAT TREATMENT (QW-407): Temperature Range per ASME VIII UCS-56 or B31.3 Table 331.1.1 (e.g. 595°C-650°C if thickness > 19 mm, or "None required for thickness <= 19 mm"), Holding Time (1 hr/inch) [VERIFIED].
+8. SHIELDING GAS (QW-408): Shielding Gas (100% Argon / 80% Ar + 20% CO2), Flow Rate (10-15 L/min), Backing Gas (99.99% Ar or None) [VERIFIED].
+9. ELECTRICAL SCHEDULE (QW-409): Complete markdown table with Layers/Passes (Root, Hot Pass, Fill, Cap), Process, Filler Metal Class & Dia, Current/Polarity (DCEN/DCEP), Amperage Range, Voltage Range, Travel Speed Range, Maximum Heat Input (kJ/mm) [VERIFICATION-REQUIRED].
+10. TECHNIQUE (QW-410): String or Weave Bead, Orifice/Gas Cup Size, Initial & Interpass Cleaning (Wire brush & grind), Method of Back Gouging, Peening, Multiple or Single Pass per side [VERIFICATION-REQUIRED].
+11. NDE & HOLD POINTS: 100% Visual (AWS B1.11 / ASME VIII UW-35) + 100% RT (ASME V Art. 2 / ASME VIII UW-51 / B31.3 Table 341.3.2) or UT (ASME V Art. 4) [VERIFIED].
 12. MANDATORY METRICS TAG: At the very end of your response, output a valid machine-readable JSON block enclosed inside HTML comment tags:
 <!--WPS_METRICS: {
   "wpsNumber": "WPS-ASME-VIII-2026-01",
@@ -7465,7 +7513,7 @@ The user skipped detailed triage and requested a broad short answer. Strictly ad
     { role: "user", content: question }
   ]
   
-  return { messages, sources, today, deterministicTriageMcqs, isEntityClear: isClear, tableHits, retrievalMs, tableMs, formulaEvaluation }
+  return { messages, sources, today, deterministicTriageMcqs, isEntityClear: isClear, tableHits, retrievalMs, tableMs, formulaEvaluation, calcRes }
 }
 
 app.post('/api/ask', async (c) => {
@@ -7705,7 +7753,7 @@ app.post('/api/ask', async (c) => {
       }
     }
 
-    const { messages, sources, today, deterministicTriageMcqs, isEntityClear = false, tableHits = [], retrievalMs = 0, tableMs = 0, formulaEvaluation = '' } = contextData
+    const { messages, sources, today, deterministicTriageMcqs, isEntityClear = false, tableHits = [], retrievalMs = 0, tableMs = 0, formulaEvaluation = '', calcRes = null } = contextData
         const triageResolvedStr = (triage_ctx && typeof triage_ctx === 'object') ? Object.entries(triage_ctx).map(([k, v]) => `${k}: ${v}`).join('; ') : '';
     const isStreamRequested = Boolean(c.req.query('stream') === 'true' || c.req.header('Accept')?.includes('text/event-stream'))
 
@@ -8055,6 +8103,7 @@ app.post('/api/ask', async (c) => {
               ];
 
               streamedFullText = sanitizeDraftTables(streamedFullText, sources, contextData.envelopeContextText || "", effectiveAnswerDepth);
+              streamedFullText = enforceAuthoringSignOff(streamedFullText, question, calcRes);
               const tVerifierStart = Date.now();
               const streamGroundingResult = verifyAnswerGrounding(
                 streamedFullText,
@@ -8257,6 +8306,7 @@ app.post('/api/ask', async (c) => {
     ).bind(session_id, question, reportedModel, today).run()
     
     const tVerifierStart = Date.now();
+    answer = enforceAuthoringSignOff(answer, question, calcRes);
     const groundingResult = verifyAnswerGrounding(answer, sources, envelopeContext);
     if (groundingResult.sanitizedAnswer) {
       answer = groundingResult.sanitizedAnswer;
