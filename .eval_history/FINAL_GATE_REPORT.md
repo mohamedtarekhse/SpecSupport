@@ -737,3 +737,71 @@ Target API: https://inspection-api.mohamedtarekhse.workers.dev
 | **Phase 12 Verification Probes** (`scripts/verify_phase12_admin_pin.js`) | Admin Pin Override + Low-Depth Quality Floor + Fast Paths | 4 / 4 | **100.0%** | **PASSED** (100.0%) |
 | **Deterministic Fast-Path Probes** | Direct Table Hit ($393\text{ms} \le 1.5\text{s}$) & Safety Envelope ($448\text{ms} \le 3.0\text{s}$) | 2 / 2 | **100.0%** | **PASSED** |
 
+---
+
+## 14. Vague-Query Contract & Table Fabrication Guard (2026-11-07)
+
+### 14.1 Engineering Enhancements & Triage Architecture
+
+1. **Repro Elimination & Vague-Query Contract (ITEM 1)**:
+   - **Root Cause Identified**: `isEntityClearQuery` previously returned `true` whenever FTS5 found matches (`exactMatches.length > 0`), which erroneously bypassed triage for vague queries containing common words (such as `"mast"` or `"inspection"`). This caused Llama-8B on `depth=low` to hallucinate unsourced parameter tables with fabricated claims (`"24-48 hours post-PWHT"`, `"AWS D1.1 or equivalent"`).
+   - **Ambiguity Detection**: Fixed `isEntityClearQuery` to detect vague QA/process inquiries (`isVagueQA && hasEquipment && !hasExplicitSpecifier`) and return `false`, enforcing triage interview delivery across both SSE and non-SSE endpoints.
+   - **Interactive 3-MCQ Triage Interview & Step-Through (`index.html`)**:
+     - Rendered sequentially as single-line, click-only option chips (`Step 1 of 3`, `Step 2 of 3`, `Step 3 of 3`) rather than a monolithic wall of questions.
+     - Persists selected axes in `sessionStorage['triage_ctx_' + sessionId]` across conversational turns; answered axes are automatically pruned from subsequent rounds.
+     - Ambiguity axes tailored to retrieval set (e.g. Mast structural QA: Category I/II vs Category III vs Category IV; Periodic In-Service vs Pre-Assembly Rig Up vs Post-Incident; Used In-Service vs Newly Overhauled vs Unknown Service Life).
+     - **Approve Step (Confirm Card)**: Upon completing all 3 axes, renders confirm card with summarized scope (`"Mast QA · Category III · Periodic · Used"`) with three explicit actions:
+       - `[⚡ Answer with this scope]`: Executes code-grounded generation with confirmed parameters, emitting verified badge and verbatim evidence quotes.
+       - `[Change]`: Steps back to re-select specific axes.
+       - `[Skip - answer broadly]`: Produces bounded short answer using non-negotiable 3-block template with zero tables.
+     - **Escape Hatches & Session Boundaries**: Typing in `#user-input` immediately cancels active triage interview; triage context is strictly scoped to `sessionId` and never leaks across browser sessions; repeated related queries within the same session do not re-ask resolved MCQs.
+
+2. **Non-Negotiable Short-Answer Template (`depth=low`) & Table Fabrication Guard (ITEM 2)**:
+   - **Low-Depth 3-Block Template (max 90 words, zero tables)**:
+     1. `"Most probable interpretation: <single sentence interpretation>."`
+     2. Direct answer grounded ONLY in retrieved chunks (every parameter traced to source clause; if not in chunks, writes `"not specified in the retrieved corpus"`; $\ge 1$ verbatim evidence quote).
+     3. `"Next: <exactly ONE concise clarifying question addressing missing variables>"`.
+   - **Post-DRAFT Table Sanitizer (`sanitizeDraftTables`)**:
+     - `depth=low`: Post-DRAFT sanitizer strips ALL markdown tables completely. Prompt explicitly forbids markdown tables.
+     - `depth=medium`/`high`: Tables allowed only if cells map to retrieved `standards_tables` rows, envelopes, or chunk text. Any row with numeric claims or citations not in `normRef` is dropped before verifier. If all rows dropped, table and table heading are removed.
+   - **Verifier Guard (`verifyAnswerGrounding`)**:
+     - Scans all remaining table cells in answer; emits `{ type: 'UNSOURCED_TABLE_CONTENT', claim: ... }` if any unverified numeric claim exists in table rows, triggering critic pass or purging.
+   - **Critic System Prompt Cleaned**:
+     - Removed hardcoded welding parameter box example (`"Welding Grade 50 to 4130"`, `"24-48h delay post-PWHT"`) that previously seeded hallucinated tables for non-welding inspection queries.
+
+3. **Corpus Coverage Doctor Note in `/api/health` (ITEM 3)**:
+   - Evaluates API RP 4G chunk coverage in D1 for Category I-IV definitions and inspection frequencies.
+   - Returns top-level `corpus_coverage_note: "corpus coverage: <n> API RP 4G chunks on inspection categories"`.
+   - Flags `< 5` category chunks as `WARN` in `coverage_doctor.status` for automated doctor inspection.
+
+4. **Telemetry & Parity (`request_traces`)**:
+   - Safe D1 migration in `ensureTaxonomyTable`: automatically adds `triage_rounds_used` (INTEGER), `triage_resolved_entities` (TEXT), and `triage_action` (TEXT) columns to `request_traces`.
+   - Semantic cache key incorporates hashed/normalized triage parameters (`triage_ctx` + `triage_action`) ensuring cache parity across SSE and non-SSE modes.
+   - Trace readback endpoint `GET /api/admin/traces` updated to return triage telemetry fields.
+
+---
+
+### 14.2 Vague-Query & Table Fabrication Gate Scorecard (`scripts/test_vague_query_gate.js`)
+
+| Probe | Test Inquiry & Configuration | Verification Criteria | Measured Latency | Status |
+|---|---|---|---|---|
+| **Probe A** | `"what should i do for mast inspection quality assurance"` (`depth=low`, Public 8B) | MCQs fire ($\ge 1$) OR 3-block template; zero tables; latency $\le 6$s; model `@cf/meta/llama-3.1-8b-instruct-fp8-fast`. | **2987ms** ($\le 6000\text{ms}$) | ✅ **PASS** |
+| **Probe B** | `"API RP 4G Category III periodic mast inspection requirements"` (`depth=medium`) | Zero MCQs fired (immediate definitive response); grounded in API RP 4G; no fabricated tables. | **3778ms** | ✅ **PASS** |
+| **Probe C** | Confirm Scope Flow (`triage_action='answer'`, 3 answered axes) | Zero MCQs; confirmed scope in prompt; zero fabricated table claims; trace records `triage_action='answer'`. | **3850ms** | ✅ **PASS** |
+| **Probe D** | Skip Scope Flow (`triage_action='skip'`) | Zero MCQs; bounded short answer; zero tables; trace records `triage_action='skip'`. | **2100ms** | ✅ **PASS** |
+| **Probe E** | Corpus Gap Doctor Note (`GET /api/health`) | Doctor emits `corpus_coverage_note: "corpus coverage: <n> API RP 4G chunks on inspection categories"`; status `WARN`. | **110ms** | ✅ **PASS** |
+
+---
+
+### 14.3 Full System Regression Gate Scorecard
+
+| Verification Suite | Target & Test Coverage | Pass / Total | Pass Rate | Status |
+|---|---|---|---|---|
+| **Vague-Query & Table Guard Suite** (`scripts/test_vague_query_gate.js`) | Probes A-E: MCQs + Zero Tables + Explicit bypass + Confirm/Skip flows + Doctor note | 5 / 5 | **100.0%** | **PASSED** (100.0%) |
+| **Golden Evaluations** (`scripts/run_golden_evals.js`) | 14 Verified Engineering Ground Truth Queries | 14 / 14 | **100.0%** | **PASSED** (100.0%) |
+| **Planted-Error Refusal Suite** (`scripts/test_planted_suite_only.js`) | 5 In-Corpus Grounded + 5 Calibrated Refusals | 10 / 10 | **100.0%** | **PASSED** (100% Out-of-Corpus Refusal) |
+| **Deployed Developments Deep Audit** (`scripts/full_test_deployed_developments.js`) | Cross-Encoder Reranker + 7 Triage Disciplines + SSE/JSON Parity | 31 / 31 | **100.0%** | **PASSED** (100.0%) |
+| **Phase 12 Verification Probes** (`scripts/verify_phase12_admin_pin.js`) | Admin Pin Override + Low-Depth Quality Floor + Fast Paths | 4 / 4 | **100.0%** | **PASSED** (100.0%) |
+| **Deterministic Fast-Path Probes** | Direct Table Hit ($119\text{ms} \le 1.5\text{s}$) & Safety Envelope ($85\text{ms} \le 3.0\text{s}$) | 2 / 2 | **100.0%** | **PASSED** |
+
+

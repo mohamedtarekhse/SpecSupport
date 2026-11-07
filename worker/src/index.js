@@ -16,7 +16,7 @@ app.use('*', async (c, next) => {
   return next()
 })
 
-const CACHE_SCHEMA_VERSION = '2';
+const CACHE_SCHEMA_VERSION = '3';
 
 function isStudioAuthorized(c) {
   const authHeader = c.req.header('Authorization') || ''
@@ -43,11 +43,31 @@ app.get('/api/health', async (c) => {
     const res = await c.env.DB.prepare(`SELECT standard_code, coverage_pct FROM standards_coverage WHERE coverage_pct < 90`).all()
     if (res && res.results) lowCoverage = res.results.map(r => `${r.standard_code} (${r.coverage_pct}%)`)
   } catch(e){}
+
+  let api4gCategoryChunkCount = 0
+  try {
+    const r4g = await c.env.DB.prepare(`
+      SELECT count(*) as count FROM standards_chunks 
+      WHERE (standard LIKE '%4G%' OR standard_code LIKE '%4G%') 
+        AND (content LIKE '%Category%' OR content LIKE '%category%' OR clause LIKE '%Category%')
+    `).first()
+    api4gCategoryChunkCount = r4g ? (r4g.count || 0) : 0
+  } catch(e){}
+
+  const corpusCoverageNote = `corpus coverage: ${api4gCategoryChunkCount} API RP 4G chunks on inspection categories`
+  const coverageStatus = (lowCoverage.length > 0 || api4gCategoryChunkCount < 5) ? 'WARN' : 'PASS'
+
   return c.json({ 
     status: 'ok', 
     engine: 'Cloudflare Workers AI (GLM-5.3 Flash 320B MoE)',
     model: '@cf/zai-org/glm-5.3-flash',
-    coverage_doctor: lowCoverage.length > 0 ? { status: 'WARN', low_coverage: lowCoverage } : { status: 'PASS' }
+    corpus_coverage_note: corpusCoverageNote,
+    coverage_doctor: {
+      status: coverageStatus,
+      low_coverage: lowCoverage,
+      api_4g_chunks: api4gCategoryChunkCount,
+      note: corpusCoverageNote
+    }
   })
 })
 
@@ -281,7 +301,19 @@ async function ensureTaxonomyTable(db) {
       if (!chunkCols.includes('is_excluded')) {
         await db.prepare(`ALTER TABLE standards_chunks ADD COLUMN is_excluded INTEGER DEFAULT 0`).run()
       }
-    } catch(e){}
+      const traceCols = (await db.prepare(`PRAGMA table_info(request_traces)`).all()).results?.map(r => r.name) || []
+      if (!traceCols.includes('triage_rounds_used')) {
+        await db.prepare(`ALTER TABLE request_traces ADD COLUMN triage_rounds_used INTEGER DEFAULT 0`).run()
+      }
+      if (!traceCols.includes('triage_resolved_entities')) {
+        await db.prepare(`ALTER TABLE request_traces ADD COLUMN triage_resolved_entities TEXT`).run()
+      }
+      if (!traceCols.includes('triage_action')) {
+        await db.prepare(`ALTER TABLE request_traces ADD COLUMN triage_action TEXT`).run()
+      }
+    } catch(e){
+      console.warn('DB schema migration warning:', e.message)
+    }
 
     const countRes = await db.prepare(`SELECT count(*) as count FROM standards_taxonomy`).first()
     if (!countRes || countRes.count === 0) {
@@ -3424,7 +3456,8 @@ app.get('/api/admin/traces', async (c) => {
   try {
     const res = await c.env.DB.prepare(`
       SELECT id, session_id, question, answer_depth, mode, grounding_score, evidence_badge, 
-             provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, provider_role, created_at 
+             provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, provider_role,
+             triage_rounds_used, triage_resolved_entities, triage_action, created_at 
       FROM request_traces 
       ORDER BY created_at DESC 
       LIMIT ?
@@ -4845,9 +4878,10 @@ CRITIQUE & REFINEMENT CRITERIA:
 2. ASSERTION-JUSTIFICATION OPENING (ZERO INTRODUCTIONS):
    - Sentence 1: Does it state the exact verdict, numbers, and governing code immediately with ZERO throat-clearing (no "According to...", "Based on...", "Here is...")?
    - Sentence 2 to 3: Does it immediately explain WHY this answer is right based on physics and metallurgy (e.g. hardenability, martensite, thickness boundary, stress relief)?
-3. 4-POINT FIELD PARAMETER BOX:
-   - Does it present a clean, high-contrast parameter box covering: Governing Standard & Table Row, Critical Hard Numbers, Filler Metal & Process, and Inspection Timing (including 24-48h delay for cold cracking)?
-   - Verify NO unsolicited algebraic formulas are cluttering the answer unless the user explicitly requested a calculation.
+3. FIELD PARAMETER BOX & TABLES GUARD:
+   - Tables and parameter boxes are allowed ONLY when directly relevant to the query and ONLY if every single number and timeframe is strictly grounded in retrieved sources or safety envelopes!
+   - ABSOLUTE PROHIBITION: NEVER fabricate or insert unsolicited tables with invented delay windows (such as "24-48h delay post-PWHT") or irrelevant welding codes for non-welding equipment inspection queries (such as mast/derrick/structural inspections).
+   - If answer_depth is 'low', NO tables are permitted under any circumstances. Strip all tables.
 4. GROUND TRUTH FIDELITY:
    - Check that all numbers comply with code tables and deterministic safety envelopes: In dissimilar welding, preheat is strictly governed by the higher-alloy / higher-hardenability side (e.g. 4130 / P-No. 4: preheat 300°F - 400°F [150°C - 204°C] mandatory minimum; do not use the lower carbon steel 200°F preheat for 4130; interpass max 500°F [260°C], PWHT mandatory for t >= 19.05 mm [0.75 in] at 1100°F - 1200°F [595°C - 650°C], hardness <= 22 HRC).
    - If P-No. 1 alone: Preheat 50°F or 200°F (for t > 25 mm).
@@ -4905,27 +4939,56 @@ function norm(str) {
     .trim();
 }
 
-function isEntityClearQuery(question, entities = [], exactMatches = [], tableHits = []) {
+function isEntityClearQuery(question, entities = [], exactMatches = [], tableHits = [], triage_action = null) {
+  if (triage_action === 'answer' || triage_action === 'skip') return true;
   const qClean = (question || '').toLowerCase();
-  if ((exactMatches && exactMatches.length > 0) || (tableHits && tableHits.length > 0)) return true;
+
+  // Ambiguity trigger: vague QA/process query + equipment noun without specifiers
+  const isVagueQA = /\b(?:what should i do|how do i inspect|how to inspect|how to do|what to do|what are the requirements for|inspection requirements|qa\b|quality assurance|inspection procedure|how to verify|checklist for|steps for|procedure for|how do we inspect|how to check)\b/i.test(qClean);
+  const hasEquipment = /\b(?:mast\b|derrick\b|piping\b|pipe\b|pressure vessel\b|vessel\b|storage tank\b|tank\b|drill pipe\b|drill stem\b|tool joint\b|bop\b|blowout preventer\b|elevator\b|links\b|hook\b|swivel\b|sheave\b)\b/i.test(qClean);
+  const hasExplicitSpecifier = /\b(?:cat(?:egory)?\s*(?:i{1,3}|iv|[1-4])|sch(?:edule)?\s*\d+|t\s*=\s*\d+|\d+\s*(?:mm|inch|in\b)|class\s*\d+|sa-?\d+|a\d{3}|qw-\d+|table\s+\d+|clause\s+\d+|section\s+[ivx\d]+|p-?no|grade\s*[0-9a-z]+|api\s*5l|api\s*5ct|4130|316l?|304l?|x52|x60|x65)\b/i.test(qClean);
+
+  if (isVagueQA && hasEquipment && !hasExplicitSpecifier) {
+    return false;
+  }
+
+  // Exact deterministic property table hits (e.g. QW-422, Table 341.3.2 undercut) with explicit parameters
+  const isDirectPropertyLookup = /\b(?:what is the|minimum|maximum|allowable|acceptable|limit|ratio|holding time|temperature|hardness|thickness|dwell time|lifting power|preheat|pwht|interpass|pressure)\b/i.test(qClean) &&
+    /\b(?:p-number|group number|group for|f-number|a-number|p-no|undercut|density|straightness|wear limit|mandrel|yield strength|tensile strength|hardness|preheat|pwht|hydrotest|hydrostatic|proof test|thickness|wall loss|charpy|impact|tolerance)\b/i.test(qClean);
+
+  const hasMaterialSpec = /\b(?:sa-?516|sa516|sa-?537|sa537|sa-?106|sa106|a106|a333|a53|api\s*5l|sa-?240|sa-?312|sa-?333|sa333|316l?|304l?|4130|x52|x60|x65|grade\s*[0-9a-z]+|gr(?:ade)?\s*[a-z0-9]+)\b/i.test(qClean);
+  const hasTableOrClause = /\b(?:qw-?422|qw-?452|qw-?466|qw-?403|qw-?424|table\s+[0-9a-z\.\-_]+|clause\s+[0-9a-z\.\-_]+|ug-[0-9]+|uw-[0-9]+|ucs-[0-9]+|341\.3\.2|345\.4|330\.1|331\.1|t-[0-9]{3})\b/i.test(qClean);
+
+  // Explicit equipment scope (e.g. Mast Category III, Piping Sch 40, Pressure Vessel SA-516)
+  if (hasEquipment && hasExplicitSpecifier) {
+    return true;
+  }
+
+  if (tableHits && tableHits.length > 0 && (hasExplicitSpecifier || hasTableOrClause || isDirectPropertyLookup)) return true;
+
   if (Array.isArray(entities) && entities.length > 0) {
     const hasClauseEnt = entities.some(e => e.type === 'clause' || e.type === 'table');
     const hasMaterialEnt = entities.some(e => e.type === 'material');
     const hasEquipmentEnt = entities.some(e => e.type === 'equipment');
     if (hasClauseEnt && (hasMaterialEnt || hasEquipmentEnt)) return true;
   }
-  const hasMaterialSpec = /\b(?:sa-?516|sa516|sa-?537|sa537|sa-?106|sa106|a106|a333|a53|api\s*5l|sa-?240|sa-?312|sa-?333|sa333|316l?|304l?|4130|x52|x60|x65|grade\s*[0-9a-z]+|gr(?:ade)?\s*[a-z0-9]+)\b/i.test(qClean);
-  const hasTableOrClause = /\b(?:qw-?422|qw-?452|qw-?466|qw-?403|qw-?424|table\s+[0-9a-z\.\-_]+|clause\s+[0-9a-z\.\-_]+|ug-[0-9]+|uw-[0-9]+|ucs-[0-9]+|341\.3\.2|345\.4|330\.1|331\.1|t-[0-9]{3})\b/i.test(qClean);
   if (hasMaterialSpec && hasTableOrClause) return true;
-  const isDirectPropertyLookup = /\b(?:what is the|minimum|maximum|allowable|acceptable|limit|ratio|holding time|temperature|hardness|thickness|dwell time|lifting power|preheat|pwht|interpass|pressure)\b/i.test(qClean) &&
-    /\b(?:p-number|group number|group for|f-number|a-number|p-no|undercut|density|straightness|wear limit|mandrel|yield strength|tensile strength|hardness|preheat|pwht|hydrotest|hydrostatic|proof test|thickness|wall loss|charpy|impact|tolerance)\b/i.test(qClean);
   if (isDirectPropertyLookup && (hasMaterialSpec || hasTableOrClause || /\b(?:api|asme|aws|nace|iso)\b/i.test(qClean) || (entities && entities.some(e => e.type === 'clause' || e.type === 'material')))) return true;
   if (/\b(?:qw\/?qb-?422|qw-?452|table\s+330\.1\.1|table\s+331\.1\.1|table\s+341\.3\.2|clause\s+345\.4\.2|table\s+t-?274|table\s+t-?672|table\s+t-?762|table\s+b\.1|clause\s+8\.[1-3]|clause\s+5\.1|clause\s+6\.1)\b/i.test(qClean)) return true;
   return false;
 }
 
-function getDeterministicTriageMcqs(qClean, entities = [], exactMatches = [], tableHits = []) {
-  if (isEntityClearQuery(qClean, entities, exactMatches, tableHits)) return null;
+function filterTriageMcqsByContext(mcqs, triageCtx = {}) {
+  if (!mcqs || !Array.isArray(mcqs)) return [];
+  if (!triageCtx || typeof triageCtx !== 'object') return mcqs.slice(0, 3);
+  const answeredKeys = Object.keys(triageCtx).map(k => k.trim().toLowerCase());
+  const filtered = mcqs.filter(m => !answeredKeys.includes((m.question || '').trim().toLowerCase()));
+  return filtered.slice(0, 3);
+}
+
+function getDeterministicTriageMcqs(qClean, entities = [], exactMatches = [], tableHits = [], triageCtx = {}, triage_action = null) {
+  if (triage_action === 'answer' || triage_action === 'skip') return null;
+  if (isEntityClearQuery(qClean, entities, exactMatches, tableHits, triage_action)) return null;
   const isWps = /(?:wps\b|welding procedure|pqr\b|welding spec|welding procedure specification|asme\s*(?:viii|8|ix|9|xi|11)|qw-?482|pressure vessel weld|pipe weld|إجراء لحام|مواصفة لحام|إجراءات اللحام|طريقة لحام|لحام)/i.test(qClean);
   const isNdt = /(?:ndt\s*(?:inspection\s*)?procedure|ut\s*procedure|ultrasonic\s*procedure|rt\s*procedure|radiographic\s*procedure|mpi\s*procedure|magnetic\s*particle\s*procedure|penetrant\s*procedure|dye\s*penetrant\s*procedure|how to inspect (?:weld|tank|pipe|vessel|flange)|فحص غير إتلافي|فحص لا إتلافي|إجراء فحص|طريقة فحص)/i.test(qClean);
   const isHydrotest = /(?:hydrotest procedure|hydrostatic test procedure|pressure test procedure|leak test procedure|pneumatic test procedure|how to hydrotest|hydrostatic test)/i.test(qClean);
@@ -5015,10 +5078,48 @@ function getDeterministicTriageMcqs(qClean, entities = [], exactMatches = [], ta
       ];
     }
   } else if (isHoisting) {
+    const isMast = /\b(?:mast|derrick)\b/i.test(qClean);
+    if (isMast) {
+      const hasCat = /\b(?:cat(?:egory)?\s*(?:i{1,3}|iv|[1-4]))\b/i.test(qClean);
+      const hasPurpose = /\b(?:periodic|in-service|pre-assembly|rig[\s\-]up|mobilization|post[\s\-]incident|accident)\b/i.test(qClean);
+      const hasCondition = /\b(?:used|in-service history|new|newly|overhaul|unknown service)\b/i.test(qClean);
+      const list = [];
+      if (!hasCat) {
+        list.push({
+          question: "Governing Inspection Category",
+          options: [
+            "Category I & II (Daily & Weekly Visual Rig Up Inspection)",
+            "Category III (Field NDT & Critical Weld Inspection per API RP 4G)",
+            "Category IV (Shop Teardown & Full Dimensional Audit per API RP 4G)"
+          ]
+        });
+      }
+      if (!hasPurpose) {
+        list.push({
+          question: "Inspection Purpose & Operating Timing",
+          options: [
+            "Periodic In-Service Operating Hours Inspection",
+            "Pre-Assembly / Rig-Up Mobilization Check",
+            "Post-Incident / Severe Environmental Loading Event"
+          ]
+        });
+      }
+      if (!hasCondition) {
+        list.push({
+          question: "Equipment Condition & Operating History",
+          options: [
+            "In-Service Used Mast (Routine Maintenance History)",
+            "Newly Manufactured or Fully Overhauled Mast",
+            "Unknown Service Life / Transferred Rig Structure"
+          ]
+        });
+      }
+      return filterTriageMcqsByContext(list, triageCtx);
+    }
     const hasCat = /(?:cat(?:egory)?\s*(?:i{1,3}|iv|1|2|3|4)|overhaul)/i.test(qClean);
     const hasEquip = /(?:elevator|links|bail|hook|swivel|block|sheave|mast|derrick)/i.test(qClean);
     if (!hasCat || !hasEquip) {
-      return [
+      return filterTriageMcqsByContext([
         {
           question: "Hoisting / Structural Equipment Scope",
           options: ["Drilling Elevators (Center Latch / Slip Type)", "Elevator Links / Bails (Double / Single Hook)", "Crown & Traveling Block Sheaves", "Derrick / Mast Structural Frame (API RP 4G)"]
@@ -5031,7 +5132,7 @@ function getDeterministicTriageMcqs(qClean, entities = [], exactMatches = [], ta
           question: "Governing Standard Policy",
           options: ["API RP 8B / RP 4G International Baseline", "OEM Procedure (NOV, Varco, Cameron) / Contractor Spec"]
         }
-      ];
+      ], triageCtx);
     }
   } else if (isTubular) {
     const hasClass = /(?:premium|class 2|class 3|ds-1|80%|70%)/i.test(qClean);
@@ -5099,6 +5200,88 @@ function detectOutOfScopeStandard(question) {
     if (match) return match[1];
   }
   return null;
+}
+
+// =========================================================================
+// 🛡️ TABLE FABRICATION GUARD & SANITIZER
+// =========================================================================
+
+function stripMarkdownTablesCompletely(text) {
+  if (!text || typeof text !== 'string') return text;
+  const tableRegex = /(?:(?:\*{1,2}|#{1,4})[^\n]*(?:Table|Summary|Action|Parameter|Matrix)[^\n]*\*{0,2}\s*\n+)?(?:\|[^\n]+\|\r?\n?){2,}/gi;
+  let cleaned = text.replace(tableRegex, '');
+  cleaned = cleaned.replace(/(?:^|\n)\|[^\n]+\|(?:$|\n)/g, '\n');
+  return cleaned.replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function sanitizeDraftTables(answerText, sources = [], envelopeContext = '', answerDepth = 'medium') {
+  if (!answerText || typeof answerText !== 'string') return answerText;
+
+  // Rule 1: At depth=low, tables are STRICTLY FORBIDDEN
+  if (answerDepth === 'low') {
+    return stripMarkdownTablesCompletely(answerText);
+  }
+
+  // Rule 2: At depth=medium / high, tables are allowed ONLY if cells map to retrieved sources / envelopes
+  const rawRef = ((sources || []).map(s => (s.standard || '') + ' ' + (s.clause || '') + ' ' + (s.content || '')).join('\n') + '\n' + (envelopeContext || '')).toLowerCase();
+  const normRef = rawRef.replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+
+  const lines = answerText.split('\n');
+  const resultLines = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+      const tableLines = [];
+      let precedingTitleIdx = -1;
+      for (let k = resultLines.length - 1; k >= 0; k--) {
+        if (!resultLines[k].trim()) continue;
+        if (/^\s*(?:\*{1,2}|#{1,4})[^\n]*(?:Table|Summary|Action|Parameter|Matrix)/i.test(resultLines[k])) {
+          precedingTitleIdx = k;
+        }
+        break;
+      }
+      while (i < lines.length && lines[i].trim().startsWith('|') && lines[i].trim().endsWith('|')) {
+        tableLines.push(lines[i]);
+        i++;
+      }
+      if (tableLines.length >= 2) {
+        const header = tableLines[0];
+        const separator = tableLines[1];
+        const dataRows = tableLines.slice(2);
+        const validDataRows = [];
+        for (const row of dataRows) {
+          const rowNumbers = row.match(/\b(?:\d+(?:\.\d+)?)\s*(?:°C|°F|HRC|HBW|psi|bar|ksi|mm|inch|in\.|ft-lbs|Joule|J\b|%|years?|days?|hours?|hrs?|minutes?|min\b|MPa|GPa|kPa|N\/mm2?)\b/gi) || [];
+          const rowRanges = row.match(/\b\d+\s*-\s*\d+\s*(?:hours?|hrs?|days?|mm|psi|bar|°[cf])\b/gi) || [];
+          const claims = [...rowNumbers, ...rowRanges];
+          let rowGrounded = true;
+          for (const claim of claims) {
+            const normClaim = claim.toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+            const rawClaimClean = claim.toLowerCase().replace(/\s+/g, '');
+            const rawRefClean = rawRef.replace(/\s+/g, '');
+            if (!normRef.includes(normClaim) && !rawRefClean.includes(rawClaimClean)) {
+              rowGrounded = false;
+              break;
+            }
+          }
+          if (rowGrounded) {
+            validDataRows.push(row);
+          }
+        }
+        if (validDataRows.length > 0) {
+          resultLines.push(header, separator, ...validDataRows);
+        } else {
+          if (precedingTitleIdx >= 0) {
+            resultLines.splice(precedingTitleIdx, resultLines.length - precedingTitleIdx);
+          }
+        }
+      }
+    } else {
+      resultLines.push(line);
+      i++;
+    }
+  }
+  return resultLines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
 function verifyAnswerGrounding(answer, sources, envelopeContext) {
@@ -5193,7 +5376,30 @@ function verifyAnswerGrounding(answer, sources, envelopeContext) {
     }
   }
 
-  // 5. Extract Best Verbatim Evidence Quote from top cited source chunk (<=300 chars)
+  // 5. Verify Table Content Grounding (UNSOURCED_TABLE_CONTENT guard)
+  const tableRowMatches = answer.match(/^\|[^\n]+\|$/gm) || [];
+  for (const row of tableRowMatches) {
+    if (/^\|\s*[-:\s|]+\s*\|$/.test(row)) continue;
+    if (/standard|clause|governing|parameter|critical|inspection/i.test(row) && /table|hard numbers|filler metal|timing/i.test(row)) continue;
+
+    const rowNumbers = row.match(/\b(?:\d+(?:\.\d+)?)\s*(?:°C|°F|HRC|HBW|psi|bar|ksi|mm|inch|in\.|ft-lbs|Joule|J\b|%|years?|days?|hours?|hrs?|minutes?|min\b|MPa|GPa|kPa|N\/mm2?)\b/gi) || [];
+    const rowRanges = row.match(/\b\d+\s*-\s*\d+\s*(?:hours?|hrs?|days?|mm|psi|bar|°[cf])\b/gi) || [];
+    const tableNumericClaims = [...rowNumbers, ...rowRanges];
+
+    for (const claim of tableNumericClaims) {
+      totalClaims++;
+      const normClaim = norm(claim);
+      const rawClaimClean = claim.toLowerCase().replace(/\s+/g, '');
+      const rawRefClean = rawRef.replace(/\s+/g, '');
+      if (normRef.includes(normClaim) || rawRefClean.includes(rawClaimClean)) {
+        verifiedClaims++;
+      } else {
+        flags.push({ type: 'UNSOURCED_TABLE_CONTENT', claim: 'Table row claim: ' + claim });
+      }
+    }
+  }
+
+  // 6. Extract Best Verbatim Evidence Quote from top cited source chunk (<=300 chars)
   let bestQuote = '';
   let evidenceObj = null;
 
@@ -5459,7 +5665,7 @@ function collapseRepetitiveLoops(text) {
   return cleanLines.join('\n').trim();
 }
 
-async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = [], mode = 'web', selected_standards = [], answer_depth = 'medium') {
+async function prepareContextAndMessages(c, question, language, session_id, standard_filter, history = [], mode = 'web', selected_standards = [], answer_depth = 'medium', triage_ctx = null, triage_action = null, triage_rounds_used = 0) {
   const APP_NAME = c.env.APP_NAME || 'Q-Grey';
   const tPrepStart = Date.now();
   let retrievalMs = 0;
@@ -5769,15 +5975,12 @@ MAJOR RULE 1 — TWO-SENTENCE OPENING (DIRECT VERDICT + WHY THIS ANSWER IS RIGHT
 Inspectors on-site, under turnaround, or during shutdown are under intense pressure to make immediate decisions. You MUST format the very beginning using the Assertion-Justification Protocol:
 1. SENTENCE 1 — THE DIRECT VERDICT (ZERO INTRODUCTIONS):
    - State the exact answer, numerical determination, and governing standard/clause immediately.
-   - STRICT PROHIBITION ON THROAT-CLEARING: NEVER begin with "Based on...", "According to...", "In this response...", "Here is...", or any greeting. NEVER output internal reasoning monologue (e.g. "Let me analyze...", "I will answer..."). The very first word must be the bold determination itself (e.g., "**MANDATORY QUALIFIED PQR REQUIRED:** Welding Grade 50 (P-No. 1) to AISI 4130 (P-No. 4)...").
+   - STRICT PROHIBITION ON THROAT-CLEARING: NEVER begin with "Based on...", "According to...", "In this response...", "Here is...", or any greeting. NEVER output internal reasoning monologue (e.g. "Let me analyze...", "I will answer..."). The very first word must be the bold determination itself (e.g., "**VERIFIED CODE DETERMINATION:** <exact numerical limit, tolerance, or disposition>").
 2. SENTENCE 2 TO 3 — WHY THIS ANSWER IS RIGHT (PHYSICAL & CODE JUSTIFICATION):
-   - Immediately explain WHY this answer is physically, metallurgically, and legally correct in 1 to 2 sentences (e.g., explain high hardenability/carbon equivalent CE ≈ 0.65% causing hydrogen-induced cracking without preheat, and heavy wall thickness t = 19.05 mm exceeding the ASME B31.3 Table 331.1.1 boundary requiring PWHT to relieve residual stress and maintain hardness ≤ 22 HRC).
-3. 4-POINT FIELD PARAMETER BOX (FIELD ACTION SUMMARY):
-   Immediately follow the two opening sentences with a compact, high-contrast parameter box:
-   - **Governing Standard & Table Row:** Exact standard edition and specific clause/table.
-   - **Critical Hard Numbers:** Exact temperatures (Preheat, Interpass, PWHT soak range), minimum soak duration, and maximum hardness limits in both Metric SI and USC units.
-   - **Filler Metal & Process:** Exact SFA/AWS classification (e.g., ER80S-D2 / E8018-D2), F-No., and A-No.
-   - **Inspection Timing & Delay Windows:** Specific hold points, test frequencies, and mandatory delays (e.g., 100% VT at fit-up, volumetric RT/UT delayed 24 to 48 hours post-PWHT to detect delayed hydrogen cracking).
+   - Immediately explain WHY this answer is physically and code-compliant in 1 to 2 sentences citing the governing clause and underlying engineering mechanism.
+3. FIELD PARAMETERS (APPLICABLE ONLY WHEN RELEVANT & GROUNDED):
+   - Only include parameter boxes if the inquiry specifically asks for procedure parameters AND the parameters are grounded in retrieved chunks or safety envelopes.
+   - STRICT PROHIBITION: NEVER fabricate or output welding parameters (like "24 to 48 hours post-PWHT" or filler metals) for non-welding inspection queries (such as mast/derrick structural inspections or hydrostatic tests)!
 
 MAJOR RULE 2 — ZERO UNSOLICITED FORMULA CLUTTER (SPECIFIC NUMBERS OVER ALGEBRA):
 - Do NOT display generic algebraic equations (e.g., do NOT print t = PR/(SE - 0.6P) or Barlow's equation) unless the user explicitly requested a mathematical calculation! Give the exact resulting numbers, tolerances, and retirement thresholds directly.
@@ -6318,10 +6521,10 @@ ${contextText}
   // ==========================================
   const qClean = question.toLowerCase();
 
-  const isClear = isEntityClearQuery(question, detectedEntities, exactMatches, tableHits);
+  const isClear = isEntityClearQuery(question, detectedEntities, exactMatches, tableHits, triage_action);
 
   // 1. Discipline Detectors
-  const deterministicTriageMcqs = isClear ? null : getDeterministicTriageMcqs(qClean, detectedEntities, exactMatches, tableHits);
+  const deterministicTriageMcqs = isClear ? null : getDeterministicTriageMcqs(qClean, detectedEntities, exactMatches, tableHits, triage_ctx, triage_action);
   const isWps = /(?:wps\b|welding procedure|pqr\b|welding spec|welding procedure specification|asme\s*(?:viii|8|ix|9|xi|11)|qw-?482|pressure vessel weld|pipe weld)/i.test(qClean);
   const isNdt = /(?:ndt\s*(?:inspection\s*)?procedure|ut\s*procedure|ultrasonic\s*procedure|rt\s*procedure|radiographic\s*procedure|mpi\s*procedure|magnetic\s*particle\s*procedure|penetrant\s*procedure|dye\s*penetrant\s*procedure|how to inspect (?:weld|tank|pipe|vessel|flange))/i.test(qClean);
   const isHydrotest = /(?:hydrotest procedure|hydrostatic test procedure|pressure test procedure|leak test procedure|pneumatic test procedure|how to hydrotest|hydrostatic test)/i.test(qClean);
@@ -6626,9 +6829,27 @@ Generate a complete, step-by-step BOP Pressure Test Sequence:
   }
   // Answer Depth Directive
   if (answer_depth === 'low') {
-    systemPrompt += `\n[ANSWER DEPTH DIRECTIVE: FAST (LOW)]\nProvide a concise, direct, single-focus engineering answer. State the short direct answer first with specific values and units, followed by the exact code clause. MANDATORY: Include at least one verbatim evidence line quoting the exact normative code text/table values directly from the retrieved sources so verification claims match. Strictly skip cross-standard comparisons, delta matrices, and algebraic derivations.\n`;
+    systemPrompt += `\n[ANSWER DEPTH DIRECTIVE: FAST (LOW) - NON-NEGOTIABLE 3-BLOCK TEMPLATE]
+STRICT RULES:
+1. MAXIMUM 90 WORDS. NEVER OUTPUT ANY MARKDOWN TABLES (tables are strictly forbidden in low depth).
+2. Follow this exact 3-block structure:
+   - Block 1: "Most probable interpretation: <single sentence stating the interpretation>."
+   - Block 2: Direct answer grounded ONLY in retrieved chunks (every hard number or requirement must trace to a source clause; if the chunks don't state it, write "not specified in the retrieved corpus"; MANDATORY: include at least one verbatim evidence line quoting the exact normative code text).
+   - Block 3: "Next: <exactly ONE concise clarifying question (e.g. category? service type? new/used history?)>."
+3. Strictly skip cross-standard comparisons, delta matrices, and algebraic derivations.\n`;
   } else if (answer_depth === 'high') {
     systemPrompt += `\n[ANSWER DEPTH DIRECTIVE: THINK (HIGH)]\nProvide an exhaustive Level III engineering audit. Include relevant cross-standard comparisons, detailed calculation worked examples with full units where applicable, and a dedicated 'Checks & Context' section verifying metallurgical boundaries and code edition limits.\n`;
+  }
+
+  if (triage_action === 'answer' && triage_ctx && typeof triage_ctx === 'object') {
+    const scopeList = Object.entries(triage_ctx).map(([k, v]) => `- ${k}: ${v}`).join('\n');
+    systemPrompt += `\n[CONFIRMED TRIAGE SCOPE DIRECTIVE]:
+The user has explicitly approved the following inspection scope:
+${scopeList}
+Provide the definitive code-grounded engineering procedure and acceptance criteria strictly for this approved scope. MANDATORY: Ground all statements in retrieved sources, include exact citations, and provide verbatim evidence quotes. DO NOT invent or fabricate any tables or unsourced requirements.\n`;
+  } else if (triage_action === 'skip') {
+    systemPrompt += `\n[USER CHOSE TO SKIP TRIAGE]:
+The user skipped detailed triage and requested a broad short answer. Strictly adhere to the 3-block low-depth template (Most probable interpretation, direct grounded answer with verbatim quote, and Next: clarifying question). Zero tables.\n`;
   }
 
   // Prepend Database Taxonomy & Equipment Governance Directive (Absolute Highest Priority)
@@ -6649,7 +6870,7 @@ app.post('/api/ask', async (c) => {
   const reqStartTime = Date.now();
   try {
     const rawReqBody = await c.req.json()
-    const { question, language, session_id, standard_filter, history, mode = 'web', selected_standards = [] } = rawReqBody
+    const { question, language, session_id, standard_filter, history, mode = 'web', selected_standards = [], triage_ctx = null, triage_action = null, triage_rounds_used = 0 } = rawReqBody
     
     // Phase 11: Role Detection (Item 3) & Dynamic Rename Hook (Item 4)
     const adminHeaderToken = c.req.header('X-Admin-Token') || c.req.header('x-admin-token') || (c.req.header('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
@@ -6666,7 +6887,8 @@ app.post('/api/ask', async (c) => {
     if (!question || !session_id) return c.json({ error: 'Missing fields' }, 400)
 
     // ⚡ Phase P3.6 & FIX A: Versioned SHA-256 Semantic Query Cache Lookup
-    const cacheKeyRaw = `v${CACHE_SCHEMA_VERSION}_${effectiveAnswerDepth}_${(question || '').trim().toLowerCase()}_${standard_filter || 'ALL'}_${(selected_standards || []).sort().join(',')}`;
+    const normTriage = triage_ctx ? Object.entries(triage_ctx).sort((a,b) => a[0].localeCompare(b[0])).map(([k,v]) => `${k}:${v}`).join('|') : '';
+    const cacheKeyRaw = `v${CACHE_SCHEMA_VERSION}_${effectiveAnswerDepth}_${(question || '').trim().toLowerCase()}_${standard_filter || 'ALL'}_${(selected_standards || []).sort().join(',')}_triage_${normTriage}_act_${triage_action || 'none'}`;
     let queryHash = null;
     try {
       const qhBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(cacheKeyRaw));
@@ -6693,7 +6915,7 @@ app.post('/api/ask', async (c) => {
         let cachedSources = [];
         try { cachedSources = JSON.parse(cached.sources_json || '[]'); } catch(e){}
         const cachedCleanAnswer = (cached.answer || '').replace(/<!--MCQ:\s*(\[[\s\S]*?\])\s*-->/gi, '').replace(/<!--FOLLOWUPS:\s*(\[[\s\S]*?\])\s*-->/gi, '').trim();
-        const cachedTriageMcqs = isEntityClearQuery(question) ? [] : (getDeterministicTriageMcqs(question) || []);
+        const cachedTriageMcqs = isEntityClearQuery(question, [], [], [], triage_action) ? [] : (getDeterministicTriageMcqs(question, [], [], [], triage_ctx, triage_action) || []);
         
         let cachedGrounding = null;
         try { if (cached.grounding_json) cachedGrounding = JSON.parse(cached.grounding_json); } catch(e){}
@@ -6786,7 +7008,7 @@ app.post('/api/ask', async (c) => {
     
     let contextData
     try {
-      contextData = await prepareContextAndMessages(c, question, language, session_id, standard_filter, history, mode, selected_standards, effectiveAnswerDepth)
+      contextData = await prepareContextAndMessages(c, question, language, session_id, standard_filter, history, mode, selected_standards, effectiveAnswerDepth, triage_ctx, triage_action, triage_rounds_used)
     } catch(e) {
       if (e.message === 'RATE_LIMIT') return c.json({ error: 'Limit reached' }, 429)
       throw e
@@ -6882,6 +7104,7 @@ app.post('/api/ask', async (c) => {
     }
 
     const { messages, sources, today, deterministicTriageMcqs, isEntityClear = false, tableHits = [], retrievalMs = 0, tableMs = 0 } = contextData
+        const triageResolvedStr = (triage_ctx && typeof triage_ctx === 'object') ? Object.entries(triage_ctx).map(([k, v]) => `${k}: ${v}`).join('; ') : '';
     const isStreamRequested = Boolean(c.req.query('stream') === 'true' || c.req.header('Accept')?.includes('text/event-stream'))
 
     // Step 0: Load Safety Envelopes for Fast Path, Critic Agent, and Grounding Verifier
@@ -6978,12 +7201,13 @@ app.post('/api/ask', async (c) => {
               CACHE_SCHEMA_VERSION, JSON.stringify(grounding)
             ).run() : Promise.resolve(),
             c.env.DB.prepare(`
-              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, triage_resolved_entities, triage_action)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               crypto.randomUUID(), session_id, question.slice(0, 300), standard_filter || 'ALL',
               100, 'VERIFIED_CODE_GROUNDED', 'deterministic_table', 'SpecSupport-Deterministic-Table-Engine',
-              totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, (fastPathResult.mode || 'FASTPATH_TABLE'), effectiveAnswerDepth, providerRole
+              totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, (fastPathResult.mode || 'FASTPATH_TABLE'), effectiveAnswerDepth, providerRole,
+              0, null, null
             ).run(),
             c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(
               session_id, question, 'SpecSupport-Deterministic-Table-Engine', today
@@ -7011,12 +7235,13 @@ app.post('/api/ask', async (c) => {
               CACHE_SCHEMA_VERSION, JSON.stringify(grounding)
             ).run() : Promise.resolve(),
             c.env.DB.prepare(`
-              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, triage_resolved_entities, triage_action)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               crypto.randomUUID(), session_id, question.slice(0, 300), standard_filter || 'ALL',
               100, 'VERIFIED_CODE_GROUNDED', 'deterministic_table', 'SpecSupport-Deterministic-Table-Engine',
-              totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, (fastPathResult.mode || 'FASTPATH_TABLE'), effectiveAnswerDepth, providerRole
+              totalDurationMs, retrievalMs, tableMs, 0, 0, verifierMs, (fastPathResult.mode || 'FASTPATH_TABLE'), effectiveAnswerDepth, providerRole,
+              0, null, null
             ).run(),
             c.env.DB.prepare(`INSERT INTO usage_log (session_id, question, model_used, date) VALUES (?, ?, ?, ?)`).bind(
               session_id, question, 'SpecSupport-Deterministic-Table-Engine', today
@@ -7076,18 +7301,23 @@ app.post('/api/ask', async (c) => {
       draftAnswer = `AI Error: ${draftJson?.error?.message || JSON.stringify(draftJson)}`
     }
 
+    // Table Fabrication Guard: Sanitize post-DRAFT tables before verifier
+    draftAnswer = sanitizeDraftTables(draftAnswer, sources, envelopeContext || "", effectiveAnswerDepth)
+
     // Step 2: Prepare Pass 2 (Critic Agent) with Answer-Depth Governance
     let criticMessages = messages
     let loopPasses = 1
     let criticModelUsed = draftRes.model
 
     const draftGroundingCheck = verifyAnswerGrounding(draftAnswer, sources, envelopeContext || "")
+    const hasUnsourcedTableInDraft = draftGroundingCheck.flags.some(f => f.type === 'UNSOURCED_TABLE_CONTENT')
+
     let shouldRunCritic = false
     if (draftAnswer && !draftAnswer.startsWith('AI Error:') && draftAnswer.length > 50) {
       if (effectiveAnswerDepth === 'high') {
         shouldRunCritic = true // Critic MANDATORY on Think depth
       } else if (effectiveAnswerDepth === 'low') {
-        shouldRunCritic = (draftGroundingCheck.score_pct < 50) // ONLY if grounding < 50 on Fast depth
+        shouldRunCritic = (draftGroundingCheck.score_pct < 50 || hasUnsourcedTableInDraft) // ONLY if grounding < 50 or table fabrication
       } else {
         shouldRunCritic = true // Medium depth: standard behavior
       }
@@ -7218,6 +7448,7 @@ app.post('/api/ask', async (c) => {
                 "What are common false indications observed in field inspection?"
               ];
 
+              streamedFullText = sanitizeDraftTables(streamedFullText, sources, contextData.envelopeContextText || "", effectiveAnswerDepth);
               const tVerifierStart = Date.now();
               const streamGroundingResult = verifyAnswerGrounding(
                 streamedFullText,
@@ -7246,8 +7477,8 @@ app.post('/api/ask', async (c) => {
                     JSON.stringify(streamGroundingResult)
                   ).run() : Promise.resolve(),
                   c.env.DB.prepare(`
-                    INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, triage_resolved_entities, triage_action)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                   `).bind(
                     crypto.randomUUID(),
                     session_id,
@@ -7265,7 +7496,10 @@ app.post('/api/ask', async (c) => {
                     verifierMs || 0,
                     mode || 'standards',
                     effectiveAnswerDepth,
-                    providerRole
+                    providerRole,
+                    parseInt(triage_rounds_used || 0),
+                    triageResolvedStr || null,
+                    triage_action || null
                   ).run()
                 ]));
               } catch(e) {}
@@ -7332,7 +7566,7 @@ app.post('/api/ask', async (c) => {
         if (criticJson && criticJson.choices && criticJson.choices[0]?.message?.content) {
           const refinedAnswer = collapseRepetitiveLoops(criticJson.choices[0].message.content.trim())
           if (refinedAnswer.length > 80 && !refinedAnswer.startsWith('AI Error:') && !/^Let me (?:analyze|audit|think|review)/i.test(refinedAnswer)) {
-            answer = refinedAnswer
+            answer = sanitizeDraftTables(refinedAnswer, sources, envelopeContext || "", effectiveAnswerDepth)
             criticModelUsed = criticResp.model || draftRes.model
           }
         }
@@ -7431,8 +7665,8 @@ app.post('/api/ask', async (c) => {
             JSON.stringify(groundingResult)
           ).run() : Promise.resolve(),
           c.env.DB.prepare(`
-            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, triage_resolved_entities, triage_action)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `).bind(
             crypto.randomUUID(),
             session_id,
@@ -7450,7 +7684,10 @@ app.post('/api/ask', async (c) => {
             verifierMs || 0,
             mode || 'standards',
             effectiveAnswerDepth,
-            providerRole
+            providerRole,
+            parseInt(triage_rounds_used || 0),
+            triageResolvedStr || null,
+            triage_action || null
           ).run()
         ]));
       }
@@ -7501,12 +7738,13 @@ app.post('/api/ask', async (c) => {
 
         c.executionCtx?.waitUntil(
           c.env.DB.prepare(`
-            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO request_traces (id, session_id, question, standard_filter, grounding_score, evidence_badge, provider, model, duration_ms, retrieval_ms, table_ms, draft_ms, critic_ms, verifier_ms, mode, answer_depth, provider_role, triage_rounds_used, triage_resolved_entities, triage_action)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `).bind(
             crypto.randomUUID(), 'session-quota', 'QUOTA_EXHAUSTED_4006', 'ALL',
             0, 'CALIBRATED_ABSTENTION', 'cloudflare', modelToLog,
-            totalDurationMs, 0, 0, 0, 0, 0, 'standards', 'low', pRole
+            totalDurationMs, 0, 0, 0, 0, 0, 'standards', 'low', pRole,
+            0, null, null
           ).run().catch(() => {})
         );
       } catch(logErr) {}
